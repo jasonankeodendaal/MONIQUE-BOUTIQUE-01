@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -183,26 +184,28 @@ const App: React.FC = () => {
                
                try {
                   const localSettings = safeJSONParse('site_settings', null);
-                  if (localSettings) {
-                      setSettings(localSettings);
-                      // Only attempt cloud sync if we have local data
-                      setSaveStatus('migrating');
-                      await syncLocalToCloud('settings', 'site_settings');
-                      await syncLocalToCloud('products', 'admin_products');
-                      await syncLocalToCloud('categories', 'admin_categories');
-                      await syncLocalToCloud('subcategories', 'admin_subcategories');
-                      await syncLocalToCloud('carousel_slides', 'admin_hero');
-                      await syncLocalToCloud('enquiries', 'admin_enquiries');
-                      await syncLocalToCloud('admin_users', 'admin_users');
-                      await syncLocalToCloud('product_stats', 'admin_product_stats');
-                  } else {
-                      // No local data, try to initialize cloud with defaults
-                      await upsertData('settings', INITIAL_SETTINGS);
-                      setSettings(INITIAL_SETTINGS);
-                  }
+                  // Ensure ID is present for the single row
+                  const settingsToSync = { 
+                      ...(localSettings || INITIAL_SETTINGS), 
+                      id: 'global_settings' // <--- CRITICAL FIX: Explicitly set ID
+                  };
+
+                  setSettings(settingsToSync);
+                  setSaveStatus('migrating');
+                  
+                  // Upsert settings with ID specifically
+                  await upsertData('settings', settingsToSync);
+
+                  // Sync other tables
+                  await syncLocalToCloud('products', 'admin_products');
+                  await syncLocalToCloud('categories', 'admin_categories');
+                  await syncLocalToCloud('subcategories', 'admin_subcategories');
+                  await syncLocalToCloud('carousel_slides', 'admin_hero');
+                  await syncLocalToCloud('enquiries', 'admin_enquiries');
+                  await syncLocalToCloud('admin_users', 'admin_users');
+                  await syncLocalToCloud('product_stats', 'admin_product_stats');
                } catch (migrationError) {
-                  console.warn("Migration/Init failed (likely RLS write restriction for anon):", migrationError);
-                  // Ensure settings is valid even if migration fails
+                  console.warn("Migration/Init failed:", migrationError);
                   setSettings(prev => prev || INITIAL_SETTINGS);
                }
            }
@@ -249,6 +252,7 @@ const App: React.FC = () => {
     
     if (isSupabaseConfigured && isDatabaseProvisioned) {
       try {
+        // Ensure ID is always sent with updates
         const payload = { ...updated, id: 'global_settings' }; 
         await upsertData('settings', payload);
         setSaveStatus('saved');
