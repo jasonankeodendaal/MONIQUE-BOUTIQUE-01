@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
+console.log("Starting Kasi Couture App Initialization...");
+
 interface ErrorBoundaryProps {
   children?: React.ReactNode;
 }

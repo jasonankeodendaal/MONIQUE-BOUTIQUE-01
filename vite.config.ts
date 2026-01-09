@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  // Use absolute base path for production custom domains to avoid 404s on assets
-  base: '/',
+  // Use relative base path to ensure assets load correctly in any subdirectory or environment
+  base: './',
   server: {
     port: 3000,
   },

@@ -61,7 +61,6 @@
         text-wrap: pretty;
       }
     </style>
-
 <script type="importmap">
 {
   "imports": {
@@ -85,7 +84,8 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          // Use relative path for SW to work in subdirectories
+          navigator.serviceWorker.register('./sw.js')
             .then(registration => {
               console.log('SW registered: ', registration);
             })
