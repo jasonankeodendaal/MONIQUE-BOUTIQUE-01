@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -6,6 +5,16 @@ const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
+
+// Log status to help user debug connection issues
+if (!supabaseUrl) {
+  console.warn("%c[Supabase] URL not found.", "color: orange; font-weight: bold;");
+  console.log("To fix: Create a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY");
+} else if (!supabaseUrl.includes('supabase.co')) {
+  console.warn("%c[Supabase] Invalid URL format.", "color: red; font-weight: bold;", supabaseUrl);
+} else {
+  console.log("%c[Supabase] Configuration detected.", "color: green; font-weight: bold;");
+}
 
 // STRICT CHECK: Only configured if URL is present AND contains supabase.co
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
