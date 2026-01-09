@@ -3,8 +3,9 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  // Use relative base path to ensure assets load correctly in any subdirectory
-  base: './',
+  // CRITICAL FIX: Use absolute path '/' instead of relative './' to ensure 
+  // assets load correctly from any sub-route (e.g. /admin, /login) on Vercel/Netlify.
+  base: '/',
   server: {
     port: 3000,
   },

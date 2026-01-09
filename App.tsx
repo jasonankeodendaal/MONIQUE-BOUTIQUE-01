@@ -42,7 +42,10 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loadingAuth, isLocalMode } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <p className="text-slate-500 text-xs font-black uppercase tracking-widest animate-pulse">Establishing Secure Connection...</p>
+      </div>
     </div>
   );
   if (isLocalMode) return <>{children}</>;
@@ -207,12 +210,24 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // 1. Start data refresh
     refreshAllData();
+
+    // 2. Start Auth check
     if (isSupabaseConfigured) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        setLoadingAuth(false);
-      });
+      supabase.auth.getSession()
+        .then(({ data: { session } }) => {
+          setUser(session?.user ?? null);
+        })
+        .catch((err) => {
+          console.error("Critical Auth Error:", err);
+          // Don't let auth errors crash the whole app loading process
+        })
+        .finally(() => {
+          // CRITICAL FIX: Ensure loading is ALWAYS turned off, success or fail
+          setLoadingAuth(false);
+        });
+
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
       });
