@@ -1,7 +1,6 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag } from 'lucide-react';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../constants';
 import { useSettings } from '../App';
 import { Product, ProductStats, Review } from '../types';
@@ -282,19 +281,21 @@ const ProductDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Actions */}
+            {/* HIGH CONVERSION ACTION BUTTON */}
             <div className="flex flex-col gap-4 py-8 border-y border-slate-100">
                <a 
                  href={product.affiliateLink} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  onClick={handleTrackClick}
-                 className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
+                 className="w-full py-6 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-sm rounded-full hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 group animate-pulse hover:animate-none"
                >
                  <span>Secure Acquisition</span>
-                 <ExternalLink size={16} />
+                 <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
                </a>
-               <p className="text-[10px] text-center text-slate-400">Transactions processed securely by our authorized retail partner.</p>
+               <p className="text-[10px] text-center text-slate-400 flex items-center justify-center gap-1">
+                 <ShoppingBag size={10} /> Transactions processed securely by retail partner
+               </p>
             </div>
 
             {/* Description */}

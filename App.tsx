@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -24,6 +23,7 @@ interface SettingsContextType {
   user: User | null;
   loadingAuth: boolean;
   isLocalMode: boolean;
+  isDatabaseProvisioned: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
   logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
@@ -107,8 +107,14 @@ const ScrollToTop = () => {
   return null;
 };
 
-const SaveStatusIndicator = ({ status }: { status: SaveStatus }) => {
-  if (status === 'idle') return null;
+const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, isProvisioned: boolean }) => {
+  if (status === 'idle' && isProvisioned) return null;
+  
+  if (!isProvisioned && status === 'idle') {
+    // Optional: Only show to admins or suppress if you want a cleaner look
+    return null; 
+  }
+
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl transition-all duration-300 ${
       status === 'error' ? 'bg-red-500 text-white' : 'bg-slate-900 text-white border border-slate-800'
@@ -142,48 +148,54 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(true);
 
   const refreshAllData = async () => {
     setSaveStatus('saving');
     try {
       if (isSupabaseConfigured) {
-        // Attempt to fetch settings first
+        // Attempt to fetch settings first. If DB is missing tables, lib/supabase catches 404 and returns local data
         const remoteSettings = await fetchTableData('settings');
         
-        // --- MIGRATION LOGIC ---
-        // If settings table is empty, we assume it's a fresh DB and migrate local data
+        // If we got empty settings, try to initialize, unless we know DB is missing
         if (!remoteSettings || remoteSettings.length === 0) {
-          console.log("Supabase seems empty. Checking for local data to migrate...");
-          
-          const localSettings = localStorage.getItem('site_settings');
-          
-          if (localSettings) {
-             setSaveStatus('migrating');
-             // Perform migration for all entities
-             await syncLocalToCloud('settings', 'site_settings');
-             await syncLocalToCloud('products', 'admin_products');
-             await syncLocalToCloud('categories', 'admin_categories');
-             await syncLocalToCloud('subcategories', 'admin_subcategories');
-             await syncLocalToCloud('carousel_slides', 'admin_hero');
-             await syncLocalToCloud('enquiries', 'admin_enquiries');
-             await syncLocalToCloud('admin_users', 'admin_users');
-             await syncLocalToCloud('product_stats', 'admin_product_stats');
-             
-             // After migration, load the migrated settings
-             setSettings(JSON.parse(localSettings));
-          } else {
-             // If no local data either, ensure initial settings are saved
-             await upsertData('settings', INITIAL_SETTINGS);
-             setSettings(INITIAL_SETTINGS);
-          }
+           // Try to upsert to check if table exists
+           const { error } = await supabase.from('settings').select('count').limit(1);
+           
+           if (error && (error.code === '42P01' || error.message.includes('404'))) {
+               console.log("Database tables missing. Running in Local Mode with Cloud Configured.");
+               setIsDatabaseProvisioned(false);
+               // Load from local storage
+               const local = localStorage.getItem('site_settings');
+               if (local) setSettings(JSON.parse(local));
+           } else {
+               // Table exists but is empty, perform migration
+               console.log("Supabase empty but tables exist. Migrating...");
+               const localSettings = localStorage.getItem('site_settings');
+               
+               if (localSettings) {
+                   setSaveStatus('migrating');
+                   await syncLocalToCloud('settings', 'site_settings');
+                   await syncLocalToCloud('products', 'admin_products');
+                   await syncLocalToCloud('categories', 'admin_categories');
+                   await syncLocalToCloud('subcategories', 'admin_subcategories');
+                   await syncLocalToCloud('carousel_slides', 'admin_hero');
+                   await syncLocalToCloud('enquiries', 'admin_enquiries');
+                   await syncLocalToCloud('admin_users', 'admin_users');
+                   await syncLocalToCloud('product_stats', 'admin_product_stats');
+                   setSettings(JSON.parse(localSettings));
+               } else {
+                   await upsertData('settings', INITIAL_SETTINGS);
+                   setSettings(INITIAL_SETTINGS);
+               }
+           }
         } else {
-          // Normal Load
+          setIsDatabaseProvisioned(true);
           setSettings(remoteSettings[0] as SiteSettings);
-          // Pre-fetch other entities to populate cache if needed, 
-          // though pages usually fetch their own data.
         }
       } else {
-        // Local Only Fallback
+        // Local Only Fallback (Env vars missing)
+        setIsDatabaseProvisioned(false);
         const local = localStorage.getItem('site_settings');
         if (local) setSettings(JSON.parse(local));
       }
@@ -216,19 +228,14 @@ const App: React.FC = () => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
-    if (isSupabaseConfigured) {
-      // Ensure the ID matches what is in the DB (usually just one row with a static ID or we assume single row)
-      // Since we migrated 'site_settings' which might not have an ID, we ensure one here or rely on migration structure.
-      // For simplicity, we assume there's one settings row.
+    if (isSupabaseConfigured && isDatabaseProvisioned) {
       const payload = { ...updated, id: 'global_settings' }; 
-      const { error } = await supabase.from('settings').upsert([payload]);
-      
-      if (error) {
-          console.error("Settings save error", error);
-          setSaveStatus('error');
-      } else {
-          setSaveStatus('saved');
+      const result = await upsertData('settings', payload);
+      if (!result) {
+         // Fallback if upsert failed
+         localStorage.setItem('site_settings', JSON.stringify(updated));
       }
+      setSaveStatus('saved');
     } else {
       localStorage.setItem('site_settings', JSON.stringify(updated));
       setTimeout(() => setSaveStatus('saved'), 500);
@@ -244,8 +251,9 @@ const App: React.FC = () => {
       time: new Date().toLocaleTimeString(),
       timestamp: Date.now()
     };
-    if (isSupabaseConfigured) {
-      // Async fire and forget
+    
+    // Only try to log to cloud if we know tables exist
+    if (isSupabaseConfigured && isDatabaseProvisioned) {
       supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
           if(error) console.error("Log error", error);
       });
@@ -267,12 +275,12 @@ const App: React.FC = () => {
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, user, loadingAuth, 
-      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, refreshAllData
+      isLocalMode: !isSupabaseConfigured, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
     }}>
       <Router>
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
-        <SaveStatusIndicator status={saveStatus} />
+        <SaveStatusIndicator status={saveStatus} isProvisioned={isDatabaseProvisioned} />
         <style>{`
           .text-primary { color: var(--primary-color); }
           .bg-primary { background-color: var(--primary-color); }

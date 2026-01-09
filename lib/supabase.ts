@@ -110,6 +110,18 @@ on storage.objects for all
 using ( auth.role() = 'authenticated' );
 `;
 
+const LOCAL_STORAGE_KEYS: Record<string, string> = {
+  'products': 'admin_products',
+  'categories': 'admin_categories',
+  'subcategories': 'admin_subcategories',
+  'carousel_slides': 'admin_hero',
+  'enquiries': 'admin_enquiries',
+  'admin_users': 'admin_users',
+  'product_stats': 'admin_product_stats',
+  'settings': 'site_settings',
+  'traffic_logs': 'site_traffic_logs'
+};
+
 /**
  * Generic Upsert Function
  */
@@ -117,6 +129,11 @@ export async function upsertData(table: string, data: any) {
   if (!isSupabaseConfigured) return null;
   const { data: result, error } = await supabase.from(table).upsert(data).select();
   if (error) {
+    // Graceful handling for missing tables to prevent app crash loop
+    if (error.code === '42P01' || error.message?.includes('404')) {
+      console.warn(`Supabase table '${table}' not found. Skipping cloud sync.`);
+      return null;
+    }
     console.error(`Error upserting to ${table}:`, error);
     throw error;
   }
@@ -130,6 +147,7 @@ export async function deleteData(table: string, id: string) {
   if (!isSupabaseConfigured) return null;
   const { error } = await supabase.from(table).delete().eq('id', id);
   if (error) {
+    if (error.code === '42P01' || error.message?.includes('404')) return null;
     console.error(`Error deleting from ${table}:`, error);
     throw error;
   }
@@ -150,6 +168,10 @@ export async function syncLocalToCloud(tableName: string, localKey: string) {
   const { error } = await supabase.from(tableName).upsert(localData);
   
   if (error) {
+    if (error.code === '42P01' || error.message?.includes('404')) {
+        console.warn(`Cannot migrate ${tableName}: Table does not exist.`);
+        return;
+    }
     console.error(`Migration error for ${tableName}:`, error);
   } else {
     console.log(`Migration success for ${tableName}`);
@@ -157,29 +179,30 @@ export async function syncLocalToCloud(tableName: string, localKey: string) {
 }
 
 /**
- * Fetch all data for a specific table
+ * Fetch all data for a specific table with fallback
  */
 export async function fetchTableData(table: string) {
+  const localKey = LOCAL_STORAGE_KEYS[table] || `admin_${table}`;
+
   if (!isSupabaseConfigured) {
-    // Return local storage fallback if no cloud is connected
-    const keyMap: Record<string, string> = {
-      'products': 'admin_products',
-      'categories': 'admin_categories',
-      'subcategories': 'admin_subcategories',
-      'carousel_slides': 'admin_hero',
-      'enquiries': 'admin_enquiries',
-      'admin_users': 'admin_users',
-      'product_stats': 'admin_product_stats',
-      'settings': 'site_settings'
-    };
-    const local = localStorage.getItem(keyMap[table] || `admin_${table}`);
+    const local = localStorage.getItem(localKey);
     return local ? JSON.parse(local) : [];
   }
   
   const { data, error } = await supabase.from(table).select('*');
+  
   if (error) {
-    console.warn(`Fetch warning for ${table} (Table might not exist yet):`, error.message);
-    return [];
+    // If table is missing (42P01) or REST endpoint not found (404), fallback to local without error spam
+    if (error.code === '42P01' || error.message?.includes('404') || error.message?.includes('Failed to load resource')) {
+      console.warn(`Table '${table}' missing or not accessible. Using local fallback.`);
+      const local = localStorage.getItem(localKey);
+      return local ? JSON.parse(local) : [];
+    }
+    
+    console.warn(`Fetch warning for ${table}:`, error.message);
+    // Try local fallback on other errors too, just in case
+    const local = localStorage.getItem(localKey);
+    return local ? JSON.parse(local) : [];
   }
   return data;
 }
@@ -187,21 +210,26 @@ export async function fetchTableData(table: string) {
 export async function uploadMedia(file: File, bucket = 'media') {
   if (!isSupabaseConfigured) return URL.createObjectURL(file);
 
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-  const filePath = `${fileName}`;
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
 
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .upload(filePath, file);
+    const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
 
-  if (error) throw error;
+    if (error) throw error;
 
-  const { data: publicUrl } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(filePath);
+    const { data: publicUrl } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
 
-  return publicUrl.publicUrl;
+    return publicUrl.publicUrl;
+  } catch (e) {
+      console.error("Upload failed, falling back to blob", e);
+      return URL.createObjectURL(file);
+  }
 }
 
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
@@ -215,7 +243,7 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
     const end = performance.now();
     
     // If table doesn't exist, we still have a connection, just no schema
-    if (error && error.code === '42P01') { 
+    if (error && (error.code === '42P01' || error.message.includes('404'))) { 
         return { status: 'online', latency: Math.round(end - start), message: 'Connected (Schema Missing)' };
     }
     
