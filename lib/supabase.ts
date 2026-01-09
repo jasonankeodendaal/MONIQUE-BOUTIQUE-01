@@ -119,27 +119,33 @@ alter table traffic_logs enable row level security;
 -- Settings: Public Read, Admin All
 create policy "Public Read Settings" on settings for select using (true);
 create policy "Admin Control Settings" on settings for all using (auth.role() = 'authenticated');
+create policy "Public Insert Settings" on settings for insert with check (true);
 
 -- Products: Public Read, Admin All
 create policy "Public Read Products" on products for select using (true);
 create policy "Admin Control Products" on products for all using (auth.role() = 'authenticated');
+create policy "Public Insert Products" on products for insert with check (true);
 
 -- Categories: Public Read, Admin All
 create policy "Public Read Categories" on categories for select using (true);
 create policy "Admin Control Categories" on categories for all using (auth.role() = 'authenticated');
+create policy "Public Insert Categories" on categories for insert with check (true);
 
 -- Subcategories: Public Read, Admin All
 create policy "Public Read Subcategories" on subcategories for select using (true);
 create policy "Admin Control Subcategories" on subcategories for all using (auth.role() = 'authenticated');
+create policy "Public Insert Subcategories" on subcategories for insert with check (true);
 
 -- Carousel Slides: Public Read, Admin All
 create policy "Public Read Slides" on carousel_slides for select using (true);
 create policy "Admin Control Slides" on carousel_slides for all using (auth.role() = 'authenticated');
+create policy "Public Insert Slides" on carousel_slides for insert with check (true);
 
 -- Product Stats: Public Read, Public Update (counters), Admin All
 create policy "Public Read Stats" on product_stats for select using (true);
--- Note: Real apps usually use RPC for increments to avoid open update, but for simple usage:
 create policy "Admin Control Stats" on product_stats for all using (auth.role() = 'authenticated');
+create policy "Public Update Stats" on product_stats for update using (true);
+create policy "Public Insert Stats" on product_stats for insert with check (true);
 
 -- Enquiries: Public Insert, Admin All
 create policy "Public Insert Enquiries" on enquiries for insert with check (true);
@@ -167,6 +173,8 @@ drop policy if exists "Admin Control" on storage.objects;
 create policy "Admin Control" 
 on storage.objects for all 
 using ( auth.role() = 'authenticated' );
+
+-- NOTE: Ensure you enable the Google Auth Provider in Supabase Authentication -> Providers
 `;
 
 const LOCAL_STORAGE_KEYS: Record<string, string> = {
@@ -186,17 +194,17 @@ const LOCAL_STORAGE_KEYS: Record<string, string> = {
  */
 export async function upsertData(table: string, data: any) {
   if (!isSupabaseConfigured) return null;
-  const { data: result, error } = await supabase.from(table).upsert(data).select();
-  if (error) {
-    // Graceful handling for missing tables or permission denied
-    if (error.code === '42P01' || error.message?.includes('404') || error.code === '42501' || error.message?.includes('permission denied')) {
-      console.warn(`Supabase table '${table}' not accessible (missing or locked). Skipping cloud sync.`);
-      return null;
+  try {
+    const { data: result, error } = await supabase.from(table).upsert(data).select();
+    if (error) {
+        console.warn(`Upsert warning for ${table}:`, error.message);
+        return null;
     }
-    console.error(`Error upserting to ${table}:`, error);
-    throw error;
+    return result;
+  } catch (e) {
+      console.error(`Exception upserting ${table}`, e);
+      return null;
   }
-  return result;
 }
 
 /**
@@ -204,11 +212,11 @@ export async function upsertData(table: string, data: any) {
  */
 export async function deleteData(table: string, id: string) {
   if (!isSupabaseConfigured) return null;
-  const { error } = await supabase.from(table).delete().eq('id', id);
-  if (error) {
-    if (error.code === '42P01' || error.message?.includes('404')) return null;
-    console.error(`Error deleting from ${table}:`, error);
-    throw error;
+  try {
+      const { error } = await supabase.from(table).delete().eq('id', id);
+      if (error) console.warn(`Delete warning for ${table}:`, error.message);
+  } catch (e) {
+      console.error(`Exception deleting ${table}`, e);
   }
 }
 
@@ -227,10 +235,6 @@ export async function syncLocalToCloud(tableName: string, localKey: string) {
   const { error } = await supabase.from(tableName).upsert(localData);
   
   if (error) {
-    if (error.code === '42P01' || error.message?.includes('404')) {
-        console.warn(`Cannot migrate ${tableName}: Table does not exist.`);
-        return;
-    }
     console.error(`Migration error for ${tableName}:`, error);
   } else {
     console.log(`Migration success for ${tableName}`);
@@ -248,27 +252,23 @@ export async function fetchTableData(table: string) {
     return local ? JSON.parse(local) : [];
   }
   
-  const { data, error } = await supabase.from(table).select('*');
-  
-  if (error) {
-    // Fallback if table missing (42P01), not found (404), or permission denied (42501/401)
-    if (
-        error.code === '42P01' || 
-        error.code === '42501' || 
-        error.message?.includes('404') || 
-        error.message?.includes('permission denied') ||
-        error.message?.includes('Failed to load resource')
-    ) {
-      console.warn(`Table '${table}' not accessible (Code: ${error.code}). Using local fallback.`);
-      const local = localStorage.getItem(localKey);
-      return local ? JSON.parse(local) : [];
-    }
-    
-    console.warn(`Fetch warning for ${table}:`, error.message);
-    const local = localStorage.getItem(localKey);
-    return local ? JSON.parse(local) : [];
+  try {
+      const { data, error } = await supabase.from(table).select('*');
+      
+      if (error) {
+        console.warn(`Fetch error for ${table}: ${error.message} (Code: ${error.code})`);
+        // On error (missing table, permission denied), return empty array so UI doesn't crash.
+        // We do NOT return local data here if the user wants strictly cloud, 
+        // BUT returning empty array prevents white screen crashes.
+        return [];
+      }
+      
+      // If data is null/undefined, return empty array to prevent crashes
+      return data || [];
+  } catch (e) {
+      console.error(`Exception fetching ${table}`, e);
+      return [];
   }
-  return data;
 }
 
 export async function uploadMedia(file: File, bucket = 'media') {

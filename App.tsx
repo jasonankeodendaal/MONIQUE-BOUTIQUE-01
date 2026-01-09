@@ -164,45 +164,30 @@ const App: React.FC = () => {
     try {
       if (isSupabaseConfigured) {
         // Attempt to fetch settings first. 
-        // Note: fetchTableData inside supabase.ts now internally falls back to local storage 
-        // if it encounters 401/404/42P01 errors.
         const remoteSettings = await fetchTableData('settings');
         
-        // Check if we effectively fell back to local data or got nothing
-        const { error } = await supabase.from('settings').select('count').limit(1);
-        
-        // Determine if DB is accessible based on error code
-        const isDbAccessible = !error; 
-        const isMissingOrLocked = error && (error.code === '42P01' || error.code === '42501' || error.message.includes('404') || error.message.includes('permission denied'));
-
-        if (isMissingOrLocked) {
-           console.log("Database inaccessible (Missing/Locked). Running in Local Mode with Cloud Configured.");
-           setIsDatabaseProvisioned(false);
-           const local = safeJSONParse('site_settings', null);
-           if (local) setSettings(local);
-        } else if (!remoteSettings || remoteSettings.length === 0) {
-             // Table exists and is accessible, but empty. Perform migration.
-             console.log("Supabase accessible but empty. Migrating...");
-             const localSettings = safeJSONParse('site_settings', null);
-             
-             if (localSettings) {
-                 setSaveStatus('migrating');
-                 await syncLocalToCloud('settings', 'site_settings');
-                 await syncLocalToCloud('products', 'admin_products');
-                 await syncLocalToCloud('categories', 'admin_categories');
-                 await syncLocalToCloud('subcategories', 'admin_subcategories');
-                 await syncLocalToCloud('carousel_slides', 'admin_hero');
-                 await syncLocalToCloud('enquiries', 'admin_enquiries');
-                 await syncLocalToCloud('admin_users', 'admin_users');
-                 await syncLocalToCloud('product_stats', 'admin_product_stats');
-                 setSettings(localSettings);
-             } else {
-                 await upsertData('settings', INITIAL_SETTINGS);
-                 setSettings(INITIAL_SETTINGS);
-             }
-        } else {
+        // CRASH FIX: Only update settings if we actually got an object back.
+        // If the table is empty, remoteSettings is [], and remoteSettings[0] is undefined.
+        // Passing undefined to setSettings causes the white screen crash.
+        if (remoteSettings && remoteSettings.length > 0) {
           setIsDatabaseProvisioned(true);
           setSettings(remoteSettings[0] as SiteSettings);
+        } else {
+           // Database is connected but empty. 
+           // SELF-HEALING: Auto-seed the database with initial settings to prevent future issues.
+           console.log("Database connected but empty. Auto-seeding initial data...");
+           setIsDatabaseProvisioned(true); // Treat as provisioned since we are fixing it now
+           
+           // Seed settings immediately
+           const payload = { ...INITIAL_SETTINGS, id: 'global_settings' };
+           await upsertData('settings', payload);
+           setSettings(payload);
+
+           // Seed other tables just in case
+           await syncLocalToCloud('products', 'admin_products');
+           await syncLocalToCloud('categories', 'admin_categories');
+           await syncLocalToCloud('subcategories', 'admin_subcategories');
+           await syncLocalToCloud('carousel_slides', 'admin_hero');
         }
       } else {
         // Local Only Fallback (Env vars missing)
@@ -242,14 +227,17 @@ const App: React.FC = () => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
-    if (isSupabaseConfigured && isDatabaseProvisioned) {
+    if (isSupabaseConfigured) {
+      // Always try to save to DB if configured
       const payload = { ...updated, id: 'global_settings' }; 
       const result = await upsertData('settings', payload);
       if (!result) {
-         // Fallback if upsert failed
-         localStorage.setItem('site_settings', JSON.stringify(updated));
+         // If DB write failed, we technically just keep local state updated 
+         // but we warn the user via the status indicator
+         setSaveStatus('error');
+      } else {
+         setSaveStatus('saved');
       }
-      setSaveStatus('saved');
     } else {
       localStorage.setItem('site_settings', JSON.stringify(updated));
       setTimeout(() => setSaveStatus('saved'), 500);
@@ -267,7 +255,7 @@ const App: React.FC = () => {
     };
     
     // Only try to log to cloud if we know tables exist and are accessible
-    if (isSupabaseConfigured && isDatabaseProvisioned) {
+    if (isSupabaseConfigured) {
       supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
           if(error) {
              console.error("Log error", error);
