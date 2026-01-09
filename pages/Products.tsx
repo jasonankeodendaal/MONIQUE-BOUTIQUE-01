@@ -1,14 +1,12 @@
-
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { Search, ExternalLink, ShoppingBag, CheckCircle, FileText, Video as VideoIcon, ChevronDown, Filter, ArrowUpDown, ArrowRight, ArrowLeft } from 'lucide-react';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES } from '../constants';
+import { Search, ExternalLink, ShoppingBag, CheckCircle, FileText, Video as VideoIcon, ChevronDown, ArrowUpDown, ArrowRight, ArrowLeft } from 'lucide-react';
+import { INITIAL_SUBCATEGORIES } from '../constants';
 import { useSettings } from '../App';
 import { Product } from '../types';
 
 const Products: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, products, categories } = useSettings();
   const navigate = useNavigate();
   const query = new URLSearchParams(useLocation().search);
   const initialCat = query.get('category');
@@ -45,12 +43,8 @@ const Products: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const products = useMemo<Product[]>(() => {
-    const saved = localStorage.getItem('admin_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-  }, []);
-
   const subCategories = useMemo(() => {
+    // Try to get dynamic subcategories, fallback to constants
     const savedSubs = localStorage.getItem('admin_subcategories');
     const subs = savedSubs ? JSON.parse(savedSubs) : INITIAL_SUBCATEGORIES;
     if (selectedCat === 'all') return [];
@@ -174,7 +168,7 @@ const Products: React.FC = () => {
             >
               All
             </button>
-            {INITIAL_CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => { setSelectedCat(cat.id); setSelectedSub('all'); }}
