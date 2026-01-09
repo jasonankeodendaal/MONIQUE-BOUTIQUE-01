@@ -789,7 +789,7 @@ const Admin: React.FC = () => {
     
     // Reset status after a delay unless it's an error
     setTimeout(() => {
-        setSaveStatus(prev => prev === 'error' ? 'error' : 'idle');
+        setSaveStatus((prev: any) => prev === 'error' ? 'error' : 'idle');
     }, 2000);
   };
 

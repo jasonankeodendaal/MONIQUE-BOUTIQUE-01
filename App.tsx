@@ -32,7 +32,7 @@ interface SettingsContextType {
   isLocalMode: boolean;
   isDatabaseProvisioned: boolean;
   saveStatus: SaveStatus;
-  setSaveStatus: (status: SaveStatus) => void;
+  setSaveStatus: React.Dispatch<React.SetStateAction<SaveStatus>>;
   logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
   refreshAllData: () => Promise<void>;
 }
