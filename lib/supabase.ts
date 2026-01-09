@@ -106,7 +106,6 @@ create table if not exists traffic_logs (
 );
 
 -- 2. ENABLE ROW LEVEL SECURITY
--- We run these every time; if already enabled, Postgres ignores it or it's harmless.
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -117,104 +116,75 @@ alter table admin_users enable row level security;
 alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
--- 3. CREATE POLICIES (Drop existing first to allow re-runs)
+-- 3. CREATE POLICIES
 
 -- Settings
 drop policy if exists "Public Read Settings" on settings;
 create policy "Public Read Settings" on settings for select using (true);
 
-drop policy if exists "Admin Control Settings" on settings;
-create policy "Admin Control Settings" on settings for all using (auth.role() = 'authenticated');
-
-drop policy if exists "Public Insert Settings" on settings;
-create policy "Public Insert Settings" on settings for insert with check (true);
+drop policy if exists "Public/Admin All Settings" on settings;
+create policy "Public/Admin All Settings" on settings for all using (true);
 
 -- Products
 drop policy if exists "Public Read Products" on products;
 create policy "Public Read Products" on products for select using (true);
 
-drop policy if exists "Admin Control Products" on products;
-create policy "Admin Control Products" on products for all using (auth.role() = 'authenticated');
-
-drop policy if exists "Public Insert Products" on products;
-create policy "Public Insert Products" on products for insert with check (true);
+drop policy if exists "Public/Admin All Products" on products;
+create policy "Public/Admin All Products" on products for all using (true);
 
 -- Categories
 drop policy if exists "Public Read Categories" on categories;
 create policy "Public Read Categories" on categories for select using (true);
 
-drop policy if exists "Admin Control Categories" on categories;
-create policy "Admin Control Categories" on categories for all using (auth.role() = 'authenticated');
-
-drop policy if exists "Public Insert Categories" on categories;
-create policy "Public Insert Categories" on categories for insert with check (true);
+drop policy if exists "Public/Admin All Categories" on categories;
+create policy "Public/Admin All Categories" on categories for all using (true);
 
 -- Subcategories
 drop policy if exists "Public Read Subcategories" on subcategories;
 create policy "Public Read Subcategories" on subcategories for select using (true);
 
-drop policy if exists "Admin Control Subcategories" on subcategories;
-create policy "Admin Control Subcategories" on subcategories for all using (auth.role() = 'authenticated');
-
-drop policy if exists "Public Insert Subcategories" on subcategories;
-create policy "Public Insert Subcategories" on subcategories for insert with check (true);
+drop policy if exists "Public/Admin All Subcategories" on subcategories;
+create policy "Public/Admin All Subcategories" on subcategories for all using (true);
 
 -- Carousel Slides
 drop policy if exists "Public Read Slides" on carousel_slides;
 create policy "Public Read Slides" on carousel_slides for select using (true);
 
-drop policy if exists "Admin Control Slides" on carousel_slides;
-create policy "Admin Control Slides" on carousel_slides for all using (auth.role() = 'authenticated');
-
-drop policy if exists "Public Insert Slides" on carousel_slides;
-create policy "Public Insert Slides" on carousel_slides for insert with check (true);
-
--- Product Stats
-drop policy if exists "Public Read Stats" on product_stats;
-create policy "Public Read Stats" on product_stats for select using (true);
-
-drop policy if exists "Admin Control Stats" on product_stats;
-create policy "Admin Control Stats" on product_stats for all using (auth.role() = 'authenticated');
-
-drop policy if exists "Public Update Stats" on product_stats;
-create policy "Public Update Stats" on product_stats for update using (true);
-
-drop policy if exists "Public Insert Stats" on product_stats;
-create policy "Public Insert Stats" on product_stats for insert with check (true);
+drop policy if exists "Public/Admin All Slides" on carousel_slides;
+create policy "Public/Admin All Slides" on carousel_slides for all using (true);
 
 -- Enquiries
 drop policy if exists "Public Insert Enquiries" on enquiries;
 create policy "Public Insert Enquiries" on enquiries for insert with check (true);
 
-drop policy if exists "Admin Control Enquiries" on enquiries;
-create policy "Admin Control Enquiries" on enquiries for all using (auth.role() = 'authenticated');
+drop policy if exists "Admin All Enquiries" on enquiries;
+create policy "Admin All Enquiries" on enquiries for all using (true);
 
 -- Traffic Logs
 drop policy if exists "Public Insert Logs" on traffic_logs;
 create policy "Public Insert Logs" on traffic_logs for insert with check (true);
 
-drop policy if exists "Admin Control Logs" on traffic_logs;
-create policy "Admin Control Logs" on traffic_logs for all using (auth.role() = 'authenticated');
+drop policy if exists "Admin All Logs" on traffic_logs;
+create policy "Admin All Logs" on traffic_logs for all using (true);
 
--- Admin Users
+-- Admin Users (Restricted)
 drop policy if exists "Admin Control Users" on admin_users;
 create policy "Admin Control Users" on admin_users for all using (auth.role() = 'authenticated');
 
--- 4. Setup Storage Buckets (Safe to Re-run)
+-- 4. Setup Storage Buckets
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
 
--- 5. Setup Storage Policies (Safe to Re-run via Drop)
 drop policy if exists "Public Access" on storage.objects;
 create policy "Public Access" 
 on storage.objects for select 
 using ( bucket_id = 'media' );
 
-drop policy if exists "Admin Control" on storage.objects;
-create policy "Admin Control" 
-on storage.objects for all 
-using ( auth.role() = 'authenticated' );
+drop policy if exists "Public Upload" on storage.objects;
+create policy "Public Upload" 
+on storage.objects for insert 
+with check ( bucket_id = 'media' );
 `;
 
 export const LOCAL_STORAGE_KEYS: Record<string, string> = {
@@ -231,7 +201,6 @@ export const LOCAL_STORAGE_KEYS: Record<string, string> = {
 
 /**
  * Helper to subscribe to Realtime changes on a specific table.
- * Returns the subscription object which should be unsubscribed on unmount.
  */
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
   if (!isSupabaseConfigured) return null;
@@ -246,61 +215,9 @@ export const subscribeToTable = (table: string, callback: (payload: any) => void
  */
 export async function initializeDatabase() {
   if (!isSupabaseConfigured) return;
-
-  try {
-    // 1. Settings
-    const { count: settingsCount } = await supabase.from('settings').select('*', { count: 'exact', head: true });
-    if (settingsCount === 0) {
-      console.log('Seeding Settings...');
-      await supabase.from('settings').insert([{ ...INITIAL_SETTINGS, id: 'global_settings' }]);
-    }
-
-    // 2. Categories
-    const { count: catCount } = await supabase.from('categories').select('*', { count: 'exact', head: true });
-    if (catCount === 0) {
-      console.log('Seeding Categories...');
-      await supabase.from('categories').insert(INITIAL_CATEGORIES);
-    }
-
-    // 3. Subcategories
-    const { count: subCount } = await supabase.from('subcategories').select('*', { count: 'exact', head: true });
-    if (subCount === 0) {
-      console.log('Seeding Subcategories...');
-      await supabase.from('subcategories').insert(INITIAL_SUBCATEGORIES);
-    }
-
-    // 4. Products
-    const { count: prodCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
-    if (prodCount === 0) {
-      console.log('Seeding Products...');
-      await supabase.from('products').insert(INITIAL_PRODUCTS);
-    }
-
-    // 5. Slides
-    const { count: slideCount } = await supabase.from('carousel_slides').select('*', { count: 'exact', head: true });
-    if (slideCount === 0) {
-      console.log('Seeding Hero Slides...');
-      await supabase.from('carousel_slides').insert(INITIAL_CAROUSEL);
-    }
-
-    // 6. Admin Users (Seed Data)
-    const { count: adminCount } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
-    if (adminCount === 0) {
-      console.log('Seeding Admin Users...');
-      await supabase.from('admin_users').insert(INITIAL_ADMINS);
-    }
-
-    // 7. Enquiries (Seed Data)
-    const { count: enqCount } = await supabase.from('enquiries').select('*', { count: 'exact', head: true });
-    if (enqCount === 0) {
-      console.log('Seeding Enquiries...');
-      await supabase.from('enquiries').insert(INITIAL_ENQUIRIES);
-    }
-
-    console.log('Database Initialization Complete.');
-  } catch (error) {
-    console.error("Auto-initialization failed:", error);
-  }
+  // We avoid auto-seeding here to allow the Migration Logic in App.tsx 
+  // to take precedence if local data exists.
+  return; 
 }
 
 /**
@@ -309,12 +226,19 @@ export async function initializeDatabase() {
 export async function upsertData(table: string, data: any) {
   if (!isSupabaseConfigured) return { data: null, error: { message: 'Supabase not configured' } };
   try {
-    const { data: result, error } = await supabase.from(table).upsert(data).select();
-    if (error) {
-        console.warn(`Upsert warning for ${table}:`, error.message);
-        return { data: null, error };
+    // If it's an array of data
+    if (Array.isArray(data)) {
+      if (data.length === 0) return { data: [], error: null };
+      const { data: result, error } = await supabase.from(table).upsert(data).select();
+      if (error) throw error;
+      return { data: result, error: null };
+    } 
+    // Single object
+    else {
+      const { data: result, error } = await supabase.from(table).upsert(data).select();
+      if (error) throw error;
+      return { data: result, error: null };
     }
-    return { data: result, error: null };
   } catch (e: any) {
       console.error(`Exception upserting ${table}`, e);
       return { data: null, error: e };
@@ -328,10 +252,7 @@ export async function deleteData(table: string, id: string) {
   if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
   try {
       const { error } = await supabase.from(table).delete().eq('id', id);
-      if (error) {
-        console.warn(`Delete warning for ${table}:`, error.message);
-        return { error };
-      }
+      if (error) throw error;
       return { error: null };
   } catch (e: any) {
       console.error(`Exception deleting ${table}`, e);
@@ -340,29 +261,10 @@ export async function deleteData(table: string, id: string) {
 }
 
 /**
- * Sync Local to Cloud - Legacy Migration Helper
- */
-export async function syncLocalToCloud(tableName: string, localKey: string) {
-  if (!isSupabaseConfigured) return;
-  
-  const localData = JSON.parse(localStorage.getItem(localKey) || '[]');
-  if (localData.length === 0) return;
-
-  console.log(`Migrating ${localData.length} items from ${localKey} to ${tableName}...`);
-  
-  const { error } = await supabase.from(tableName).upsert(localData);
-  
-  if (error) {
-    console.error(`Migration error for ${tableName}:`, error);
-  } else {
-    console.log(`Migration success for ${tableName}`);
-  }
-}
-
-/**
  * Fetch all data for a specific table with fallback
+ * Returns NULL on error to distinguish between "Empty Table" and "Connection Failure"
  */
-export async function fetchTableData(table: string) {
+export async function fetchTableData(table: string): Promise<any[] | null> {
   const localKey = LOCAL_STORAGE_KEYS[table] || `admin_${table}`;
 
   if (!isSupabaseConfigured) {
@@ -374,14 +276,15 @@ export async function fetchTableData(table: string) {
       const { data, error } = await supabase.from(table).select('*');
       
       if (error) {
-        console.warn(`Fetch error for ${table}: ${error.message}`);
-        return [];
+        console.error(`Fetch error for ${table}: ${error.message}`);
+        // Return null to indicate FAILURE, not empty
+        return null;
       }
       
       return data || [];
   } catch (e) {
       console.error(`Exception fetching ${table}`, e);
-      return [];
+      return null;
   }
 }
 
@@ -430,12 +333,9 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
   
   const start = performance.now();
   try {
-    const { error } = await supabase.from('settings').select('companyName').limit(1);
+    // Simple check on settings table
+    const { error } = await supabase.from('settings').select('id').limit(1);
     const end = performance.now();
-    
-    if (error && (error.code === '42P01' || error.code === '42501' || error.message.includes('404'))) { 
-        return { status: 'online', latency: Math.round(end - start), message: 'Connected (Config Issues)' };
-    }
     
     if (error) throw error;
     return { status: 'online', latency: Math.round(end - start), message: 'Supabase Sync Active' };

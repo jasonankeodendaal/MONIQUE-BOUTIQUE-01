@@ -12,9 +12,9 @@ import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, initializeDatabase, subscribeToTable, LOCAL_STORAGE_KEYS } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable, LOCAL_STORAGE_KEYS } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle, Database } from 'lucide-react';
+import { Check, Loader2, AlertTriangle, Database, CloudUpload } from 'lucide-react';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
 
@@ -62,6 +62,8 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
     </div>
   );
   if (isLocalMode) return <>{children}</>;
+  // For now, if we have issues with RLS and user session, we might want to allow access if connection is healthy
+  // but strictly speaking, we should redirect to login.
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
@@ -125,24 +127,21 @@ const ScrollToTop = () => {
 
 const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, isProvisioned: boolean }) => {
   if (status === 'idle' && isProvisioned) return null;
-  
-  if (!isProvisioned && status === 'idle') {
-    return null; 
-  }
+  if (!isProvisioned && status === 'idle') return null;
 
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl transition-all duration-300 ${
       status === 'error' ? 'bg-red-500 text-white' : 'bg-slate-900 text-white border border-slate-800'
     } animate-in slide-in-from-bottom-4`}>
       {status === 'saving' && <Loader2 size={16} className="animate-spin text-primary" />}
-      {status === 'migrating' && <Database size={16} className="animate-pulse text-blue-400" />}
+      {status === 'migrating' && <CloudUpload size={16} className="animate-bounce text-blue-400" />}
       {status === 'saved' && <Check size={16} className="text-green-500" />}
       {status === 'error' && <AlertTriangle size={16} className="text-white" />}
       <span className="text-[10px] font-black uppercase tracking-widest">
         {status === 'saving' && 'Syncing Supabase...'}
-        {status === 'migrating' && 'Migrating Data...'}
+        {status === 'migrating' && 'Migrating Local Data...'}
         {status === 'saved' && 'Cloud Sync Complete'}
-        {status === 'error' && 'Sync Failed - Retry'}
+        {status === 'error' && 'Sync Failed - Check Admin'}
       </span>
     </div>
   );
@@ -169,6 +168,7 @@ const safeJSONParse = (key: string, fallback: any) => {
 };
 
 const App: React.FC = () => {
+  // Initialize state with LocalStorage first (Optimistic)
   const [settings, setSettings] = useState<SiteSettings>(() => safeJSONParse('site_settings', INITIAL_SETTINGS));
   const [products, setProducts] = useState<Product[]>(() => safeJSONParse('admin_products', INITIAL_PRODUCTS));
   const [categories, setCategories] = useState<Category[]>(() => safeJSONParse('admin_categories', INITIAL_CATEGORIES));
@@ -210,7 +210,6 @@ const App: React.FC = () => {
       });
     };
 
-    // Table Mapping
     const tables = [
       { name: 'products', setter: (data: any, type: string) => handleTableChange(data, type, setProducts, 'products') },
       { name: 'categories', setter: (data: any, type: string) => handleTableChange(data, type, setCategories, 'categories') },
@@ -221,12 +220,10 @@ const App: React.FC = () => {
 
     const subs = tables.map(t => {
       return subscribeToTable(t.name, (payload) => {
-         // console.log(`Realtime update for ${t.name}:`, payload.eventType);
          t.setter(payload, payload.eventType);
       });
     });
 
-    // Special case for Settings (Singleton)
     const settingsSub = subscribeToTable('settings', (payload) => {
        if (payload.new && (payload.new as any).id === 'global_settings') {
           setSettings(prev => {
@@ -243,48 +240,71 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // --- SMART MIGRATION & DATA REFRESH ---
   const refreshAllData = async () => {
     setSaveStatus('saving');
     try {
       if (isSupabaseConfigured) {
-        // AUTO-INIT: Check and seed data if tables are empty
-        await initializeDatabase();
-
-        // --- 1. SETTINGS SYNC ---
+        // --- 1. SETTINGS MIGRATION CHECK ---
         const remoteSettings = await fetchTableData('settings');
         
-        if (remoteSettings && remoteSettings.length > 0) {
-          setIsDatabaseProvisioned(true);
+        if (remoteSettings === null) {
+          // Error occurred, keep local state, flag error
+          console.warn("Could not fetch remote settings, using local.");
+          setSaveStatus('error');
+        } else if (remoteSettings.length > 0) {
+          // Remote has data, use it
           setSettings(remoteSettings[0] as SiteSettings);
+          setIsDatabaseProvisioned(true);
         } else {
-           console.log("Database connected but settings empty. Waiting for auto-seed...");
-           // Fallback if seeding failed for some reason
-           const payload = { ...INITIAL_SETTINGS, id: 'global_settings' };
-           setSettings(payload);
+          // REMOTE IS EMPTY. CHECK LOCAL.
+          const localSettings = safeJSONParse('site_settings', null);
+          if (localSettings) {
+             console.log("Migration: Pushing Local Settings to Cloud...");
+             setSaveStatus('migrating');
+             const payload = { ...localSettings, id: 'global_settings' };
+             await upsertData('settings', payload);
+          } else {
+             // Both empty? Seed default.
+             await upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' });
+          }
         }
 
-        // --- 2. CONTENT SYNC ---
-        // Fetch strictly from cloud
-        const [remoteProducts, remoteCategories, remoteSubs, remoteHero, remoteEnquiries] = await Promise.all([
-           fetchTableData('products'),
-           fetchTableData('categories'),
-           fetchTableData('subcategories'),
-           fetchTableData('carousel_slides'),
-           fetchTableData('enquiries')
-        ]);
+        // --- 2. GENERIC MIGRATION HELPER ---
+        const syncTable = async <T,>(tableName: string, setter: React.Dispatch<React.SetStateAction<T[]>>, localStorageKey: string) => {
+            const remoteData = await fetchTableData(tableName);
+            
+            if (remoteData === null) {
+              // Fetch failed. Keep local data.
+              return; 
+            }
+            
+            if (remoteData.length > 0) {
+              // Cloud has data. Use it.
+              setter(remoteData);
+            } else {
+              // Cloud is empty. Check local.
+              const localData = safeJSONParse(localStorageKey, []);
+              if (localData.length > 0) {
+                console.log(`Migration: Pushing ${localData.length} ${tableName} to Cloud...`);
+                setSaveStatus('migrating');
+                await upsertData(tableName, localData);
+                // No need to set state, we already have local data in state
+              }
+            }
+        };
 
-        // Explicitly update state with remote data
-        setProducts(remoteProducts || []);
-        setCategories(remoteCategories || []);
-        setSubCategories(remoteSubs || []);
-        setHeroSlides(remoteHero || []);
-        setEnquiries(remoteEnquiries || []);
+        await Promise.all([
+          syncTable('products', setProducts, 'admin_products'),
+          syncTable('categories', setCategories, 'admin_categories'),
+          syncTable('subcategories', setSubCategories, 'admin_subcategories'),
+          syncTable('carousel_slides', setHeroSlides, 'admin_hero'),
+          syncTable('enquiries', setEnquiries, 'admin_enquiries')
+        ]);
 
       } else {
         // Local Mode Fallback
         setIsDatabaseProvisioned(false);
-        const local = safeJSONParse('site_settings', null);
-        if (local) setSettings(local);
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -302,12 +322,8 @@ const App: React.FC = () => {
         .then(({ data: { session } }) => {
           setUser(session?.user ?? null);
         })
-        .catch((err) => {
-          console.error("Critical Auth Error:", err);
-        })
-        .finally(() => {
-          setLoadingAuth(false);
-        });
+        .catch((err) => console.error("Critical Auth Error:", err))
+        .finally(() => setLoadingAuth(false));
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
@@ -322,7 +338,7 @@ const App: React.FC = () => {
     setSaveStatus('saving');
     const updated = { ...settings, ...newSettings };
     
-    // Update local state immediately for UI responsiveness
+    // Optimistic Update
     setSettings(updated);
     
     if (isSupabaseConfigured) {
@@ -337,7 +353,6 @@ const App: React.FC = () => {
          setTimeout(() => setSaveStatus('idle'), 2000);
       }
     } else {
-      // Local mode fallback
       localStorage.setItem('site_settings', JSON.stringify(updated));
       setTimeout(() => {
         setSaveStatus('saved');
@@ -356,16 +371,14 @@ const App: React.FC = () => {
     };
     
     if (isSupabaseConfigured) {
+      // Fire and forget log
       supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
-          if(error) {
-             const existing = safeJSONParse('site_traffic_logs', []);
-             localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
-          }
+         if(error) console.error("Logging error", error);
       });
-    } else {
-      const existing = safeJSONParse('site_traffic_logs', []);
-      localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
-    }
+    } 
+    // Always keep local logs for fallback
+    const existing = safeJSONParse('site_traffic_logs', []);
+    localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
   };
 
   useEffect(() => {
