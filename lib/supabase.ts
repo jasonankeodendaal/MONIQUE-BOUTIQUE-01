@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -191,19 +192,20 @@ const LOCAL_STORAGE_KEYS: Record<string, string> = {
 
 /**
  * Generic Upsert Function
+ * Returns object with { data, error } so caller can decide status
  */
 export async function upsertData(table: string, data: any) {
-  if (!isSupabaseConfigured) return null;
+  if (!isSupabaseConfigured) return { data: null, error: { message: 'Supabase not configured' } };
   try {
     const { data: result, error } = await supabase.from(table).upsert(data).select();
     if (error) {
         console.warn(`Upsert warning for ${table}:`, error.message);
-        return null;
+        return { data: null, error };
     }
-    return result;
-  } catch (e) {
+    return { data: result, error: null };
+  } catch (e: any) {
       console.error(`Exception upserting ${table}`, e);
-      return null;
+      return { data: null, error: e };
   }
 }
 
@@ -211,12 +213,17 @@ export async function upsertData(table: string, data: any) {
  * Generic Delete Function
  */
 export async function deleteData(table: string, id: string) {
-  if (!isSupabaseConfigured) return null;
+  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
   try {
       const { error } = await supabase.from(table).delete().eq('id', id);
-      if (error) console.warn(`Delete warning for ${table}:`, error.message);
-  } catch (e) {
+      if (error) {
+        console.warn(`Delete warning for ${table}:`, error.message);
+        return { error };
+      }
+      return { error: null };
+  } catch (e: any) {
       console.error(`Exception deleting ${table}`, e);
+      return { error: e };
   }
 }
 
@@ -257,9 +264,7 @@ export async function fetchTableData(table: string) {
       
       if (error) {
         console.warn(`Fetch error for ${table}: ${error.message} (Code: ${error.code})`);
-        // On error (missing table, permission denied), return empty array so UI doesn't crash.
-        // We do NOT return local data here if the user wants strictly cloud, 
-        // BUT returning empty array prevents white screen crashes.
+        // Only fallback if connection completely failed, otherwise returning empty array from DB is correct
         return [];
       }
       

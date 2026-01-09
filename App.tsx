@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -135,7 +136,7 @@ const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, is
         {status === 'saving' && 'Syncing Supabase...'}
         {status === 'migrating' && 'Migrating Data...'}
         {status === 'saved' && 'Cloud Sync Complete'}
-        {status === 'error' && 'Sync Failed - Using Local'}
+        {status === 'error' && 'Sync Failed - Retry'}
       </span>
     </div>
   );
@@ -192,6 +193,7 @@ const App: React.FC = () => {
         }
 
         // --- 2. CONTENT SYNC ---
+        // Fetch strictly from cloud
         const [remoteProducts, remoteCategories, remoteSubs, remoteHero] = await Promise.all([
            fetchTableData('products'),
            fetchTableData('categories'),
@@ -199,24 +201,17 @@ const App: React.FC = () => {
            fetchTableData('carousel_slides')
         ]);
 
-        if (remoteProducts && remoteProducts.length > 0) setProducts(remoteProducts);
-        else if (remoteProducts) await syncLocalToCloud('products', 'admin_products');
-
-        if (remoteCategories && remoteCategories.length > 0) setCategories(remoteCategories);
-        else if (remoteCategories) await syncLocalToCloud('categories', 'admin_categories');
-
-        if (remoteSubs && remoteSubs.length > 0) setSubCategories(remoteSubs);
-        else if (remoteSubs) await syncLocalToCloud('subcategories', 'admin_subcategories');
-        
-        if (remoteHero && remoteHero.length > 0) setHeroSlides(remoteHero);
-        else if (remoteHero) await syncLocalToCloud('carousel_slides', 'admin_hero');
+        // Explicitly update state with remote data to ensure frontend reflects DB
+        setProducts(remoteProducts || []);
+        setCategories(remoteCategories || []);
+        setSubCategories(remoteSubs || []);
+        setHeroSlides(remoteHero || []);
 
       } else {
         // Local Mode Fallback
         setIsDatabaseProvisioned(false);
         const local = safeJSONParse('site_settings', null);
         if (local) setSettings(local);
-        // Products etc are already initialized via useState lazy initializer from localStorage
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -253,21 +248,30 @@ const App: React.FC = () => {
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
     const updated = { ...settings, ...newSettings };
+    
+    // Update local state immediately for UI responsiveness
     setSettings(updated);
     
     if (isSupabaseConfigured) {
       const payload = { ...updated, id: 'global_settings' }; 
-      const result = await upsertData('settings', payload);
-      if (!result) {
+      const { error } = await upsertData('settings', payload);
+      
+      if (error) {
+         console.error("Failed to save settings to Supabase:", error);
          setSaveStatus('error');
+         // Don't auto-hide error
       } else {
          setSaveStatus('saved');
+         setTimeout(() => setSaveStatus('idle'), 2000);
       }
     } else {
+      // Local mode fallback
       localStorage.setItem('site_settings', JSON.stringify(updated));
-      setTimeout(() => setSaveStatus('saved'), 500);
+      setTimeout(() => {
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }, 500);
     }
-    setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
   const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
