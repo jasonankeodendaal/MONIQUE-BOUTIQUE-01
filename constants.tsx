@@ -1,3 +1,4 @@
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
@@ -124,13 +125,13 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
   // Home
   homeHeroBadge: 'Curated by Kasi',
-  homeAboutTitle: 'Hi, I’m the Curator.',
-  homeAboutDescription: 'For years, I struggled to find fashion that balanced authentic African heritage with modern luxury. I spent months vetting suppliers, testing fabrics, and building relationships. This website is the result of that journey—a bridge to the finest pieces I trust and wear myself.',
-  homeAboutImage: 'https://images.unsplash.com/photo-1539109136881-3be06109477e?auto=format&fit=crop&q=80&w=1200',
+  homeAboutTitle: 'Why I Started This Journey',
+  homeAboutDescription: 'I was tired of fast fashion and generic trends. I wanted pieces that told a story, that felt like they were made for me. So I started this platform to bridge the gap between discerning individuals and the world\'s finest creators.',
+  homeAboutImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Read My Full Story',
-  homeCategorySectionTitle: 'Curated Categories',
+  homeCategorySectionTitle: 'My Curated Collections',
   homeCategorySectionSubtitle: 'The Collection',
-  homeTrustSectionTitle: 'Why I Chose These',
+  homeTrustSectionTitle: 'Why Trust My Selection?',
   
   homeTrustItem1Title: 'Personally Vetted',
   homeTrustItem1Desc: 'I do not list anything I haven’t researched. Every link leads to a trusted retailer.',
@@ -161,7 +162,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Your Name',
+  aboutFounderName: 'Monique',
   aboutLocation: 'South Africa',
 
   aboutHistoryTitle: 'My Journey',
