@@ -1,11 +1,9 @@
-
 import React from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { INITIAL_CATEGORIES } from '../constants';
 import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
@@ -20,7 +18,7 @@ const SectionDivider: React.FC = () => (
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { settings, categories } = useSettings();
 
   return (
     <main className="pt-0">
@@ -37,7 +35,7 @@ const Home: React.FC = () => {
             <span className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-300">{settings.homeCategorySectionTitle}</span>
           </div>
           <div className="grid grid-cols-4 md:grid-cols-4 gap-4 md:gap-8">
-            {INITIAL_CATEGORIES.map((cat) => {
+            {categories.slice(0, 4).map((cat) => {
               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
               return (
                 <button

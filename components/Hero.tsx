@@ -1,42 +1,34 @@
-
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
-import { INITIAL_CAROUSEL } from '../constants';
-import { CarouselSlide } from '../types';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../App';
 
 const Hero: React.FC = () => {
-  const { settings } = useSettings();
-  const slides = useMemo<CarouselSlide[]>(() => {
-    const saved = localStorage.getItem('admin_hero');
-    return saved ? JSON.parse(saved) : INITIAL_CAROUSEL;
-  }, []);
-
+  const { settings, heroSlides } = useSettings();
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const nextSlide = useCallback(() => {
-    if (isTransitioning || slides.length <= 1) return;
+    if (isTransitioning || heroSlides.length <= 1) return;
     setIsTransitioning(true);
-    setCurrent((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+    setCurrent((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
     setTimeout(() => setIsTransitioning(false), 1000);
-  }, [isTransitioning, slides.length]);
+  }, [isTransitioning, heroSlides.length]);
 
   const prevSlide = () => {
-    if (isTransitioning || slides.length <= 1) return;
+    if (isTransitioning || heroSlides.length <= 1) return;
     setIsTransitioning(true);
-    setCurrent((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+    setCurrent((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1));
     setTimeout(() => setIsTransitioning(false), 1000);
   };
 
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (heroSlides.length <= 1) return;
     const timer = setInterval(nextSlide, 8000);
     return () => clearInterval(timer);
-  }, [nextSlide, slides.length]);
+  }, [nextSlide, heroSlides.length]);
 
-  if (slides.length === 0) {
+  if (heroSlides.length === 0) {
     return (
       <div className="h-screen w-full bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -75,7 +67,7 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
-      {slides.map((slide, index) => (
+      {heroSlides.map((slide, index) => (
         <div
           key={slide.id}
           className={`absolute inset-0 transition-all duration-[2s] ease-in-out ${
@@ -134,10 +126,10 @@ const Hero: React.FC = () => {
         </div>
       ))}
 
-      {slides.length > 1 && (
+      {heroSlides.length > 1 && (
         <>
           <div className="absolute bottom-6 md:bottom-12 left-6 md:left-12 z-20 flex flex-col gap-4 md:gap-6">
-             {slides.map((_, i) => (
+             {heroSlides.map((_, i) => (
                 <button 
                   key={i}
                   onClick={() => setCurrent(i)}

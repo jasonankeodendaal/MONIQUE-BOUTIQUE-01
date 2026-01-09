@@ -9,8 +9,8 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES } from './constants';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide } from './types';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Check, Loader2, AlertTriangle, Database } from 'lucide-react';
@@ -20,6 +20,12 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
 interface SettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
+  // Global Data Store
+  products: Product[];
+  categories: Category[];
+  subCategories: SubCategory[];
+  heroSlides: CarouselSlide[];
+  // System State
   user: User | null;
   loadingAuth: boolean;
   isLocalMode: boolean;
@@ -157,6 +163,11 @@ const safeJSONParse = (key: string, fallback: any) => {
 
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(() => safeJSONParse('site_settings', INITIAL_SETTINGS));
+  const [products, setProducts] = useState<Product[]>(() => safeJSONParse('admin_products', INITIAL_PRODUCTS));
+  const [categories, setCategories] = useState<Category[]>(() => safeJSONParse('admin_categories', INITIAL_CATEGORIES));
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(() => safeJSONParse('admin_subcategories', INITIAL_SUBCATEGORIES));
+  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(() => safeJSONParse('admin_hero', INITIAL_CAROUSEL));
+  
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -166,54 +177,58 @@ const App: React.FC = () => {
     setSaveStatus('saving');
     try {
       if (isSupabaseConfigured) {
-        // Attempt to fetch settings first. 
+        // --- 1. SETTINGS SYNC ---
         const remoteSettings = await fetchTableData('settings');
         
-        // CRASH FIX: Only update settings if we actually got an object back.
-        // If the table is empty, remoteSettings is [], and remoteSettings[0] is undefined.
-        // Passing undefined to setSettings causes the white screen crash.
         if (remoteSettings && remoteSettings.length > 0) {
           setIsDatabaseProvisioned(true);
           setSettings(remoteSettings[0] as SiteSettings);
         } else {
-           // Database is connected but empty. 
-           // SELF-HEALING: Auto-seed the database with initial settings to prevent future issues.
-           console.log("Database connected but empty. Auto-seeding initial data...");
-           setIsDatabaseProvisioned(true); // Treat as provisioned since we are fixing it now
-           
-           // Seed settings immediately
+           console.log("Database connected but settings empty. Auto-seeding...");
+           setIsDatabaseProvisioned(true);
            const payload = { ...INITIAL_SETTINGS, id: 'global_settings' };
            await upsertData('settings', payload);
            setSettings(payload);
-
-           // Seed other tables just in case
-           await syncLocalToCloud('products', 'admin_products');
-           await syncLocalToCloud('categories', 'admin_categories');
-           await syncLocalToCloud('subcategories', 'admin_subcategories');
-           await syncLocalToCloud('carousel_slides', 'admin_hero');
         }
+
+        // --- 2. CONTENT SYNC ---
+        const [remoteProducts, remoteCategories, remoteSubs, remoteHero] = await Promise.all([
+           fetchTableData('products'),
+           fetchTableData('categories'),
+           fetchTableData('subcategories'),
+           fetchTableData('carousel_slides')
+        ]);
+
+        if (remoteProducts && remoteProducts.length > 0) setProducts(remoteProducts);
+        else if (remoteProducts) await syncLocalToCloud('products', 'admin_products');
+
+        if (remoteCategories && remoteCategories.length > 0) setCategories(remoteCategories);
+        else if (remoteCategories) await syncLocalToCloud('categories', 'admin_categories');
+
+        if (remoteSubs && remoteSubs.length > 0) setSubCategories(remoteSubs);
+        else if (remoteSubs) await syncLocalToCloud('subcategories', 'admin_subcategories');
+        
+        if (remoteHero && remoteHero.length > 0) setHeroSlides(remoteHero);
+        else if (remoteHero) await syncLocalToCloud('carousel_slides', 'admin_hero');
+
       } else {
-        // Local Only Fallback (Env vars missing)
+        // Local Mode Fallback
         setIsDatabaseProvisioned(false);
         const local = safeJSONParse('site_settings', null);
         if (local) setSettings(local);
+        // Products etc are already initialized via useState lazy initializer from localStorage
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (e) {
       console.error("Data sync/init failed", e);
-      // Even on failure, try to load local settings so app doesn't break
-      const local = safeJSONParse('site_settings', null);
-      if (local) setSettings(local);
       setSaveStatus('error');
     }
   };
 
   useEffect(() => {
-    // 1. Start data refresh
     refreshAllData();
 
-    // 2. Start Auth check
     if (isSupabaseConfigured) {
       supabase.auth.getSession()
         .then(({ data: { session } }) => {
@@ -221,10 +236,8 @@ const App: React.FC = () => {
         })
         .catch((err) => {
           console.error("Critical Auth Error:", err);
-          // Don't let auth errors crash the whole app loading process
         })
         .finally(() => {
-          // CRITICAL FIX: Ensure loading is ALWAYS turned off, success or fail
           setLoadingAuth(false);
         });
 
@@ -243,12 +256,9 @@ const App: React.FC = () => {
     setSettings(updated);
     
     if (isSupabaseConfigured) {
-      // Always try to save to DB if configured
       const payload = { ...updated, id: 'global_settings' }; 
       const result = await upsertData('settings', payload);
       if (!result) {
-         // If DB write failed, we technically just keep local state updated 
-         // but we warn the user via the status indicator
          setSaveStatus('error');
       } else {
          setSaveStatus('saved');
@@ -269,12 +279,9 @@ const App: React.FC = () => {
       timestamp: Date.now()
     };
     
-    // Only try to log to cloud if we know tables exist and are accessible
     if (isSupabaseConfigured) {
       supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
           if(error) {
-             console.error("Log error", error);
-             // Fallback to local if logging fails (e.g. permission error during runtime)
              const existing = safeJSONParse('site_traffic_logs', []);
              localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
           }
@@ -296,7 +303,9 @@ const App: React.FC = () => {
 
   return (
     <SettingsContext.Provider value={{ 
-      settings, updateSettings, user, loadingAuth, 
+      settings, updateSettings, 
+      products, categories, subCategories, heroSlides,
+      user, loadingAuth, 
       isLocalMode: !isSupabaseConfigured, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
     }}>
       <Router>
