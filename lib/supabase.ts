@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ADMINS, INITIAL_ENQUIRIES } from '../constants';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
 const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
@@ -174,8 +175,6 @@ drop policy if exists "Admin Control" on storage.objects;
 create policy "Admin Control" 
 on storage.objects for all 
 using ( auth.role() = 'authenticated' );
-
--- NOTE: Ensure you enable the Google Auth Provider in Supabase Authentication -> Providers
 `;
 
 const LOCAL_STORAGE_KEYS: Record<string, string> = {
@@ -191,8 +190,60 @@ const LOCAL_STORAGE_KEYS: Record<string, string> = {
 };
 
 /**
+ * Initializes the database by seeding default data if tables are empty.
+ */
+export async function initializeDatabase() {
+  if (!isSupabaseConfigured) return;
+
+  try {
+    // 1. Settings
+    const { count: settingsCount } = await supabase.from('settings').select('*', { count: 'exact', head: true });
+    if (settingsCount === 0) {
+      await supabase.from('settings').insert([{ ...INITIAL_SETTINGS, id: 'global_settings' }]);
+    }
+
+    // 2. Categories
+    const { count: catCount } = await supabase.from('categories').select('*', { count: 'exact', head: true });
+    if (catCount === 0) {
+      await supabase.from('categories').insert(INITIAL_CATEGORIES);
+    }
+
+    // 3. Subcategories
+    const { count: subCount } = await supabase.from('subcategories').select('*', { count: 'exact', head: true });
+    if (subCount === 0) {
+      await supabase.from('subcategories').insert(INITIAL_SUBCATEGORIES);
+    }
+
+    // 4. Products
+    const { count: prodCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+    if (prodCount === 0) {
+      await supabase.from('products').insert(INITIAL_PRODUCTS);
+    }
+
+    // 5. Slides
+    const { count: slideCount } = await supabase.from('carousel_slides').select('*', { count: 'exact', head: true });
+    if (slideCount === 0) {
+      await supabase.from('carousel_slides').insert(INITIAL_CAROUSEL);
+    }
+
+    // 6. Admin Users (Seed Data)
+    const { count: adminCount } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
+    if (adminCount === 0) {
+      await supabase.from('admin_users').insert(INITIAL_ADMINS);
+    }
+
+    // 7. Enquiries (Seed Data)
+    const { count: enqCount } = await supabase.from('enquiries').select('*', { count: 'exact', head: true });
+    if (enqCount === 0) {
+      await supabase.from('enquiries').insert(INITIAL_ENQUIRIES);
+    }
+  } catch (error) {
+    console.error("Auto-initialization failed:", error);
+  }
+}
+
+/**
  * Generic Upsert Function
- * Returns object with { data, error } so caller can decide status
  */
 export async function upsertData(table: string, data: any) {
   if (!isSupabaseConfigured) return { data: null, error: { message: 'Supabase not configured' } };
@@ -228,7 +279,7 @@ export async function deleteData(table: string, id: string) {
 }
 
 /**
- * Sync Local to Cloud - Used for first-time setup migration
+ * Sync Local to Cloud - Legacy Migration Helper
  */
 export async function syncLocalToCloud(tableName: string, localKey: string) {
   if (!isSupabaseConfigured) return;
@@ -238,7 +289,6 @@ export async function syncLocalToCloud(tableName: string, localKey: string) {
 
   console.log(`Migrating ${localData.length} items from ${localKey} to ${tableName}...`);
   
-  // Batch upsert
   const { error } = await supabase.from(tableName).upsert(localData);
   
   if (error) {
@@ -263,12 +313,10 @@ export async function fetchTableData(table: string) {
       const { data, error } = await supabase.from(table).select('*');
       
       if (error) {
-        console.warn(`Fetch error for ${table}: ${error.message} (Code: ${error.code})`);
-        // Only fallback if connection completely failed, otherwise returning empty array from DB is correct
+        console.warn(`Fetch error for ${table}: ${error.message}`);
         return [];
       }
       
-      // If data is null/undefined, return empty array to prevent crashes
       return data || [];
   } catch (e) {
       console.error(`Exception fetching ${table}`, e);
@@ -311,7 +359,6 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
     const { error } = await supabase.from('settings').select('companyName').limit(1);
     const end = performance.now();
     
-    // If table doesn't exist or permission denied, we still have a connection
     if (error && (error.code === '42P01' || error.code === '42501' || error.message.includes('404'))) { 
         return { status: 'online', latency: Math.round(end - start), message: 'Connected (Config Issues)' };
     }
