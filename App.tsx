@@ -193,7 +193,6 @@ const App: React.FC = () => {
         }
 
         // --- 2. CONTENT SYNC ---
-        // Fetch strictly from cloud
         const [remoteProducts, remoteCategories, remoteSubs, remoteHero] = await Promise.all([
            fetchTableData('products'),
            fetchTableData('categories'),
@@ -201,17 +200,60 @@ const App: React.FC = () => {
            fetchTableData('carousel_slides')
         ]);
 
-        // Explicitly update state with remote data to ensure frontend reflects DB
-        setProducts(remoteProducts || []);
-        setCategories(remoteCategories || []);
-        setSubCategories(remoteSubs || []);
-        setHeroSlides(remoteHero || []);
+        // INTELLIGENT SEEDING / FALLBACK
+        // If the database returns empty arrays (likely due to fresh install or missing tables), 
+        // fallback to INITIAL_ constants to prevent the UI from going blank.
+        // We also attempt to auto-seed these tables in the background.
+
+        let finalProducts = remoteProducts;
+        let finalCategories = remoteCategories;
+        let finalSubs = remoteSubs;
+        let finalHero = remoteHero;
+
+        if (!remoteProducts || remoteProducts.length === 0) {
+            console.log("Products empty. Using template data.");
+            finalProducts = INITIAL_PRODUCTS;
+            // Attempt seed
+            INITIAL_PRODUCTS.forEach(p => upsertData('products', p));
+        }
+
+        if (!remoteCategories || remoteCategories.length === 0) {
+            console.log("Categories empty. Using template data.");
+            finalCategories = INITIAL_CATEGORIES;
+            INITIAL_CATEGORIES.forEach(c => upsertData('categories', c));
+        }
+
+        if (!remoteSubs || remoteSubs.length === 0) {
+             finalSubs = INITIAL_SUBCATEGORIES;
+             INITIAL_SUBCATEGORIES.forEach(s => upsertData('subcategories', s));
+        }
+
+        if (!remoteHero || remoteHero.length === 0) {
+             console.log("Hero slides empty. Using template data.");
+             finalHero = INITIAL_CAROUSEL;
+             INITIAL_CAROUSEL.forEach(h => upsertData('carousel_slides', h));
+        }
+
+        setProducts(finalProducts);
+        setCategories(finalCategories);
+        setSubCategories(finalSubs);
+        setHeroSlides(finalHero);
 
       } else {
         // Local Mode Fallback
         setIsDatabaseProvisioned(false);
         const local = safeJSONParse('site_settings', null);
         if (local) setSettings(local);
+        
+        // Ensure products and other content are available in local mode even if not in localStorage yet
+        const localProducts = safeJSONParse('admin_products', null);
+        if (!localProducts) setProducts(INITIAL_PRODUCTS);
+        
+        const localCategories = safeJSONParse('admin_categories', null);
+        if (!localCategories) setCategories(INITIAL_CATEGORIES);
+
+        const localHero = safeJSONParse('admin_hero', null);
+        if (!localHero) setHeroSlides(INITIAL_CAROUSEL);
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -259,7 +301,6 @@ const App: React.FC = () => {
       if (error) {
          console.error("Failed to save settings to Supabase:", error);
          setSaveStatus('error');
-         // Don't auto-hide error
       } else {
          setSaveStatus('saved');
          setTimeout(() => setSaveStatus('idle'), 2000);
