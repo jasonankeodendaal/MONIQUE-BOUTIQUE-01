@@ -439,16 +439,40 @@ const SingleImageUploader: React.FC<{ label: string; value: string; onChange: (v
       onChange(url);
     }
   };
+  
+  const isVideo = (url: string) => url?.match(/\.(mp4|webm|ogg|mov)$/i);
+
   return (
     <div className={`space-y-2 ${className}`}>
       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
-      <div className="flex gap-4 items-center">
-        {value && <div className="w-16 h-16 rounded-xl bg-slate-800 overflow-hidden relative border border-slate-700"><img src={value} className="w-full h-full object-cover" /></div>}
-        <div className="flex-grow flex gap-2">
-           <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="https://..." className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs outline-none" />
-           <label className="p-3 bg-slate-800 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-700 text-white"><Upload size={16} /><input type="file" className="hidden" onChange={handleFile} accept="image/*" /></label>
+      {value ? (
+        <div className="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden border border-slate-700 group">
+             {isVideo(value) ? (
+               <video src={value} className="w-full h-full object-cover" controls muted />
+             ) : (
+               <img src={value} className="w-full h-full object-cover" />
+             )}
+             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                <label className="p-3 bg-white text-slate-900 rounded-xl cursor-pointer hover:bg-primary transition-colors" title="Replace">
+                    <RefreshCcw size={16} />
+                    <input type="file" className="hidden" onChange={handleFile} accept="image/*,video/*" />
+                </label>
+                <button 
+                    onClick={() => onChange('')} 
+                    className="p-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
+                    title="Remove"
+                >
+                    <Trash2 size={16} />
+                </button>
+             </div>
         </div>
-      </div>
+      ) : (
+        <label className="w-full h-32 bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 cursor-pointer transition-colors group">
+           <UploadCloud size={24} className="mb-2 group-hover:scale-110 transition-transform"/>
+           <span className="text-[9px] font-black uppercase tracking-widest">Upload Media</span>
+           <input type="file" className="hidden" onChange={handleFile} accept="image/*,video/*" />
+        </label>
+      )}
     </div>
   );
 };
@@ -464,18 +488,25 @@ const FileUploader: React.FC<{ files: {id:string, url:string}[]; onFilesChange: 
          onFilesChange(newFiles);
       }
    };
+   
+   const isVideo = (url: string) => url?.match(/\.(mp4|webm|ogg|mov)$/i);
+
    return (
-     <div className="grid grid-cols-3 gap-4">
+     <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
        {files.map((f, i) => (
          <div key={i} className="relative aspect-square bg-slate-800 rounded-xl overflow-hidden border border-slate-700 group">
-            <img src={f.url} className="w-full h-full object-cover" />
-            <button onClick={() => onFilesChange(files.filter((_, idx) => idx !== i))} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
+            {isVideo(f.url) ? (
+               <video src={f.url} className="w-full h-full object-cover" />
+            ) : (
+               <img src={f.url} className="w-full h-full object-cover" />
+            )}
+            <button onClick={() => onFilesChange(files.filter((_, idx) => idx !== i))} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"><X size={12}/></button>
          </div>
        ))}
-       <label className="aspect-square bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 cursor-pointer transition-colors">
-          <UploadCloud size={24} className="mb-2"/>
-          <span className="text-[9px] font-black uppercase">Upload</span>
-          <input type="file" multiple className="hidden" onChange={handleUpload} accept="image/*" />
+       <label className="aspect-square bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 cursor-pointer transition-colors group">
+          <UploadCloud size={24} className="mb-2 group-hover:scale-110 transition-transform"/>
+          <span className="text-[9px] font-black uppercase text-center">Add File</span>
+          <input type="file" multiple className="hidden" onChange={handleUpload} accept="image/*,video/*" />
        </label>
      </div>
    );
@@ -847,7 +878,6 @@ const Admin: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
   
-  // ... [Handlers for Products, Categories, Hero, Admins, Subcategories, Discounts, Specs remain largely the same, calling performSave] ...
   const handleSaveProduct = () => {
      let newItem: Product;
      if (editingId) {
@@ -1103,14 +1133,8 @@ const Admin: React.FC = () => {
     </div>
   );
   
-  // ... [renderCatalog, renderHero, renderCategories, renderTeam, renderSystem, renderGuide, renderSiteEditor are largely the same structure but wrapped in responsiveness fixes]
-
-  // IMPORTANT: For brevity in this fix, I'm providing the layout structure for Admin.tsx
-  // The key change is adding overflow-x-auto to the tab bar and tables, and adjusting paddings.
-  
   const renderCatalog = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* ... Catalog Render Logic ... */}
       {showProductForm ? (
         <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
           <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6">
@@ -1149,8 +1173,6 @@ const Admin: React.FC = () => {
              </div>
           </div>
           
-          {/* ... [Rest of Product Form] ... */}
-          {/* Ensure Buttons Stack on Mobile */}
           <div className="flex flex-col md:flex-row gap-4 pt-8 border-t border-slate-800">
              <button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button>
              <button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button>
@@ -1206,8 +1228,6 @@ const Admin: React.FC = () => {
       )}
      </div>
   );
-
-  // ... (Other render functions like renderHero, renderCategories, renderSiteEditor follow similar pattern of added padding adjustment and stack flex-col on mobile) ...
 
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1427,39 +1447,27 @@ const Admin: React.FC = () => {
                   <div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50">
                      <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Network Latency</span>
                      <div className="flex items-center gap-3">
-                        <Activity size={20} className={connectionHealth?.latency && connectionHealth.latency < 200 ? 'text-green-500' : 'text-yellow-500'} />
+                        <div className={`w-3 h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-blue-500' : 'bg-slate-600'}`}></div>
                         <span className="text-lg font-bold text-white">{connectionHealth?.latency || 0} ms</span>
                      </div>
                   </div>
                 </div>
-
-                <div className="p-4 bg-black/20 rounded-xl border border-slate-700/50 font-mono text-[10px] text-slate-400 break-all">
-                   <div className="flex justify-between mb-2"><span className="uppercase font-bold text-slate-500">Endpoint URL</span> <span className="text-primary">{isSupabaseConfigured ? 'CONFIGURED' : 'MISSING'}</span></div>
-                   {url ? url.replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}
-                </div>
-                
-                {/* Diagnostics Help Text */}
-                {!isSupabaseConfigured && (
-                  <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-xs text-red-300">
-                    <p className="font-bold mb-2 flex items-center gap-2"><AlertTriangle size={14}/> Environment Variable Missing</p>
-                    <p className="mb-2">The system cannot detect <code>VITE_SUPABASE_URL</code>.</p>
-                    <p><strong>Note:</strong> In Vite apps, environment variables MUST start with <code>VITE_</code>. If you named it <code>SUPABASE_URL</code> in Vercel, rename it to <code>VITE_SUPABASE_URL</code> and redeploy.</p>
-                  </div>
-                )}
              </div>
-
-             <div className="w-full md:w-80 space-y-4">
-                <div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 flex flex-col items-center text-center">
-                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-white ${connectionHealth?.status === 'online' ? 'bg-green-500' : 'bg-slate-600'}`}>
-                      {connectionHealth?.status === 'online' ? <Wifi size={32}/> : <WifiOff size={32}/>}
+             
+             <div className="w-full md:w-1/3 space-y-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8">
+                   <h3 className="text-white font-bold text-lg mb-4">System Actions</h3>
+                   <div className="space-y-3">
+                      <button onClick={handleBackup} className="w-full py-4 bg-slate-800 text-slate-300 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-700 hover:text-white transition-all flex items-center justify-center gap-3">
+                         <Download size={16} /> Backup Data
+                      </button>
+                      <button onClick={handleFactoryReset} className="w-full py-4 bg-red-500/10 text-red-500 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3">
+                         <Trash2 size={16} /> Factory Reset
+                      </button>
+                      <button onClick={handleLogout} className="w-full py-4 bg-slate-800 text-slate-300 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-700 hover:text-white transition-all flex items-center justify-center gap-3">
+                         <LogOut size={16} /> Sign Out
+                      </button>
                    </div>
-                   <h4 className="text-white font-bold mb-1">{connectionHealth?.message || 'Checking...'}</h4>
-                   <p className="text-xs text-slate-400">Last heartbeat: {new Date().toLocaleTimeString()}</p>
-                </div>
-                <div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 text-center">
-                   <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Active Session</span>
-                   <span className="text-sm font-bold text-white truncate w-full block">{user?.email || 'Local User'}</span>
-                   <span className="text-[9px] text-primary uppercase font-bold mt-1 block">{user?.role || 'Simulated'} Role</span>
                 </div>
              </div>
            </div>
@@ -1467,309 +1475,64 @@ const Admin: React.FC = () => {
      </div>
     );
   };
-
-  const renderGuide = () => (
-     <div className="space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-6xl mx-auto text-left">
-        {/* ... [Guide content remains same but wrapped in better padding/stacking for mobile] ... */}
-        <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[3rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
-          <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-96 h-96 rotate-12" />
-          <div className="max-w-3xl relative z-10">
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-8 border border-primary/30">
-               <Zap size={14}/> Implementation Protocol
-            </div>
-            <h2 className="text-4xl md:text-7xl font-serif text-white mb-6 leading-none">The <span className="text-primary italic font-light lowercase">Architecture</span> of Success</h2>
-            <p className="text-slate-400 text-base md:text-xl font-light leading-relaxed">Your comprehensive blueprint for deploying a high-performance luxury affiliate portal from source to global production.</p>
-          </div>
-        </div>
-        <div className="grid gap-16 md:gap-32">
-          {GUIDE_STEPS.map((step, idx) => (
-            <div key={step.id} className="relative grid md:grid-cols-12 gap-8 md:gap-20">
-              <div className="md:col-span-1 flex flex-col items-center">
-                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl md:sticky md:top-32">{idx + 1}</div>
-                 <div className="flex-grow w-0.5 bg-gradient-to-b from-slate-800 to-transparent my-4 hidden md:block" />
-              </div>
-              <div className="md:col-span-7 space-y-10">
-                <div className="space-y-4">
-                   <h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight">{step.title}</h3>
-                   <p className="text-slate-400 text-base md:text-lg leading-relaxed">{step.description}</p>
-                </div>
-                {step.subSteps && (
-                  <div className="grid gap-4">
-                    {step.subSteps.map((sub, i) => (
-                      <div key={i} className="flex items-start gap-4 p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
-                        <CheckCircle size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                        <span className="text-slate-300 text-sm md:text-base leading-relaxed">{sub}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {step.code && (<CodeBlock code={step.code} label={step.codeLabel} />)}
-                {step.tips && (
-                  <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-8 flex items-start gap-6 text-primary/80 text-sm md:text-base leading-relaxed">
-                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 text-primary"><Info size={24}/></div>
-                    <p>{step.tips}</p>
-                  </div>
-                )}
-              </div>
-              <div className="md:col-span-4 md:sticky md:top-32 h-fit">
-                 <GuideIllustration id={step.illustrationId} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-  );
-
-  const renderSiteEditor = () => (
-     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {[
-          {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, 
-          {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, 
-          {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, 
-          {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, 
-          {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, 
-          {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'},
-          {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'},
-          {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'}
-        ].map(s => ( 
-          <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-8 rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between min-h-[250px]">
-             <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div>
-             <div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div>
-             <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div>
-          </button> 
-        ))}
-     </div>
-  );
-
+  
+  // Admin Main Render
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-20">
-      <style>{`
-         @keyframes grow { from { height: 0; } to { height: 100%; } }
-         @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-      `}</style>
-      {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
-      {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
-
-      <header className="max-w-[1400px] mx-auto px-4 md:px-6 mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 text-left">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-4xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1>
-            <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (user?.email?.split('@')[0] || 'ADMIN')}</div>
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 overflow-x-auto no-scrollbar max-w-full">
-            {[ 
-              { id: 'enquiries', label: 'Inbox', icon: Inbox }, 
-              { id: 'analytics', label: 'Insights', icon: BarChart3 },
-              { id: 'catalog', label: 'Items', icon: ShoppingBag }, 
-              { id: 'hero', label: 'Visuals', icon: LayoutPanelTop }, 
-              { id: 'categories', label: 'Depts', icon: Layout }, 
-              { id: 'site_editor', label: 'Canvas', icon: Palette }, 
-              { id: 'team', label: 'Maison', icon: Users }, 
-              { id: 'system', label: 'System', icon: Activity }, 
-              { id: 'guide', label: 'Pilot', icon: Rocket } 
-            ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab.id ? 'bg-primary text-slate-900' : 'text-slate-500 hover:text-slate-300'}`}><div className="flex items-center gap-2"><tab.icon size={12} />{tab.label}</div></button>
-            ))}
-          </div>
-          <button onClick={handleLogout} className="px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-fit"><LogOut size={14} /> Exit</button>
-        </div>
-      </header>
-
-      <main className="max-w-[1400px] mx-auto px-4 md:px-6 pb-20">
-        {activeTab === 'enquiries' && renderEnquiries()}
-        {activeTab === 'analytics' && <AnalyticsView products={products} stats={stats} categories={categories} trafficEvents={trafficEvents} onEditProduct={(p) => { setProductData(p); setEditingId(p.id); setShowProductForm(true); setActiveTab('catalog'); }} />}
-        {activeTab === 'catalog' && renderCatalog()}
-        {activeTab === 'hero' && renderHero()}
-        {activeTab === 'categories' && renderCategories()}
-        {activeTab === 'site_editor' && renderSiteEditor()}
-        {activeTab === 'team' && renderTeam()}
-        {activeTab === 'system' && renderSystem()}
-        {activeTab === 'guide' && renderGuide()}
-      </main>
-
-      {/* Full Screen Editor Drawer */}
-      {editorDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
-            <div className="flex justify-between items-center mb-10 pb-6 border-b border-slate-800">
-               <div><h3 className="text-2xl md:text-3xl font-serif text-white uppercase">{activeEditorSection}</h3><p className="text-slate-500 text-xs mt-1">Global Site Configuration</p></div>
-               <button onClick={() => setEditorDrawerOpen(false)} className="p-3 bg-slate-900 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"><X size={24}/></button>
-            </div>
-            
-            <div className="space-y-10 pb-20">
-               {/* Use tempSettings instead of settings for all inputs here */}
-               {activeEditorSection === 'brand' && (
-                  <>
-                     <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Globe size={18} className="text-primary"/> Basic Info</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({companyName: v})} /><SettingField label="Slogan" value={tempSettings.slogan || ''} onChange={v => updateTempSettings({slogan: v})} /><SettingField label="Logo Text" value={tempSettings.companyLogo} onChange={v => updateTempSettings({companyLogo: v})} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({companyLogoUrl: v})} className="h-32 w-full object-contain bg-slate-800/50" /></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold flex items-center gap-2"><Palette size={18} className="text-primary"/> Brand Colors</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary" value={tempSettings.primaryColor} onChange={v => updateTempSettings({primaryColor: v})} type="color" /><SettingField label="Secondary" value={tempSettings.secondaryColor || '#1E293B'} onChange={v => updateTempSettings({secondaryColor: v})} type="color" /><SettingField label="Accent" value={tempSettings.accentColor || '#F59E0B'} onChange={v => updateTempSettings({accentColor: v})} type="color" /></div></div>
-                  </>
-               )}
-               {/* ... Other Editor Sections (same structure as original, using tempSettings) ... */}
-               {activeEditorSection === 'nav' && (
-                  <div className="space-y-8">
-                     <div className="space-y-6"><h4 className="text-white font-bold">Menu Labels</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Home" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({navHomeLabel: v})} /><SettingField label="Products" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({navProductsLabel: v})} /><SettingField label="About" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({navAboutLabel: v})} /><SettingField label="Contact" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({navContactLabel: v})} /></div></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Footer Content</h4><SettingField label="Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({footerDescription: v})} type="textarea" /><SettingField label="Copyright" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({footerCopyrightText: v})} /></div>
-                  </div>
-               )}
-               {/* ... (Include all other editor sections from original code: home, collections, about, contact, legal, integrations) ... */}
-               {activeEditorSection === 'home' && (
-                  <>
-                     <div className="space-y-6"><h4 className="text-white font-bold">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({homeAboutTitle: v})} /><SettingField label="Body" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({homeAboutDescription: v})} type="textarea" /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({homeAboutCta: v})} /><SingleImageUploader label="Featured Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({homeAboutImage: v})} /></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Trust Strip</h4><SettingField label="Section Title" value={tempSettings.homeTrustSectionTitle} onChange={v => updateTempSettings({homeTrustSectionTitle: v})} /><div className="grid gap-6">{[1,2,3].map(i => (<div key={i} className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-3"><span className="text-[10px] font-black uppercase text-slate-500">Item {i}</span><SettingField label="Title" value={(tempSettings as any)[`homeTrustItem${i}Title`]} onChange={v => updateTempSettings({[`homeTrustItem${i}Title`]: v})} /><SettingField label="Desc" value={(tempSettings as any)[`homeTrustItem${i}Desc`]} onChange={v => updateTempSettings({[`homeTrustItem${i}Desc`]: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={(tempSettings as any)[`homeTrustItem${i}Icon`] || 'ShieldCheck'} onSelect={icon => updateTempSettings({[`homeTrustItem${i}Icon`]: icon})} /></div></div>))}</div></div>
-                  </>
-               )}
-               {activeEditorSection === 'collections' && (
-                  <div className="space-y-6">
-                     <h4 className="text-white font-bold">Page Hero</h4>
-                     <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({productsHeroTitle: v})} />
-                     <SettingField label="Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({productsHeroSubtitle: v})} type="textarea" />
-                     <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({productsSearchPlaceholder: v})} />
-                     <div className="space-y-4 pt-4 border-t border-slate-800">
-                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Hero Carousel Images</label>
-                        <FileUploader files={(tempSettings.productsHeroImages || []).map(url => ({id: url, url, name: 'hero', type: 'image/jpeg', size: 0}))} onFilesChange={files => updateTempSettings({productsHeroImages: files.map(f => f.url)})} />
-                     </div>
-                  </div>
-               )}
-               {activeEditorSection === 'about' && (
-                  <>
-                     <div className="space-y-6"><h4 className="text-white font-bold">Hero</h4><SettingField label="Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({aboutHeroTitle: v})} /><SettingField label="Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({aboutHeroSubtitle: v})} type="textarea" /><SingleImageUploader label="Main Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({aboutMainImage: v})} /></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Key Facts</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                           <SettingField label="Established Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({aboutEstablishedYear: v})} />
-                           <SettingField label="Founder Name" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({aboutFounderName: v})} />
-                           <div className="col-span-2"><SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({aboutLocation: v})} /></div>
-                        </div>
-                     </div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Content Blocks</h4>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">History</h5><SettingField label="Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({aboutHistoryTitle: v})} /><SettingField label="Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({aboutHistoryBody: v})} type="textarea" /></div>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">Mission</h5><SettingField label="Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({aboutMissionTitle: v})} /><SettingField label="Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({aboutMissionBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={tempSettings.aboutMissionIcon || 'Target'} onSelect={icon => updateTempSettings({aboutMissionIcon: icon})} /></div></div>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">Community</h5><SettingField label="Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({aboutCommunityTitle: v})} /><SettingField label="Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({aboutCommunityBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={tempSettings.aboutCommunityIcon || 'Users'} onSelect={icon => updateTempSettings({aboutCommunityIcon: icon})} /></div></div>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">Integrity</h5><SettingField label="Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({aboutIntegrityTitle: v})} /><SettingField label="Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({aboutIntegrityBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={tempSettings.aboutIntegrityIcon || 'Award'} onSelect={icon => updateTempSettings({aboutIntegrityIcon: icon})} /></div></div>
-                     </div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Gallery</h4><FileUploader files={(tempSettings.aboutGalleryImages || []).map(url => ({id: url, url, name: 'gallery', type: 'image/jpeg', size: 0}))} onFilesChange={files => updateTempSettings({aboutGalleryImages: files.map(f => f.url)})} /></div>
-                  </>
-               )}
-               {activeEditorSection === 'contact' && (
-                  <>
-                    <div className="space-y-6"><h4 className="text-white font-bold">Hero & Info</h4><SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({contactHeroTitle: v})} /><SettingField label="Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({contactHeroSubtitle: v})} /></div>
-                    <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Company Details</h4>
-                       <div className="grid md:grid-cols-2 gap-4">
-                          <SettingField label="Email Address" value={tempSettings.contactEmail} onChange={v => updateTempSettings({contactEmail: v})} />
-                          <SettingField label="Phone Number" value={tempSettings.contactPhone} onChange={v => updateTempSettings({contactPhone: v})} />
-                       </div>
-                       <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({address: v})} />
-                       <div className="grid md:grid-cols-2 gap-4">
-                          <SettingField label="Hours (Weekdays)" value={tempSettings.contactHoursWeekdays} onChange={v => updateTempSettings({contactHoursWeekdays: v})} />
-                          <SettingField label="Hours (Weekends)" value={tempSettings.contactHoursWeekends} onChange={v => updateTempSettings({contactHoursWeekends: v})} />
-                       </div>
-                    </div>
-                    <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Social Links</h4>
-                       {tempSettings.socialLinks?.map(link => (
-                          <div key={link.id} className="p-6 bg-slate-900 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-6 items-start">
-                             <div className="w-full md:w-32 flex-shrink-0">
-                                <SingleImageUploader label="Icon" value={link.iconUrl} onChange={v => updateTempSocialLink(link.id, 'iconUrl', v)} className="aspect-square w-full rounded-xl bg-slate-800" />
-                             </div>
-                             <div className="flex-grow w-full space-y-4">
-                                <SettingField label="Platform Name" value={link.name} onChange={v => updateTempSocialLink(link.id, 'name', v)} />
-                                <SettingField label="Profile URL" value={link.url} onChange={v => updateTempSocialLink(link.id, 'url', v)} />
-                             </div>
-                             <button onClick={() => removeTempSocialLink(link.id)} className="self-end md:self-start p-3 text-slate-500 hover:text-red-500"><Trash2 size={18}/></button>
-                          </div>
-                       ))}
-                       <button onClick={addTempSocialLink} className="w-full py-4 border border-dashed border-slate-700 text-slate-400 rounded-xl hover:text-white hover:border-slate-500 uppercase font-black text-xs flex items-center justify-center gap-2"><Plus size={16}/> Add Social Link</button>
-                    </div>
-                  </>
-               )}
-               {activeEditorSection === 'legal' && (
-                  <div className="space-y-8">
-                     <div className="space-y-4"><h4 className="text-white font-bold">Disclosure</h4><SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({disclosureTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({disclosureContent: v})} type="textarea" /></div>
-                     <div className="space-y-4 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Privacy Policy</h4><SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({privacyTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.privacyContent} onChange={v => updateTempSettings({privacyContent: v})} type="textarea" /></div>
-                     <div className="space-y-4 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Terms of Service</h4><SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({termsTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.termsContent} onChange={v => updateTempSettings({termsContent: v})} type="textarea" /></div>
-                  </div>
-               )}
-               {activeEditorSection === 'integrations' && (
-                  <div className="space-y-12">
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <div className="flex justify-between items-center">
-                           <h4 className="text-white font-bold flex items-center gap-3"><Database size={20} className="text-primary"/> Backend Protocol</h4>
-                           <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSupabaseConfigured ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                              {isSupabaseConfigured ? 'Synchronized' : 'Offline'}
-                           </div>
-                        </div>
-                        <AdminHelpBox title="Supabase Cloud" steps={["Configure VITE_SUPABASE_URL in Vercel", "Configure VITE_SUPABASE_ANON_KEY", "Deployment required for sync"]} />
-                     </div>
-                     {/* ... Rest of integration settings ... */}
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <div className="flex items-center justify-between">
-                           <h4 className="text-white font-bold flex items-center gap-3"><Mail size={20} className="text-primary"/> Lead Routing (EmailJS)</h4>
-                           <button 
-                             onClick={() => setShowEmailTemplate(true)}
-                             className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:text-white"
-                           >
-                              <FileCode size={14} /> Get Template
-                           </button>
-                        </div>
-                        <AdminHelpBox title="Setup Guide" steps={["Create Service & Template", "Use variables: {{message}}, {{subject}}, {{to_name}}", "Paste IDs below"]} />
-                        <div className="space-y-4">
-                           <SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({emailJsServiceId: v})} placeholder="service_xxxxxx" />
-                           <SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({emailJsTemplateId: v})} placeholder="template_xxxxxx" />
-                           <SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({emailJsPublicKey: v})} placeholder="user_xxxxxxx" />
-                        </div>
-                     </div>
-                     {/* ... Pixel Settings ... */}
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <h4 className="text-white font-bold flex items-center gap-3"><BarChart size={20} className="text-primary"/> Pixel & Analytics</h4>
-                        <div className="grid gap-4">
-                           <SettingField label="Google Analytics 4" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({googleAnalyticsId: v})} placeholder="G-XXXXXXXXXX" />
-                           <SettingField label="Meta (Facebook) Pixel" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({facebookPixelId: v})} placeholder="1234567890" />
-                           <SettingField label="TikTok Pixel" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({tiktokPixelId: v})} placeholder="CXXXXXXXXXXXXXXXXXXX" />
-                        </div>
-                     </div>
-                     {/* ... Affiliate Settings ... */}
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <h4 className="text-white font-bold flex items-center gap-3"><Tag size={20} className="text-primary"/> Affiliate Management</h4>
-                        <div className="space-y-4">
-                           <SettingField label="Amazon Associate ID" value={tempSettings.amazonAssociateId || ''} onChange={v => updateTempSettings({amazonAssociateId: v})} placeholder="storename-20" />
-                           <SettingField label="Lead Webhook URL" value={tempSettings.webhookUrl || ''} onChange={v => updateTempSettings({webhookUrl: v})} placeholder="https://hooks.zapier.com/..." />
-                        </div>
-                     </div>
-                  </div>
-               )}
-            </div>
-
-            <div className="fixed bottom-0 right-0 w-full max-w-2xl p-6 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 flex justify-end gap-4">
-              <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black uppercase text-xs tracking-widest hover:brightness-110 transition-all shadow-lg shadow-primary/20">Save Configuration</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Email Template Modal */}
-      {showEmailTemplate && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-           <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden">
-             <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-               <h3 className="text-white font-bold text-lg flex items-center gap-2"><FileCode size={18} className="text-primary"/> EmailJS HTML Template</h3>
-               <button onClick={() => setShowEmailTemplate(false)} className="text-slate-500 hover:text-white"><X size={24}/></button>
+    <div className="min-h-screen bg-black text-slate-200 font-sans selection:bg-primary/30 flex">
+       {/* Sidebar */}
+       <aside className="w-20 lg:w-72 bg-slate-950 border-r border-slate-900 flex-shrink-0 flex flex-col h-screen sticky top-0 z-50">
+          <div className="p-6 flex items-center gap-3 mb-6">
+             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-slate-900 font-black text-xl shadow-lg shadow-primary/20">
+                {settings.companyLogo || 'K'}
              </div>
-             <div className="p-6 overflow-y-auto flex-grow bg-slate-950">
-               <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-xl">
-                 <p className="text-primary text-xs font-bold mb-2">IMPORTANT CONFIGURATION:</p>
-                 <ol className="list-decimal list-inside text-slate-400 text-xs space-y-1">
-                   <li>Copy the code below.</li>
-                   <li>Go to your EmailJS Dashboard &rarr; Email Templates &rarr; Select Template.</li>
-                   <li><strong>CRITICAL:</strong> Click the "Source Code" icon ( <span className="font-mono text-white">&lt; &gt;</span> ) in the toolbar.</li>
-                   <li>Paste this code completely, replacing any existing content.</li>
-                   <li>Click "Source Code" again to exit code view, then Save.</li>
-                 </ol>
-               </div>
-               <CodeBlock code={EMAIL_TEMPLATE_HTML} language="html" label="Responsive HTML Template" />
-             </div>
-           </div>
-         </div>
-      )}
+             <span className="hidden lg:block font-serif text-xl font-bold text-white tracking-tight">Console</span>
+          </div>
+
+          <nav className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar">
+             {[
+               { id: 'enquiries', label: 'Inbox', icon: Inbox },
+               { id: 'catalog', label: 'Catalog', icon: ShoppingBag },
+               { id: 'hero', label: 'Hero', icon: LayoutPanelTop },
+               { id: 'categories', label: 'Departments', icon: LayoutGrid },
+               { id: 'team', label: 'Team', icon: Users },
+               { id: 'analytics', label: 'Intelligence', icon: BarChart3 },
+               { id: 'system', label: 'System', icon: SettingsIcon },
+             ].map(item => (
+               <button
+                 key={item.id}
+                 onClick={() => setActiveTab(item.id as any)}
+                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all group ${activeTab === item.id ? 'bg-primary text-slate-900 shadow-lg shadow-primary/20' : 'text-slate-500 hover:bg-slate-900 hover:text-white'}`}
+               >
+                 <item.icon size={20} className={activeTab === item.id ? 'text-slate-900' : 'text-slate-500 group-hover:text-white transition-colors'} />
+                 <span className="hidden lg:block text-xs font-bold uppercase tracking-widest">{item.label}</span>
+               </button>
+             ))}
+          </nav>
+
+          <div className="p-4 border-t border-slate-900 space-y-2">
+             <button onClick={handleLogout} className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-slate-500 hover:bg-slate-900 hover:text-red-500 transition-all group">
+                <LogOut size={20} />
+                <span className="hidden lg:block text-xs font-bold uppercase tracking-widest">Logout</span>
+             </button>
+          </div>
+       </aside>
+
+       {/* Main Content */}
+       <main className="flex-1 min-w-0 bg-black overflow-y-auto h-screen relative scroll-smooth">
+          <div className="p-6 md:p-12 pb-32 max-w-7xl mx-auto">
+             {activeTab === 'enquiries' && renderEnquiries()}
+             {activeTab === 'catalog' && renderCatalog()}
+             {activeTab === 'hero' && renderHero()}
+             {activeTab === 'categories' && renderCategories()}
+             {activeTab === 'team' && renderTeam()}
+             {activeTab === 'system' && renderSystem()}
+             {activeTab === 'analytics' && <AnalyticsView products={products} stats={stats} categories={categories} trafficEvents={trafficEvents} onEditProduct={(p) => { setProductData(p); setEditingId(p.id); setShowProductForm(true); setActiveTab('catalog'); }} />}
+          </div>
+       </main>
+       
+       {/* Modals */}
+       {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
+       {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
     </div>
   );
 };
