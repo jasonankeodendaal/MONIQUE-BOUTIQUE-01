@@ -10,9 +10,9 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, initializeDatabase } from './lib/supabase';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES } from './constants';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, initializeDatabase, subscribeToTable, LOCAL_STORAGE_KEYS } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Check, Loader2, AlertTriangle, Database } from 'lucide-react';
 
@@ -23,9 +23,15 @@ interface SettingsContextType {
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
   // Global Data Store
   products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   categories: Category[];
+  setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
   subCategories: SubCategory[];
+  setSubCategories: React.Dispatch<React.SetStateAction<SubCategory[]>>;
   heroSlides: CarouselSlide[];
+  setHeroSlides: React.Dispatch<React.SetStateAction<CarouselSlide[]>>;
+  enquiries: Enquiry[];
+  setEnquiries: React.Dispatch<React.SetStateAction<Enquiry[]>>;
   // System State
   user: User | null;
   loadingAuth: boolean;
@@ -168,11 +174,74 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>(() => safeJSONParse('admin_categories', INITIAL_CATEGORIES));
   const [subCategories, setSubCategories] = useState<SubCategory[]>(() => safeJSONParse('admin_subcategories', INITIAL_SUBCATEGORIES));
   const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(() => safeJSONParse('admin_hero', INITIAL_CAROUSEL));
+  const [enquiries, setEnquiries] = useState<Enquiry[]>(() => safeJSONParse('admin_enquiries', INITIAL_ENQUIRIES));
   
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(true);
+
+  // --- REALTIME DATA SUBSCRIPTION LOGIC ---
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    // Helper to update state and local storage
+    const handleTableChange = (payload: any, eventType: string, setState: React.Dispatch<React.SetStateAction<any[]>>, storageKey: string) => {
+      const { new: newRecord, old: oldRecord } = payload;
+      
+      setState(prev => {
+        let updated = [...prev];
+        if (eventType === 'INSERT') {
+          // Check if already exists (dedupe)
+          if (!updated.find(i => i.id === newRecord.id)) {
+            updated = [newRecord, ...updated];
+          }
+        } else if (eventType === 'UPDATE') {
+          updated = updated.map(i => i.id === newRecord.id ? newRecord : i);
+        } else if (eventType === 'DELETE') {
+          updated = updated.filter(i => i.id !== oldRecord.id);
+        }
+        
+        // Update Local Storage for offline persistence
+        const key = LOCAL_STORAGE_KEYS[storageKey] || `admin_${storageKey}`;
+        localStorage.setItem(key, JSON.stringify(updated));
+        
+        return updated;
+      });
+    };
+
+    // Table Mapping
+    const tables = [
+      { name: 'products', setter: (data: any, type: string) => handleTableChange(data, type, setProducts, 'products') },
+      { name: 'categories', setter: (data: any, type: string) => handleTableChange(data, type, setCategories, 'categories') },
+      { name: 'subcategories', setter: (data: any, type: string) => handleTableChange(data, type, setSubCategories, 'subcategories') },
+      { name: 'carousel_slides', setter: (data: any, type: string) => handleTableChange(data, type, setHeroSlides, 'carousel_slides') },
+      { name: 'enquiries', setter: (data: any, type: string) => handleTableChange(data, type, setEnquiries, 'enquiries') },
+    ];
+
+    const subs = tables.map(t => {
+      return subscribeToTable(t.name, (payload) => {
+         // console.log(`Realtime update for ${t.name}:`, payload.eventType);
+         t.setter(payload, payload.eventType);
+      });
+    });
+
+    // Special case for Settings (Singleton)
+    const settingsSub = subscribeToTable('settings', (payload) => {
+       if (payload.new && (payload.new as any).id === 'global_settings') {
+          setSettings(prev => {
+             const updated = { ...prev, ...payload.new };
+             localStorage.setItem('site_settings', JSON.stringify(updated));
+             return updated;
+          });
+       }
+    });
+
+    return () => {
+      subs.forEach(s => s?.unsubscribe());
+      settingsSub?.unsubscribe();
+    };
+  }, []);
 
   const refreshAllData = async () => {
     setSaveStatus('saving');
@@ -196,11 +265,12 @@ const App: React.FC = () => {
 
         // --- 2. CONTENT SYNC ---
         // Fetch strictly from cloud
-        const [remoteProducts, remoteCategories, remoteSubs, remoteHero] = await Promise.all([
+        const [remoteProducts, remoteCategories, remoteSubs, remoteHero, remoteEnquiries] = await Promise.all([
            fetchTableData('products'),
            fetchTableData('categories'),
            fetchTableData('subcategories'),
-           fetchTableData('carousel_slides')
+           fetchTableData('carousel_slides'),
+           fetchTableData('enquiries')
         ]);
 
         // Explicitly update state with remote data
@@ -208,6 +278,7 @@ const App: React.FC = () => {
         setCategories(remoteCategories || []);
         setSubCategories(remoteSubs || []);
         setHeroSlides(remoteHero || []);
+        setEnquiries(remoteEnquiries || []);
 
       } else {
         // Local Mode Fallback
@@ -309,7 +380,11 @@ const App: React.FC = () => {
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, 
-      products, categories, subCategories, heroSlides,
+      products, setProducts,
+      categories, setCategories,
+      subCategories, setSubCategories,
+      heroSlides, setHeroSlides,
+      enquiries, setEnquiries,
       user, loadingAuth, 
       isLocalMode: !isSupabaseConfigured, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
     }}>

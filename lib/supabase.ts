@@ -217,7 +217,7 @@ on storage.objects for all
 using ( auth.role() = 'authenticated' );
 `;
 
-const LOCAL_STORAGE_KEYS: Record<string, string> = {
+export const LOCAL_STORAGE_KEYS: Record<string, string> = {
   'products': 'admin_products',
   'categories': 'admin_categories',
   'subcategories': 'admin_subcategories',
@@ -227,6 +227,18 @@ const LOCAL_STORAGE_KEYS: Record<string, string> = {
   'product_stats': 'admin_product_stats',
   'settings': 'site_settings',
   'traffic_logs': 'site_traffic_logs'
+};
+
+/**
+ * Helper to subscribe to Realtime changes on a specific table.
+ * Returns the subscription object which should be unsubscribed on unmount.
+ */
+export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
+  if (!isSupabaseConfigured) return null;
+  return supabase
+    .channel(`${table}_changes`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: table }, callback)
+    .subscribe();
 };
 
 /**
