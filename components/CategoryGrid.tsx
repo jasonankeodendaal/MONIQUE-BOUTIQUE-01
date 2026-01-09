@@ -1,18 +1,22 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { useSettings } from '../App';
+import { INITIAL_CATEGORIES } from '../constants';
+import { Category } from '../types';
 import { CustomIcons } from './CustomIcons';
 
 const CategoryGrid: React.FC = () => {
   const navigate = useNavigate();
-  const { categories } = useSettings();
+
+  const categories = useMemo<Category[]>(() => {
+    const saved = localStorage.getItem('admin_categories');
+    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+  }, []);
 
   const handleCategoryClick = (id: string) => {
     navigate(`/products?category=${id}`);
   };
-
-  if (!categories || categories.length === 0) return null;
 
   return (
     <section className="py-12 md:py-40 bg-white">

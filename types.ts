@@ -226,22 +226,3 @@ export interface AdminUser {
   phone?: string;
   address?: string;
 }
-
-// Updated Context Interface to include global data
-export interface SettingsContextType {
-  settings: SiteSettings;
-  updateSettings: (newSettings: Partial<SiteSettings>) => void;
-  user: any | null; // using any to avoid import cycles with Supabase types
-  loadingAuth: boolean;
-  isLocalMode: boolean;
-  isDatabaseProvisioned: boolean;
-  saveStatus: 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
-  setSaveStatus: (status: 'idle' | 'saving' | 'saved' | 'error' | 'migrating') => void;
-  logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
-  refreshAllData: () => Promise<void>;
-  
-  // Global Data
-  products: Product[];
-  categories: Category[];
-  heroSlides: CarouselSlide[];
-}
