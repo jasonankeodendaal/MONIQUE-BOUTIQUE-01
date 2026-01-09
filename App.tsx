@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -154,7 +153,12 @@ const safeJSONParse = (key: string, fallback: any) => {
 };
 
 const App: React.FC = () => {
-  const [settings, setSettings] = useState<SiteSettings>(() => safeJSONParse('site_settings', INITIAL_SETTINGS));
+  // Fix: Merge local storage data with INITIAL_SETTINGS to ensure new fields (like socialLinks) are present
+  const [settings, setSettings] = useState<SiteSettings>(() => {
+    const saved = safeJSONParse('site_settings', null);
+    return { ...INITIAL_SETTINGS, ...saved };
+  });
+
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -176,7 +180,7 @@ const App: React.FC = () => {
                console.log("Database tables missing. Running in Local Mode with Cloud Configured.");
                setIsDatabaseProvisioned(false);
                const local = safeJSONParse('site_settings', null);
-               if (local) setSettings(local);
+               if (local) setSettings({ ...INITIAL_SETTINGS, ...local });
            } else {
                // Table exists but is empty OR RLS prevented reading. 
                // Try migrating local data if it exists.
@@ -217,7 +221,7 @@ const App: React.FC = () => {
         // Local Only Fallback (Env vars missing)
         setIsDatabaseProvisioned(false);
         const local = safeJSONParse('site_settings', null);
-        if (local) setSettings(local);
+        if (local) setSettings({ ...INITIAL_SETTINGS, ...local });
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
