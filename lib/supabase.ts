@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -6,6 +7,7 @@ const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
+// STRICT CHECK: Only configured if URL is present AND contains supabase.co
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
 
 export const supabase = createClient(

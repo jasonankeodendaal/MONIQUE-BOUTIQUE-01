@@ -1852,6 +1852,7 @@ const Admin: React.FC = () => {
     const mostClicked = [...productStats].sort((a, b) => b.clicks - a.clicks).slice(0, 5);
     const mostViewTime = [...productStats].sort((a, b) => b.totalViewTime - a.totalViewTime).slice(0, 5);
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
+    const url = getSupabaseUrl();
 
     return (
      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
@@ -1913,15 +1914,17 @@ const Admin: React.FC = () => {
 
                 <div className="p-4 bg-black/20 rounded-xl border border-slate-700/50 font-mono text-[10px] text-slate-400 break-all">
                    <div className="flex justify-between mb-2"><span className="uppercase font-bold text-slate-500">Endpoint URL</span> <span className="text-primary">{isSupabaseConfigured ? 'CONFIGURED' : 'MISSING'}</span></div>
-                   {getSupabaseUrl() ? getSupabaseUrl().replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}
+                   {url ? url.replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}
                 </div>
                 
-                {/* SCHEMA COPY SECTION */}
-                <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-xl">
-                   <h5 className="text-white font-bold text-xs mb-2 flex items-center gap-2"><Database size={12}/> Database Provisioning SQL</h5>
-                   <p className="text-slate-500 text-[10px] mb-3">Copy this SQL script to the Supabase SQL Editor to create all required tables.</p>
-                   <CodeBlock code={SUPABASE_SCHEMA} language="sql" label="Copy Schema Script" />
-                </div>
+                {/* Diagnostics Help Text */}
+                {!isSupabaseConfigured && (
+                  <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-xs text-red-300">
+                    <p className="font-bold mb-2 flex items-center gap-2"><AlertTriangle size={14}/> Environment Variable Missing</p>
+                    <p className="mb-2">The system cannot detect <code>VITE_SUPABASE_URL</code>.</p>
+                    <p><strong>Note:</strong> In Vite apps, environment variables MUST start with <code>VITE_</code>. If you named it <code>SUPABASE_URL</code> in Vercel, rename it to <code>VITE_SUPABASE_URL</code> and redeploy.</p>
+                  </div>
+                )}
              </div>
 
              <div className="w-full md:w-80 space-y-4">
