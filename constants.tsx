@@ -1,4 +1,3 @@
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
@@ -106,12 +105,12 @@ export const INITIAL_SETTINGS: SiteSettings = {
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
   navHomeLabel: 'Home',
-  navProductsLabel: 'Collections',
+  navProductsLabel: 'My Picks',
   navAboutLabel: 'My Story',
-  navContactLabel: 'Concierge',
+  navContactLabel: 'Ask Me',
   navDashboardLabel: 'Portal',
 
-  contactEmail: 'curation@kasicouture.com',
+  contactEmail: 'hello@kasicouture.com',
   contactPhone: '+27 11 900 2000',
   whatsappNumber: '+27119002000',
   address: 'Melrose Arch, Johannesburg',
@@ -120,61 +119,64 @@ export const INITIAL_SETTINGS: SiteSettings = {
     { id: '2', name: 'Twitter', url: 'https://twitter.com/kasicouture', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3256/3256013.png' }
   ],
 
-  footerDescription: "The digital bridge to South African luxury. Curating elite fashion and lifestyle affiliate picks for the discerning modern closet.",
-  footerCopyrightText: "All rights reserved. Made with love in South Africa.",
+  footerDescription: "This isn't just a store. It's a collection of the things I love, vetted for quality and style, brought together for the modern South African.",
+  footerCopyrightText: "All rights reserved. Curated with love.",
 
   // Home
-  homeHeroBadge: 'Kasi Couture Exclusive',
-  homeAboutTitle: 'Modern Heritage. Timeless Elegance.',
-  homeAboutDescription: 'I founded Kasi Couture to bridge the gap between street-inspired authenticity and high-end luxury. Every piece featured here is a testament to the vibrant spirit of Johannesburg refined for the global stage.',
+  homeHeroBadge: 'Curated by Kasi',
+  homeAboutTitle: 'Hi, I’m the Curator.',
+  homeAboutDescription: 'For years, I struggled to find fashion that balanced authentic African heritage with modern luxury. I spent months vetting suppliers, testing fabrics, and building relationships. This website is the result of that journey—a bridge to the finest pieces I trust and wear myself.',
   homeAboutImage: 'https://images.unsplash.com/photo-1539109136881-3be06109477e?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Read My Story',
-  homeCategorySectionTitle: 'Shop by Department',
+  homeAboutCta: 'Read My Full Story',
+  homeCategorySectionTitle: 'Curated Categories',
   homeCategorySectionSubtitle: 'The Collection',
-  homeTrustSectionTitle: 'The Standard',
-  homeTrustItem1Title: 'Verified Luxury',
-  homeTrustItem1Desc: 'Every product link is personally tested and leads to a secure, verified retailer.',
+  homeTrustSectionTitle: 'Why I Chose These',
+  
+  homeTrustItem1Title: 'Personally Vetted',
+  homeTrustItem1Desc: 'I do not list anything I haven’t researched. Every link leads to a trusted retailer.',
   homeTrustItem1Icon: 'ShieldCheck',
-  homeTrustItem2Title: 'Curated Taste',
-  homeTrustItem2Desc: 'No algorithms. Only human-selected pieces that embody the Kasi Couture aesthetic.',
+
+  homeTrustItem2Title: 'Authentic Style',
+  homeTrustItem2Desc: 'Selected for the individual who values unique expression over fast fashion trends.',
   homeTrustItem2Icon: 'Sparkles',
-  homeTrustItem3Title: 'Global Reach',
-  homeTrustItem3Desc: 'Sourcing the best of South African design and international luxury couture.',
-  homeTrustItem3Icon: 'Globe',
+
+  homeTrustItem3Title: 'Direct Access',
+  homeTrustItem3Desc: 'I act as your bridge to global and local luxury, ensuring you get the best price.',
+  homeTrustItem3Icon: 'Link',
 
   // Products
-  productsHeroTitle: 'Boutique Explorer',
-  productsHeroSubtitle: 'Refine your selection by department, category, or trend.',
+  productsHeroTitle: 'The Edit',
+  productsHeroSubtitle: 'A hand-picked selection of essentials that define the Kasi Couture aesthetic.',
   productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Search collections...',
+  productsSearchPlaceholder: 'Find something special...',
 
   // About
-  aboutHeroTitle: 'The Story of the Silhouette.',
+  aboutHeroTitle: 'From Passion to Platform.',
   aboutHeroSubtitle: 'Kasi Couture is my personal curation platform, dedicated to finding the most exquisite garments and accessories across the continent.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Kasi Couture',
+  aboutFounderName: 'Your Name',
   aboutLocation: 'South Africa',
 
-  aboutHistoryTitle: 'A Passion for Craft',
-  aboutHistoryBody: 'What began as a style blog in the heart of Soweto has evolved into a premier luxury bridge page. Our mission is to highlight the intricate craftsmanship of local and international designers.',
+  aboutHistoryTitle: 'My Journey',
+  aboutHistoryBody: 'It started with a simple frustration: finding high-quality, authentic luxury pieces was overwhelming. I was tired of scrolling through endless generic stores. \n\nI decided to become the filter. I started meeting designers, visiting showrooms, and testing materials. What you see here is not an algorithm—it is a reflection of my personal taste and rigorous standards. Every item has a story, and I am here to share it with you.',
   
-  aboutMissionTitle: 'Elite Curation',
-  aboutMissionBody: 'To provide a seamless, aesthetically pleasing interface for fashion enthusiasts to discover premium affiliate products.',
-  aboutMissionIcon: 'Target',
+  aboutMissionTitle: 'My Promise',
+  aboutMissionBody: 'To only recommend products that I would be proud to own myself. Quality over quantity, always.',
+  aboutMissionIcon: 'Heart',
 
-  aboutCommunityTitle: 'The Inner Circle',
-  aboutCommunityBody: 'Join a global community of style icons who value quality over quantity.',
+  aboutCommunityTitle: 'The Vision',
+  aboutCommunityBody: 'To build a community of like-minded individuals who appreciate the finer details of African luxury.',
   aboutCommunityIcon: 'Users',
   
-  aboutIntegrityTitle: 'Transparency First',
-  aboutIntegrityBody: 'As an affiliate bridge page, we receive a small commission on purchases made through our links, allowing us to keep curating the best for you without bias.',
+  aboutIntegrityTitle: 'Transparency',
+  aboutIntegrityBody: 'I believe in total honesty. As an affiliate curator, I may earn a commission when you purchase through my links. This comes at no extra cost to you, but it supports my work in finding the next hidden gem.',
   aboutIntegrityIcon: 'Award',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
@@ -185,20 +187,19 @@ export const INITIAL_SETTINGS: SiteSettings = {
   ],
 
   // Contact
-  contactHeroTitle: 'Tailored Assistance.',
-  contactHeroSubtitle: 'Have a question about a specific curation or want to collaborate? My concierge team is ready to assist.',
-  contactFormNameLabel: 'Full Identity',
-  contactFormEmailLabel: 'Digital Mailbox',
-  contactFormSubjectLabel: 'Inquiry Subject',
-  contactFormMessageLabel: 'Your Message',
-  contactFormButtonText: 'Transmit Inquiry',
+  contactHeroTitle: 'Let\'s Connect.',
+  contactHeroSubtitle: 'Have a question about a specific piece or just want to say hi? I read every message.',
+  contactFormNameLabel: 'Your Name',
+  contactFormEmailLabel: 'Your Email',
+  contactFormSubjectLabel: 'Subject',
+  contactFormMessageLabel: 'Message',
+  contactFormButtonText: 'Send Message',
   
-  // New Contact Editable Fields
-  contactInfoTitle: 'Global HQ',
-  contactAddressLabel: 'Address',
-  contactHoursLabel: 'Operating Hours',
-  contactHoursWeekdays: 'Mon - Fri: 09:00 - 18:00 (SAST)',
-  contactHoursWeekends: 'Sat: 09:00 - 13:00',
+  contactInfoTitle: 'Contact Info',
+  contactAddressLabel: 'Based In',
+  contactHoursLabel: 'Online Hours',
+  contactHoursWeekdays: 'Mon - Fri: 09:00 - 18:00',
+  contactHoursWeekends: 'Sat: 10:00 - 14:00',
 
   // Legal
   disclosureTitle: 'Affiliate Disclosure',
@@ -224,24 +225,24 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Autumn Silk Series',
-    subtitle: 'Flowing silhouettes designed for the golden hour in the city.',
-    cta: 'View Series'
+    title: 'The Curator\'s Edit',
+    subtitle: 'A personal selection of this season\'s most compelling pieces.',
+    cta: 'View My Picks'
   },
   {
     id: '2',
     image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'The Tailored Man',
-    subtitle: 'Bespoke-inspired cuts that redefine urban professional attire.',
-    cta: 'Explore Suiting'
+    title: 'Modern Heritage',
+    subtitle: 'Bridging the gap between traditional craft and contemporary style.',
+    cta: 'Read the Story'
   },
   {
     id: '3',
     image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Velvet Nights',
-    subtitle: 'Evening wear that captures the essence of luxury after dark.',
+    title: 'Evening Essentials',
+    subtitle: 'The pieces I trust for those special nights out.',
     cta: 'Shop Evening'
   }
 ];
