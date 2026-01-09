@@ -111,7 +111,6 @@ const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, is
   if (status === 'idle' && isProvisioned) return null;
   
   if (!isProvisioned && status === 'idle') {
-    // Optional: Only show to admins or suppress if you want a cleaner look
     return null; 
   }
 
@@ -143,8 +142,18 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
   return null;
 };
 
+const safeJSONParse = (key: string, fallback: any) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch (e) {
+    console.error(`Parsing error for key "${key}"`, e);
+    return fallback;
+  }
+};
+
 const App: React.FC = () => {
-  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
+  const [settings, setSettings] = useState<SiteSettings>(() => safeJSONParse('site_settings', INITIAL_SETTINGS));
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -166,12 +175,12 @@ const App: React.FC = () => {
                console.log("Database tables missing. Running in Local Mode with Cloud Configured.");
                setIsDatabaseProvisioned(false);
                // Load from local storage
-               const local = localStorage.getItem('site_settings');
-               if (local) setSettings(JSON.parse(local));
+               const local = safeJSONParse('site_settings', null);
+               if (local) setSettings(local);
            } else {
                // Table exists but is empty, perform migration
                console.log("Supabase empty but tables exist. Migrating...");
-               const localSettings = localStorage.getItem('site_settings');
+               const localSettings = safeJSONParse('site_settings', null);
                
                if (localSettings) {
                    setSaveStatus('migrating');
@@ -183,7 +192,7 @@ const App: React.FC = () => {
                    await syncLocalToCloud('enquiries', 'admin_enquiries');
                    await syncLocalToCloud('admin_users', 'admin_users');
                    await syncLocalToCloud('product_stats', 'admin_product_stats');
-                   setSettings(JSON.parse(localSettings));
+                   setSettings(localSettings);
                } else {
                    await upsertData('settings', INITIAL_SETTINGS);
                    setSettings(INITIAL_SETTINGS);
@@ -196,8 +205,8 @@ const App: React.FC = () => {
       } else {
         // Local Only Fallback (Env vars missing)
         setIsDatabaseProvisioned(false);
-        const local = localStorage.getItem('site_settings');
-        if (local) setSettings(JSON.parse(local));
+        const local = safeJSONParse('site_settings', null);
+        if (local) setSettings(local);
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
@@ -258,7 +267,7 @@ const App: React.FC = () => {
           if(error) console.error("Log error", error);
       });
     } else {
-      const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
+      const existing = safeJSONParse('site_traffic_logs', []);
       localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
     }
   };
