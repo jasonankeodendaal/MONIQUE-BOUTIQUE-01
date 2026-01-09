@@ -1275,4 +1275,285 @@ const Admin: React.FC = () => {
            <div className="bg-slate-900 p-6 md:p-8 rounded-[3rem] border border-slate-800 space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                  <SettingField label="Title" value={heroData.title || ''} onChange={v => setHeroData({...heroData, title: v})} />
-                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-6 py-4 bg-slate-8
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label>
+                   <select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={heroData.type || 'image'} onChange={e => setHeroData({...heroData, type: e.target.value as any})}>
+                     <option value="image">Image</option>
+                     <option value="video">Video</option>
+                   </select>
+                 </div>
+              </div>
+              <SettingField label="Subtitle" value={heroData.subtitle || ''} onChange={v => setHeroData({...heroData, subtitle: v})} type="textarea" />
+              <SettingField label="Call to Action" value={heroData.cta || ''} onChange={v => setHeroData({...heroData, cta: v})} />
+              
+              <SingleImageUploader label="Media Asset" value={heroData.image || ''} onChange={v => setHeroData({...heroData, image: v})} />
+
+              <div className="flex gap-4">
+                 <button onClick={handleSaveHero} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Slide</button>
+                 <button onClick={() => setShowHeroForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button>
+              </div>
+           </div>
+        ) : (
+           <>
+              <div className="flex justify-between items-center mb-8">
+                 <h2 className="text-3xl font-serif text-white">Hero Slides</h2>
+                 <button onClick={() => { setHeroData({}); setShowHeroForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3"><Plus size={18} /> Add Slide</button>
+              </div>
+              <div className="grid gap-6">
+                 {heroSlides.map((slide, index) => (
+                    <div key={slide.id} className="group relative bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 aspect-video flex items-end">
+                       {slide.type === 'video' ? <video src={slide.image} className="absolute inset-0 w-full h-full object-cover opacity-60" muted /> : <img src={slide.image} className="absolute inset-0 w-full h-full object-cover opacity-60" />}
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                       <div className="relative p-8 z-10 w-full flex justify-between items-end">
+                          <div>
+                             <span className="text-[10px] font-black uppercase text-primary tracking-widest mb-2 block">Slide 0{index + 1}</span>
+                             <h3 className="text-2xl font-serif text-white">{slide.title}</h3>
+                          </div>
+                          <div className="flex gap-2">
+                             <button onClick={() => { setHeroData(slide); setEditingId(slide.id); setShowHeroForm(true); }} className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-white hover:text-slate-900 transition-all"><Edit2 size={18}/></button>
+                             <button onClick={() => handleDeleteHero(slide.id)} className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
+                          </div>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </>
+        )}
+     </div>
+  );
+
+  const renderCategories = () => (
+    <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
+       <AdminHelpBox title="Department Structure" steps={["Categories define the main menu", "Icons appear on the home page grid"]} />
+       {showCategoryForm ? (
+          <div className="bg-slate-900 p-8 rounded-[3rem] border border-slate-800 space-y-6">
+             <SettingField label="Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} />
+             <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label>
+                <IconPicker selected={catData.icon || 'Package'} onSelect={v => setCatData({...catData, icon: v})} />
+             </div>
+             <SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} />
+             <SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} />
+             <div className="flex gap-4 mt-8">
+                <button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Department</button>
+                <button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button>
+             </div>
+          </div>
+       ) : (
+          <>
+             <div className="flex justify-between items-center mb-8">
+                <h2 className="text-3xl font-serif text-white">Departments</h2>
+                <button onClick={() => { setCatData({}); setShowCategoryForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3"><Plus size={18} /> Add Dept</button>
+             </div>
+             <div className="grid gap-4">
+                {categories.map(cat => (
+                   <div key={cat.id} className="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-center justify-between group hover:border-primary/30 transition-colors">
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400">
+                            {React.createElement((LucideIcons as any)[cat.icon] || LucideIcons.Package, { size: 20 })}
+                         </div>
+                         <div>
+                            <h4 className="text-white font-bold">{cat.name}</h4>
+                            <p className="text-xs text-slate-500">{subCategories.filter(s => s.categoryId === cat.id).length} Sub-categories</p>
+                         </div>
+                      </div>
+                      <div className="flex gap-2">
+                         <button onClick={() => { setCatData(cat); setEditingId(cat.id); setShowCategoryForm(true); }} className="p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
+                         <button onClick={() => handleDeleteCategory(cat.id)} className="p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                      </div>
+                   </div>
+                ))}
+             </div>
+          </>
+       )}
+    </div>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-slate-950 text-slate-200">
+      {/* Sidebar Navigation */}
+      <aside className="hidden lg:flex flex-col w-72 bg-slate-900 border-r border-slate-800 fixed inset-y-0">
+         <div className="p-8">
+            <h1 className="text-2xl font-serif text-white tracking-tight">Maison <span className="text-primary italic">Admin</span></h1>
+         </div>
+         <nav className="flex-grow px-4 space-y-1">
+            {[
+               { id: 'enquiries', label: 'Inbox', icon: Inbox },
+               { id: 'catalog', label: 'Catalog', icon: ShoppingBag },
+               { id: 'hero', label: 'Hero Slides', icon: LayoutPanelTop },
+               { id: 'categories', label: 'Departments', icon: LayoutGrid },
+               { id: 'analytics', label: 'Intelligence', icon: BarChart3 },
+               { id: 'team', label: 'Team Access', icon: Users },
+               { id: 'system', label: 'System', icon: SettingsIcon },
+               { id: 'guide', label: 'Setup Guide', icon: BookOpen },
+            ].map(item => (
+               <button 
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${activeTab === item.id ? 'bg-primary text-slate-900 shadow-lg shadow-primary/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+               >
+                  <item.icon size={18} /> {item.label}
+               </button>
+            ))}
+         </nav>
+         <div className="p-4 border-t border-slate-800">
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/10 transition-colors">
+               <LogOut size={18} /> Logout
+            </button>
+         </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-grow lg:ml-72 p-6 md:p-12 overflow-y-auto">
+         {/* Mobile Header */}
+         <div className="lg:hidden flex justify-between items-center mb-8">
+            <h1 className="text-xl font-serif text-white">Admin Portal</h1>
+            <div className="flex gap-4">
+               <button onClick={() => setActiveTab('enquiries')} className="p-2 bg-slate-900 rounded-lg text-slate-400"><Inbox size={20}/></button>
+               <button onClick={handleLogout} className="p-2 bg-slate-900 rounded-lg text-red-400"><LogOut size={20}/></button>
+            </div>
+         </div>
+
+         {/* Render Active Tab */}
+         {activeTab === 'enquiries' && renderEnquiries()}
+         {activeTab === 'catalog' && renderCatalog()}
+         {activeTab === 'hero' && renderHero()}
+         {activeTab === 'categories' && renderCategories()}
+         {activeTab === 'analytics' && <AnalyticsView products={products} stats={stats} categories={categories} trafficEvents={trafficEvents} onEditProduct={(p) => { setProductData(p); setEditingId(p.id); setActiveTab('catalog'); setShowProductForm(true); }} />}
+         {activeTab === 'team' && (
+            <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
+               {showAdminForm ? (
+                  <div className="bg-slate-900 p-8 rounded-[3rem] border border-slate-800 space-y-6">
+                     <h3 className="text-2xl font-serif text-white mb-6">Team Member Access</h3>
+                     <SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} />
+                     <SettingField label="Email Address" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
+                     <SettingField label="Password" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" />
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label>
+                        <select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role || 'admin'} onChange={e => setAdminData({...adminData, role: e.target.value as any})}>
+                           <option value="admin">Administrator</option>
+                           <option value="owner">Owner</option>
+                        </select>
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Permissions</label>
+                        <PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} />
+                     </div>
+                     <div className="flex gap-4 mt-8">
+                        <button onClick={handleSaveAdmin} disabled={creatingAdmin} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20 disabled:opacity-50">
+                           {creatingAdmin ? 'Creating...' : 'Save Access'}
+                        </button>
+                        <button onClick={() => setShowAdminForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button>
+                     </div>
+                  </div>
+               ) : (
+                  <>
+                     <div className="flex justify-between items-center mb-8">
+                        <h2 className="text-3xl font-serif text-white">Team Access</h2>
+                        <button onClick={() => { setAdminData({ permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3"><Plus size={18} /> Add Member</button>
+                     </div>
+                     <div className="grid gap-4">
+                        {admins.map(admin => (
+                           <div key={admin.id} className="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex items-center justify-between group hover:border-primary/30 transition-colors">
+                              <div className="flex items-center gap-4">
+                                 <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 font-bold border border-slate-700">
+                                    {admin.name.charAt(0)}
+                                 </div>
+                                 <div>
+                                    <h4 className="text-white font-bold">{admin.name} <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full uppercase ml-2">{admin.role}</span></h4>
+                                    <p className="text-xs text-slate-500">{admin.email}</p>
+                                 </div>
+                              </div>
+                              <div className="flex gap-2">
+                                 <button onClick={() => { setAdminData(admin); setEditingId(admin.id); setShowAdminForm(true); }} className="p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
+                                 <button onClick={() => handleDeleteAdmin(admin.id)} className="p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                  </>
+               )}
+            </div>
+         )}
+         {activeTab === 'system' && (
+             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid md:grid-cols-2 gap-6">
+                   <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 space-y-4">
+                      <h3 className="text-xl font-serif text-white">System Health</h3>
+                      <div className="flex items-center gap-4 p-4 bg-slate-800/50 rounded-xl">
+                         <div className={`w-3 h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500'}`}></div>
+                         <div>
+                            <p className="text-sm font-bold text-white">{connectionHealth?.message || 'Checking...'}</p>
+                            <p className="text-xs text-slate-500 font-mono">Latency: {connectionHealth?.latency || 0}ms</p>
+                         </div>
+                      </div>
+                   </div>
+                   <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 space-y-4">
+                      <h3 className="text-xl font-serif text-white">Data Control</h3>
+                      <div className="flex gap-4">
+                         <button onClick={handleBackup} className="flex-1 py-4 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"><Download size={16}/> Backup JSON</button>
+                         <button onClick={handleFactoryReset} className="flex-1 py-4 bg-red-900/20 text-red-500 border border-red-900/30 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-900/40 transition-colors flex items-center justify-center gap-2"><Trash2 size={16}/> Reset</button>
+                      </div>
+                   </div>
+                </div>
+                <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800">
+                    <h3 className="text-xl font-serif text-white mb-4">Environment Config</h3>
+                    <CodeBlock code={JSON.stringify({ 
+                       supabaseUrl: getSupabaseUrl(),
+                       mode: isLocalMode ? 'Local Simulation' : 'Cloud Connected',
+                       build: 'Production v2.1.0'
+                    }, null, 2)} label="System Environment" language="json" />
+                </div>
+             </div>
+         )}
+         {activeTab === 'guide' && (
+             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                 <div className="max-w-4xl mx-auto">
+                    <h2 className="text-4xl font-serif text-white mb-8 text-center">Setup Guide</h2>
+                    <div className="space-y-12">
+                       {GUIDE_STEPS.map((step, idx) => (
+                          <div key={step.id} className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden">
+                             <div className="absolute top-0 right-0 p-8 opacity-5">
+                                <span className="text-9xl font-serif font-bold text-white">{idx + 1}</span>
+                             </div>
+                             <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                                <div>
+                                   <h3 className="text-2xl font-bold text-white mb-4">{step.title}</h3>
+                                   <p className="text-slate-400 text-sm leading-relaxed mb-6">{step.description}</p>
+                                   {step.subSteps && (
+                                      <ul className="space-y-3 mb-6">
+                                         {step.subSteps.map((s, i) => (
+                                            <li key={i} className="flex gap-3 text-sm text-slate-300">
+                                               <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                                               {s}
+                                            </li>
+                                         ))}
+                                      </ul>
+                                   )}
+                                   {step.code && <CodeBlock code={step.code} label={step.codeLabel} />}
+                                   {step.tips && (
+                                      <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs italic">
+                                         {step.tips}
+                                      </div>
+                                   )}
+                                </div>
+                                <div className="hidden md:block">
+                                   <GuideIllustration id={step.illustrationId} />
+                                </div>
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+             </div>
+         )}
+
+         {/* Modals */}
+         {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
+         {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
+      </main>
+    </div>
+  );
+};
+
+export default Admin;

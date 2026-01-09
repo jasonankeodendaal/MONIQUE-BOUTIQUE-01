@@ -28,11 +28,11 @@ export const supabase = createClient(
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # KASI COUTURE DATABASE SETUP SCRIPT
+-- # KASI COUTURE DATABASE SETUP SCRIPT (ROBUST V2)
 -- # PASTE THIS INTO SUPABASE SQL EDITOR
--- # #####################################################
+-- #####################################################
 
--- 1. Create Tables
+-- 1. Create Tables (IF NOT EXISTS)
 create table if not exists settings (
   id text primary key,
   "companyName" text, "slogan" text, "companyLogo" text, "companyLogoUrl" text,
@@ -106,6 +106,7 @@ create table if not exists traffic_logs (
 );
 
 -- 2. ENABLE ROW LEVEL SECURITY
+-- We run these every time; if already enabled, Postgres ignores it or it's harmless.
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -116,48 +117,87 @@ alter table admin_users enable row level security;
 alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
--- 3. CREATE POLICIES (Public Read / Admin Full)
+-- 3. CREATE POLICIES (Drop existing first to allow re-runs)
 
--- Settings: Public Read, Admin All
+-- Settings
+drop policy if exists "Public Read Settings" on settings;
 create policy "Public Read Settings" on settings for select using (true);
+
+drop policy if exists "Admin Control Settings" on settings;
 create policy "Admin Control Settings" on settings for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Public Insert Settings" on settings;
 create policy "Public Insert Settings" on settings for insert with check (true);
 
--- Products: Public Read, Admin All
+-- Products
+drop policy if exists "Public Read Products" on products;
 create policy "Public Read Products" on products for select using (true);
+
+drop policy if exists "Admin Control Products" on products;
 create policy "Admin Control Products" on products for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Public Insert Products" on products;
 create policy "Public Insert Products" on products for insert with check (true);
 
--- Categories: Public Read, Admin All
+-- Categories
+drop policy if exists "Public Read Categories" on categories;
 create policy "Public Read Categories" on categories for select using (true);
+
+drop policy if exists "Admin Control Categories" on categories;
 create policy "Admin Control Categories" on categories for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Public Insert Categories" on categories;
 create policy "Public Insert Categories" on categories for insert with check (true);
 
--- Subcategories: Public Read, Admin All
+-- Subcategories
+drop policy if exists "Public Read Subcategories" on subcategories;
 create policy "Public Read Subcategories" on subcategories for select using (true);
+
+drop policy if exists "Admin Control Subcategories" on subcategories;
 create policy "Admin Control Subcategories" on subcategories for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Public Insert Subcategories" on subcategories;
 create policy "Public Insert Subcategories" on subcategories for insert with check (true);
 
--- Carousel Slides: Public Read, Admin All
+-- Carousel Slides
+drop policy if exists "Public Read Slides" on carousel_slides;
 create policy "Public Read Slides" on carousel_slides for select using (true);
+
+drop policy if exists "Admin Control Slides" on carousel_slides;
 create policy "Admin Control Slides" on carousel_slides for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Public Insert Slides" on carousel_slides;
 create policy "Public Insert Slides" on carousel_slides for insert with check (true);
 
--- Product Stats: Public Read, Public Update (counters), Admin All
+-- Product Stats
+drop policy if exists "Public Read Stats" on product_stats;
 create policy "Public Read Stats" on product_stats for select using (true);
+
+drop policy if exists "Admin Control Stats" on product_stats;
 create policy "Admin Control Stats" on product_stats for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Public Update Stats" on product_stats;
 create policy "Public Update Stats" on product_stats for update using (true);
+
+drop policy if exists "Public Insert Stats" on product_stats;
 create policy "Public Insert Stats" on product_stats for insert with check (true);
 
--- Enquiries: Public Insert, Admin All
+-- Enquiries
+drop policy if exists "Public Insert Enquiries" on enquiries;
 create policy "Public Insert Enquiries" on enquiries for insert with check (true);
+
+drop policy if exists "Admin Control Enquiries" on enquiries;
 create policy "Admin Control Enquiries" on enquiries for all using (auth.role() = 'authenticated');
 
--- Traffic Logs: Public Insert, Admin All
+-- Traffic Logs
+drop policy if exists "Public Insert Logs" on traffic_logs;
 create policy "Public Insert Logs" on traffic_logs for insert with check (true);
+
+drop policy if exists "Admin Control Logs" on traffic_logs;
 create policy "Admin Control Logs" on traffic_logs for all using (auth.role() = 'authenticated');
 
--- Admin Users: Admin Read/All Only (No Public Access)
+-- Admin Users
+drop policy if exists "Admin Control Users" on admin_users;
 create policy "Admin Control Users" on admin_users for all using (auth.role() = 'authenticated');
 
 -- 4. Setup Storage Buckets (Safe to Re-run)

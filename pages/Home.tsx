@@ -1,7 +1,9 @@
+
 import React from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
+import FounderEdit from '../components/FounderEdit';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star } from 'lucide-react';
@@ -26,10 +28,10 @@ const Home: React.FC = () => {
       
       <AboutSection />
 
-      <SectionDivider />
+      <FounderEdit />
 
       {/* Category Icons Strip */}
-      <section className="py-8 md:py-12 bg-white">
+      <section className="py-12 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-6 md:mb-12">
             <span className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-300">{settings.homeCategorySectionTitle}</span>
@@ -43,10 +45,10 @@ const Home: React.FC = () => {
                   onClick={() => navigate(`/products?category=${cat.id}`)}
                   className="flex flex-col items-center group"
                 >
-                  <div className="w-12 h-12 md:w-20 md:h-20 bg-slate-50 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-2 transition-all duration-500 shadow-sm border border-transparent group-hover:border-primary/20">
-                    <Icon size={18} className="md:w-7 md:h-7" strokeWidth={1.5} />
+                  <div className="w-12 h-12 md:w-24 md:h-24 bg-slate-50 rounded-[1.5rem] md:rounded-[2.5rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-2 transition-all duration-500 shadow-sm border border-transparent group-hover:border-primary/20">
+                    <Icon size={18} className="md:w-8 md:h-8" strokeWidth={1.5} />
                   </div>
-                  <span className="mt-3 md:mt-5 text-[7px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors truncate w-full text-center">
+                  <span className="mt-3 md:mt-6 text-[7px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors truncate w-full text-center">
                     {cat.name}
                   </span>
                 </button>
