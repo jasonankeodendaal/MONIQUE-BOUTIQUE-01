@@ -794,76 +794,40 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
   );
 };
 
-// --- Updated File Uploaders with Supabase Integration ---
+// --- Updated File Uploaders ---
 
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const processFiles = async (incomingFiles: FileList | null) => {
+  
+  const processFiles = (incomingFiles: FileList | null) => {
     if (!incomingFiles) return;
-    setIsUploading(true);
-    
-    const newMediaFiles: MediaFile[] = [];
-    
-    try {
-      for (const file of Array.from(incomingFiles)) {
-        let url = '';
-        
-        // Try Supabase Upload first if configured
-        if (isSupabaseConfigured) {
-          try {
-             url = await uploadMedia(file, 'media');
-          } catch (e) {
-             console.error("Upload to Supabase failed", e);
-          }
-        }
-        
-        // Fallback to Base64 if upload failed or not configured (supports purely local mode)
-        if (!url || url.startsWith('blob:')) {
-           url = await new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onload = (e) => resolve(e.target?.result as string);
-              reader.readAsDataURL(file);
-           });
-        }
-
-        newMediaFiles.push({
-          id: Math.random().toString(36).substr(2, 9),
-          url,
-          name: file.name,
-          type: file.type,
-          size: file.size
-        });
-      }
-      
-      onFilesChange(multiple ? [...files, ...newMediaFiles] : newMediaFiles);
-    } catch (error) {
-       console.error("File processing error", error);
-    } finally {
-       setIsUploading(false);
-       if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input
-    }
+    Array.from(incomingFiles).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        const newMedia: MediaFile = { 
+          id: Math.random().toString(36).substr(2, 9), 
+          url: result, 
+          name: file.name, 
+          type: file.type, 
+          size: file.size 
+        };
+        // If multiple, append. If single, replace.
+        onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   return (
     <div className="space-y-4 text-left w-full">
-      <div onClick={() => !isUploading && fileInputRef.current?.click()} className={`border-2 border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[160px] ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-        {isUploading ? (
-            <div className="flex flex-col items-center">
-                <Loader2 size={32} className="animate-spin text-primary mb-4"/>
-                <span className="text-xs font-bold text-slate-400">Uploading Assets...</span>
-            </div>
-        ) : (
-            <>
-                <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Upload className="text-slate-400 group-hover:text-white" size={20} />
-                </div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Click or Drag to Upload {label}</p>
-                <span className="text-[9px] text-slate-600 mt-2">{multiple ? 'Multiple files allowed' : 'Single file only'}</span>
-            </>
-        )}
-        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} disabled={isUploading} />
+      <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[160px]">
+        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+           <Upload className="text-slate-400 group-hover:text-white" size={20} />
+        </div>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Click or Drag to Upload {label}</p>
+        <span className="text-[9px] text-slate-600 mt-2">{multiple ? 'Multiple files allowed' : 'Single file only'}</span>
+        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
       </div>
       
       {files.length > 0 && (
@@ -891,47 +855,15 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
 
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "aspect-video w-full" }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
   
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      
-      setIsUploading(true);
-      try {
-          let url = '';
-          if (isSupabaseConfigured) {
-              url = await uploadMedia(file, 'media');
-          }
-          
-          if (!url || url.startsWith('blob:')) {
-              url = await new Promise((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => resolve(ev.target?.result as string);
-                  reader.readAsDataURL(file);
-              });
-          }
-          onChange(url);
-      } catch (err) {
-          console.error("Upload failed", err);
-      } finally {
-          setIsUploading(false);
-          if (inputRef.current) inputRef.current.value = '';
-      }
-  };
-
   return (
     <div className="space-y-2 text-left w-full">
        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
        <div 
-        onClick={() => !isUploading && inputRef.current?.click()}
-        className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl ${isUploading ? 'opacity-50' : ''}`}
+        onClick={() => inputRef.current?.click()}
+        className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl`}
        >
-          {isUploading ? (
-             <div className="w-full h-full flex items-center justify-center">
-                <Loader2 size={24} className="animate-spin text-primary"/>
-             </div>
-          ) : value ? (
+          {value ? (
             <>
               <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -951,8 +883,14 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
             className="hidden" 
             ref={inputRef} 
             accept={accept}
-            onChange={handleUpload}
-            disabled={isUploading}
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => onChange(ev.target?.result as string);
+                reader.readAsDataURL(file);
+              }
+            }}
           />
        </div>
     </div>

@@ -1,5 +1,4 @@
 
-
 export interface Category {
   id: string;
   name: string;
@@ -90,9 +89,6 @@ export interface SocialLink {
 }
 
 export interface SiteSettings {
-  // DB Primary Key
-  id?: string;
-  
   // Brand & Nav
   companyName: string;
   slogan: string; // Added Slogan

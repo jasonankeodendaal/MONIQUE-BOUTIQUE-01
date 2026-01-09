@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  // Use root base path to ensure assets load correctly on Vercel
-  base: '/',
+  // Use relative base path to ensure assets load correctly in any subdirectory
+  base: './',
   server: {
     port: 3000,
   },
