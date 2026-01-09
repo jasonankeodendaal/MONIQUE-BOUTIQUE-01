@@ -199,44 +199,53 @@ export async function initializeDatabase() {
     // 1. Settings
     const { count: settingsCount } = await supabase.from('settings').select('*', { count: 'exact', head: true });
     if (settingsCount === 0) {
+      console.log('Seeding Settings...');
       await supabase.from('settings').insert([{ ...INITIAL_SETTINGS, id: 'global_settings' }]);
     }
 
     // 2. Categories
     const { count: catCount } = await supabase.from('categories').select('*', { count: 'exact', head: true });
     if (catCount === 0) {
+      console.log('Seeding Categories...');
       await supabase.from('categories').insert(INITIAL_CATEGORIES);
     }
 
     // 3. Subcategories
     const { count: subCount } = await supabase.from('subcategories').select('*', { count: 'exact', head: true });
     if (subCount === 0) {
+      console.log('Seeding Subcategories...');
       await supabase.from('subcategories').insert(INITIAL_SUBCATEGORIES);
     }
 
     // 4. Products
     const { count: prodCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
     if (prodCount === 0) {
+      console.log('Seeding Products...');
       await supabase.from('products').insert(INITIAL_PRODUCTS);
     }
 
     // 5. Slides
     const { count: slideCount } = await supabase.from('carousel_slides').select('*', { count: 'exact', head: true });
     if (slideCount === 0) {
+      console.log('Seeding Hero Slides...');
       await supabase.from('carousel_slides').insert(INITIAL_CAROUSEL);
     }
 
     // 6. Admin Users (Seed Data)
     const { count: adminCount } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
     if (adminCount === 0) {
+      console.log('Seeding Admin Users...');
       await supabase.from('admin_users').insert(INITIAL_ADMINS);
     }
 
     // 7. Enquiries (Seed Data)
     const { count: enqCount } = await supabase.from('enquiries').select('*', { count: 'exact', head: true });
     if (enqCount === 0) {
+      console.log('Seeding Enquiries...');
       await supabase.from('enquiries').insert(INITIAL_ENQUIRIES);
     }
+
+    console.log('Database Initialization Complete.');
   } catch (error) {
     console.error("Auto-initialization failed:", error);
   }
@@ -324,12 +333,20 @@ export async function fetchTableData(table: string) {
   }
 }
 
-export async function uploadMedia(file: File, bucket = 'media') {
-  if (!isSupabaseConfigured) return URL.createObjectURL(file);
+export interface UploadResult {
+  url: string;
+  type: string;
+  name: string;
+  size: number;
+}
+
+export async function uploadMedia(file: File, bucket = 'media'): Promise<UploadResult> {
+  const fallbackUrl = URL.createObjectURL(file);
+  if (!isSupabaseConfigured) return { url: fallbackUrl, type: file.type, name: file.name, size: file.size };
 
   try {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
     const { data, error } = await supabase.storage
@@ -342,10 +359,15 @@ export async function uploadMedia(file: File, bucket = 'media') {
         .from(bucket)
         .getPublicUrl(filePath);
 
-    return publicUrl.publicUrl;
+    return { 
+      url: publicUrl.publicUrl,
+      type: file.type,
+      name: file.name,
+      size: file.size
+    };
   } catch (e) {
       console.error("Upload failed, falling back to blob", e);
-      return URL.createObjectURL(file);
+      return { url: fallbackUrl, type: file.type, name: file.name, size: file.size };
   }
 }
 
