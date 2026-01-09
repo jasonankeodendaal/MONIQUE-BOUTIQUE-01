@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -26,9 +27,8 @@ export const supabase = createClient(
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # KASI COUTURE DATABASE SETUP SCRIPT
+-- # KASI COUTURE DATABASE SETUP SCRIPT (UPDATED)
 -- # PASTE THIS INTO SUPABASE SQL EDITOR
--- # DO NOT PASTE HTML (<!DOCTYPE...>) HERE
 -- #####################################################
 
 -- 1. Create Tables
@@ -104,12 +104,12 @@ create table if not exists traffic_logs (
   type text, text text, time text, timestamp bigint
 );
 
--- 2. Setup Storage Buckets (Safe to Re-run)
+-- 2. Setup Storage Buckets
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
 
--- 3. Setup Storage Policies (Safe to Re-run via Drop)
+-- 3. Storage Policies
 drop policy if exists "Public Access" on storage.objects;
 create policy "Public Access" 
 on storage.objects for select 
@@ -119,6 +119,30 @@ drop policy if exists "Admin Control" on storage.objects;
 create policy "Admin Control" 
 on storage.objects for all 
 using ( auth.role() = 'authenticated' );
+
+-- 4. ENABLE RLS & PUBLIC ACCESS (CRITICAL FIX)
+alter table settings enable row level security;
+alter table products enable row level security;
+alter table categories enable row level security;
+alter table subcategories enable row level security;
+alter table carousel_slides enable row level security;
+alter table product_stats enable row level security;
+
+-- Public Read Access
+create policy "Public Read Settings" on settings for select using (true);
+create policy "Public Read Products" on products for select using (true);
+create policy "Public Read Categories" on categories for select using (true);
+create policy "Public Read Subcategories" on subcategories for select using (true);
+create policy "Public Read Slides" on carousel_slides for select using (true);
+
+-- Admin Write Access
+create policy "Admin Write Settings" on settings for all using (auth.role() = 'authenticated');
+create policy "Admin Write Products" on products for all using (auth.role() = 'authenticated');
+create policy "Admin Write Categories" on categories for all using (auth.role() = 'authenticated');
+create policy "Admin Write Subcategories" on subcategories for all using (auth.role() = 'authenticated');
+create policy "Admin Write Slides" on carousel_slides for all using (auth.role() = 'authenticated');
+create policy "Admin Write Enquiries" on enquiries for all using (auth.role() = 'authenticated');
+create policy "Admin Write Stats" on product_stats for all using (auth.role() = 'authenticated');
 `;
 
 const LOCAL_STORAGE_KEYS: Record<string, string> = {
@@ -206,14 +230,18 @@ export async function fetchTableData(table: string) {
     // If table is missing (42P01) or REST endpoint not found (404), fallback to local without error spam
     if (error.code === '42P01' || error.message?.includes('404') || error.message?.includes('Failed to load resource')) {
       console.warn(`Table '${table}' missing or not accessible. Using local fallback.`);
-      const local = localStorage.getItem(localKey);
-      return local ? JSON.parse(local) : [];
+    } else {
+      console.warn(`Fetch warning for ${table}:`, error.message);
     }
     
-    console.warn(`Fetch warning for ${table}:`, error.message);
-    // Try local fallback on other errors too, just in case
-    const local = localStorage.getItem(localKey);
-    return local ? JSON.parse(local) : [];
+    // Fallback logic
+    try {
+      const local = localStorage.getItem(localKey);
+      return local ? JSON.parse(local) : [];
+    } catch (e) {
+      console.error("Local storage parse error", e);
+      return [];
+    }
   }
   return data;
 }

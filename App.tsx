@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
@@ -110,9 +111,8 @@ const ScrollToTop = () => {
 const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, isProvisioned: boolean }) => {
   if (status === 'idle' && isProvisioned) return null;
   
-  if (!isProvisioned && status === 'idle') {
-    return null; 
-  }
+  // Show indicator if not provisioned OR if there is activity/error
+  if (status === 'idle' && !isProvisioned) return null;
 
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl transition-all duration-300 ${
@@ -126,7 +126,7 @@ const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, is
         {status === 'saving' && 'Syncing Supabase...'}
         {status === 'migrating' && 'Migrating Data...'}
         {status === 'saved' && 'Cloud Sync Complete'}
-        {status === 'error' && 'Sync Failed'}
+        {status === 'error' && 'Sync Failed (Check Console)'}
       </span>
     </div>
   );
@@ -159,43 +159,51 @@ const App: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(true);
 
-  const refreshAllData = async () => {
+  const refreshAllData = useCallback(async () => {
     setSaveStatus('saving');
     try {
       if (isSupabaseConfigured) {
         // Attempt to fetch settings first. If DB is missing tables, lib/supabase catches 404 and returns local data
         const remoteSettings = await fetchTableData('settings');
         
-        // If we got empty settings, try to initialize, unless we know DB is missing
+        // If we got empty settings (possibly due to RLS blocking public access or empty table)
         if (!remoteSettings || remoteSettings.length === 0) {
-           // Try to upsert to check if table exists
+           // Try to upsert to check if table exists or verify access
            const { error } = await supabase.from('settings').select('count').limit(1);
            
            if (error && (error.code === '42P01' || error.message.includes('404'))) {
                console.log("Database tables missing. Running in Local Mode with Cloud Configured.");
                setIsDatabaseProvisioned(false);
-               // Load from local storage
                const local = safeJSONParse('site_settings', null);
                if (local) setSettings(local);
            } else {
-               // Table exists but is empty, perform migration
-               console.log("Supabase empty but tables exist. Migrating...");
-               const localSettings = safeJSONParse('site_settings', null);
+               // Table exists but is empty OR RLS prevented reading. 
+               // Try migrating local data if it exists.
+               console.log("Supabase empty or RLS restricted. Attempting migration/fallback...");
                
-               if (localSettings) {
-                   setSaveStatus('migrating');
-                   await syncLocalToCloud('settings', 'site_settings');
-                   await syncLocalToCloud('products', 'admin_products');
-                   await syncLocalToCloud('categories', 'admin_categories');
-                   await syncLocalToCloud('subcategories', 'admin_subcategories');
-                   await syncLocalToCloud('carousel_slides', 'admin_hero');
-                   await syncLocalToCloud('enquiries', 'admin_enquiries');
-                   await syncLocalToCloud('admin_users', 'admin_users');
-                   await syncLocalToCloud('product_stats', 'admin_product_stats');
-                   setSettings(localSettings);
-               } else {
-                   await upsertData('settings', INITIAL_SETTINGS);
-                   setSettings(INITIAL_SETTINGS);
+               try {
+                  const localSettings = safeJSONParse('site_settings', null);
+                  if (localSettings) {
+                      setSettings(localSettings);
+                      // Only attempt cloud sync if we have local data
+                      setSaveStatus('migrating');
+                      await syncLocalToCloud('settings', 'site_settings');
+                      await syncLocalToCloud('products', 'admin_products');
+                      await syncLocalToCloud('categories', 'admin_categories');
+                      await syncLocalToCloud('subcategories', 'admin_subcategories');
+                      await syncLocalToCloud('carousel_slides', 'admin_hero');
+                      await syncLocalToCloud('enquiries', 'admin_enquiries');
+                      await syncLocalToCloud('admin_users', 'admin_users');
+                      await syncLocalToCloud('product_stats', 'admin_product_stats');
+                  } else {
+                      // No local data, try to initialize cloud with defaults
+                      await upsertData('settings', INITIAL_SETTINGS);
+                      setSettings(INITIAL_SETTINGS);
+                  }
+               } catch (migrationError) {
+                  console.warn("Migration/Init failed (likely RLS write restriction for anon):", migrationError);
+                  // Ensure settings is valid even if migration fails
+                  setSettings(prev => prev || INITIAL_SETTINGS);
                }
            }
         } else {
@@ -212,9 +220,11 @@ const App: React.FC = () => {
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (e) {
       console.error("Data sync/init failed", e);
+      // Ensure we have settings even on catastrophic error
+      setSettings(prev => prev || INITIAL_SETTINGS);
       setSaveStatus('error');
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshAllData();
@@ -230,29 +240,31 @@ const App: React.FC = () => {
     } else {
       setLoadingAuth(false);
     }
-  }, []);
+  }, [refreshAllData]);
 
-  const updateSettings = async (newSettings: Partial<SiteSettings>) => {
+  const updateSettings = useCallback(async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
     if (isSupabaseConfigured && isDatabaseProvisioned) {
-      const payload = { ...updated, id: 'global_settings' }; 
-      const result = await upsertData('settings', payload);
-      if (!result) {
-         // Fallback if upsert failed
-         localStorage.setItem('site_settings', JSON.stringify(updated));
+      try {
+        const payload = { ...updated, id: 'global_settings' }; 
+        await upsertData('settings', payload);
+        setSaveStatus('saved');
+      } catch (e) {
+        console.error("Update settings failed", e);
+        localStorage.setItem('site_settings', JSON.stringify(updated));
+        setSaveStatus('error');
       }
-      setSaveStatus('saved');
     } else {
       localStorage.setItem('site_settings', JSON.stringify(updated));
       setTimeout(() => setSaveStatus('saved'), 500);
     }
     setTimeout(() => setSaveStatus('idle'), 2000);
-  };
+  }, [settings, isDatabaseProvisioned]);
 
-  const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
+  const logEvent = useCallback((type: 'view' | 'click' | 'system', label: string) => {
     const newEvent = {
       id: Date.now().toString(),
       type,
@@ -261,31 +273,40 @@ const App: React.FC = () => {
       timestamp: Date.now()
     };
     
-    // Only try to log to cloud if we know tables exist
+    // Only try to log to cloud if we know tables exist and configured
     if (isSupabaseConfigured && isDatabaseProvisioned) {
       supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
-          if(error) console.error("Log error", error);
+          if(error) {
+            // RLS might block inserts from anon users. Fallback to local.
+            const existing = safeJSONParse('site_traffic_logs', []);
+            localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
+          }
       });
     } else {
       const existing = safeJSONParse('site_traffic_logs', []);
       localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
     }
-  };
+  }, [isDatabaseProvisioned]);
 
   useEffect(() => {
     const hexToRgb = (hex: string) => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '212, 175, 55';
     };
-    document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
-    document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
-  }, [settings.primaryColor]);
+    if (settings?.primaryColor) {
+      document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
+      document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
+    }
+  }, [settings?.primaryColor]);
+
+  // Memoize context to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({ 
+    settings, updateSettings, user, loadingAuth, 
+    isLocalMode: !isSupabaseConfigured, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
+  }), [settings, updateSettings, user, loadingAuth, isDatabaseProvisioned, saveStatus, logEvent, refreshAllData]);
 
   return (
-    <SettingsContext.Provider value={{ 
-      settings, updateSettings, user, loadingAuth, 
-      isLocalMode: !isSupabaseConfigured, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
-    }}>
+    <SettingsContext.Provider value={contextValue}>
       <Router>
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
