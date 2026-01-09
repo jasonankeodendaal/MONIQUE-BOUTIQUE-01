@@ -1,5 +1,7 @@
 
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
+import { SUPABASE_SCHEMA } from './lib/supabase';
 
 export const PERMISSION_TREE: PermissionNode[] = [
   {
@@ -446,100 +448,11 @@ git push -u origin main`,
   },
   {
     id: 'supabase_sql',
-    title: '5. Setting the Foundations (SQL)',
-    description: 'The Concept: SQL is the language we use to tell the database how to organize itself. We are going to execute a master script that builds your Product Catalog, Settings Configuration, and Media Storage Vault in one go.',
-    code: `-- MASTER SETUP SCRIPT
--- Copy and paste all of this into the Supabase SQL Editor
-
--- 1. DATA STRUCTURES (Tables)
-create table if not exists settings (
-  id text primary key,
-  "companyName" text, "slogan" text, "companyLogo" text, "companyLogoUrl" text,
-  "primaryColor" text, "secondaryColor" text, "accentColor" text,
-  "navHomeLabel" text, "navProductsLabel" text, "navAboutLabel" text, "navContactLabel" text, "navDashboardLabel" text,
-  "contactEmail" text, "contactPhone" text, "whatsappNumber" text, "address" text,
-  "socialLinks" jsonb,
-  "footerDescription" text, "footerCopyrightText" text,
-  "homeHeroBadge" text, "homeAboutTitle" text, "homeAboutDescription" text, "homeAboutImage" text, "homeAboutCta" text,
-  "homeCategorySectionTitle" text, "homeCategorySectionSubtitle" text, "homeTrustSectionTitle" text,
-  "homeTrustItem1Title" text, "homeTrustItem1Desc" text, "homeTrustItem1Icon" text,
-  "homeTrustItem2Title" text, "homeTrustItem2Desc" text, "homeTrustItem2Icon" text,
-  "homeTrustItem3Title" text, "homeTrustItem3Desc" text, "homeTrustItem3Icon" text,
-  "productsHeroTitle" text, "productsHeroSubtitle" text, "productsHeroImage" text, "productsHeroImages" jsonb, "productsSearchPlaceholder" text,
-  "aboutHeroTitle" text, "aboutHeroSubtitle" text, "aboutMainImage" text,
-  "aboutEstablishedYear" text, "aboutFounderName" text, "aboutLocation" text,
-  "aboutHistoryTitle" text, "aboutHistoryBody" text,
-  "aboutMissionTitle" text, "aboutMissionBody" text, "aboutMissionIcon" text,
-  "aboutCommunityTitle" text, "aboutCommunityBody" text, "aboutCommunityIcon" text,
-  "aboutIntegrityTitle" text, "aboutIntegrityBody" text, "aboutIntegrityIcon" text,
-  "aboutSignatureImage" text, "aboutGalleryImages" jsonb,
-  "contactHeroTitle" text, "contactHeroSubtitle" text, "contactFormNameLabel" text, "contactFormEmailLabel" text,
-  "contactFormSubjectLabel" text, "contactFormMessageLabel" text, "contactFormButtonText" text,
-  "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text,
-  "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text,
-  "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text,
-  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text
-);
-
-create table if not exists products (
-  id text primary key,
-  name text, sku text, price numeric, "affiliateLink" text,
-  "categoryId" text, "subCategoryId" text, description text,
-  features jsonb, specifications jsonb, media jsonb,
-  "discountRules" jsonb, reviews jsonb, "createdAt" bigint
-);
-
-create table if not exists categories (
-  id text primary key,
-  name text, icon text, image text, description text
-);
-
-create table if not exists subcategories (
-  id text primary key,
-  "categoryId" text, name text
-);
-
-create table if not exists carousel_slides (
-  id text primary key,
-  image text, type text, title text, subtitle text, cta text
-);
-
-create table if not exists enquiries (
-  id text primary key,
-  name text, email text, whatsapp text, subject text, message text, "createdAt" bigint, status text
-);
-
-create table if not exists admin_users (
-  id text primary key,
-  name text, email text, role text, permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text
-);
-
-create table if not exists product_stats (
-  "productId" text primary key,
-  views numeric, clicks numeric, "totalViewTime" numeric, "lastUpdated" bigint
-);
-
-create table if not exists traffic_logs (
-  id text primary key,
-  type text, text text, time text, timestamp bigint
-);
-
--- 2. MEDIA STORAGE
-insert into storage.buckets (id, name, public) 
-values ('media', 'media', true)
-on conflict (id) do nothing;
-
-drop policy if exists "Public Access" on storage.objects;
-create policy "Public Access" 
-on storage.objects for select 
-using ( bucket_id = 'media' );
-
-drop policy if exists "Admin Control" on storage.objects;
-create policy "Admin Control" 
-on storage.objects for all 
-using ( auth.role() = 'authenticated' );`,
-    codeLabel: 'Full System Provisioning Script',
-    tips: 'Why this matters: This script builds the actual "rooms" of your digital house (Product Room, Settings Room, Media Closet) so your content has a permanent home.',
+    title: '5. Setting the Foundations (Master SQL)',
+    description: 'The Concept: SQL is the language we use to tell the database how to organize itself. We are going to execute a MASTER SCRIPT that wipes any old data, builds your Product Catalog tables, enables security, and SEEDS your initial settings so the site isn\'t empty.',
+    code: SUPABASE_SCHEMA,
+    codeLabel: 'Full System Provisioning Script (Copy & Paste into SQL Editor)',
+    tips: 'Why this matters: This script handles everything in one go: Schema creation, RLS Security Policies, and Initial Data Population.',
     illustrationId: 'shield'
   },
   {
