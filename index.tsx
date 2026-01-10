@@ -1,3 +1,4 @@
+
 import React, { ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -58,20 +59,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
               }}
             >
               Reload Page
-            </button>
-            <button 
-              onClick={() => { localStorage.clear(); window.location.reload(); }} 
-              style={{ 
-                padding: '0.75rem 1.5rem', 
-                background: '#D4AF37', 
-                border: 'none', 
-                color: '#1e293b', 
-                borderRadius: '0.5rem', 
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
-              Clear Cache & Reset
             </button>
           </div>
         </div>

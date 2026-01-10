@@ -158,19 +158,18 @@ create policy "Public Update" on storage.objects for update using ( bucket_id = 
 
 drop policy if exists "Public Delete" on storage.objects;
 create policy "Public Delete" on storage.objects for delete using ( bucket_id = 'media' );
-`;
 
-export const LOCAL_STORAGE_KEYS: Record<string, string> = {
-  'products': 'admin_products',
-  'categories': 'admin_categories',
-  'subcategories': 'admin_subcategories',
-  'carousel_slides': 'admin_hero',
-  'enquiries': 'admin_enquiries',
-  'admin_users': 'admin_users',
-  'product_stats': 'admin_product_stats',
-  'settings': 'site_settings',
-  'traffic_logs': 'site_traffic_logs'
-};
+-- 6. ENABLE REALTIME
+alter publication supabase_realtime add table settings;
+alter publication supabase_realtime add table products;
+alter publication supabase_realtime add table categories;
+alter publication supabase_realtime add table subcategories;
+alter publication supabase_realtime add table carousel_slides;
+alter publication supabase_realtime add table enquiries;
+alter publication supabase_realtime add table admin_users;
+alter publication supabase_realtime add table product_stats;
+alter publication supabase_realtime add table traffic_logs;
+`;
 
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
   if (!isSupabaseConfigured) return null;

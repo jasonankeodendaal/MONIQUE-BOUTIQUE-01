@@ -4,6 +4,7 @@ import { Mail, MessageCircle, Send, Twitter, Instagram, Linkedin, Phone, Sparkle
 import { useSettings } from '../App';
 import { Enquiry } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { upsertData } from '../lib/supabase';
 
 const Contact: React.FC = () => {
   const { settings } = useSettings();
@@ -13,30 +14,33 @@ const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API delay
-    setTimeout(() => {
-      const newEnquiry: Enquiry = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...formState,
-        createdAt: Date.now(),
-        status: 'unread'
-      };
+    const newEnquiry: Enquiry = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...formState,
+      createdAt: Date.now(),
+      status: 'unread'
+    };
 
-      // Save to localStorage for Admin consumption
-      const existing = JSON.parse(localStorage.getItem('admin_enquiries') || '[]');
-      localStorage.setItem('admin_enquiries', JSON.stringify([newEnquiry, ...existing]));
-
+    try {
+      const { error } = await upsertData('enquiries', newEnquiry);
+      if (error) {
+        alert("Failed to send message. Please check your connection.");
+      } else {
+        setSubmitted(true);
+        setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
+        // Reset success message after 5 seconds
+        setTimeout(() => setSubmitted(false), 5000);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An unexpected error occurred.");
+    } finally {
       setIsSubmitting(false);
-      setSubmitted(true);
-      setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
-      
-      // Reset success message after 5 seconds
-      setTimeout(() => setSubmitted(false), 5000);
-    }, 1500);
+    }
   };
 
   const faqs = [

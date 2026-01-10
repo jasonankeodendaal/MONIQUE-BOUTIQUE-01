@@ -18,13 +18,10 @@ const Login: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // Simulation for Local Mode
+    // Strict Mode: Block access if Supabase is not configured
     if (isLocalMode) {
-      setTimeout(() => {
-        setLoading(false);
-        // In local mode, ProtectedRoute allows access regardless of user state
-        navigate('/admin');
-      }, 1500);
+      setError("System Offline: Database connection required.");
+      setLoading(false);
       return;
     }
 
@@ -35,14 +32,13 @@ const Login: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
     } finally {
-      if (!isLocalMode) setLoading(false);
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     if (isLocalMode) {
-       // Simulation for Local Mode
-       navigate('/admin');
+       setError("System Offline: Database connection required.");
        return;
     }
 
@@ -94,12 +90,12 @@ const Login: React.FC = () => {
           )}
 
           {isLocalMode && (
-             <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-2">
-                 <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest">
-                    <Info size={14} /> Simulation Mode
+             <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-left space-y-2">
+                 <div className="flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-widest">
+                    <AlertCircle size={14} /> Database Disconnected
                  </div>
                  <p className="text-slate-400 text-[10px] leading-relaxed">
-                   Supabase is not configured. Authentication is simulated. Enter any details to proceed.
+                   The application is running in Strict Cloud Mode but Supabase credentials are missing. Please configure <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>.
                  </p>
              </div>
           )}
@@ -137,15 +133,15 @@ const Login: React.FC = () => {
 
             <button 
               type="submit"
-              disabled={loading}
-              className="w-full py-5 bg-primary text-slate-900 font-black uppercase text-xs tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
+              disabled={loading || isLocalMode}
+              className="w-full py-5 bg-primary text-slate-900 font-black uppercase text-xs tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></div>
               ) : (
                 <>
                   <LogIn size={18} />
-                  {isLocalMode ? 'Simulate Entry' : 'Authenticate'}
+                  Authenticate
                 </>
               )}
             </button>
@@ -158,10 +154,11 @@ const Login: React.FC = () => {
 
           <button 
             onClick={handleGoogleLogin}
-            className="w-full py-4 bg-white text-slate-900 font-bold text-xs rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all border border-slate-200"
+            disabled={isLocalMode}
+            className="w-full py-4 bg-white text-slate-900 font-bold text-xs rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Chrome size={18} />
-            {isLocalMode ? 'Simulate Google Login' : 'Sign in with Google'}
+            Sign in with Google
           </button>
         </div>
 

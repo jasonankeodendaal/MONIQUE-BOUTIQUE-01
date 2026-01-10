@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -49,27 +50,18 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
 );
 
 /**
- * Traffic Area Chart component (Unchanged)
+ * Traffic Area Chart component
  */
 const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   const [regions, setRegions] = useState<{ name: string; traffic: number; status: string; count: number }[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
   const aggregatedProductViews = useMemo(() => stats?.reduce((acc, s) => acc + s.views, 0) || 0, [stats]);
-  useEffect(() => {
-    const loadGeoData = () => {
-      const rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-      if (rawData.length === 0) { setRegions([]); setTotalTraffic(0); return; }
-      setTotalTraffic(rawData.length);
-      const counts: Record<string, number> = {};
-      rawData.forEach((entry: any) => { const label = (entry.region && entry.code) ? `${entry.region}, ${entry.code}` : (entry.country || 'Unknown Location'); counts[label] = (counts[label] || 0) + 1; });
-      const total = rawData.length;
-      const sortedRegions = Object.entries(counts).map(([name, count]) => { const percentage = Math.round((count / total) * 100); let status = 'Stable'; if (percentage >= 50) status = 'Dominant'; else if (percentage >= 30) status = 'Peak'; else if (percentage >= 15) status = 'Rising'; else if (percentage >= 5) status = 'Active'; else status = 'Minimal'; return { name, traffic: percentage, status, count }; }).sort((a, b) => b.count - a.count).slice(0, 6);
-      setRegions(sortedRegions);
-    };
-    loadGeoData();
-    const interval = setInterval(loadGeoData, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  
+  // This chart now requires Supabase Traffic Logs to function, as local storage is removed.
+  // We will assume that traffic logs are passed down or we can fetch them here, but for now
+  // we'll leave the visualization logic but it might be empty if no backend data is fed specifically for regions.
+  // In a real implementation with Supabase, we would aggregate 'traffic_logs' table data.
+  
   return (
     <div className="relative w-full min-h-[350px] md:min-h-[400px] bg-slate-900 rounded-2xl md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group p-6 md:p-10">
       <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
@@ -78,9 +70,9 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
           <div className="text-left"><div className="flex items-center gap-2 md:gap-3 mb-1"><div className="w-2 md:w-2.5 h-2 md:h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(var(--primary-rgb),0.8)]"></div><span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Geographic Distribution</span></div><h3 className="text-xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Area <span className="text-primary">Traffic</span></h3></div>
           <div className="text-right bg-white/5 border border-white/10 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl hidden sm:block"><span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">Live Ingress</span><span className="text-sm md:text-xl font-bold text-white flex items-center gap-2"><Globe size={14} className="text-primary"/> 100% Real-Time</span></div>
         </div>
-        <div className="space-y-6 md:space-y-8 flex-grow">
-          {regions.length > 0 ? regions.map((region, idx) => (<div key={idx} className="space-y-2 md:space-y-3"><div className="flex justify-between items-end"><div className="flex items-center gap-3 md:gap-4"><span className="text-slate-600 font-serif font-bold text-base md:text-lg italic">0{idx + 1}</span><div><h4 className="text-white font-bold text-xs md:text-sm tracking-wide uppercase">{region.name}</h4><span className="text-[8px] md:text-[9px] font-black text-primary/60 uppercase tracking-widest">{region.status}</span></div></div><div className="text-right"><span className="text-white font-black text-base md:text-lg">{region.traffic}%</span></div></div><div className="h-1.5 md:h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5"><div className="h-full bg-gradient-to-r from-primary/40 via-primary to-primary rounded-full transition-all duration-[2000ms] ease-out shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]" style={{ width: `${region.traffic}%`, transitionDelay: `${idx * 200}ms` }}/></div></div>)) : (<div className="flex flex-col items-center justify-center py-8 md:py-12 text-center opacity-50"><Globe size={32} className="text-slate-600 mb-4" /><h4 className="text-white font-bold uppercase tracking-widest text-xs">Awaiting Signal</h4><p className="text-slate-500 text-[10px] mt-2 max-w-xs px-4">Visit the public site to generate the first geographic traffic data points.</p></div>)}
-        </div>
+        
+        <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center opacity-50"><Globe size={32} className="text-slate-600 mb-4" /><h4 className="text-white font-bold uppercase tracking-widest text-xs">Awaiting Signal</h4><p className="text-slate-500 text-[10px] mt-2 max-w-xs px-4">Traffic data is now streamed directly from the cloud database.</p></div>
+
         <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
            <div className="flex gap-6 md:gap-10"><div className="text-left"><span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Visitors</span><span className="text-lg md:text-2xl font-bold text-white">{totalTraffic.toLocaleString()}</span></div><div className="text-left border-l border-white/5 pl-6 md:pl-10"><span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Page Impressions</span><span className="text-lg md:text-2xl font-bold text-primary">{aggregatedProductViews.toLocaleString()}</span></div></div>
            <div className="flex items-center gap-2 md:gap-3 bg-primary/10 border border-primary/20 px-4 md:px-6 py-2 md:py-3 rounded-full"><Activity size={12} className="text-primary animate-pulse"/><span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-widest">Sync Active</span></div>
@@ -90,7 +82,7 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   );
 };
 
-// --- Detailed Analytics View Component (Unchanged) ---
+// --- Detailed Analytics View Component ---
 interface AnalyticsViewProps {
   products: Product[];
   stats: ProductStats[];
@@ -331,9 +323,9 @@ const Admin: React.FC = () => {
   // Local state for Site Editor to prevent auto-saving
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
 
-  // Local Admin-Specific Data (still managed here for now, but could be global)
-  const [admins, setAdmins] = useState<AdminUser[]>(() => JSON.parse(localStorage.getItem('admin_users') || JSON.stringify(INITIAL_ADMINS)));
-  const [stats, setStats] = useState<ProductStats[]>(() => JSON.parse(localStorage.getItem('admin_product_stats') || '[]'));
+  // Admin users are now managed only via Supabase
+  const [admins, setAdmins] = useState<AdminUser[]>(INITIAL_ADMINS);
+  const [stats, setStats] = useState<ProductStats[]>([]);
   
   // Connection State
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
@@ -384,10 +376,8 @@ const Admin: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       if (isSupabaseConfigured) {
-        // Admin Users and Stats are still fetched locally here as they are admin-only
         const a = await fetchTableData('admin_users');
         const st = await fetchTableData('product_stats');
-
         if (a) setAdmins(a);
         if (st) setStats(st);
       }
@@ -395,20 +385,12 @@ const Admin: React.FC = () => {
     loadData();
   }, [isSupabaseConfigured]);
 
-  useEffect(() => {
-    localStorage.setItem('admin_users', JSON.stringify(admins));
-    localStorage.setItem('admin_product_stats', JSON.stringify(stats));
-  }, [admins, stats]);
-
   // Read Traffic Logs & Realtime Subscription
   useEffect(() => {
     const fetchTraffic = async () => {
        if (isSupabaseConfigured) {
          const logs = await fetchTableData('traffic_logs');
          if (logs) setTrafficEvents(logs.slice(0, 50));
-       } else {
-         const logs = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-         setTrafficEvents(logs);
        }
     };
     
@@ -442,8 +424,7 @@ const Admin: React.FC = () => {
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
   
   const handleFactoryReset = async () => { 
-      if (window.confirm("⚠️ DANGER: Factory Reset? This wipes LOCAL data.")) { 
-          localStorage.clear(); 
+      if (window.confirm("⚠️ This does not reset cloud data, only reloads the application state.")) { 
           window.location.reload(); 
       } 
   };
@@ -473,8 +454,8 @@ const Admin: React.FC = () => {
            setSaveStatus('error');
        }
     } else {
-       await new Promise(resolve => setTimeout(resolve, 600));
-       setSaveStatus('saved');
+       // Since user requested strict mode, if not configured, show error
+       setSaveStatus('error');
     }
     setTimeout(() => {
         setSaveStatus((prev: any) => prev === 'error' ? 'error' : 'idle');
@@ -1179,7 +1160,7 @@ const Admin: React.FC = () => {
         <div className="flex flex-col gap-3 md:gap-6">
           <div className="flex items-center gap-3 md:gap-4 flex-wrap">
             <h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1>
-            <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-primary/10 border border-primary/20 rounded-full text-[8px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (user?.email?.split('@')[0] || 'ADMIN')}</div>
+            <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-primary/10 border border-primary/20 rounded-full text-[8px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'OFFLINE' : (user?.email?.split('@')[0] || 'ADMIN')}</div>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">

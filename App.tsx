@@ -12,7 +12,7 @@ import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable, LOCAL_STORAGE_KEYS } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag } from 'lucide-react';
 
@@ -59,7 +59,10 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
       </div>
     </div>
   );
-  if (isLocalMode) return <>{children}</>;
+  // Even if "Local Mode" (Supabase missing), we block access because data storage is disabled
+  if (isLocalMode) {
+     return <div className="min-h-screen flex items-center justify-center text-white">Supabase Configuration Required.</div>;
+  }
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
@@ -152,22 +155,13 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
   return null;
 };
 
-const safeJSONParse = (key: string, fallback: any) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
-  } catch (e) {
-    return fallback;
-  }
-};
-
 const App: React.FC = () => {
-  const [settings, setSettings] = useState<SiteSettings>(() => safeJSONParse('site_settings', INITIAL_SETTINGS));
-  const [products, setProducts] = useState<Product[]>(() => safeJSONParse('admin_products', INITIAL_PRODUCTS));
-  const [categories, setCategories] = useState<Category[]>(() => safeJSONParse('admin_categories', INITIAL_CATEGORIES));
-  const [subCategories, setSubCategories] = useState<SubCategory[]>(() => safeJSONParse('admin_subcategories', INITIAL_SUBCATEGORIES));
-  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(() => safeJSONParse('admin_hero', INITIAL_CAROUSEL));
-  const [enquiries, setEnquiries] = useState<Enquiry[]>(() => safeJSONParse('admin_enquiries', INITIAL_ENQUIRIES));
+  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
+  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(INITIAL_CAROUSEL);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>(INITIAL_ENQUIRIES);
   
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -182,35 +176,35 @@ const App: React.FC = () => {
     try {
       const remoteSettings = await fetchTableData('settings');
       if (remoteSettings && remoteSettings.length > 0) {
-        const cloudSettings = { ...INITIAL_SETTINGS, ...remoteSettings[0] };
-        setSettings(cloudSettings);
-        localStorage.setItem('site_settings', JSON.stringify(cloudSettings));
+        setSettings({ ...INITIAL_SETTINGS, ...remoteSettings[0] });
         setIsDatabaseProvisioned(true);
       } else {
         // First ever run: Push defaults to cloud
         await upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' });
       }
 
-      const syncTable = async (tableName: string, setter: any, storageKey: string, initialData: any) => {
+      const syncTable = async (tableName: string, setter: any, initialData: any) => {
         const remote = await fetchTableData(tableName);
         if (remote && remote.length > 0) {
           setter(remote);
-          localStorage.setItem(storageKey, JSON.stringify(remote));
         } else if (remote !== null) {
-          // Table exists but empty, push initial local data to cloud once
-          const local = safeJSONParse(storageKey, initialData);
-          if (local && local.length > 0) {
-            await upsertData(tableName, local);
-          }
+           // Table exists but empty, push initial defaults to cloud
+           if (Array.isArray(initialData) && initialData.length > 0) {
+             // We insert them one by one or batch if supported, upsertData handles batch if array
+             for (const item of initialData) {
+               await upsertData(tableName, item);
+             }
+             setter(initialData);
+           }
         }
       };
 
       await Promise.all([
-        syncTable('products', setProducts, 'admin_products', INITIAL_PRODUCTS),
-        syncTable('categories', setCategories, 'admin_categories', INITIAL_CATEGORIES),
-        syncTable('subcategories', setSubCategories, 'admin_subcategories', INITIAL_SUBCATEGORIES),
-        syncTable('carousel_slides', setHeroSlides, 'admin_hero', INITIAL_CAROUSEL),
-        syncTable('enquiries', setEnquiries, 'admin_enquiries', INITIAL_ENQUIRIES)
+        syncTable('products', setProducts, INITIAL_PRODUCTS),
+        syncTable('categories', setCategories, INITIAL_CATEGORIES),
+        syncTable('subcategories', setSubCategories, INITIAL_SUBCATEGORIES),
+        syncTable('carousel_slides', setHeroSlides, INITIAL_CAROUSEL),
+        syncTable('enquiries', setEnquiries, INITIAL_ENQUIRIES)
       ]);
 
       setSaveStatus('saved');
@@ -226,7 +220,7 @@ const App: React.FC = () => {
       return;
     }
 
-    const handleTableChange = (payload: any, eventType: string, setState: any, storageKey: string) => {
+    const handleTableChange = (payload: any, eventType: string, setState: any) => {
       const { new: newRecord, old: oldRecord } = payload;
       setState((prev: any[]) => {
         let updated = [...prev];
@@ -237,24 +231,19 @@ const App: React.FC = () => {
         } else if (eventType === 'DELETE') {
           updated = updated.filter(i => i.id !== oldRecord.id);
         }
-        localStorage.setItem(storageKey, JSON.stringify(updated));
         return updated;
       });
     };
 
     const subs = [
-      subscribeToTable('products', p => handleTableChange(p, p.eventType, setProducts, 'admin_products')),
-      subscribeToTable('categories', p => handleTableChange(p, p.eventType, setCategories, 'admin_categories')),
-      subscribeToTable('subcategories', p => handleTableChange(p, p.eventType, setSubCategories, 'admin_subcategories')),
-      subscribeToTable('carousel_slides', p => handleTableChange(p, p.eventType, setHeroSlides, 'admin_hero')),
-      subscribeToTable('enquiries', p => handleTableChange(p, p.eventType, setEnquiries, 'admin_enquiries')),
+      subscribeToTable('products', p => handleTableChange(p, p.eventType, setProducts)),
+      subscribeToTable('categories', p => handleTableChange(p, p.eventType, setCategories)),
+      subscribeToTable('subcategories', p => handleTableChange(p, p.eventType, setSubCategories)),
+      subscribeToTable('carousel_slides', p => handleTableChange(p, p.eventType, setHeroSlides)),
+      subscribeToTable('enquiries', p => handleTableChange(p, p.eventType, setEnquiries)),
       subscribeToTable('settings', p => {
         if (p.new && (p.new as any).id === 'global_settings') {
-          setSettings(prev => {
-            const up = { ...INITIAL_SETTINGS, ...prev, ...p.new };
-            localStorage.setItem('site_settings', JSON.stringify(up));
-            return up;
-          });
+          setSettings(prev => ({ ...INITIAL_SETTINGS, ...prev, ...p.new }));
         }
       })
     ];
@@ -289,17 +278,16 @@ const App: React.FC = () => {
         setTimeout(() => setSaveStatus('idle'), 2000);
       }
     } else {
-      localStorage.setItem('site_settings', JSON.stringify(updated));
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      console.warn("Supabase not configured. Changes will not be saved.");
+      setSaveStatus('error');
     }
   };
 
   const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
     const newEvent = { id: Date.now().toString(), type, text: type === 'view' ? `Page View: ${label}` : label, time: new Date().toLocaleTimeString(), timestamp: Date.now() };
-    if (isSupabaseConfigured) supabase.from('traffic_logs').insert([newEvent]);
-    const existing = safeJSONParse('site_traffic_logs', []);
-    localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
+    if (isSupabaseConfigured) {
+      supabase.from('traffic_logs').insert([newEvent]);
+    }
   };
 
   useEffect(() => {
