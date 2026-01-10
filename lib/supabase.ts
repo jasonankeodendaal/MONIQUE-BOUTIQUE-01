@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -27,7 +28,7 @@ export const fetchTableData = async (table: string) => {
   if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase.from(table).select('*');
   if (error) {
-    console.error(`Error fetching ${table}:`, error);
+    console.warn(`[Supabase] Error fetching ${table}. Using local fallback if available.`, error.message);
     return null;
   }
   return data;
@@ -117,36 +118,46 @@ export const seedDatabase = async (initialData: {
   subCategories: any[];
   slides: any[];
 }) => {
-  if (!isSupabaseConfigured) return;
+  if (!isSupabaseConfigured) return { success: false, error: 'Not Configured' };
 
   console.log("Creating Seed Data in Supabase...");
 
-  // 1. Settings
-  // Ensure we set the ID to match what App.tsx expects ('global_settings')
-  const settingsWithId = { ...initialData.settings, id: 'global_settings' };
-  await supabase.from('settings').upsert(settingsWithId);
+  try {
+    // 1. Settings
+    const settingsWithId = { ...initialData.settings, id: 'global_settings' };
+    const { error: sErr } = await supabase.from('settings').upsert(settingsWithId);
+    if (sErr) throw sErr;
 
-  // 2. Categories
-  if (initialData.categories.length > 0) {
-    await supabase.from('categories').upsert(initialData.categories);
+    // 2. Categories
+    if (initialData.categories.length > 0) {
+      const { error: cErr } = await supabase.from('categories').upsert(initialData.categories);
+      if (cErr) throw cErr;
+    }
+
+    // 3. SubCategories
+    if (initialData.subCategories.length > 0) {
+      const { error: scErr } = await supabase.from('subcategories').upsert(initialData.subCategories);
+      if (scErr) throw scErr;
+    }
+
+    // 4. Slides
+    if (initialData.slides.length > 0) {
+      const { error: hErr } = await supabase.from('carousel_slides').upsert(initialData.slides);
+      if (hErr) throw hErr;
+    }
+
+    // 5. Products
+    if (initialData.products.length > 0) {
+      const { error: pErr } = await supabase.from('products').upsert(initialData.products);
+      if (pErr) throw pErr;
+    }
+
+    console.log("Seeding Complete.");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Seeding Failed:", err);
+    return { success: false, error: err.message };
   }
-
-  // 3. SubCategories
-  if (initialData.subCategories.length > 0) {
-    await supabase.from('subcategories').upsert(initialData.subCategories);
-  }
-
-  // 4. Slides
-  if (initialData.slides.length > 0) {
-    await supabase.from('carousel_slides').upsert(initialData.slides);
-  }
-
-  // 5. Products
-  if (initialData.products.length > 0) {
-    await supabase.from('products').upsert(initialData.products);
-  }
-
-  console.log("Seeding Complete.");
 };
 
 

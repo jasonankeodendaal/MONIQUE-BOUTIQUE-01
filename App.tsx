@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -210,10 +211,20 @@ const App: React.FC = () => {
   }, [user]);
 
   const refreshAllData = useCallback(async () => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+       // Fallback for non-configured env
+       setSettings(INITIAL_SETTINGS);
+       setProducts(INITIAL_PRODUCTS);
+       setCategories(INITIAL_CATEGORIES);
+       setSubCategories(INITIAL_SUBCATEGORIES);
+       setHeroSlides(INITIAL_CAROUSEL);
+       setIsDatabaseProvisioned(false);
+       setDataLoaded(true);
+       return;
+    }
 
     try {
-      // Fetch strictly from DB. No local fallbacks.
+      // Fetch strictly from DB. 
       const [
           settingsRes,
           productsRes,
@@ -230,82 +241,46 @@ const App: React.FC = () => {
           fetchTableData('enquiries')
       ]);
 
-      // Check if DB is empty (First deployment scenario)
-      if ((!settingsRes || settingsRes.length === 0) && isSupabaseConfigured) {
-          console.log("Empty Database Detected. Initiating Seed Sequence...");
-          setSaveStatus('migrating');
-          await seedDatabase({
-             settings: INITIAL_SETTINGS,
-             products: INITIAL_PRODUCTS,
-             categories: INITIAL_CATEGORIES,
-             subCategories: INITIAL_SUBCATEGORIES,
-             slides: INITIAL_CAROUSEL
-          });
-          
-          // Re-fetch after seeding
-          const [
-             newSettingsRes,
-             newProductsRes,
-             newCatsRes,
-             newSubCatsRes,
-             newSlidesRes
-          ] = await Promise.all([
-             fetchTableData('settings'),
-             fetchTableData('products'),
-             fetchTableData('categories'),
-             fetchTableData('subcategories'),
-             fetchTableData('carousel_slides')
-          ]);
-
-          if (newSettingsRes && newSettingsRes.length > 0) {
-             setSettings(newSettingsRes[0]);
-             setIsDatabaseProvisioned(true);
-          } else {
-             // If still empty after seed, we are in a critical error state.
-             // Do NOT fall back to local constants.
-             console.error("Critical: Seeding failed or DB unreachable.");
-             setSaveStatus('error');
-          }
-
-          if (newProductsRes) setProducts(newProductsRes);
-          if (newCatsRes) setCategories(newCatsRes);
-          if (newSubCatsRes) setSubCategories(newSubCatsRes);
-          if (newSlidesRes) setHeroSlides(newSlidesRes);
-          
+      // ROBUST FALLBACK LOGIC
+      // If DB returns data, use it.
+      // If DB returns null/empty, use INITIAL constants (Bootstrapping Mode).
+      
+      if (settingsRes && settingsRes.length > 0) {
+          setSettings(settingsRes[0]);
+          setIsDatabaseProvisioned(true);
+          console.log("[App] Cloud Data Synced.");
       } else {
-          // Normal Load
-          if (settingsRes && settingsRes.length > 0) {
-              setSettings(settingsRes[0]);
-              setIsDatabaseProvisioned(true);
-          } else {
-               // If settings table exists but fetch returned empty array (unlikely if seeded),
-               // OR if fetch failed (null).
-               // We will NOT fall back to local constants.
-               console.error("Database connection established but no settings found.");
-               setIsDatabaseProvisioned(false);
-          }
-          
-          if (productsRes) setProducts(productsRes);
-          if (catsRes) setCategories(catsRes);
-          if (subCatsRes) setSubCategories(subCatsRes);
-          if (slidesRes) setHeroSlides(slidesRes);
-          if (enquiriesRes) setEnquiries(enquiriesRes);
+          console.warn("[App] Database empty or unreachable. Bootstrapping with local defaults.");
+          setSettings(INITIAL_SETTINGS);
+          setIsDatabaseProvisioned(false); // Flags that we need to seed
       }
       
-      setDataLoaded(true);
+      setProducts((productsRes && productsRes.length > 0) ? productsRes : (isDatabaseProvisioned ? [] : INITIAL_PRODUCTS));
+      setCategories((catsRes && catsRes.length > 0) ? catsRes : (isDatabaseProvisioned ? [] : INITIAL_CATEGORIES));
+      setSubCategories((subCatsRes && subCatsRes.length > 0) ? subCatsRes : (isDatabaseProvisioned ? [] : INITIAL_SUBCATEGORIES));
+      setHeroSlides((slidesRes && slidesRes.length > 0) ? slidesRes : (isDatabaseProvisioned ? [] : INITIAL_CAROUSEL));
+      setEnquiries(enquiriesRes || []);
+
       setSaveStatus('idle');
 
     } catch (e) {
       console.error("Data Sync Critical Failure:", e);
+      // Failsafe: Ensure app doesn't crash on network error
+      setSettings(INITIAL_SETTINGS);
+      setProducts(INITIAL_PRODUCTS);
+      setCategories(INITIAL_CATEGORIES);
+      setSubCategories(INITIAL_SUBCATEGORIES);
+      setHeroSlides(INITIAL_CAROUSEL);
       setSaveStatus('error');
     } finally {
       setDataLoaded(true); 
     }
-  }, []);
+  }, [isDatabaseProvisioned]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
       setLoadingAuth(false);
+      refreshAllData();
       return;
     }
 
@@ -429,19 +404,6 @@ const App: React.FC = () => {
 
   // Block rendering until data is loaded
   if (!dataLoaded || !settings) {
-      if (dataLoaded && !settings) {
-        // Loaded but failed to get settings (Error state)
-        return (
-             <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center p-6">
-                <AlertTriangle size={48} className="text-red-500 mb-4" />
-                <h2 className="text-xl font-serif text-slate-900">Synchronization Error</h2>
-                <p className="text-slate-500 mt-2 max-w-sm text-center">Failed to retrieve configuration from Supabase. Please check the database connection and schema.</p>
-                <button onClick={() => window.location.reload()} className="mt-6 px-6 py-3 bg-slate-900 text-white rounded-xl uppercase text-xs font-bold tracking-widest hover:bg-primary hover:text-slate-900 transition-colors">Retry Connection</button>
-            </div>
-        )
-      }
-
-      // Still loading
       return (
         <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center">
             <Loader2 size={48} className="text-[#D4AF37] animate-spin mb-4" />
