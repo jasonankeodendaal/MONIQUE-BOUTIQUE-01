@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -18,8 +16,20 @@ const Login: React.FC = () => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // Check if admin profile exists
+      if (data.user) {
+        const { data: profile } = await supabase.from('admin_users').select('role').eq('id', data.user.id).single();
+        if (!profile) {
+            // Attempt to self-heal using the new trigger logic, or show error
+            // The trigger in SQL should handle this, but if it fails:
+            setError("Account exists but profile missing. Please contact support.");
+            return;
+        }
+      }
+
       navigate('/admin');
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
@@ -68,8 +78,8 @@ const Login: React.FC = () => {
 
         <div className="bg-slate-900 border border-slate-800 p-6 md:p-10 rounded-[2.5rem] shadow-2xl">
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-2">
-              <AlertCircle size={16} />
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-2 text-left">
+              <AlertCircle size={16} className="flex-shrink-0" />
               {error}
             </div>
           )}

@@ -1,5 +1,3 @@
-
-
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -23,11 +21,15 @@ export const supabase = createClient(
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # MASTER CONFIGURATION SCRIPT
+-- # MASTER CONFIGURATION SCRIPT (UPDATED)
 -- # Run this in Supabase SQL Editor to provision DB
 -- #####################################################
 
--- 1. Create Tables
+-- 1. CLEANUP (Optional - removes old structure if exists)
+-- drop table if exists settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs cascade;
+
+-- 2. CREATE TABLES
+
 create table if not exists settings (
   id text primary key,
   "companyName" text, "slogan" text, "companyLogo" text, "companyLogoUrl" text,
@@ -87,13 +89,22 @@ create table if not exists enquiries (
 );
 
 create table if not exists admin_users (
-  id uuid references auth.users not null primary key,
-  name text, email text, role text default 'admin', permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text
+  id uuid references auth.users on delete cascade primary key,
+  name text, 
+  email text, 
+  role text default 'admin', 
+  permissions jsonb default '[]', 
+  password text, -- optional legacy field
+  "createdAt" bigint, 
+  "lastActive" bigint, 
+  "profileImage" text, 
+  phone text, 
+  address text
 );
 
 create table if not exists product_stats (
   "productId" text primary key,
-  views numeric, clicks numeric, "totalViewTime" numeric, "lastUpdated" bigint
+  views numeric default 0, clicks numeric default 0, "totalViewTime" numeric default 0, "lastUpdated" bigint
 );
 
 create table if not exists traffic_logs (
@@ -101,7 +112,7 @@ create table if not exists traffic_logs (
   type text, text text, time text, timestamp bigint
 );
 
--- 2. ENABLE ROW LEVEL SECURITY
+-- 3. ENABLE ROW LEVEL SECURITY
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -112,39 +123,42 @@ alter table admin_users enable row level security;
 alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
--- 3. POLICIES (Access Control)
+-- 4. POLICIES (Access Control)
 
--- Settings: Public Read, Auth Write
+-- Settings
 create policy "Settings Read" on settings for select using (true);
 create policy "Settings Write" on settings for all using (auth.role() = 'authenticated');
 
--- Products: Public Read, Specific Write
+-- Products
 create policy "Products Read" on products for select using (true);
--- Admin can only update own, Owner can update all
-create policy "Products Insert" on products for insert with check (auth.role() = 'authenticated');
-create policy "Products Update" on products for update using (
-  auth.uid() = "createdBy" OR 
-  exists (select 1 from admin_users where id = auth.uid() and role = 'owner')
-);
-create policy "Products Delete" on products for delete using (
-  auth.uid() = "createdBy" OR 
-  exists (select 1 from admin_users where id = auth.uid() and role = 'owner')
-);
+create policy "Products Write" on products for all using (auth.role() = 'authenticated');
 
--- Other tables: Public Read (Storefront), Auth Write (Dashboard)
-create policy "Public Read All" on categories for select using (true);
-create policy "Auth Write All" on categories for all using (auth.role() = 'authenticated');
-
+-- Categories/Sub/Slides
+create policy "Public Read Cats" on categories for select using (true);
+create policy "Auth Write Cats" on categories for all using (auth.role() = 'authenticated');
 create policy "Public Read Subs" on subcategories for select using (true);
 create policy "Auth Write Subs" on subcategories for all using (auth.role() = 'authenticated');
-
 create policy "Public Read Slides" on carousel_slides for select using (true);
 create policy "Auth Write Slides" on carousel_slides for all using (auth.role() = 'authenticated');
 
-create policy "Admin Users Read" on admin_users for select using (auth.uid() = id OR exists (select 1 from admin_users where id = auth.uid() and role = 'owner'));
-create policy "Admin Users Write" on admin_users for all using (auth.uid() = id OR exists (select 1 from admin_users where id = auth.uid() and role = 'owner'));
+-- Enquiries (Public write for contact form, Admin read)
+create policy "Public Insert Enquiries" on enquiries for insert with check (true);
+create policy "Admin Manage Enquiries" on enquiries for all using (auth.role() = 'authenticated');
 
--- 4. STORAGE
+-- Admin Users (Users can read/write their OWN profile, Owners can read/write ALL)
+create policy "Admin Read Self" on admin_users for select using (auth.uid() = id);
+create policy "Admin Update Self" on admin_users for update using (auth.uid() = id);
+create policy "Owner Manage All" on admin_users for all using (
+  exists (select 1 from admin_users where id = auth.uid() and role = 'owner')
+);
+
+-- Stats/Logs
+create policy "Stats Read" on product_stats for select using (true);
+create policy "Stats Write" on product_stats for all using (true); -- Allow public to increment views
+create policy "Logs Write" on traffic_logs for insert with check (true);
+create policy "Logs Read" on traffic_logs for select using (auth.role() = 'authenticated');
+
+-- 5. STORAGE
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
@@ -154,8 +168,37 @@ create policy "Auth Upload" on storage.objects for insert with check ( bucket_id
 create policy "Auth Update" on storage.objects for update using ( bucket_id = 'media' and auth.role() = 'authenticated' );
 create policy "Auth Delete" on storage.objects for delete using ( bucket_id = 'media' and auth.role() = 'authenticated' );
 
--- 5. REALTIME
+-- 6. REALTIME
 alter publication supabase_realtime add table settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs;
+
+-- 7. TRIGGERS (Auto-Create Public Profile for Admin)
+-- This ensures when you sign up in Auth, a public profile is created immediately.
+
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.admin_users (id, email, name, role, permissions, "createdAt")
+  values (
+    new.id, 
+    new.email, 
+    split_part(new.email, '@', 1),
+    'admin', -- Default role
+    '[]',
+    extract(epoch from now()) * 1000
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Drop trigger if exists to prevent duplication error on re-run
+drop trigger if exists on_auth_user_created on auth.users;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- Optional: Manually insert the first user as owner if table is empty (run manually if needed)
+-- update admin_users set role = 'owner' where email = 'YOUR_EMAIL_HERE';
 `;
 
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
@@ -201,11 +244,8 @@ export async function fetchTableData(table: string): Promise<any[] | null> {
 
 export async function updateProductStats(productId: string, type: 'view' | 'click', timeSpent = 0) {
   if (!isSupabaseConfigured) return;
-  
   try {
-    // Get current stats
     const { data: current } = await supabase.from('product_stats').select('*').eq('productId', productId).single();
-    
     const now = Date.now();
     const newStats = {
       productId,
@@ -214,11 +254,9 @@ export async function updateProductStats(productId: string, type: 'view' | 'clic
       totalViewTime: (current?.totalViewTime || 0) + timeSpent,
       lastUpdated: now
     };
-
-    const { error } = await supabase.from('product_stats').upsert(newStats);
-    if (error) console.error("Failed to update stats", error);
+    await supabase.from('product_stats').upsert(newStats);
   } catch (err) {
-    console.error("Error updating product stats:", err);
+    console.error("Error updating stats", err);
   }
 }
 
@@ -236,7 +274,7 @@ export async function uploadMedia(file: File, bucket = 'media'): Promise<UploadR
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-    const { data, error } = await supabase.storage.from(bucket).upload(fileName, file);
+    const { error } = await supabase.storage.from(bucket).upload(fileName, file);
     if (error) throw error;
     const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
     return { url: publicUrl.publicUrl, type: file.type, name: file.name, size: file.size };
@@ -249,6 +287,7 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
   if (!isSupabaseConfigured) return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
   const start = performance.now();
   try {
+    // Lightweight check
     const { error } = await supabase.from('settings').select('id').limit(1);
     const end = performance.now();
     if (error) throw error;

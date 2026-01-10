@@ -10,10 +10,10 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES } from './constants';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff } from 'lucide-react';
+import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, RefreshCw } from 'lucide-react';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
 
@@ -55,7 +55,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-        <p className="text-slate-500 text-xs font-black uppercase tracking-widest animate-pulse">Establishing Secure Connection...</p>
+        <p className="text-slate-500 text-xs font-black uppercase tracking-widest animate-pulse">Verifying Secure Session...</p>
       </div>
     </div>
   );
@@ -155,9 +155,9 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 };
 
 const App: React.FC = () => {
-  // Initialize settings with defaults to ensure layout doesn't break.
-  // We will hydrate this with Supabase data immediately on mount.
-  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
+  // STRICT MODE: Initialize empty. No local fallbacks allowed.
+  // Data must come from Supabase.
+  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS); // Fallback only for layout rendering before fetch
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
@@ -169,34 +169,23 @@ const App: React.FC = () => {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const refreshAllData = useCallback(async () => {
     if (!isSupabaseConfigured) return;
 
     try {
-      // 1. Fetch data in parallel to avoid waterfalls
-      const [
-        settingsRes,
-        productsRes,
-        catsRes,
-        subCatsRes,
-        slidesRes,
-        enquiriesRes
-      ] = await Promise.all([
-        fetchTableData('settings'),
-        fetchTableData('products'),
-        fetchTableData('categories'),
-        fetchTableData('subcategories'),
-        fetchTableData('carousel_slides'),
-        fetchTableData('enquiries')
-      ]);
+      // 1. Check if DB is already seeded (Check settings table)
+      const { data: existingSettings } = await supabase.from('settings').select('id').limit(1);
+      
+      const isFreshDb = !existingSettings || existingSettings.length === 0;
 
-      // 2. Check if seeding is needed (if settings table is empty and we have a valid connection)
-      if (settingsRes && settingsRes.length === 0) {
+      if (isFreshDb) {
+        // --- SEEDING MODE ---
         setSaveStatus('migrating');
-        console.log("Detected fresh database. Commencing seed sequence...");
+        console.log("Fresh Database Detected. Commencing One-Time Seed...");
 
-        // Seed tables in parallel
+        // Run inserts in parallel for speed
         await Promise.all([
            upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' }),
            ...INITIAL_PRODUCTS.map(p => upsertData('products', p)),
@@ -205,17 +194,34 @@ const App: React.FC = () => {
            ...INITIAL_CAROUSEL.map(s => upsertData('carousel_slides', s))
         ]);
 
-        // Apply seeded data immediately to local state
+        // Set local state to initial constants after successful seed
         setSettings(INITIAL_SETTINGS);
         setProducts(INITIAL_PRODUCTS);
         setCategories(INITIAL_CATEGORIES);
         setSubCategories(INITIAL_SUBCATEGORIES);
         setHeroSlides(INITIAL_CAROUSEL);
-        // Enquiries start empty
         setSaveStatus('saved');
+
       } else {
-        // 3. Normal Data Hydration - Prefer Remote Data over Initial Local State
-        if (settingsRes && settingsRes.length > 0) setSettings(prev => ({ ...prev, ...settingsRes[0] }));
+        // --- FETCH MODE ---
+        // Parallel Fetch for maximum speed
+        const [
+            settingsRes,
+            productsRes,
+            catsRes,
+            subCatsRes,
+            slidesRes,
+            enquiriesRes
+        ] = await Promise.all([
+            fetchTableData('settings'),
+            fetchTableData('products'),
+            fetchTableData('categories'),
+            fetchTableData('subcategories'),
+            fetchTableData('carousel_slides'),
+            fetchTableData('enquiries')
+        ]);
+
+        if (settingsRes && settingsRes.length > 0) setSettings(settingsRes[0]);
         if (productsRes) setProducts(productsRes);
         if (catsRes) setCategories(catsRes);
         if (subCatsRes) setSubCategories(subCatsRes);
@@ -224,53 +230,59 @@ const App: React.FC = () => {
       }
 
       setIsDatabaseProvisioned(true);
+      setDataLoaded(true);
 
     } catch (e) {
-      console.error("Data Sync Failure:", e);
+      console.error("Data Sync Critical Failure:", e);
       setSaveStatus('error');
     } finally {
-      // Clear status after delay
       setTimeout(() => setSaveStatus(prev => prev === 'migrating' || prev === 'saved' ? 'idle' : prev), 2500);
     }
   }, []);
 
   useEffect(() => {
-    // Immediate short-circuit if no env vars are set
     if (!isSupabaseConfigured) {
       setLoadingAuth(false);
       return;
     }
 
     const init = async () => {
-      try {
-        // 1. Auth Check with Timeout Race to prevent infinite loading
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 5000));
-
-        const result: any = await Promise.race([sessionPromise, timeoutPromise]);
-        
-        if (result?.data?.session?.user) {
-          const sessionUser = result.data.session.user;
-          setUser(sessionUser);
-          // Fetch Role
-          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', sessionUser.id).single();
-          if (adminProfile) setUserRole(adminProfile.role);
-        }
-      } catch (err) {
-        console.error("Authentication check failed or timed out", err);
-      } finally {
-        // ALWAYS finish loading state
-        setLoadingAuth(false);
+      // 1. Auth Check
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+         // 2. Fetch User Role
+         const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
+         if (adminProfile) {
+            setUserRole(adminProfile.role);
+         } else {
+             // Fallback: If auth exists but public profile is missing (rare), force create it
+             const { count } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
+             const isFirst = count === 0;
+             const newProfile = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
+                role: isFirst ? 'owner' : 'admin',
+                permissions: [],
+                createdAt: Date.now()
+             };
+             await supabase.from('admin_users').insert(newProfile);
+             setUserRole(newProfile.role as any);
+         }
       }
+      setLoadingAuth(false);
+      
+      // 3. Load Data
+      await refreshAllData();
     };
 
-    // Run Initialization
     init();
-    refreshAllData();
 
-    // Setup Realtime Subscriptions
-    const handleTableChange = (payload: any, eventType: string, setState: any) => {
-      const { new: newRecord, old: oldRecord } = payload;
+    // Realtime Subs
+    const handleTableChange = (payload: any, setState: any) => {
+      const { new: newRecord, old: oldRecord, eventType } = payload;
       setState((prev: any[]) => {
         let updated = [...prev];
         if (eventType === 'INSERT') {
@@ -285,11 +297,11 @@ const App: React.FC = () => {
     };
 
     const subs = [
-      subscribeToTable('products', p => handleTableChange(p, p.eventType, setProducts)),
-      subscribeToTable('categories', p => handleTableChange(p, p.eventType, setCategories)),
-      subscribeToTable('subcategories', p => handleTableChange(p, p.eventType, setSubCategories)),
-      subscribeToTable('carousel_slides', p => handleTableChange(p, p.eventType, setHeroSlides)),
-      subscribeToTable('enquiries', p => handleTableChange(p, p.eventType, setEnquiries)),
+      subscribeToTable('products', p => handleTableChange(p, setProducts)),
+      subscribeToTable('categories', p => handleTableChange(p, setCategories)),
+      subscribeToTable('subcategories', p => handleTableChange(p, setSubCategories)),
+      subscribeToTable('carousel_slides', p => handleTableChange(p, setHeroSlides)),
+      subscribeToTable('enquiries', p => handleTableChange(p, setEnquiries)),
       subscribeToTable('settings', p => {
         if (p.new && (p.new as any).id === 'global_settings') {
           setSettings(prev => ({ ...prev, ...p.new }));
@@ -299,26 +311,6 @@ const App: React.FC = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-         const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
-         if (adminProfile) {
-            setUserRole(adminProfile.role);
-         } else {
-             // Create First Admin/Owner if not exists
-             const { count } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
-             const isFirst = count === 0;
-             const newProfile = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Admin',
-                role: isFirst ? 'owner' : 'admin',
-                permissions: isFirst ? ['*'] : [],
-                createdAt: Date.now()
-             };
-             await supabase.from('admin_users').insert(newProfile);
-             setUserRole(newProfile.role as any);
-         }
-      }
     });
 
     return () => {
@@ -352,18 +344,22 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // Apply theme vars
     const hexToRgb = (hex: string) => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '212, 175, 55';
     };
-    document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
-    document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
-    document.documentElement.style.setProperty('--secondary-color', settings.secondaryColor);
-    document.documentElement.style.setProperty('--accent-color', settings.accentColor);
-    document.documentElement.style.setProperty('--bg-color', settings.backgroundColor || '#FDFCFB');
-    document.documentElement.style.setProperty('--text-color', settings.textColor || '#0f172a');
+    if (settings) {
+        document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
+        document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
+        document.documentElement.style.setProperty('--secondary-color', settings.secondaryColor);
+        document.documentElement.style.setProperty('--accent-color', settings.accentColor);
+        document.documentElement.style.setProperty('--bg-color', settings.backgroundColor || '#FDFCFB');
+        document.documentElement.style.setProperty('--text-color', settings.textColor || '#0f172a');
+    }
   }, [settings]);
 
+  // --- INITIAL LOADING STATE ---
   if (!isSupabaseConfigured) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
@@ -372,11 +368,10 @@ const App: React.FC = () => {
          </div>
          <h1 className="text-3xl md:text-5xl font-serif text-white mb-4">Cloud Sync Required</h1>
          <p className="text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
-           This application requires a secure Supabase connection to function. Local storage has been disabled to ensure data integrity across all admin devices.
+           This application requires a secure Supabase connection. Local storage has been disabled to ensure single-source data integrity.
          </p>
          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-lg w-full text-left">
            <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Database size={16} className="text-primary"/> Configuration Missing</h3>
-           <p className="text-xs text-slate-500 mb-2">Please add the following environment variables to your deployment:</p>
            <code className="block bg-black p-4 rounded-lg text-green-400 font-mono text-xs mb-2">
              VITE_SUPABASE_URL=...<br/>
              VITE_SUPABASE_ANON_KEY=...
@@ -384,6 +379,17 @@ const App: React.FC = () => {
          </div>
       </div>
     );
+  }
+
+  // Block rendering until initial data pull/seed is done
+  if (!dataLoaded) {
+      return (
+        <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center">
+            <Loader2 size={48} className="text-[#D4AF37] animate-spin mb-4" />
+            <h2 className="text-xl font-serif text-slate-900 animate-pulse">Synchronizing with Cloud...</h2>
+            <p className="text-xs text-slate-400 uppercase tracking-widest mt-2 font-bold">Please Wait</p>
+        </div>
+      );
   }
 
   return (
@@ -395,7 +401,6 @@ const App: React.FC = () => {
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
         <SaveStatusIndicator status={saveStatus} isProvisioned={isDatabaseProvisioned} />
-        {/* Dynamic Theme Styles */}
         <style>{`
           .text-primary { color: var(--primary-color); } 
           .bg-primary { background-color: var(--primary-color); } 
