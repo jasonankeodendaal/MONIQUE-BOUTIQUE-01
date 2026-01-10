@@ -1,5 +1,3 @@
-
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -157,7 +155,8 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 };
 
 const App: React.FC = () => {
-  // Initialize settings with defaults to ensure layout doesn't break, but other content arrays start empty to strictly use Cloud data.
+  // Initialize settings with defaults to ensure layout doesn't break.
+  // We will hydrate this with Supabase data immediately on mount.
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -215,7 +214,7 @@ const App: React.FC = () => {
         // Enquiries start empty
         setSaveStatus('saved');
       } else {
-        // 3. Normal Data Hydration
+        // 3. Normal Data Hydration - Prefer Remote Data over Initial Local State
         if (settingsRes && settingsRes.length > 0) setSettings(prev => ({ ...prev, ...settingsRes[0] }));
         if (productsRes) setProducts(productsRes);
         if (catsRes) setCategories(catsRes);
@@ -228,8 +227,6 @@ const App: React.FC = () => {
 
     } catch (e) {
       console.error("Data Sync Failure:", e);
-      // Keep saveStatus idle if it was a silent refresh, or error if manual? 
-      // We'll leave it as idle/error in UI via SaveStatusIndicator
       setSaveStatus('error');
     } finally {
       // Clear status after delay
@@ -238,6 +235,7 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Immediate short-circuit if no env vars are set
     if (!isSupabaseConfigured) {
       setLoadingAuth(false);
       return;
@@ -245,17 +243,21 @@ const App: React.FC = () => {
 
     const init = async () => {
       try {
-        // 1. Auth Check
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // 1. Auth Check with Timeout Race to prevent infinite loading
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 5000));
+
+        const result: any = await Promise.race([sessionPromise, timeoutPromise]);
         
-        if (session?.user) {
-          setUser(session.user);
+        if (result?.data?.session?.user) {
+          const sessionUser = result.data.session.user;
+          setUser(sessionUser);
           // Fetch Role
-          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
+          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', sessionUser.id).single();
           if (adminProfile) setUserRole(adminProfile.role);
         }
       } catch (err) {
-        console.error("Authentication check failed", err);
+        console.error("Authentication check failed or timed out", err);
       } finally {
         // ALWAYS finish loading state
         setLoadingAuth(false);
@@ -290,7 +292,7 @@ const App: React.FC = () => {
       subscribeToTable('enquiries', p => handleTableChange(p, p.eventType, setEnquiries)),
       subscribeToTable('settings', p => {
         if (p.new && (p.new as any).id === 'global_settings') {
-          setSettings(prev => ({ ...INITIAL_SETTINGS, ...prev, ...p.new }));
+          setSettings(prev => ({ ...prev, ...p.new }));
         }
       })
     ];
@@ -302,7 +304,7 @@ const App: React.FC = () => {
          if (adminProfile) {
             setUserRole(adminProfile.role);
          } else {
-             // CRITICAL FIX: Create First Admin/Owner if not exists
+             // Create First Admin/Owner if not exists
              const { count } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
              const isFirst = count === 0;
              const newProfile = {
