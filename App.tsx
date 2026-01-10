@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -14,7 +15,7 @@ import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } 
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag } from 'lucide-react';
+import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff } from 'lucide-react';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
 
@@ -32,8 +33,8 @@ interface SettingsContextType {
   enquiries: Enquiry[];
   setEnquiries: React.Dispatch<React.SetStateAction<Enquiry[]>>;
   user: User | null;
+  userRole: 'owner' | 'admin';
   loadingAuth: boolean;
-  isLocalMode: boolean;
   isDatabaseProvisioned: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: React.Dispatch<React.SetStateAction<SaveStatus>>;
@@ -50,7 +51,7 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, loadingAuth, isLocalMode } = useSettings();
+  const { user, loadingAuth } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -59,10 +60,6 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
       </div>
     </div>
   );
-  // Even if "Local Mode" (Supabase missing), we block access because data storage is disabled
-  if (isLocalMode) {
-     return <div className="min-h-screen flex items-center justify-center text-white">Supabase Configuration Required.</div>;
-  }
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
@@ -157,21 +154,20 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
-  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(INITIAL_CAROUSEL);
-  const [enquiries, setEnquiries] = useState<Enquiry[]>(INITIAL_ENQUIRIES);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>([]);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<'owner' | 'admin'>('admin');
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(false);
 
   // Absolute Sync logic - Force Supabase to be the master
   const refreshAllData = useCallback(async () => {
-    if (!isSupabaseConfigured) return;
-    
     setSaveStatus('migrating');
     try {
       const remoteSettings = await fetchTableData('settings');
@@ -190,7 +186,6 @@ const App: React.FC = () => {
         } else if (remote !== null) {
            // Table exists but empty, push initial defaults to cloud
            if (Array.isArray(initialData) && initialData.length > 0) {
-             // We insert them one by one or batch if supported, upsertData handles batch if array
              for (const item of initialData) {
                await upsertData(tableName, item);
              }
@@ -250,13 +245,31 @@ const App: React.FC = () => {
 
     refreshAllData();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    // Check Authentication & User Role
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        // Fetch Role from admin_users table
+        const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
+        if (adminProfile) {
+          setUserRole(adminProfile.role);
+        } else {
+          // If no profile exists yet, create one as Owner if it's the first user, or admin otherwise
+          // Logic handled in Login/SignUp, here we default to admin safe mode
+          setUserRole('admin'); 
+        }
+      }
       setLoadingAuth(false);
-    });
+    };
+    checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+         const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
+         if (adminProfile) setUserRole(adminProfile.role);
+      }
     });
 
     return () => {
@@ -278,7 +291,6 @@ const App: React.FC = () => {
         setTimeout(() => setSaveStatus('idle'), 2000);
       }
     } else {
-      console.warn("Supabase not configured. Changes will not be saved.");
       setSaveStatus('error');
     }
   };
@@ -299,10 +311,32 @@ const App: React.FC = () => {
     document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
   }, [settings.primaryColor]);
 
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+         <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6 border border-red-500/20">
+           <WifiOff size={40} />
+         </div>
+         <h1 className="text-3xl md:text-5xl font-serif text-white mb-4">Cloud Sync Required</h1>
+         <p className="text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
+           This application requires a secure Supabase connection to function. Local storage has been disabled to ensure data integrity across all admin devices.
+         </p>
+         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-lg w-full text-left">
+           <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Database size={16} className="text-primary"/> Configuration Missing</h3>
+           <p className="text-xs text-slate-500 mb-2">Please add the following environment variables to your deployment:</p>
+           <code className="block bg-black p-4 rounded-lg text-green-400 font-mono text-xs mb-2">
+             VITE_SUPABASE_URL=...<br/>
+             VITE_SUPABASE_ANON_KEY=...
+           </code>
+         </div>
+      </div>
+    );
+  }
+
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, products, setProducts, categories, setCategories, subCategories, setSubCategories, heroSlides, setHeroSlides, enquiries, setEnquiries,
-      user, loadingAuth, isLocalMode: !isSupabaseConfigured, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
+      user, userRole, loadingAuth, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
     }}>
       <Router>
         <ScrollToTop />

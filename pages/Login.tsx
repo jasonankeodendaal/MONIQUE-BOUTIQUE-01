@@ -1,12 +1,11 @@
 
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { LogIn, Mail, Lock, AlertCircle, Chrome, Terminal, Info } from 'lucide-react';
-import { useSettings } from '../App';
+import { supabase } from '../lib/supabase';
+import { LogIn, Mail, Lock, AlertCircle, Chrome } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const { settings, isLocalMode } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,13 +16,6 @@ const Login: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
-    // Strict Mode: Block access if Supabase is not configured
-    if (isLocalMode) {
-      setError("System Offline: Database connection required.");
-      setLoading(false);
-      return;
-    }
 
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -37,16 +29,10 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    if (isLocalMode) {
-       setError("System Offline: Database connection required.");
-       return;
-    }
-
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { 
-          // Use origin to prevent HashRouter issues during callback
           redirectTo: window.location.origin,
           queryParams: {
             access_type: 'offline',
@@ -57,7 +43,6 @@ const Login: React.FC = () => {
       if (error) throw error;
     } catch (err: any) {
       console.error("Auth Error:", err);
-      // Handle the specific 404 NOT_FOUND error from Supabase/GoTrue
       if (err.message?.includes('NOT_FOUND') || err.message?.includes('404')) {
         setError('Configuration Error: Google Login is disabled in Supabase or the Project URL is incorrect.');
       } else {
@@ -87,17 +72,6 @@ const Login: React.FC = () => {
               <AlertCircle size={16} />
               {error}
             </div>
-          )}
-
-          {isLocalMode && (
-             <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-left space-y-2">
-                 <div className="flex items-center gap-2 text-red-500 font-bold text-xs uppercase tracking-widest">
-                    <AlertCircle size={14} /> Database Disconnected
-                 </div>
-                 <p className="text-slate-400 text-[10px] leading-relaxed">
-                   The application is running in Strict Cloud Mode but Supabase credentials are missing. Please configure <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>.
-                 </p>
-             </div>
           )}
 
           <form onSubmit={handleEmailLogin} className="space-y-6">
@@ -133,7 +107,7 @@ const Login: React.FC = () => {
 
             <button 
               type="submit"
-              disabled={loading || isLocalMode}
+              disabled={loading}
               className="w-full py-5 bg-primary text-slate-900 font-black uppercase text-xs tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -154,7 +128,6 @@ const Login: React.FC = () => {
 
           <button 
             onClick={handleGoogleLogin}
-            disabled={isLocalMode}
             className="w-full py-4 bg-white text-slate-900 font-bold text-xs rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Chrome size={18} />

@@ -1,6 +1,6 @@
 
+
 import { createClient } from '@supabase/supabase-js';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ADMINS, INITIAL_ENQUIRIES } from '../constants';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
 const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
@@ -23,7 +23,8 @@ export const supabase = createClient(
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # MASTER RESET SCRIPT - RUN THIS IN SUPABASE SQL EDITOR
+-- # MASTER CONFIGURATION SCRIPT
+-- # Run this in Supabase SQL Editor to provision DB
 -- #####################################################
 
 -- 1. Create Tables
@@ -61,7 +62,8 @@ create table if not exists products (
   name text, sku text, price numeric, "affiliateLink" text,
   "categoryId" text, "subCategoryId" text, description text,
   features jsonb, specifications jsonb, media jsonb,
-  "discountRules" jsonb, reviews jsonb, "createdAt" bigint
+  "discountRules" jsonb, reviews jsonb, "createdAt" bigint,
+  "createdBy" uuid default auth.uid()
 );
 
 create table if not exists categories (
@@ -85,8 +87,8 @@ create table if not exists enquiries (
 );
 
 create table if not exists admin_users (
-  id text primary key,
-  name text, email text, role text, permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text
+  id uuid references auth.users not null primary key,
+  name text, email text, role text default 'admin', permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text
 );
 
 create table if not exists product_stats (
@@ -99,7 +101,7 @@ create table if not exists traffic_logs (
   type text, text text, time text, timestamp bigint
 );
 
--- 2. RESET RLS & POLICIES
+-- 2. ENABLE ROW LEVEL SECURITY
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -110,65 +112,50 @@ alter table admin_users enable row level security;
 alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
--- 3. PERMISSIVE POLICIES
-drop policy if exists "Public access" on settings;
-create policy "Public access" on settings for all using (true) with check (true);
+-- 3. POLICIES (Access Control)
 
-drop policy if exists "Public access" on products;
-create policy "Public access" on products for all using (true) with check (true);
+-- Settings: Public Read, Auth Write
+create policy "Settings Read" on settings for select using (true);
+create policy "Settings Write" on settings for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Public access" on categories;
-create policy "Public access" on categories for all using (true) with check (true);
+-- Products: Public Read, Specific Write
+create policy "Products Read" on products for select using (true);
+-- Admin can only update own, Owner can update all
+create policy "Products Insert" on products for insert with check (auth.role() = 'authenticated');
+create policy "Products Update" on products for update using (
+  auth.uid() = "createdBy" OR 
+  exists (select 1 from admin_users where id = auth.uid() and role = 'owner')
+);
+create policy "Products Delete" on products for delete using (
+  auth.uid() = "createdBy" OR 
+  exists (select 1 from admin_users where id = auth.uid() and role = 'owner')
+);
 
-drop policy if exists "Public access" on subcategories;
-create policy "Public access" on subcategories for all using (true) with check (true);
+-- Other tables: Public Read (Storefront), Auth Write (Dashboard)
+create policy "Public Read All" on categories for select using (true);
+create policy "Auth Write All" on categories for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Public access" on carousel_slides;
-create policy "Public access" on carousel_slides for all using (true) with check (true);
+create policy "Public Read Subs" on subcategories for select using (true);
+create policy "Auth Write Subs" on subcategories for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Public access" on enquiries;
-create policy "Public access" on enquiries for all using (true) with check (true);
+create policy "Public Read Slides" on carousel_slides for select using (true);
+create policy "Auth Write Slides" on carousel_slides for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Public access" on admin_users;
-create policy "Public access" on admin_users for all using (true) with check (true);
+create policy "Admin Users Read" on admin_users for select using (auth.uid() = id OR exists (select 1 from admin_users where id = auth.uid() and role = 'owner'));
+create policy "Admin Users Write" on admin_users for all using (auth.uid() = id OR exists (select 1 from admin_users where id = auth.uid() and role = 'owner'));
 
-drop policy if exists "Public access" on product_stats;
-create policy "Public access" on product_stats for all using (true) with check (true);
-
-drop policy if exists "Public access" on traffic_logs;
-create policy "Public access" on traffic_logs for all using (true) with check (true);
-
--- 4. GRANT ACCESS
-grant all on all tables in schema public to anon, authenticated;
-grant all on all sequences in schema public to anon, authenticated;
-
--- 5. STORAGE BUCKET
+-- 4. STORAGE
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
 
-drop policy if exists "Public Access" on storage.objects;
 create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
+create policy "Auth Upload" on storage.objects for insert with check ( bucket_id = 'media' and auth.role() = 'authenticated' );
+create policy "Auth Update" on storage.objects for update using ( bucket_id = 'media' and auth.role() = 'authenticated' );
+create policy "Auth Delete" on storage.objects for delete using ( bucket_id = 'media' and auth.role() = 'authenticated' );
 
-drop policy if exists "Public Upload" on storage.objects;
-create policy "Public Upload" on storage.objects for insert with check ( bucket_id = 'media' );
-
-drop policy if exists "Public Update" on storage.objects;
-create policy "Public Update" on storage.objects for update using ( bucket_id = 'media' );
-
-drop policy if exists "Public Delete" on storage.objects;
-create policy "Public Delete" on storage.objects for delete using ( bucket_id = 'media' );
-
--- 6. ENABLE REALTIME
-alter publication supabase_realtime add table settings;
-alter publication supabase_realtime add table products;
-alter publication supabase_realtime add table categories;
-alter publication supabase_realtime add table subcategories;
-alter publication supabase_realtime add table carousel_slides;
-alter publication supabase_realtime add table enquiries;
-alter publication supabase_realtime add table admin_users;
-alter publication supabase_realtime add table product_stats;
-alter publication supabase_realtime add table traffic_logs;
+-- 5. REALTIME
+alter publication supabase_realtime add table settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs;
 `;
 
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {

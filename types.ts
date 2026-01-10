@@ -1,4 +1,5 @@
 
+
 export interface Category {
   id: string;
   name: string;
@@ -51,6 +52,7 @@ export interface Product {
   discountRules?: DiscountRule[];
   reviews?: Review[];
   createdAt: number;
+  createdBy?: string; // ID of the admin who uploaded this
 }
 
 export interface ProductStats {

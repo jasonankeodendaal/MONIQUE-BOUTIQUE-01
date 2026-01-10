@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -53,14 +54,8 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
  * Traffic Area Chart component
  */
 const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
-  const [regions, setRegions] = useState<{ name: string; traffic: number; status: string; count: number }[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
   const aggregatedProductViews = useMemo(() => stats?.reduce((acc, s) => acc + s.views, 0) || 0, [stats]);
-  
-  // This chart now requires Supabase Traffic Logs to function, as local storage is removed.
-  // We will assume that traffic logs are passed down or we can fetch them here, but for now
-  // we'll leave the visualization logic but it might be empty if no backend data is fed specifically for regions.
-  // In a real implementation with Supabase, we would aggregate 'traffic_logs' table data.
   
   return (
     <div className="relative w-full min-h-[350px] md:min-h-[400px] bg-slate-900 rounded-2xl md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group p-6 md:p-10">
@@ -307,7 +302,7 @@ const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ 
 
 const Admin: React.FC = () => {
   const { 
-    settings, updateSettings, user, isLocalMode, setSaveStatus, refreshAllData,
+    settings, updateSettings, user, userRole, setSaveStatus, refreshAllData,
     products, setProducts,
     categories, setCategories,
     subCategories, setSubCategories,
@@ -320,17 +315,11 @@ const Admin: React.FC = () => {
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
   const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | null>(null);
   
-  // Local state for Site Editor to prevent auto-saving
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
-
-  // Admin users are now managed only via Supabase
   const [admins, setAdmins] = useState<AdminUser[]>(INITIAL_ADMINS);
   const [stats, setStats] = useState<ProductStats[]>([]);
-  
-  // Connection State
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
 
-  // Form States
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminData, setAdminData] = useState<Partial<AdminUser>>({});
   const [creatingAdmin, setCreatingAdmin] = useState(false);
@@ -343,36 +332,25 @@ const Admin: React.FC = () => {
   const [selectedAdProduct, setSelectedAdProduct] = useState<Product | null>(null);
   const [replyEnquiry, setReplyEnquiry] = useState<Enquiry | null>(null);
   
-  // Template Modal
   const [showEmailTemplate, setShowEmailTemplate] = useState(false);
 
   const [productData, setProductData] = useState<Partial<Product>>({});
   const [catData, setCatData] = useState<Partial<Category>>({});
   const [heroData, setHeroData] = useState<Partial<CarouselSlide>>({});
 
-  // Filters & Search
   const [enquirySearch, setEnquirySearch] = useState('');
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
 
-  // Subcategory Management Local State
   const [tempSubCatName, setTempSubCatName] = useState('');
-
-  // Discount Rule Management Local State
   const [tempDiscountRule, setTempDiscountRule] = useState<Partial<DiscountRule>>({ type: 'percentage', value: 0, description: '' });
-
-  // Feature & Spec Management Local State
   const [tempFeature, setTempFeature] = useState('');
   const [tempSpec, setTempSpec] = useState({ key: '', value: '' });
 
-  // Real Traffic State
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
-
-  // Bulk Hero Upload Ref
   const bulkHeroInputRef = useRef<HTMLInputElement>(null);
 
-  // --- DATA LOADING EFFECT ---
   useEffect(() => {
     const loadData = async () => {
       if (isSupabaseConfigured) {
@@ -385,7 +363,6 @@ const Admin: React.FC = () => {
     loadData();
   }, [isSupabaseConfigured]);
 
-  // Read Traffic Logs & Realtime Subscription
   useEffect(() => {
     const fetchTraffic = async () => {
        if (isSupabaseConfigured) {
@@ -393,22 +370,15 @@ const Admin: React.FC = () => {
          if (logs) setTrafficEvents(logs.slice(0, 50));
        }
     };
-    
     fetchTraffic();
-
-    // Subscribe to traffic logs specifically for the Admin dashboard
     const sub = subscribeToTable('traffic_logs', (payload) => {
        if (payload.eventType === 'INSERT') {
           setTrafficEvents(prev => [payload.new, ...prev].slice(0, 50));
        }
     });
-
-    return () => {
-       sub?.unsubscribe();
-    };
+    return () => { sub?.unsubscribe(); };
   }, []);
 
-  // Measure Connection
   useEffect(() => {
     if (activeTab === 'system') {
        const check = async () => {
@@ -423,15 +393,6 @@ const Admin: React.FC = () => {
 
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
   
-  const handleFactoryReset = async () => { 
-      if (window.confirm("⚠️ This does not reset cloud data, only reloads the application state.")) { 
-          window.location.reload(); 
-      } 
-  };
-  
-  const handleBackup = () => { const data = { products, categories, subCategories, heroSlides, enquiries, admins, settings, stats }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); };
-  
-  // Updated Save Wrapper to handle Cloud Sync Correctly
   const performSave = async (localAction: () => void, tableName?: string, data?: any, deleteId?: string) => {
     setSaveStatus('saving');
     localAction();
@@ -454,7 +415,6 @@ const Admin: React.FC = () => {
            setSaveStatus('error');
        }
     } else {
-       // Since user requested strict mode, if not configured, show error
        setSaveStatus('error');
     }
     setTimeout(() => {
@@ -504,13 +464,17 @@ const Admin: React.FC = () => {
   });
   
   const handleSaveProduct = () => {
+     if (!user) return;
+     
      let newItem: Product;
      if (editingId) {
          const existing = products.find(p => p.id === editingId);
          newItem = { ...existing!, ...productData } as Product;
      } else {
-         newItem = { ...productData, id: Date.now().toString(), createdAt: Date.now() } as Product;
+         // IMPORTANT: Attach creator ID
+         newItem = { ...productData, id: Date.now().toString(), createdAt: Date.now(), createdBy: user.id } as Product;
      }
+     
      performSave(() => { if (editingId) setProducts(prev => prev.map(p => p.id === editingId ? newItem : p)); else setProducts(prev => [newItem, ...prev]); setShowProductForm(false); setEditingId(null); }, 'products', newItem);
   };
 
@@ -561,7 +525,6 @@ const Admin: React.FC = () => {
              image: result.url
           };
           newSlides.push(newSlide);
-          // Persist each immediately or batch logic
           await upsertData('carousel_slides', newSlide);
         }
         setHeroSlides(prev => [...prev, ...newSlides]);
@@ -595,26 +558,6 @@ const Admin: React.FC = () => {
   const handleRemoveDiscountRule = (id: string) => {
     setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) });
   };
-
-  const handleAddFeature = () => {
-    if (!tempFeature.trim()) return;
-    setProductData(prev => ({ ...prev, features: [...(prev.features || []), tempFeature] }));
-    setTempFeature('');
-  };
-  
-  const handleRemoveFeature = (index: number) => {
-    setProductData(prev => ({ ...prev, features: (prev.features || []).filter((_, i) => i !== index) }));
-  };
-
-  const handleAddSpec = () => {
-    if (!tempSpec.key.trim() || !tempSpec.value.trim()) return;
-    setProductData(prev => ({ ...prev, specifications: { ...(prev.specifications || {}), [tempSpec.key]: tempSpec.value } }));
-    setTempSpec({ key: '', value: '' });
-  };
-  
-  const handleRemoveSpec = (key: string) => {
-    setProductData(prev => { const newSpecs = { ...(prev.specifications || {}) }; delete newSpecs[key]; return { ...prev, specifications: newSpecs }; });
-  };
   
   const handleSaveAdmin = async () => {
     if (!adminData.email || !adminData.password) return;
@@ -641,8 +584,29 @@ const Admin: React.FC = () => {
      performSave(() => setAdmins(prev => prev.filter(a => a.id !== id)), 'admin_users', null, id);
   };
 
+  // --- Filtering Logic for Catalog ---
+  const displayedProducts = useMemo(() => {
+    return products.filter(p => {
+       // Search filter
+       const matchesSearch = p.name.toLowerCase().includes(productSearch.toLowerCase()) && 
+                             (productCatFilter === 'all' || p.categoryId === productCatFilter);
+       
+       // Owner/Admin Visibility Rule:
+       // Owner sees all.
+       // Admin sees only what they created.
+       const isOwner = userRole === 'owner';
+       const isCreator = p.createdBy === user?.id;
+       
+       // If local mode (no user) or user is owner, show all
+       // If admin, show only createdBy matches
+       const hasPermission = isOwner || isCreator;
 
-  // --- Render Functions for Tabs ---
+       return matchesSearch && hasPermission;
+    });
+  }, [products, productSearch, productCatFilter, userRole, user]);
+
+
+  // --- Render Functions ---
 
   const renderEnquiries = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -785,26 +749,39 @@ const Admin: React.FC = () => {
              </div>
           </div>
 
+          {userRole === 'admin' && (
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-3">
+               <Info size={16} className="text-blue-500 flex-shrink-0" />
+               <span className="text-[10px] md:text-xs text-blue-300">You are viewing your personal uploads. Only the Owner can see all products.</span>
+            </div>
+          )}
+
           <div className="grid gap-3 md:gap-4">
-            {products.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) && (productCatFilter === 'all' || p.categoryId === productCatFilter)).map(p => (
-              <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-xl md:rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
-                <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-xl overflow-hidden bg-slate-800 border border-slate-700 flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div>
-                  <div className="min-w-0">
-                     <h4 className="text-white font-bold text-sm md:text-base truncate">{p.name}</h4>
-                     <div className="flex items-center gap-2 mt-0.5 md:mt-1">
-                        <span className="text-primary text-[10px] md:text-xs font-bold">R {p.price}</span>
-                        <span className="text-slate-600 text-[8px] md:text-[10px] uppercase font-black tracking-widest truncate">• {categories.find(c => c.id === p.categoryId)?.name}</span>
-                     </div>
+            {displayedProducts.length === 0 ? (
+               <div className="text-center py-20 bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl">
+                  <p className="text-slate-500 text-sm">No products found matching your criteria.</p>
+               </div>
+            ) : (
+               displayedProducts.map(p => (
+                  <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-xl md:rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
+                    <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-xl overflow-hidden bg-slate-800 border border-slate-700 flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div>
+                      <div className="min-w-0">
+                         <h4 className="text-white font-bold text-sm md:text-base truncate">{p.name}</h4>
+                         <div className="flex items-center gap-2 mt-0.5 md:mt-1">
+                            <span className="text-primary text-[10px] md:text-xs font-bold">R {p.price}</span>
+                            <span className="text-slate-600 text-[8px] md:text-[10px] uppercase font-black tracking-widest truncate">• {categories.find(c => c.id === p.categoryId)?.name}</span>
+                         </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 w-full md:w-auto justify-end">
+                      <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={16}/></button>
+                      <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={16}/></button>
+                      <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2 w-full md:w-auto justify-end">
-                  <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={16}/></button>
-                  <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={16}/></button>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
-                </div>
-              </div>
-            ))}
+                ))
+            )}
           </div>
         </>
       )}
@@ -896,6 +873,8 @@ const Admin: React.FC = () => {
     </div>
   );
 
+  // ... (Rest of Admin component logic for Team, System, Guide etc. remains, context now provides userRole)
+  
   const renderTeam = () => (
      <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
         {showAdminForm ? (
@@ -1065,8 +1044,8 @@ const Admin: React.FC = () => {
                 </div>
                 <div className="p-4 md:p-6 bg-slate-800 rounded-2xl md:rounded-3xl border border-slate-700 text-center">
                    <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1.5 md:mb-2">Active Identity</span>
-                   <span className="text-xs md:text-sm font-bold text-white truncate w-full block">{user?.email || 'Local User'}</span>
-                   <span className="text-[8px] md:text-[9px] text-primary uppercase font-bold mt-1 block">{user?.role || 'Root'} Identity</span>
+                   <span className="text-xs md:text-sm font-bold text-white truncate w-full block">{user?.email || 'System'}</span>
+                   <span className="text-[8px] md:text-[9px] text-primary uppercase font-bold mt-1 block">{userRole || 'Root'} Identity</span>
                 </div>
              </div>
            </div>
@@ -1160,7 +1139,7 @@ const Admin: React.FC = () => {
         <div className="flex flex-col gap-3 md:gap-6">
           <div className="flex items-center gap-3 md:gap-4 flex-wrap">
             <h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1>
-            <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-primary/10 border border-primary/20 rounded-full text-[8px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'OFFLINE' : (user?.email?.split('@')[0] || 'ADMIN')}</div>
+            <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-primary/10 border border-primary/20 rounded-full text-[8px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em]">{user?.email?.split('@')[0] || 'ADMIN'}</div>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
