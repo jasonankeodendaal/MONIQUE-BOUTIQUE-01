@@ -113,7 +113,13 @@ create table if not exists traffic_logs (
   type text, text text, time text, timestamp bigint
 );
 
--- 3. ENABLE ROW LEVEL SECURITY
+-- 3. HELPER FUNCTIONS (Prevent Recursion)
+create or replace function public.get_my_role()
+returns text as $$
+  select role from public.admin_users where id = auth.uid();
+$$ language sql security definer;
+
+-- 4. ENABLE ROW LEVEL SECURITY
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -124,7 +130,7 @@ alter table admin_users enable row level security;
 alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
--- 4. POLICIES (Access Control)
+-- 5. POLICIES (Access Control)
 
 -- Settings
 create policy "Settings Read" on settings for select using (true);
@@ -146,16 +152,16 @@ create policy "Auth Write Slides" on carousel_slides for all using (auth.role() 
 create policy "Public Insert Enquiries" on enquiries for insert with check (true);
 create policy "Admin Manage Enquiries" on enquiries for all using (auth.role() = 'authenticated');
 
--- Admin Users (CRITICAL POLICIES FOR SELF-HEALING)
--- Allow admin to see their own profile
-create policy "Admin Read Self" on admin_users for select using (auth.uid() = id);
--- Allow admin to update their own profile
-create policy "Admin Update Self" on admin_users for update using (auth.uid() = id);
+-- Admin Users (CRITICAL POLICIES)
+-- Allow users to read their own data
+create policy "Read Self" on admin_users for select using (auth.uid() = id);
+-- Allow users to update their own data
+create policy "Update Self" on admin_users for update using (auth.uid() = id);
 -- Allow authenticated users to INSERT their OWN profile if it doesn't exist (Self-Healing)
-create policy "Admin Insert Self" on admin_users for insert with check (auth.uid() = id);
--- Allow 'owner' role to manage everyone else
+create policy "Insert Self" on admin_users for insert with check (auth.uid() = id);
+-- Allow 'owner' role to manage everyone else (using Security Definer function to avoid recursion)
 create policy "Owner Manage All" on admin_users for all using (
-  exists (select 1 from admin_users where id = auth.uid() and role = 'owner')
+  public.get_my_role() = 'owner'
 );
 
 -- Stats/Logs
@@ -164,7 +170,7 @@ create policy "Stats Write" on product_stats for all using (true); -- Allow publ
 create policy "Logs Write" on traffic_logs for insert with check (true);
 create policy "Logs Read" on traffic_logs for select using (auth.role() = 'authenticated');
 
--- 5. STORAGE
+-- 6. STORAGE
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
@@ -174,22 +180,25 @@ create policy "Auth Upload" on storage.objects for insert with check ( bucket_id
 create policy "Auth Update" on storage.objects for update using ( bucket_id = 'media' and auth.role() = 'authenticated' );
 create policy "Auth Delete" on storage.objects for delete using ( bucket_id = 'media' and auth.role() = 'authenticated' );
 
--- 6. REALTIME
+-- 7. REALTIME
 alter publication supabase_realtime add table settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs;
 
--- 7. TRIGGERS (Auto-Create Public Profile for Admin)
+-- 8. TRIGGERS (Auto-Create Public Profile for Admin)
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.admin_users (id, email, name, role, permissions, "createdAt")
-  values (
-    new.id, 
-    new.email, 
-    split_part(new.email, '@', 1),
-    'admin', -- Default role
-    '[]',
-    extract(epoch from now()) * 1000
-  );
+  -- Check if profile already exists to prevent error
+  if not exists (select 1 from public.admin_users where id = new.id) then
+      insert into public.admin_users (id, email, name, role, permissions, "createdAt")
+      values (
+        new.id, 
+        new.email, 
+        split_part(new.email, '@', 1),
+        'admin', -- Default role
+        '[]',
+        extract(epoch from now()) * 1000
+      );
+  end if;
   return new;
 end;
 $$ language plpgsql security definer;

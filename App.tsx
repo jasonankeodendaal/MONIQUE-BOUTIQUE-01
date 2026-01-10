@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
@@ -14,7 +14,7 @@ import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } 
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, RefreshCw, LogOut } from 'lucide-react';
+import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, LogOut } from 'lucide-react';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
 
@@ -156,9 +156,8 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 };
 
 const App: React.FC = () => {
-  // STRICT MODE: Initialize empty. No local fallbacks allowed unless seeding.
-  // Data must come from Supabase.
-  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS); 
+  // STRICT MODE: Initialize null to prevent local fallbacks.
+  const [settings, setSettings] = useState<SiteSettings | null>(null); 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
@@ -176,8 +175,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const enforceSecurityOnMount = async () => {
       if (!isSupabaseConfigured) return;
-      
-      // If a session exists when the app mounts (refresh), kill it.
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         console.log("Security Protocol: Session terminated on refresh.");
@@ -190,28 +187,21 @@ const App: React.FC = () => {
 
   // --- SECURITY: 5 MINUTE INACTIVITY TIMER ---
   useEffect(() => {
-    if (!user) return; // Only track activity if user is logged in
-
-    const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
+    if (!user) return;
+    const INACTIVITY_LIMIT = 5 * 60 * 1000;
     let timeoutId: any;
-
     const resetTimer = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(async () => {
         console.log("Security Protocol: Auto-logout due to inactivity.");
         await supabase.auth.signOut();
         setUser(null);
-        window.location.hash = '#/login'; // Force redirect using hash since we are outside Router context here
+        window.location.hash = '#/login';
       }, INACTIVITY_LIMIT);
     };
-
-    // Events to track activity
     const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
     events.forEach(event => window.addEventListener(event, resetTimer));
-
-    // Start timer immediately
     resetTimer();
-
     return () => {
       clearTimeout(timeoutId);
       events.forEach(event => window.removeEventListener(event, resetTimer));
@@ -222,20 +212,28 @@ const App: React.FC = () => {
     if (!isSupabaseConfigured) return;
 
     try {
-      // 1. Check if DB is already seeded (Check settings table)
-      const { data: existingSettings } = await supabase.from('settings').select('id').limit(1);
+      // 1. Check if DB is already seeded
+      const { data: existingSettings, error: freshnessError } = await supabase.from('settings').select('id').limit(1);
       
+      if (freshnessError) {
+        console.error("Connection Check Failed:", freshnessError);
+        // If critical table check fails, we cannot proceed.
+        // This might be due to table missing (500/404) or network (0).
+        // If it's a new project, table might not exist. 
+        // We will attempt migration ONLY if we confirm we are in a valid environment but empty.
+        // For now, treat as error to enforce Single Source rule.
+        throw freshnessError; 
+      }
+
       const isFreshDb = !existingSettings || existingSettings.length === 0;
 
       if (isFreshDb) {
         // --- SEEDING MODE ---
-        // Only trigger seeding if we are authenticated OR if we allow public seeding (which we typically don't).
-        // If unauthenticated, this might fail with 403, but we try anyway in case RLS allows it or we are admin.
         setSaveStatus('migrating');
-        console.log("Fresh Database Detected. Commencing One-Time Seed...");
+        console.log("Fresh Database Detected. Commencing Cloud Seed...");
 
-        // Run inserts in parallel for speed
-        const results = await Promise.all([
+        // Insert initial data
+        await Promise.all([
            upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' }),
            ...INITIAL_PRODUCTS.map(p => upsertData('products', p)),
            ...INITIAL_CATEGORIES.map(c => upsertData('categories', c)),
@@ -243,7 +241,7 @@ const App: React.FC = () => {
            ...INITIAL_CAROUSEL.map(s => upsertData('carousel_slides', s))
         ]);
 
-        // If seeding successful, set local state to constants
+        // After seeding, set state from constants
         setSettings(INITIAL_SETTINGS);
         setProducts(INITIAL_PRODUCTS);
         setCategories(INITIAL_CATEGORIES);
@@ -254,7 +252,7 @@ const App: React.FC = () => {
 
       } else {
         // --- FETCH MODE ---
-        // Parallel Fetch for maximum speed
+        // Fetch strictly from DB. No local fallbacks.
         const [
             settingsRes,
             productsRes,
@@ -271,7 +269,14 @@ const App: React.FC = () => {
             fetchTableData('enquiries')
         ]);
 
-        if (settingsRes && settingsRes.length > 0) setSettings(settingsRes[0]);
+        if (settingsRes && settingsRes.length > 0) {
+            setSettings(settingsRes[0]);
+        } else {
+             // If DB exists but settings table is empty (and not caught by fresh check), 
+             // we have a data integrity issue. Do not load app.
+             console.error("Critical: Settings table empty in provisioned DB.");
+        }
+        
         if (productsRes) setProducts(productsRes);
         if (catsRes) setCategories(catsRes);
         if (subCatsRes) setSubCategories(subCatsRes);
@@ -286,6 +291,8 @@ const App: React.FC = () => {
       console.error("Data Sync Critical Failure:", e);
       setSaveStatus('error');
     } finally {
+      // Allow loading to finish so we can show error screen if needed
+      setDataLoaded(true); 
       setTimeout(() => setSaveStatus(prev => prev === 'migrating' || prev === 'saved' ? 'idle' : prev), 2500);
     }
   }, []);
@@ -297,29 +304,21 @@ const App: React.FC = () => {
     }
 
     const init = async () => {
-      // 1. Auth Check
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       
       if (session?.user) {
-         // 2. Fetch User Role
          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
          if (adminProfile) {
             setUserRole(adminProfile.role);
-         } else {
-             // Fallback profile check handled in Login.tsx, but good to have safety
-             setUserRole('admin');
          }
       }
       setLoadingAuth(false);
-      
-      // 3. Load Data
       await refreshAllData();
     };
 
     init();
 
-    // Realtime Subs
     const handleTableChange = (payload: any, setState: any) => {
       const { new: newRecord, old: oldRecord, eventType } = payload;
       setState((prev: any[]) => {
@@ -343,7 +342,7 @@ const App: React.FC = () => {
       subscribeToTable('enquiries', p => handleTableChange(p, setEnquiries)),
       subscribeToTable('settings', p => {
         if (p.new && (p.new as any).id === 'global_settings') {
-          setSettings(prev => ({ ...prev, ...p.new }));
+          setSettings(prev => ({ ...prev!, ...p.new }));
         }
       })
     ];
@@ -351,9 +350,6 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const previousUser = user;
       setUser(session?.user ?? null);
-      
-      // If we just logged in (and weren't before), trigger a refresh to ensure
-      // we can seed data if the DB was empty (since we now have write permissions)
       if (session?.user && !previousUser) {
           refreshAllData();
       }
@@ -367,11 +363,11 @@ const App: React.FC = () => {
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
+    // Optimistic update
+    setSettings(prev => prev ? ({ ...prev, ...newSettings }) : null);
     
-    if (isSupabaseConfigured) {
-      const { error } = await upsertData('settings', { ...updated, id: 'global_settings' });
+    if (isSupabaseConfigured && settings) {
+      const { error } = await upsertData('settings', { ...settings, ...newSettings, id: 'global_settings' });
       if (error) setSaveStatus('error');
       else {
         setSaveStatus('saved');
@@ -390,7 +386,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // Apply theme vars
     const hexToRgb = (hex: string) => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '212, 175, 55';
@@ -405,7 +400,6 @@ const App: React.FC = () => {
     }
   }, [settings]);
 
-  // --- INITIAL LOADING STATE ---
   if (!isSupabaseConfigured) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
@@ -414,7 +408,7 @@ const App: React.FC = () => {
          </div>
          <h1 className="text-3xl md:text-5xl font-serif text-white mb-4">Cloud Sync Required</h1>
          <p className="text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
-           This application requires a secure Supabase connection. Local storage has been disabled to ensure single-source data integrity.
+           This application requires a secure Supabase connection. Local storage is disabled to ensure single-source data integrity.
          </p>
          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-lg w-full text-left">
            <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Database size={16} className="text-primary"/> Configuration Missing</h3>
@@ -427,20 +421,33 @@ const App: React.FC = () => {
     );
   }
 
-  // Block rendering until initial data pull/seed is done
-  if (!dataLoaded) {
+  // Block rendering until data is loaded AND settings are present
+  if (!dataLoaded || !settings) {
+      if (dataLoaded && !settings) {
+        // Loaded but failed to get settings (Error state)
+        return (
+             <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center p-6">
+                <AlertTriangle size={48} className="text-red-500 mb-4" />
+                <h2 className="text-xl font-serif text-slate-900">Synchronization Error</h2>
+                <p className="text-slate-500 mt-2 max-w-sm text-center">Failed to retrieve configuration from Supabase. Please check the database connection and schema.</p>
+                <button onClick={() => window.location.reload()} className="mt-6 px-6 py-3 bg-slate-900 text-white rounded-xl uppercase text-xs font-bold tracking-widest hover:bg-primary hover:text-slate-900 transition-colors">Retry Connection</button>
+            </div>
+        )
+      }
+
+      // Still loading
       return (
         <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center">
             <Loader2 size={48} className="text-[#D4AF37] animate-spin mb-4" />
             <h2 className="text-xl font-serif text-slate-900 animate-pulse">Synchronizing with Cloud...</h2>
-            <p className="text-xs text-slate-400 uppercase tracking-widest mt-2 font-bold">Please Wait</p>
+            <p className="text-xs text-slate-400 uppercase tracking-widest mt-2 font-bold">Single Source of Truth</p>
         </div>
       );
   }
 
   return (
     <SettingsContext.Provider value={{ 
-      settings, updateSettings, products, setProducts, categories, setCategories, subCategories, setSubCategories, heroSlides, setHeroSlides, enquiries, setEnquiries,
+      settings: settings!, updateSettings, products, setProducts, categories, setCategories, subCategories, setSubCategories, heroSlides, setHeroSlides, enquiries, setEnquiries,
       user, userRole, loadingAuth, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
     }}>
       <Router>
