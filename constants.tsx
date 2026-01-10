@@ -1,15 +1,27 @@
+
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard & Reports',
+    description: 'Access to the main command center.',
+    children: [
+      { id: 'dashboard.view', label: 'View Analytics Overview' },
+      { id: 'dashboard.export', label: 'Export Reports' },
+    ]
+  },
   {
     id: 'sales',
     label: 'Sales & Enquiries',
     description: 'Manage incoming leads and communications.',
     children: [
-      { id: 'sales.view', label: 'View Enquiries' },
-      { id: 'sales.manage', label: 'Manage Status (Read/Unread)' },
-      { id: 'sales.delete', label: 'Delete Enquiries' },
-      { id: 'sales.export', label: 'Export Data' }
+      { id: 'sales.view', label: 'View Inbox' },
+      { id: 'sales.reply', label: 'Reply to Enquiries' },
+      { id: 'sales.status', label: 'Update Status' },
+      { id: 'sales.delete', label: 'Delete Messages' },
+      { id: 'sales.export', label: 'Export Enquiries' }
     ]
   },
   {
@@ -18,33 +30,26 @@ export const PERMISSION_TREE: PermissionNode[] = [
     description: 'Control products and categories.',
     children: [
       { id: 'catalog.products.view', label: 'View Products' },
-      { id: 'catalog.products.manage', label: 'Add/Edit Products' },
+      { id: 'catalog.products.create', label: 'Create Products' },
+      { id: 'catalog.products.edit', label: 'Edit Products' },
       { id: 'catalog.products.delete', label: 'Delete Products' },
       { id: 'catalog.categories.manage', label: 'Manage Departments' },
-      { id: 'catalog.ads', label: 'Generate Ads' }
+      { id: 'catalog.subcategories.manage', label: 'Manage Sub-Categories' },
+      { id: 'catalog.ads', label: 'Generate Ad Copy' }
     ]
   },
   {
     id: 'content',
-    label: 'Site Content',
+    label: 'Site Content & Visuals',
     description: 'Edit pages and visual elements.',
     children: [
-      { id: 'content.hero', label: 'Hero Carousel' },
-      { id: 'content.identity', label: 'Brand Identity' },
+      { id: 'content.hero', label: 'Manage Hero Slides' },
+      { id: 'content.brand', label: 'Brand Identity (Logo/Colors)' },
+      { id: 'content.nav', label: 'Navigation & Footer' },
       { id: 'content.home', label: 'Home Page Sections' },
-      { id: 'content.about', label: 'About Page' },
-      { id: 'content.contact', label: 'Contact Page' },
+      { id: 'content.about', label: 'About Page Story' },
+      { id: 'content.contact', label: 'Contact Page Details' },
       { id: 'content.legal', label: 'Legal Pages' }
-    ]
-  },
-  {
-    id: 'analytics',
-    label: 'Business Intelligence',
-    description: 'View traffic and performance reports.',
-    children: [
-      { id: 'analytics.view', label: 'View Dashboard' },
-      { id: 'analytics.products', label: 'Product Performance' },
-      { id: 'analytics.export', label: 'Export Reports' }
     ]
   },
   {
@@ -52,9 +57,11 @@ export const PERMISSION_TREE: PermissionNode[] = [
     label: 'System Administration',
     description: 'Advanced settings and team management.',
     children: [
-      { id: 'system.team.manage', label: 'Manage Team' },
-      { id: 'system.settings.core', label: 'Core Site Settings' },
-      { id: 'system.reset', label: 'Factory Reset' }
+      { id: 'system.team.view', label: 'View Team Members' },
+      { id: 'system.team.manage', label: 'Add/Edit Members' },
+      { id: 'system.team.delete', label: 'Remove Members' },
+      { id: 'system.integrations', label: 'Manage Integrations (API Keys)' },
+      { id: 'system.logs', label: 'View System Logs' }
     ]
   }
 ];
@@ -104,6 +111,9 @@ export const INITIAL_SETTINGS: SiteSettings = {
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
+  backgroundColor: '#FDFCFB',
+  textColor: '#0f172a',
+  
   navHomeLabel: 'Home',
   navProductsLabel: 'My Picks',
   navAboutLabel: 'My Story',

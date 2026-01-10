@@ -99,6 +99,9 @@ export interface SiteSettings {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  backgroundColor: string; // Global Background
+  textColor: string;       // Global Text
+  
   navHomeLabel: string;
   navProductsLabel: string;
   navAboutLabel: string;

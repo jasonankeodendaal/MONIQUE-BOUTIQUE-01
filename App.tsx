@@ -101,6 +101,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-3 text-sm font-light">
               <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
               <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
+              <li><Link to="/terms" className="hover:text-primary transition-colors">{settings.termsTitle}</Link></li>
             </ul>
           </div>
         </div>
@@ -122,7 +123,8 @@ const ScrollToTop = () => {
 };
 
 const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, isProvisioned: boolean }) => {
-  if (status === 'idle') return null;
+  const location = useLocation();
+  if (status === 'idle' || !location.pathname.startsWith('/admin')) return null;
 
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl transition-all duration-300 ${
@@ -309,7 +311,11 @@ const App: React.FC = () => {
     };
     document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
     document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
-  }, [settings.primaryColor]);
+    document.documentElement.style.setProperty('--secondary-color', settings.secondaryColor);
+    document.documentElement.style.setProperty('--accent-color', settings.accentColor);
+    document.documentElement.style.setProperty('--bg-color', settings.backgroundColor || '#FDFCFB');
+    document.documentElement.style.setProperty('--text-color', settings.textColor || '#0f172a');
+  }, [settings]);
 
   if (!isSupabaseConfigured) {
     return (
@@ -342,7 +348,16 @@ const App: React.FC = () => {
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
         <SaveStatusIndicator status={saveStatus} isProvisioned={isDatabaseProvisioned} />
-        <style>{`.text-primary { color: var(--primary-color); } .bg-primary { background-color: var(--primary-color); } .border-primary { border-color: var(--primary-color); } .hover\\:bg-primary:hover { background-color: var(--primary-color); }`}</style>
+        {/* Dynamic Theme Styles */}
+        <style>{`
+          .text-primary { color: var(--primary-color); } 
+          .bg-primary { background-color: var(--primary-color); } 
+          .border-primary { border-color: var(--primary-color); } 
+          .hover\\:bg-primary:hover { background-color: var(--primary-color); }
+          .bg-\\[\\#FDFCFB\\] { background-color: var(--bg-color) !important; }
+          .text-slate-900 { color: var(--text-color) !important; }
+          body { background-color: var(--bg-color); color: var(--text-color); }
+        `}</style>
         <div className="min-h-screen flex flex-col">
           <Header />
           <div className="flex-grow">

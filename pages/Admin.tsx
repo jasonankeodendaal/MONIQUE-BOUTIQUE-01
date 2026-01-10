@@ -563,21 +563,46 @@ const Admin: React.FC = () => {
     if (!adminData.email || !adminData.password) return;
     setCreatingAdmin(true);
     setSaveStatus('saving');
-    let newItem: AdminUser;
-    if (editingId) {
-        const existing = admins.find(a => a.id === editingId);
-        newItem = { ...existing!, ...adminData } as AdminUser;
-    } else {
-        newItem = { ...adminData, id: Date.now().toString(), createdAt: Date.now() } as AdminUser;
-    }
+    
     try {
-      if (!editingId && isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signUp({ email: adminData.email, password: adminData.password, options: { data: { name: adminData.name, role: adminData.role } } });
-        if (error) throw error;
+      let newId = editingId;
+      
+      // If we are creating a NEW admin (no existing ID), we must register them in Supabase Auth first
+      if (!editingId) {
+        if (isSupabaseConfigured) {
+          const { data, error } = await supabase.auth.signUp({ 
+            email: adminData.email, 
+            password: adminData.password, 
+            options: { data: { name: adminData.name, role: adminData.role } } 
+          });
+          if (error) throw error;
+          if (data.user) newId = data.user.id;
+        } else {
+           newId = Date.now().toString(); // Local fallback
+        }
       }
-      await performSave(() => { if (editingId) setAdmins(prev => prev.map(a => a.id === editingId ? newItem : a)); else setAdmins(prev => [...prev, newItem]); }, 'admin_users', newItem);
-      setShowAdminForm(false); setEditingId(null);
-    } catch (err: any) { alert(`Error saving member: ${err.message}`); setSaveStatus('error'); } finally { setCreatingAdmin(false); }
+      
+      const existing = admins.find(a => a.id === editingId);
+      const newItem: AdminUser = { 
+         ...existing!, 
+         ...adminData, 
+         id: newId!, // Use the ID from Auth or existing ID
+         createdAt: existing?.createdAt || Date.now() 
+      } as AdminUser;
+      
+      await performSave(() => { 
+        if (editingId) setAdmins(prev => prev.map(a => a.id === editingId ? newItem : a)); 
+        else setAdmins(prev => [...prev, newItem]); 
+      }, 'admin_users', newItem);
+      
+      setShowAdminForm(false); 
+      setEditingId(null);
+    } catch (err: any) { 
+      alert(`Error saving member: ${err.message}`); 
+      setSaveStatus('error'); 
+    } finally { 
+      setCreatingAdmin(false); 
+    }
   };
 
   const handleDeleteAdmin = (id: string) => {
@@ -872,8 +897,6 @@ const Admin: React.FC = () => {
        )}
     </div>
   );
-
-  // ... (Rest of Admin component logic for Team, System, Guide etc. remains, context now provides userRole)
   
   const renderTeam = () => (
      <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1108,7 +1131,7 @@ const Admin: React.FC = () => {
   const renderSiteEditor = () => (
      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {[
-          {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, 
+          {id: 'brand', label: 'Identity & Theme', icon: Globe, desc: 'Logo, Colors, Slogan'}, 
           {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, 
           {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, 
           {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, 
@@ -1188,6 +1211,7 @@ const Admin: React.FC = () => {
                   <>
                      <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2 text-sm md:text-base"><Globe size={16} className="text-primary"/> Basic Info</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({companyName: v})} /><SettingField label="Slogan" value={tempSettings.slogan || ''} onChange={v => updateTempSettings({slogan: v})} /><SettingField label="Logo Text" value={tempSettings.companyLogo} onChange={v => updateTempSettings({companyLogo: v})} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({companyLogoUrl: v})} className="h-24 md:h-32 w-full object-contain bg-slate-800/50 rounded-xl" /></div>
                      <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold flex items-center gap-2 text-sm md:text-base"><Palette size={16} className="text-primary"/> Brand Colors</h4><div className="grid grid-cols-3 gap-3 md:gap-4"><SettingField label="Primary" value={tempSettings.primaryColor} onChange={v => updateTempSettings({primaryColor: v})} type="color" /><SettingField label="Secondary" value={tempSettings.secondaryColor || '#1E293B'} onChange={v => updateTempSettings({secondaryColor: v})} type="color" /><SettingField label="Accent" value={tempSettings.accentColor || '#F59E0B'} onChange={v => updateTempSettings({accentColor: v})} type="color" /></div></div>
+                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold flex items-center gap-2 text-sm md:text-base"><Monitor size={16} className="text-primary"/> Global Theme</h4><div className="grid grid-cols-2 gap-3 md:gap-4"><SettingField label="Background Color" value={tempSettings.backgroundColor || '#FDFCFB'} onChange={v => updateTempSettings({backgroundColor: v})} type="color" /><SettingField label="Text Color" value={tempSettings.textColor || '#0f172a'} onChange={v => updateTempSettings({textColor: v})} type="color" /></div></div>
                   </>
                )}
                {activeEditorSection === 'nav' && (
