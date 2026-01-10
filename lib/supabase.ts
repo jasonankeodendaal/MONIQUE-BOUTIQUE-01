@@ -8,17 +8,12 @@ const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
-// Log status to help user debug connection issues
 if (!supabaseUrl) {
   console.warn("%c[Supabase] URL not found.", "color: orange; font-weight: bold;");
-  console.log("To fix: Create a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY");
-} else if (!supabaseUrl.includes('supabase.co')) {
-  console.warn("%c[Supabase] Invalid URL format.", "color: red; font-weight: bold;", supabaseUrl);
 } else {
   console.log("%c[Supabase] Configuration detected.", "color: green; font-weight: bold;");
 }
 
-// STRICT CHECK: Only configured if URL is present AND contains supabase.co
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
 
 export const supabase = createClient(
@@ -28,11 +23,10 @@ export const supabase = createClient(
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # KASI COUTURE DATABASE SETUP SCRIPT (V3 - RE-RUN SAFE)
--- # PASTE THIS INTO SUPABASE SQL EDITOR TO FIX/RESET
+-- # MASTER RESET SCRIPT - RUN THIS IN SUPABASE SQL EDITOR
 -- #####################################################
 
--- 1. Create Tables (Idempotent)
+-- 1. Create Tables
 create table if not exists settings (
   id text primary key,
   "companyName" text, "slogan" text, "companyLogo" text, "companyLogoUrl" text,
@@ -105,7 +99,7 @@ create table if not exists traffic_logs (
   type text, text text, time text, timestamp bigint
 );
 
--- 2. ENABLE ROW LEVEL SECURITY
+-- 2. RESET RLS & POLICIES
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -116,73 +110,54 @@ alter table admin_users enable row level security;
 alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
--- 3. CREATE POLICIES (DROP FIRST TO PREVENT ERRORS)
+-- 3. PERMISSIVE POLICIES
+drop policy if exists "Public access" on settings;
+create policy "Public access" on settings for all using (true) with check (true);
 
--- Settings
-drop policy if exists "Public Read Settings" on settings;
-create policy "Public Read Settings" on settings for select using (true);
-drop policy if exists "Public/Admin All Settings" on settings;
-create policy "Public/Admin All Settings" on settings for all using (true) with check (true);
+drop policy if exists "Public access" on products;
+create policy "Public access" on products for all using (true) with check (true);
 
--- Products
-drop policy if exists "Public Read Products" on products;
-create policy "Public Read Products" on products for select using (true);
-drop policy if exists "Public/Admin All Products" on products;
-create policy "Public/Admin All Products" on products for all using (true) with check (true);
+drop policy if exists "Public access" on categories;
+create policy "Public access" on categories for all using (true) with check (true);
 
--- Categories
-drop policy if exists "Public Read Categories" on categories;
-create policy "Public Read Categories" on categories for select using (true);
-drop policy if exists "Public/Admin All Categories" on categories;
-create policy "Public/Admin All Categories" on categories for all using (true) with check (true);
+drop policy if exists "Public access" on subcategories;
+create policy "Public access" on subcategories for all using (true) with check (true);
 
--- Subcategories
-drop policy if exists "Public Read Subcategories" on subcategories;
-create policy "Public Read Subcategories" on subcategories for select using (true);
-drop policy if exists "Public/Admin All Subcategories" on subcategories;
-create policy "Public/Admin All Subcategories" on subcategories for all using (true) with check (true);
+drop policy if exists "Public access" on carousel_slides;
+create policy "Public access" on carousel_slides for all using (true) with check (true);
 
--- Carousel Slides
-drop policy if exists "Public Read Slides" on carousel_slides;
-create policy "Public Read Slides" on carousel_slides for select using (true);
-drop policy if exists "Public/Admin All Slides" on carousel_slides;
-create policy "Public/Admin All Slides" on carousel_slides for all using (true) with check (true);
+drop policy if exists "Public access" on enquiries;
+create policy "Public access" on enquiries for all using (true) with check (true);
 
--- Enquiries
-drop policy if exists "Public Insert Enquiries" on enquiries;
-create policy "Public Insert Enquiries" on enquiries for insert with check (true);
-drop policy if exists "Admin All Enquiries" on enquiries;
-create policy "Admin All Enquiries" on enquiries for all using (true) with check (true);
+drop policy if exists "Public access" on admin_users;
+create policy "Public access" on admin_users for all using (true) with check (true);
 
--- Traffic Logs
-drop policy if exists "Public Insert Logs" on traffic_logs;
-create policy "Public Insert Logs" on traffic_logs for insert with check (true);
-drop policy if exists "Admin All Logs" on traffic_logs;
-create policy "Admin All Logs" on traffic_logs for all using (true) with check (true);
+drop policy if exists "Public access" on product_stats;
+create policy "Public access" on product_stats for all using (true) with check (true);
 
--- Admin Users (Restricted)
-drop policy if exists "Admin Control Users" on admin_users;
-create policy "Admin Control Users" on admin_users for all using (true) with check (true);
+drop policy if exists "Public access" on traffic_logs;
+create policy "Public access" on traffic_logs for all using (true) with check (true);
 
--- 4. Setup Storage Buckets
+-- 4. GRANT ACCESS
+grant all on all tables in schema public to anon, authenticated;
+grant all on all sequences in schema public to anon, authenticated;
+
+-- 5. STORAGE BUCKET
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
 
 drop policy if exists "Public Access" on storage.objects;
-create policy "Public Access" 
-on storage.objects for select 
-using ( bucket_id = 'media' );
+create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
 
 drop policy if exists "Public Upload" on storage.objects;
-create policy "Public Upload" 
-on storage.objects for insert 
-with check ( bucket_id = 'media' );
+create policy "Public Upload" on storage.objects for insert with check ( bucket_id = 'media' );
 
-drop policy if exists "Admin Update" on storage.objects;
-create policy "Admin Update"
-on storage.objects for update
-using ( bucket_id = 'media' );
+drop policy if exists "Public Update" on storage.objects;
+create policy "Public Update" on storage.objects for update using ( bucket_id = 'media' );
+
+drop policy if exists "Public Delete" on storage.objects;
+create policy "Public Delete" on storage.objects for delete using ( bucket_id = 'media' );
 `;
 
 export const LOCAL_STORAGE_KEYS: Record<string, string> = {
@@ -197,9 +172,6 @@ export const LOCAL_STORAGE_KEYS: Record<string, string> = {
   'traffic_logs': 'site_traffic_logs'
 };
 
-/**
- * Helper to subscribe to Realtime changes on a specific table.
- */
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
   if (!isSupabaseConfigured) return null;
   return supabase
@@ -208,34 +180,17 @@ export const subscribeToTable = (table: string, callback: (payload: any) => void
     .subscribe();
 };
 
-/**
- * Generic Upsert Function
- */
 export async function upsertData(table: string, data: any) {
   if (!isSupabaseConfigured) return { data: null, error: { message: 'Supabase not configured' } };
   try {
-    // If it's an array of data
-    if (Array.isArray(data)) {
-      if (data.length === 0) return { data: [], error: null };
-      const { data: result, error } = await supabase.from(table).upsert(data).select();
-      if (error) throw error;
-      return { data: result, error: null };
-    } 
-    // Single object
-    else {
-      const { data: result, error } = await supabase.from(table).upsert(data).select();
-      if (error) throw error;
-      return { data: result, error: null };
-    }
+    const { data: result, error } = await supabase.from(table).upsert(data).select();
+    if (error) throw error;
+    return { data: result, error: null };
   } catch (e: any) {
-      console.error(`Exception upserting ${table}`, e);
       return { data: null, error: e };
   }
 }
 
-/**
- * Generic Delete Function
- */
 export async function deleteData(table: string, id: string) {
   if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
   try {
@@ -243,35 +198,17 @@ export async function deleteData(table: string, id: string) {
       if (error) throw error;
       return { error: null };
   } catch (e: any) {
-      console.error(`Exception deleting ${table}`, e);
       return { error: e };
   }
 }
 
-/**
- * Fetch all data for a specific table with fallback
- * Returns NULL on error to distinguish between "Empty Table" and "Connection Failure"
- */
 export async function fetchTableData(table: string): Promise<any[] | null> {
-  const localKey = LOCAL_STORAGE_KEYS[table] || `admin_${table}`;
-
-  if (!isSupabaseConfigured) {
-    const local = localStorage.getItem(localKey);
-    return local ? JSON.parse(local) : [];
-  }
-  
+  if (!isSupabaseConfigured) return null;
   try {
       const { data, error } = await supabase.from(table).select('*');
-      
-      if (error) {
-        console.error(`Fetch error for ${table}: ${error.message}`);
-        // Return null to indicate FAILURE, not empty
-        return null;
-      }
-      
+      if (error) return null;
       return data || [];
   } catch (e) {
-      console.error(`Exception fetching ${table}`, e);
       return null;
   }
 }
@@ -290,41 +227,21 @@ export async function uploadMedia(file: File, bucket = 'media'): Promise<UploadR
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file);
-
+    const { data, error } = await supabase.storage.from(bucket).upload(fileName, file);
     if (error) throw error;
-
-    const { data: publicUrl } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
-
-    return { 
-      url: publicUrl.publicUrl,
-      type: file.type,
-      name: file.name,
-      size: file.size
-    };
+    const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    return { url: publicUrl.publicUrl, type: file.type, name: file.name, size: file.size };
   } catch (e) {
-      console.error("Upload failed, falling back to blob", e);
       return { url: fallbackUrl, type: file.type, name: file.name, size: file.size };
   }
 }
 
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
-  if (!isSupabaseConfigured) {
-    return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
-  }
-  
+  if (!isSupabaseConfigured) return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
   const start = performance.now();
   try {
-    // Simple check on settings table
     const { error } = await supabase.from('settings').select('id').limit(1);
     const end = performance.now();
-    
     if (error) throw error;
     return { status: 'online', latency: Math.round(end - start), message: 'Supabase Sync Active' };
   } catch (err: any) {

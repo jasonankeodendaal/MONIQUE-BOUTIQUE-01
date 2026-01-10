@@ -25,13 +25,13 @@ import { CustomIcons } from '../components/CustomIcons';
 // --- Reusable UI Components for Admin ---
 
 const AdminHelpBox: React.FC<{ title: string; steps: string[] }> = ({ title, steps }) => (
-  <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl mb-8 flex gap-5 items-start text-left">
-    <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-      <span className="text-xl">💡</span>
+  <div className="bg-slate-900 border border-slate-800 p-4 md:p-6 rounded-2xl md:rounded-3xl mb-8 flex gap-4 md:gap-5 items-start text-left">
+    <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/20 rounded-lg md:rounded-xl flex items-center justify-center text-primary flex-shrink-0">
+      <span className="text-lg md:text-xl">💡</span>
     </div>
-    <div className="space-y-2">
-      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</h4>
-      <ul className="list-disc list-inside text-slate-500 text-xs font-medium space-y-1">
+    <div className="space-y-1 md:space-y-2">
+      <h4 className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</h4>
+      <ul className="list-disc list-inside text-slate-500 text-[10px] md:text-xs font-medium space-y-1">
         {steps.map((step, i) => <li key={i}>{step}</li>)}
       </ul>
     </div>
@@ -39,12 +39,12 @@ const AdminHelpBox: React.FC<{ title: string; steps: string[] }> = ({ title, ste
 );
 
 const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
-  <div className="space-y-2 text-left w-full">
-    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
+  <div className="space-y-1.5 md:space-y-2 text-left w-full">
+    <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
     {type === 'textarea' ? (
-      <textarea rows={rows} className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all resize-none font-light text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+      <textarea rows={rows} className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all resize-none font-light text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
     ) : (
-      <input type={type} className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+      <input type={type} className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
     )}
   </div>
 );
@@ -105,44 +105,44 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   }, []);
 
   return (
-    <div className="relative w-full min-h-[400px] bg-slate-900 rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group p-6 md:p-10">
+    <div className="relative w-full min-h-[350px] md:min-h-[400px] bg-slate-900 rounded-2xl md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group p-6 md:p-10">
       <div className="absolute inset-0 opacity-5 pointer-events-none" 
            style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
       </div>
 
       <div className="relative z-10 flex flex-col h-full">
-        <div className="flex justify-between items-start mb-12">
+        <div className="flex justify-between items-start mb-8 md:mb-12">
           <div className="text-left">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(var(--primary-rgb),0.8)]"></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Geographic Distribution</span>
+            <div className="flex items-center gap-2 md:gap-3 mb-1">
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(var(--primary-rgb),0.8)]"></div>
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Geographic Distribution</span>
             </div>
-            <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Area <span className="text-primary">Traffic</span></h3>
+            <h3 className="text-xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Area <span className="text-primary">Traffic</span></h3>
           </div>
-          <div className="text-right bg-white/5 border border-white/10 px-6 py-3 rounded-2xl hidden md:block">
-             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">Live Ingress</span>
-             <span className="text-xl font-bold text-white flex items-center gap-2">
-                <Globe size={16} className="text-primary"/> 100% Real-Time
+          <div className="text-right bg-white/5 border border-white/10 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl hidden sm:block">
+             <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">Live Ingress</span>
+             <span className="text-sm md:text-xl font-bold text-white flex items-center gap-2">
+                <Globe size={14} className="text-primary"/> 100% Real-Time
              </span>
           </div>
         </div>
 
-        <div className="space-y-8 flex-grow">
+        <div className="space-y-6 md:space-y-8 flex-grow">
           {regions.length > 0 ? regions.map((region, idx) => (
-            <div key={idx} className="space-y-3">
+            <div key={idx} className="space-y-2 md:space-y-3">
               <div className="flex justify-between items-end">
-                <div className="flex items-center gap-4">
-                  <span className="text-slate-600 font-serif font-bold text-lg italic">0{idx + 1}</span>
+                <div className="flex items-center gap-3 md:gap-4">
+                  <span className="text-slate-600 font-serif font-bold text-base md:text-lg italic">0{idx + 1}</span>
                   <div>
-                    <h4 className="text-white font-bold text-sm tracking-wide uppercase">{region.name}</h4>
-                    <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">{region.status}</span>
+                    <h4 className="text-white font-bold text-xs md:text-sm tracking-wide uppercase">{region.name}</h4>
+                    <span className="text-[8px] md:text-[9px] font-black text-primary/60 uppercase tracking-widest">{region.status}</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-white font-black text-lg">{region.traffic}%</span>
+                  <span className="text-white font-black text-base md:text-lg">{region.traffic}%</span>
                 </div>
               </div>
-              <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
+              <div className="h-1.5 md:h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
                 <div 
                   className="h-full bg-gradient-to-r from-primary/40 via-primary to-primary rounded-full transition-all duration-[2000ms] ease-out shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]" 
                   style={{ width: `${region.traffic}%`, transitionDelay: `${idx * 200}ms` }}
@@ -150,28 +150,28 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
               </div>
             </div>
           )) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center opacity-50">
-              <Globe size={48} className="text-slate-600 mb-4" />
-              <h4 className="text-white font-bold uppercase tracking-widest">Awaiting Signal</h4>
-              <p className="text-slate-500 text-xs mt-2 max-w-xs">Visit the public site to generate the first geographic traffic data points.</p>
+            <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center opacity-50">
+              <Globe size={32} className="text-slate-600 mb-4" />
+              <h4 className="text-white font-bold uppercase tracking-widest text-xs">Awaiting Signal</h4>
+              <p className="text-slate-500 text-[10px] mt-2 max-w-xs px-4">Visit the public site to generate the first geographic traffic data points.</p>
             </div>
           )}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="flex gap-10">
+        <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+           <div className="flex gap-6 md:gap-10">
               <div className="text-left">
-                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Visitors</span>
-                 <span className="text-2xl font-bold text-white">{totalTraffic.toLocaleString()}</span>
+                 <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Visitors</span>
+                 <span className="text-lg md:text-2xl font-bold text-white">{totalTraffic.toLocaleString()}</span>
               </div>
-              <div className="text-left border-l border-white/5 pl-10">
-                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Page Impressions</span>
-                 <span className="text-2xl font-bold text-primary">{aggregatedProductViews.toLocaleString()}</span>
+              <div className="text-left border-l border-white/5 pl-6 md:pl-10">
+                 <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Page Impressions</span>
+                 <span className="text-lg md:text-2xl font-bold text-primary">{aggregatedProductViews.toLocaleString()}</span>
               </div>
            </div>
-           <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 px-6 py-3 rounded-full">
-              <Activity size={14} className="text-primary animate-pulse"/>
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest">Sync Active</span>
+           <div className="flex items-center gap-2 md:gap-3 bg-primary/10 border border-primary/20 px-4 md:px-6 py-2 md:py-3 rounded-full">
+              <Activity size={12} className="text-primary animate-pulse"/>
+              <span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-widest">Sync Active</span>
            </div>
         </div>
       </div>
@@ -219,90 +219,52 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
   }, [categories, enrichedProducts]);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-           <div className="space-y-2">
-              <h2 className="text-3xl font-serif text-white">Intelligence Hub</h2>
-              <p className="text-slate-400 text-sm">Deep dive into product performance and user behavior.</p>
+           <div className="space-y-1 md:space-y-2 text-left">
+              <h2 className="text-2xl md:text-3xl font-serif text-white">Intelligence Hub</h2>
+              <p className="text-slate-400 text-xs md:text-sm">Deep dive into product performance and user behavior.</p>
            </div>
            <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-2 px-4">
-              <Calendar size={16} className="text-slate-400" />
-              <span className="text-xs font-bold text-slate-300">Last 30 Days</span>
+              <Calendar size={14} className="text-slate-400" />
+              <span className="text-[10px] md:text-xs font-bold text-slate-300">Last 30 Days</span>
            </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Eye size={48} />
-                </div>
-                <div className="relative z-10">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Total Impressions</span>
-                    <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span>
-                    </div>
-                </div>
-                <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 w-3/4 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-                </div>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <MousePointer2 size={48} className="text-primary" />
-                </div>
-                <div className="relative z-10">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Outbound Clicks</span>
-                    <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span>
-                    </div>
-                </div>
-                <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-1/2 shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"></div>
-                </div>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Target size={48} className="text-green-500" />
-                </div>
-                <div className="relative z-10">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Global CTR</span>
-                    <div className="flex items-baseline gap-2 mt-2">
-                        <span className="text-3xl font-bold text-white">{globalCtr.toFixed(2)}%</span>
-                        <span className="text-[10px] font-bold text-green-500 flex items-center bg-green-500/10 px-1.5 py-0.5 rounded">+2.4%</span>
-                    </div>
-                </div>
-                 <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500" style={{ width: `${Math.min(globalCtr * 10, 100)}%` }}></div>
-                </div>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Clock size={48} className="text-purple-500" />
-                </div>
-                <div className="relative z-10">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Total Time</span>
-                    <div className="flex items-baseline gap-2 mt-2">
-                         <span className="text-3xl font-bold text-white">{(totalTime / 60).toFixed(0)}m</span>
-                    </div>
-                </div>
-                 <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 w-2/3"></div>
-                </div>
-            </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {[
+              { label: 'Total Impressions', value: totalViews.toLocaleString(), icon: Eye, color: 'blue', width: '3/4' },
+              { label: 'Outbound Clicks', value: totalClicks.toLocaleString(), icon: MousePointer2, color: 'primary', width: '1/2' },
+              { label: 'Global CTR', value: `${globalCtr.toFixed(2)}%`, icon: Target, color: 'green', sub: '+2.4%' },
+              { label: 'Total Time', value: `${(totalTime / 60).toFixed(0)}m`, icon: Clock, color: 'purple', width: '2/3' }
+            ].map((kpi, i) => (
+              <div key={i} className="bg-slate-900 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-800 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-3 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <kpi.icon size={32} className={kpi.color === 'primary' ? 'text-primary' : `text-${kpi.color}-500`} />
+                  </div>
+                  <div className="relative z-10 text-left">
+                      <span className="text-[8px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">{kpi.label}</span>
+                      <div className="flex items-baseline gap-1 md:gap-2 mt-1 md:mt-2">
+                          <span className="text-xl md:text-3xl font-bold text-white">{kpi.value}</span>
+                          {kpi.sub && <span className="text-[8px] md:text-[10px] font-bold text-green-500 flex items-center bg-green-500/10 px-1 py-0.5 rounded">{kpi.sub}</span>}
+                      </div>
+                  </div>
+                  <div className="w-full bg-slate-800 h-1 mt-3 md:mt-4 rounded-full overflow-hidden">
+                      <div className={`h-full bg-${kpi.color === 'primary' ? 'primary' : kpi.color + '-500'}`} style={{ width: kpi.width || '100%' }}></div>
+                  </div>
+              </div>
+            ))}
         </div>
 
         {/* Charts Section */}
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             {/* Main Table Area */}
-            <div className="lg:col-span-2 bg-slate-900 rounded-[2.5rem] border border-slate-800 p-6 md:p-8 flex flex-col h-[600px]">
+            <div className="lg:col-span-2 bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-5 md:p-8 flex flex-col h-[500px] md:h-[600px]">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                     <h3 className="text-white font-bold text-xl flex items-center gap-3">
-                        <ListOrdered className="text-primary" size={20} />
+                     <h3 className="text-white font-bold text-lg md:text-xl flex items-center gap-3">
+                        <ListOrdered className="text-primary" size={18} />
                         Top Performing Products
                      </h3>
                      <div className="flex bg-slate-800 rounded-lg p-1 overflow-x-auto max-w-full">
@@ -310,7 +272,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
                             <button 
                                 key={f}
                                 onClick={() => setSortField(f)}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${sortField === f ? 'bg-primary text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                                className={`px-3 md:px-4 py-1.5 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${sortField === f ? 'bg-primary text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white'}`}
                             >
                                 {f}
                             </button>
@@ -319,10 +281,10 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
                 </div>
 
                 <div className="overflow-x-auto flex-grow custom-scrollbar">
-                    <table className="w-full text-left border-collapse min-w-[600px]">
+                    <table className="w-full text-left border-collapse min-w-[500px]">
                         <thead>
-                            <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
-                                <th className="pb-4 pl-4">Product</th>
+                            <tr className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
+                                <th className="pb-4 pl-2 md:pl-4">Product</th>
                                 <th className="pb-4 text-center">Price</th>
                                 <th className="pb-4 text-center">Views</th>
                                 <th className="pb-4 text-center">Clicks</th>
@@ -333,39 +295,39 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
                         <tbody>
                             {sortedProducts.map((p, idx) => (
                                 <tr key={p.id} className="group border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                                    <td className="py-4 pl-4">
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-slate-600 font-serif italic w-6 text-center">{idx + 1}</span>
-                                            <div className="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden border border-slate-700">
+                                    <td className="py-3 md:py-4 pl-2 md:pl-4">
+                                        <div className="flex items-center gap-3 md:gap-4">
+                                            <span className="text-slate-600 font-serif italic w-4 md:w-6 text-center text-xs">{idx + 1}</span>
+                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-slate-800 overflow-hidden border border-slate-700 flex-shrink-0">
                                                 <img src={p.media?.[0]?.url} className="w-full h-full object-cover" />
                                             </div>
-                                            <div>
-                                                <p className="text-white text-sm font-bold truncate max-w-[150px]">{p.name}</p>
-                                                <p className="text-slate-500 text-[10px] uppercase font-bold">{categories.find(c => c.id === p.categoryId)?.name}</p>
+                                            <div className="min-w-0">
+                                                <p className="text-white text-xs md:text-sm font-bold truncate max-w-[120px] md:max-w-[180px]">{p.name}</p>
+                                                <p className="text-slate-500 text-[8px] md:text-[10px] uppercase font-bold">{categories.find(c => c.id === p.categoryId)?.name}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="py-4 text-center text-slate-400 text-xs font-mono">R {p.price}</td>
-                                    <td className="py-4 text-center">
-                                        <span className="text-white text-sm font-bold">{p.views}</span>
-                                        <div className="w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden">
+                                    <td className="py-3 md:py-4 text-center text-slate-400 text-[10px] md:text-xs font-mono">R {p.price}</td>
+                                    <td className="py-3 md:py-4 text-center">
+                                        <span className="text-white text-xs md:text-sm font-bold">{p.views}</span>
+                                        <div className="w-12 md:w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden">
                                             <div className="h-full bg-blue-500" style={{ width: `${Math.min((p.views / (sortedProducts[0].views || 1)) * 100, 100)}%` }}></div>
                                         </div>
                                     </td>
-                                    <td className="py-4 text-center">
-                                        <span className="text-primary text-sm font-bold">{p.clicks}</span>
-                                         <div className="w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden">
+                                    <td className="py-3 md:py-4 text-center">
+                                        <span className="text-primary text-xs md:text-sm font-bold">{p.clicks}</span>
+                                         <div className="w-12 md:w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden">
                                             <div className="h-full bg-primary" style={{ width: `${Math.min((p.clicks / (sortedProducts[0].clicks || 1)) * 100, 100)}%` }}></div>
                                         </div>
                                     </td>
-                                    <td className="py-4 text-center">
-                                        <span className={`text-xs font-bold px-2 py-1 rounded ${p.ctr > 5 ? 'bg-green-500/20 text-green-500' : p.ctr > 2 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-slate-800 text-slate-400'}`}>
+                                    <td className="py-3 md:py-4 text-center">
+                                        <span className={`text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded ${p.ctr > 5 ? 'bg-green-500/20 text-green-500' : p.ctr > 2 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-slate-800 text-slate-400'}`}>
                                             {p.ctr.toFixed(1)}%
                                         </span>
                                     </td>
-                                    <td className="py-4 text-center">
-                                        <button onClick={() => onEditProduct(p)} className="p-2 bg-slate-800 text-slate-400 rounded-lg hover:text-white transition-colors">
-                                            <Edit2 size={14} />
+                                    <td className="py-3 md:py-4 text-center">
+                                        <button onClick={() => onEditProduct(p)} className="p-1.5 md:p-2 bg-slate-800 text-slate-400 rounded-lg hover:text-white transition-colors">
+                                            <Edit2 size={12} />
                                         </button>
                                     </td>
                                 </tr>
@@ -376,23 +338,23 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
             </div>
 
             {/* Right Column: Category & Traffic */}
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6 md:gap-8">
                  {/* Category Distribution */}
-                <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 flex-1">
-                     <h3 className="text-white font-bold text-lg mb-6 flex items-center gap-3">
-                        <PieChart className="text-purple-500" size={20} /> Category Share
+                <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 flex-1">
+                     <h3 className="text-white font-bold text-base md:text-lg mb-6 flex items-center gap-3">
+                        <PieChart className="text-purple-500" size={18} /> Category Share
                      </h3>
-                     <div className="space-y-6">
+                     <div className="space-y-5 md:space-y-6 text-left">
                         {categoryPerformance.map((c, i) => (
                             <div key={c.id}>
-                                <div className="flex justify-between items-end mb-2">
-                                    <span className="text-slate-400 text-xs font-bold uppercase tracking-wide">{c.name}</span>
-                                    <span className="text-white text-xs font-bold">{((c.views / (totalViews || 1)) * 100).toFixed(0)}%</span>
+                                <div className="flex justify-between items-end mb-1.5">
+                                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wide">{c.name}</span>
+                                    <span className="text-white text-[10px] font-bold">{((c.views / (totalViews || 1)) * 100).toFixed(0)}%</span>
                                 </div>
-                                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex">
+                                <div className="w-full bg-slate-800 h-1.5 md:h-2 rounded-full overflow-hidden flex">
                                     <div className="h-full bg-purple-500" style={{ width: `${(c.views / (totalViews || 1)) * 100}%`, opacity: 1 - (i * 0.15) }}></div>
                                 </div>
-                                <div className="mt-1 flex justify-between text-[9px] text-slate-600 font-mono">
+                                <div className="mt-1 flex justify-between text-[8px] md:text-[9px] text-slate-600 font-mono">
                                    <span>{c.views} Views</span>
                                    <span>{c.clicks} Clicks</span>
                                 </div>
@@ -402,17 +364,17 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
                 </div>
 
                 {/* Real-time Ticker */}
-                <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 flex-1 overflow-hidden relative">
-                    <h3 className="text-white font-bold text-lg mb-6 flex items-center gap-3">
-                        <Activity className="text-green-500" size={20} /> Live Traffic
+                <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 flex-1 overflow-hidden relative">
+                    <h3 className="text-white font-bold text-base md:text-lg mb-6 flex items-center gap-3">
+                        <Activity className="text-green-500" size={18} /> Live Traffic
                     </h3>
-                    <div className="space-y-4 max-h-[200px] overflow-y-auto custom-scrollbar">
+                    <div className="space-y-4 max-h-[180px] md:max-h-[200px] overflow-y-auto custom-scrollbar text-left">
                         {trafficEvents.map((log, idx) => (
-                            <div key={idx} className="flex gap-3 items-start animate-in fade-in slide-in-from-right-4">
+                            <div key={idx} className="flex gap-2.5 md:gap-3 items-start animate-in fade-in slide-in-from-right-4">
                                 <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${log.type === 'click' ? 'bg-primary' : log.type === 'view' ? 'bg-blue-500' : 'bg-slate-500'}`}></div>
                                 <div>
-                                    <p className="text-slate-300 text-xs line-clamp-2">{log.text}</p>
-                                    <p className="text-slate-600 text-[9px] font-mono">{log.time}</p>
+                                    <p className="text-slate-300 text-[11px] md:text-xs line-clamp-2 leading-snug">{log.text}</p>
+                                    <p className="text-slate-600 text-[8px] md:text-[9px] font-mono mt-0.5">{log.time}</p>
                                 </div>
                             </div>
                         ))}
@@ -423,7 +385,7 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
         </div>
         
         {/* Geographic Map Section (Reused) */}
-        <div className="mt-8">
+        <div className="mt-6">
              <TrafficAreaChart stats={stats} />
         </div>
     </div>
@@ -454,16 +416,16 @@ const SingleImageUploader: React.FC<{ label: string; value: string; onChange: (v
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
+      <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">{label}</label>
       <div 
-        className={`relative rounded-2xl overflow-hidden border-2 border-dashed transition-all group ${value ? 'border-slate-700 bg-slate-800' : 'border-slate-700 bg-slate-900 hover:bg-slate-800/50 hover:border-primary/50 cursor-pointer h-40 flex flex-col items-center justify-center'}`}
+        className={`relative rounded-xl md:rounded-2xl overflow-hidden border-2 border-dashed transition-all group ${value ? 'border-slate-700 bg-slate-800' : 'border-slate-700 bg-slate-900 hover:bg-slate-800/50 hover:border-primary/50 cursor-pointer h-32 md:h-40 flex flex-col items-center justify-center'}`}
         onClick={() => !value && fileInputRef.current?.click()}
       >
          <input ref={fileInputRef} type="file" className="hidden" onChange={handleFile} accept="image/*,video/*" />
          
          {isUploading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 z-20">
-               <Loader2 className="animate-spin text-primary" size={32} />
+               <Loader2 className="animate-spin text-primary" size={24} />
             </div>
          ) : null}
 
@@ -474,16 +436,16 @@ const SingleImageUploader: React.FC<{ label: string; value: string; onChange: (v
               ) : (
                 <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
               )}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-4">
-                 <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} className="p-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase shadow-lg hover:scale-105 transition-transform flex items-center gap-2"><RefreshCcw size={14}/> Replace</button>
-                 <button onClick={(e) => { e.stopPropagation(); onChange(''); }} className="p-3 bg-red-500 text-white rounded-xl font-bold text-xs uppercase shadow-lg hover:scale-105 transition-transform flex items-center gap-2"><Trash size={14}/> Remove</button>
+              <div className="absolute inset-0 flex flex-wrap items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2 p-2">
+                 <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} className="flex-1 min-w-[80px] p-2 bg-primary text-slate-900 rounded-lg font-bold text-[9px] uppercase shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-1.5"><RefreshCcw size={12}/> Replace</button>
+                 <button onClick={(e) => { e.stopPropagation(); onChange(''); }} className="flex-1 min-w-[80px] p-2 bg-red-500 text-white rounded-lg font-bold text-[9px] uppercase shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-1.5"><Trash size={12}/> Remove</button>
               </div>
            </>
          ) : (
-           <div className="text-center p-6">
-              <UploadCloud size={32} className="text-slate-500 mx-auto mb-2 group-hover:text-primary transition-colors" />
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider group-hover:text-white">Click to Upload</p>
-              <p className="text-[10px] text-slate-600 mt-1">Images or Videos (MP4)</p>
+           <div className="text-center p-4">
+              <UploadCloud size={24} className="text-slate-500 mx-auto mb-2 group-hover:text-primary transition-colors" />
+              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-white">Click to Upload</p>
+              <p className="text-[8px] text-slate-600 mt-1">Images or Videos</p>
            </div>
          )}
       </div>
@@ -521,28 +483,28 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
    };
 
    return (
-     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
        {files.map((f, i) => (
-         <div key={i} className="relative aspect-square bg-slate-800 rounded-xl overflow-hidden border border-slate-700 group">
+         <div key={i} className="relative aspect-square bg-slate-800 rounded-lg md:rounded-xl overflow-hidden border border-slate-700 group">
             {f.type.startsWith('video') ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-black/40 text-slate-400">
-                 <FileVideo size={24} className="mb-2"/>
-                 <span className="text-[9px] uppercase font-black">Video</span>
+                 <FileVideo size={20} className="mb-1.5"/>
+                 <span className="text-[8px] uppercase font-black">Video</span>
               </div>
             ) : (
               <img src={f.url} className="w-full h-full object-cover" />
             )}
             
-            <button onClick={() => onFilesChange(files.filter((_, idx) => idx !== i))} className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
+            <button onClick={() => onFilesChange(files.filter((_, idx) => idx !== i))} className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><X size={10}/></button>
             <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1">
-              <p className="text-[8px] text-white truncate text-center">{f.name}</p>
+              <p className="text-[7px] text-white truncate text-center">{f.name}</p>
             </div>
          </div>
        ))}
        
-       <label className={`aspect-square bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 cursor-pointer transition-colors relative ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-          {isUploading ? <Loader2 size={24} className="animate-spin mb-2 text-primary" /> : <UploadCloud size={24} className="mb-2"/>}
-          <span className="text-[9px] font-black uppercase">{isUploading ? 'Uploading...' : 'Add Media'}</span>
+       <label className={`aspect-square bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-lg md:rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 cursor-pointer transition-colors relative ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          {isUploading ? <Loader2 size={20} className="animate-spin mb-1.5 text-primary" /> : <UploadCloud size={20} className="mb-1.5"/>}
+          <span className="text-[8px] font-black uppercase text-center px-1">{isUploading ? 'Uploading...' : 'Add Media'}</span>
           <input type="file" multiple className="hidden" onChange={handleUpload} accept="image/*,video/*" />
        </label>
      </div>
@@ -554,16 +516,16 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
   const commonIcons = ['Package', 'ShoppingBag', 'Tag', 'Gift', 'Truck', 'Star', 'Heart', 'Globe', 'Watch', 'Shirt', 'Smartphone', 'Laptop', 'Camera', 'Home', 'Music', 'Sun', 'Moon', 'Zap', 'Award', 'Smile'];
   return (
     <div className="relative">
-       <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-3 w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-left">
-          {React.createElement((LucideIcons as any)[selected] || LucideIcons.Package, { size: 18 })}
-          <span className="text-sm flex-grow">{selected}</span>
-          <ChevronDown size={14} className="text-slate-500" />
+       <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2.5 md:gap-3 w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-left">
+          {React.createElement((LucideIcons as any)[selected] || LucideIcons.Package, { size: 16 })}
+          <span className="text-sm flex-grow truncate">{selected}</span>
+          <ChevronDown size={12} className="text-slate-500" />
        </button>
        {isOpen && (
-         <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 grid grid-cols-5 gap-2 max-h-48 overflow-y-auto">
+         <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 grid grid-cols-5 gap-1.5 max-h-48 overflow-y-auto">
             {commonIcons.map(icon => (
-               <button key={icon} onClick={() => { onSelect(icon); setIsOpen(false); }} className={`p-2 rounded-lg flex items-center justify-center hover:bg-slate-700 ${selected === icon ? 'bg-primary text-slate-900' : 'text-slate-400'}`}>
-                  {React.createElement((LucideIcons as any)[icon] || LucideIcons.HelpCircle, { size: 16 })}
+               <button key={icon} onClick={() => { onSelect(icon); setIsOpen(false); }} className={`p-1.5 rounded-lg flex items-center justify-center hover:bg-slate-700 ${selected === icon ? 'bg-primary text-slate-900' : 'text-slate-400'}`}>
+                  {React.createElement((LucideIcons as any)[icon] || LucideIcons.HelpCircle, { size: 14 })}
                </button>
             ))}
          </div>
@@ -576,14 +538,14 @@ const CodeBlock: React.FC<{ code: string; label?: string; language?: string }> =
   const [copied, setCopied] = useState(false);
   const handleCopy = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   return (
-    <div className="rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden my-4">
+    <div className="rounded-xl md:rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden my-4">
        <div className="flex justify-between items-center px-4 py-2 bg-slate-900 border-b border-slate-800">
-          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</span>
-          <button onClick={handleCopy} className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-white transition-colors">
-             {copied ? <Check size={12} className="text-green-500"/> : <Copy size={12}/>} {copied ? 'Copied' : 'Copy'}
+          <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</span>
+          <button onClick={handleCopy} className="flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold text-slate-400 hover:text-white transition-colors">
+             {copied ? <Check size={10} className="text-green-500"/> : <Copy size={10}/>} {copied ? 'Copied' : 'Copy'}
           </button>
        </div>
-       <pre className="p-4 overflow-x-auto text-xs md:text-sm font-mono text-slate-300 leading-relaxed">
+       <pre className="p-4 overflow-x-auto text-[10px] md:text-xs font-mono text-slate-300 leading-relaxed text-left">
          <code>{code}</code>
        </pre>
     </div>
@@ -591,7 +553,7 @@ const CodeBlock: React.FC<{ code: string; label?: string; language?: string }> =
 };
 
 const PermissionSelector: React.FC<{ permissions: string[]; onChange: (p: string[]) => void; role: 'owner' | 'admin' }> = ({ permissions, onChange, role }) => {
-  if (role === 'owner') return <div className="p-4 bg-primary/10 text-primary text-xs font-bold rounded-xl flex items-center gap-2"><ShieldCheck size={16}/> Owner has full system access.</div>;
+  if (role === 'owner') return <div className="p-3 bg-primary/10 text-primary text-[10px] md:text-xs font-bold rounded-xl flex items-center gap-2"><ShieldCheck size={14}/> Owner has full system access.</div>;
   
   const toggle = (id: string) => {
     if (permissions.includes(id)) onChange(permissions.filter(p => p !== id));
@@ -599,17 +561,17 @@ const PermissionSelector: React.FC<{ permissions: string[]; onChange: (p: string
   };
 
   return (
-    <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+    <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar text-left">
       {PERMISSION_TREE.map(node => (
         <div key={node.id} className="space-y-2">
-           <div className="flex items-center gap-2 text-white font-bold text-sm">
+           <div className="flex items-center gap-2 text-white font-bold text-xs md:text-sm">
               <div className="w-1.5 h-1.5 bg-primary rounded-full"></div> {node.label}
            </div>
-           <div className="pl-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+           <div className="pl-3.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               {node.children?.map(child => (
-                 <label key={child.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-800 cursor-pointer">
-                    <input type="checkbox" checked={permissions.includes(child.id)} onChange={() => toggle(child.id)} className="accent-primary" />
-                    <span className="text-slate-400 text-xs">{child.label}</span>
+                 <label key={child.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer">
+                    <input type="checkbox" checked={permissions.includes(child.id)} onChange={() => toggle(child.id)} className="accent-primary w-3.5 h-3.5" />
+                    <span className="text-slate-400 text-[10px] md:text-xs">{child.label}</span>
                  </label>
               ))}
            </div>
@@ -626,11 +588,11 @@ const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => {
   };
   const Icon = iconMap[id || ''] || Info;
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-12 flex items-center justify-center aspect-square relative overflow-hidden group">
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] p-8 md:p-12 flex items-center justify-center aspect-square relative overflow-hidden group">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-      <Icon size={120} className="text-slate-800 group-hover:text-primary/20 transition-colors duration-500" />
+      <Icon size={80} className="text-slate-800 group-hover:text-primary/20 transition-colors duration-500 md:w-[120px] md:h-[120px]" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <Icon size={64} className="text-primary drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)] animate-pulse" />
+        <Icon size={40} className="text-primary drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)] animate-pulse md:w-[64px] md:h-[64px]" />
       </div>
     </div>
   );
@@ -638,15 +600,15 @@ const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => {
 
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl p-6 relative">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+      <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl md:rounded-3xl p-6 relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20}/></button>
-        <h3 className="text-xl font-bold text-white mb-4">Ad Generator</h3>
-        <p className="text-slate-400 text-sm mb-6">Generate social media captions for <span className="text-primary">{product.name}</span>.</p>
-        <div className="bg-slate-800 p-4 rounded-xl text-slate-300 text-sm italic border-l-4 border-primary mb-4">
+        <h3 className="text-lg md:text-xl font-bold text-white mb-3">Ad Generator</h3>
+        <p className="text-slate-400 text-xs md:text-sm mb-6 text-left">Generate social media captions for <span className="text-primary">{product.name}</span>.</p>
+        <div className="bg-slate-800 p-4 rounded-xl text-slate-300 text-[11px] md:text-sm italic border-l-4 border-primary mb-6 text-left">
           "Discover the {product.name}. A touch of elegance for your wardrobe. Shop now at Kasi Couture. #Luxury #Style #{product.categoryId}"
         </div>
-        <button className="w-full py-3 bg-primary text-slate-900 font-bold rounded-xl uppercase text-xs tracking-widest hover:brightness-110">Copy to Clipboard</button>
+        <button className="w-full py-3.5 bg-primary text-slate-900 font-bold rounded-xl uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all">Copy to Clipboard</button>
       </div>
     </div>
   );
@@ -655,25 +617,25 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
 const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
   const [message, setMessage] = useState('');
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-3xl p-8 relative">
-        <button onClick={onClose} className="absolute top-6 right-6 text-slate-500 hover:text-white"><X size={24}/></button>
-        <h3 className="text-2xl font-bold text-white mb-2">Reply to Enquiry</h3>
-        <p className="text-slate-400 text-sm mb-6">Replying to <span className="text-primary">{enquiry.email}</span></p>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+      <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl md:rounded-3xl p-6 md:p-8 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 md:top-6 md:right-6 text-slate-500 hover:text-white"><X size={24}/></button>
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-1.5 text-left">Reply to Enquiry</h3>
+        <p className="text-slate-400 text-xs md:text-sm mb-6 text-left">Replying to <span className="text-primary">{enquiry.email}</span></p>
         <div className="space-y-4">
-          <div className="bg-slate-800/50 p-4 rounded-xl text-slate-400 text-xs italic">
+          <div className="bg-slate-800/50 p-4 rounded-xl text-slate-400 text-[11px] md:text-xs italic text-left">
             Original: "{enquiry.message}"
           </div>
           <textarea 
-            rows={6}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-white outline-none focus:border-primary resize-none"
+            rows={5}
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-white outline-none focus:border-primary resize-none text-sm"
             placeholder="Type your reply..."
             value={message}
             onChange={e => setMessage(e.target.value)}
           />
-          <div className="flex justify-end gap-4">
-            <button onClick={onClose} className="px-6 py-3 text-slate-400 font-bold uppercase text-xs">Cancel</button>
-            <button onClick={() => { alert('Reply Sent (Simulated)'); onClose(); }} className="px-6 py-3 bg-primary text-slate-900 font-bold rounded-xl uppercase text-xs hover:brightness-110">Send Reply</button>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+            <button onClick={onClose} className="order-2 sm:order-1 px-6 py-3 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cancel</button>
+            <button onClick={() => { alert('Reply Sent (Simulated)'); onClose(); }} className="order-1 sm:order-2 px-6 py-3 bg-primary text-slate-900 font-bold rounded-xl uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all">Send Reply</button>
           </div>
         </div>
       </div>
@@ -1125,41 +1087,41 @@ const Admin: React.FC = () => {
   const renderEnquiries = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-         <div className="space-y-2">
-            <h2 className="text-3xl font-serif text-white">Inbox</h2>
-            <p className="text-slate-400 text-sm">Manage incoming client communications.</p>
+         <div className="space-y-1.5 md:space-y-2 text-left">
+            <h2 className="text-2xl md:text-3xl font-serif text-white">Inbox</h2>
+            <p className="text-slate-400 text-xs md:text-sm">Manage incoming client communications.</p>
          </div>
          <div className="flex gap-3 w-full md:w-auto">
-            <button onClick={() => setEnquiries(prev => prev.map(e => ({...e, status: 'read'})))} className="flex-1 md:flex-none px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white transition-colors">Mark All Read</button>
-            <button onClick={exportEnquiries} className="flex-1 md:flex-none px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center justify-center gap-2"><FileSpreadsheet size={16}/> Export CSV</button>
+            <button onClick={() => setEnquiries(prev => prev.map(e => ({...e, status: 'read'})))} className="flex-1 md:flex-none px-4 md:px-6 py-2.5 md:py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-white transition-colors">Mark All Read</button>
+            <button onClick={exportEnquiries} className="flex-1 md:flex-none px-4 md:px-6 py-2.5 md:py-3 bg-primary text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-white transition-colors flex items-center justify-center gap-2"><FileSpreadsheet size={14}/> Export CSV</button>
          </div>
       </div>
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-6">
          <div className="relative flex-grow">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-            <input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+            <input type="text" placeholder="Search inbox..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-11 pr-4 py-3 md:py-4 bg-slate-900 border border-slate-800 rounded-xl md:rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" />
          </div>
-         <div className="flex gap-2 overflow-x-auto">
+         <div className="flex gap-2 overflow-x-auto no-scrollbar">
             {['all', 'unread', 'read'].map(filter => (
-               <button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>
+               <button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-5 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>
                   {filter}
                </button>
             ))}
          </div>
       </div>
 
-      {filteredEnquiries.length === 0 ? <div className="text-center py-20 bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-800 text-slate-500">No enquiries found.</div> : 
+      {filteredEnquiries.length === 0 ? <div className="text-center py-16 md:py-20 bg-slate-900/50 rounded-2xl md:rounded-[3rem] border border-dashed border-slate-800 text-slate-500 text-sm">No enquiries found.</div> : 
         filteredEnquiries.map(e => (
-          <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2.5rem] p-6 flex flex-col md:flex-row gap-6 text-left ${e.status === 'unread' ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
+          <div key={e.id} className={`bg-slate-900 border transition-all rounded-2xl md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-5 md:gap-6 text-left ${e.status === 'unread' ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
             <div className="flex-grow space-y-2">
-              <div className="flex items-center gap-3"><h4 className="text-white font-bold">{e.name}</h4><span className="text-[9px] font-black text-slate-500 uppercase">{new Date(e.createdAt).toLocaleDateString()}</span></div>
-              <p className="text-primary text-sm font-bold">{e.email}</p>
-              <div className="p-4 bg-slate-800/50 rounded-2xl text-slate-400 text-sm italic leading-relaxed">"{e.message}"</div>
+              <div className="flex items-center gap-2 md:gap-3"><h4 className="text-white font-bold text-sm md:text-base">{e.name}</h4><span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase">{new Date(e.createdAt).toLocaleDateString()}</span></div>
+              <p className="text-primary text-xs md:text-sm font-bold truncate">{e.email}</p>
+              <div className="p-3 md:p-4 bg-slate-800/50 rounded-xl md:rounded-2xl text-slate-400 text-xs md:text-sm italic leading-relaxed">"{e.message}"</div>
             </div>
-            <div className="flex gap-2 items-start justify-end w-full md:w-auto">
-              <button onClick={() => setReplyEnquiry(e)} className="p-4 bg-primary/20 text-primary rounded-2xl hover:bg-primary hover:text-slate-900 transition-colors" title="Reply"><Reply size={20}/></button>
-              <button onClick={() => toggleEnquiryStatus(e.id)} className={`p-4 rounded-2xl transition-colors ${e.status === 'read' ? 'bg-slate-800 text-slate-500' : 'bg-green-500/20 text-green-500'}`} title={e.status === 'read' ? 'Mark Unread' : 'Mark Read'}><CheckCircle size={20}/></button>
-              <button onClick={() => deleteEnquiry(e.id)} className="p-4 bg-slate-800 text-slate-500 rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={20}/></button>
+            <div className="flex gap-2 items-start justify-end w-full md:w-auto mt-2 md:mt-0">
+              <button onClick={() => setReplyEnquiry(e)} className="flex-1 md:flex-none p-3.5 md:p-4 bg-primary/20 text-primary rounded-xl md:rounded-2xl hover:bg-primary hover:text-slate-900 transition-colors" title="Reply"><Reply size={18}/></button>
+              <button onClick={() => toggleEnquiryStatus(e.id)} className={`flex-1 md:flex-none p-3.5 md:p-4 rounded-xl md:rounded-2xl transition-colors ${e.status === 'read' ? 'bg-slate-800 text-slate-500' : 'bg-green-500/20 text-green-500'}`} title={e.status === 'read' ? 'Mark Unread' : 'Mark Read'}><CheckCircle size={18}/></button>
+              <button onClick={() => deleteEnquiry(e.id)} className="flex-1 md:flex-none p-3.5 md:p-4 bg-slate-800 text-slate-500 rounded-xl md:rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={18}/></button>
             </div>
           </div>
         ))
@@ -1169,15 +1131,14 @@ const Admin: React.FC = () => {
   
   const renderCatalog = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* ... Catalog Render Logic ... */}
       {showProductForm ? (
-        <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
-          <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6">
-             <h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3>
-             <button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button>
+        <div className="bg-slate-900 p-5 md:p-12 rounded-2xl md:rounded-[2.5rem] border border-slate-800 space-y-8">
+          <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-5 md:pb-6">
+             <h3 className="text-xl md:text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3>
+             <button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={20}/></button>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
              <div className="space-y-6">
                 <SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} />
                 <SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} />
@@ -1186,16 +1147,16 @@ const Admin: React.FC = () => {
              </div>
              <div className="space-y-6">
                 <div className="space-y-2">
-                   <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label>
-                   <select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}>
+                   <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label>
+                   <select className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}>
                       <option value="">Select Department</option>
                       {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                    </select>
                 </div>
                 <div className="space-y-2">
-                   <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label>
+                   <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label>
                    <select 
-                      className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" 
+                      className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" 
                       value={productData.subCategoryId} 
                       onChange={e => setProductData({...productData, subCategoryId: e.target.value})}
                       disabled={!productData.categoryId}
@@ -1209,58 +1170,57 @@ const Admin: React.FC = () => {
           </div>
 
           <div className="space-y-4 pt-4 border-t border-slate-800">
-             <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Media Gallery</label>
+             <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Media Gallery</label>
              <FileUploader files={productData.media || []} onFilesChange={files => setProductData({...productData, media: files})} />
           </div>
           
-          {/* Ensure Buttons Stack on Mobile */}
-          <div className="flex flex-col md:flex-row gap-4 pt-8 border-t border-slate-800">
-             <button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button>
-             <button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button>
+          <div className="flex flex-col sm:flex-row gap-3 pt-6 md:pt-8 border-t border-slate-800">
+             <button onClick={handleSaveProduct} className="flex-1 py-4 md:py-5 bg-primary text-slate-900 font-black uppercase text-[10px] md:text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button>
+             <button onClick={() => setShowProductForm(false)} className="flex-1 py-4 md:py-5 bg-slate-800 text-slate-400 font-black uppercase text-[10px] md:text-xs rounded-xl hover:text-white transition-all">Cancel</button>
           </div>
         </div>
       ) : (
         <>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-             <div className="space-y-2">
-                <h2 className="text-3xl font-serif text-white">Catalog</h2>
-                <p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p>
+             <div className="space-y-1.5 md:space-y-2">
+                <h2 className="text-2xl md:text-3xl font-serif text-white">Catalog</h2>
+                <p className="text-slate-400 text-xs md:text-sm">Curate your collection of affiliate products.</p>
              </div>
-             <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="w-full md:w-auto px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center justify-center gap-3"><Plus size={18} /> Add Product</button>
+             <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="w-full md:w-auto px-6 md:px-8 py-3.5 md:py-4 bg-primary text-slate-900 rounded-xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center justify-center gap-3"><Plus size={16} /> Add Product</button>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-6">
              <div className="relative flex-grow">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                <input type="text" placeholder="Search by name..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <input type="text" placeholder="Filter by name..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-11 pr-4 py-3 md:py-4 bg-slate-900 border border-slate-800 rounded-xl md:rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" />
              </div>
-             <div className="relative min-w-[200px]">
-                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                <select value={productCatFilter} onChange={e => setProductCatFilter(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer">
+             <div className="relative min-w-[160px] md:min-w-[200px]">
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                <select value={productCatFilter} onChange={e => setProductCatFilter(e.target.value)} className="w-full pl-11 pr-8 py-3 md:py-4 bg-slate-900 border border-slate-800 rounded-xl md:rounded-2xl text-white outline-none focus:border-primary transition-all text-[11px] md:text-sm appearance-none cursor-pointer truncate">
                    <option value="all">All Departments</option>
                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
              </div>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-3 md:gap-4">
             {products.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) && (productCatFilter === 'all' || p.categoryId === productCatFilter)).map(p => (
-              <div key={p.id} className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
-                <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div>
-                  <div>
-                     <h4 className="text-white font-bold">{p.name}</h4>
-                     <div className="flex items-center gap-2 mt-1">
-                        <span className="text-primary text-xs font-bold">R {p.price}</span>
-                        <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest">• {categories.find(c => c.id === p.categoryId)?.name}</span>
+              <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-xl md:rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
+                <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-xl overflow-hidden bg-slate-800 border border-slate-700 flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div>
+                  <div className="min-w-0">
+                     <h4 className="text-white font-bold text-sm md:text-base truncate">{p.name}</h4>
+                     <div className="flex items-center gap-2 mt-0.5 md:mt-1">
+                        <span className="text-primary text-[10px] md:text-xs font-bold">R {p.price}</span>
+                        <span className="text-slate-600 text-[8px] md:text-[10px] uppercase font-black tracking-widest truncate">• {categories.find(c => c.id === p.categoryId)?.name}</span>
                      </div>
                   </div>
                 </div>
                 <div className="flex gap-2 w-full md:w-auto justify-end">
-                  <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button>
-                  <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
-                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                  <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={16}/></button>
+                  <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={16}/></button>
+                  <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                 </div>
               </div>
             ))}
@@ -1272,27 +1232,27 @@ const Admin: React.FC = () => {
 
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <AdminHelpBox title="Hero Carousel" steps={["Use high-res 16:9 images", "Videos auto-play muted", "Text overlays automatically adjust"]} />
+        <AdminHelpBox title="Hero Carousel" steps={["Use 16:9 aspect ratio", "Videos auto-play muted", "Text layouts adapt for mobile"]} />
         {showHeroForm ? ( 
-           <div className="bg-slate-900 p-6 md:p-8 rounded-[3rem] border border-slate-800 space-y-6">
+           <div className="bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[3rem] border border-slate-800 space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                  <SettingField label="Title" value={heroData.title || ''} onChange={v => setHeroData({...heroData, title: v})} />
-                 <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={heroData.type} onChange={e => setHeroData({...heroData, type: e.target.value as any})}><option value="image">Image</option><option value="video">Video</option></select></div>
+                 <div className="space-y-2"><label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={heroData.type} onChange={e => setHeroData({...heroData, type: e.target.value as any})}><option value="image">Image</option><option value="video">Video</option></select></div>
               </div>
               <SettingField label="Subtitle" value={heroData.subtitle || ''} onChange={v => setHeroData({...heroData, subtitle: v})} type="textarea" />
               <SettingField label="Button Label" value={heroData.cta || ''} onChange={v => setHeroData({...heroData, cta: v})} />
               <SingleImageUploader label="Media File" value={heroData.image || ''} onChange={v => setHeroData({...heroData, image: v})} />
-              <div className="flex flex-col md:flex-row gap-4"><button onClick={handleSaveHero} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Slide</button><button onClick={() => setShowHeroForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
+              <div className="flex flex-col sm:flex-row gap-3 pt-4"><button onClick={handleSaveHero} className="flex-1 py-4 md:py-5 bg-primary text-slate-900 font-black uppercase text-[10px] md:text-xs rounded-xl active:scale-95 transition-all">Save Slide</button><button onClick={() => setShowHeroForm(false)} className="flex-1 py-4 md:py-5 bg-slate-800 text-slate-400 font-black uppercase text-[10px] md:text-xs rounded-xl active:scale-95 transition-all">Cancel</button></div>
            </div> 
         ) : ( 
-           <div className="grid md:grid-cols-2 gap-6">
-              <button onClick={() => { setHeroData({ title: '', subtitle: '', cta: 'Explore', image: '', type: 'image' }); setShowHeroForm(true); setEditingId(null); }} className="w-full p-8 border-2 border-dashed border-slate-800 rounded-[3rem] flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-primary"><Plus size={48} /><span className="font-black uppercase tracking-widest text-xs">New Slide</span></button>
+           <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
+              <button onClick={() => { setHeroData({ title: '', subtitle: '', cta: 'Explore', image: '', type: 'image' }); setShowHeroForm(true); setEditingId(null); }} className="w-full aspect-video border-2 border-dashed border-slate-800 rounded-2xl md:rounded-[3rem] flex flex-col items-center justify-center gap-3 md:gap-4 text-slate-500 hover:text-primary transition-all"><Plus size={32} className="md:w-12 md:h-12" /><span className="font-black uppercase tracking-widest text-[9px] md:text-xs">New Slide</span></button>
               {heroSlides.map(s => (
-                 <div key={s.id} className="relative aspect-video rounded-[3rem] overflow-hidden group border border-slate-800">
+                 <div key={s.id} className="relative aspect-video rounded-2xl md:rounded-[3rem] overflow-hidden group border border-slate-800">
                     {s.type === 'video' ? <video src={s.image} className="w-full h-full object-cover" muted /> : <img src={s.image} className="w-full h-full object-cover" />}
-                    <div className="absolute inset-0 bg-black/60 p-10 flex flex-col justify-end text-left">
-                       <h4 className="text-white text-xl font-serif">{s.title}</h4>
-                       <div className="flex gap-2 mt-4"><button onClick={() => { setHeroData(s); setEditingId(s.id); setShowHeroForm(true); }} className="p-3 bg-white/10 text-white rounded-xl hover:bg-white/20"><Edit2 size={16}/></button><button onClick={() => handleDeleteHero(s.id)} className="p-3 bg-white/10 text-white rounded-xl hover:bg-red-500"><Trash2 size={16}/></button></div>
+                    <div className="absolute inset-0 bg-black/60 p-6 md:p-10 flex flex-col justify-end text-left">
+                       <h4 className="text-white text-base md:text-xl font-serif truncate">{s.title}</h4>
+                       <div className="flex gap-2 mt-3 md:mt-4"><button onClick={() => { setHeroData(s); setEditingId(s.id); setShowHeroForm(true); }} className="p-2 md:p-3 bg-white/10 text-white rounded-lg md:rounded-xl hover:bg-white/20 transition-all"><Edit2 size={14}/></button><button onClick={() => handleDeleteHero(s.id)} className="p-2 md:p-3 bg-white/10 text-white rounded-lg md:rounded-xl hover:bg-red-500 transition-all"><Trash2 size={14}/></button></div>
                     </div>
                  </div>
               ))}
@@ -1304,43 +1264,43 @@ const Admin: React.FC = () => {
   const renderCategories = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
        {showCategoryForm ? (
-          <div className="bg-slate-900 p-6 md:p-8 rounded-[3rem] border border-slate-800 space-y-8">
+          <div className="bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[3rem] border border-slate-800 space-y-8">
              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                   <h3 className="text-white font-bold text-xl mb-4">Department Details</h3>
+                   <h3 className="text-white font-bold text-lg md:text-xl mb-4">Department Details</h3>
                    <SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} />
-                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div>
+                   <div className="space-y-2"><label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div>
                    <SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" />
                 </div>
                 <div className="space-y-6">
-                   <SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="aspect-[4/3] w-full rounded-2xl" />
-                   <div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800">
-                      <h4 className="text-white font-bold text-sm mb-4">Subcategories</h4>
+                   <SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="aspect-[4/3] w-full rounded-xl" />
+                   <div className="bg-slate-800/30 p-5 md:p-6 rounded-xl md:rounded-2xl border border-slate-800">
+                      <h4 className="text-white font-bold text-xs md:text-sm mb-4">Subcategories</h4>
                       <div className="flex gap-2 mb-4">
-                         <input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" />
-                         <button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button>
+                         <input type="text" placeholder="Add sub-category" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-3.5 md:px-4 py-2.5 md:py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs md:text-sm outline-none" />
+                         <button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-3.5 md:px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={16}/></button>
                       </div>
                       <div className="flex flex-wrap gap-2">
                          {editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (
-                            <div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800">
-                               <span className="text-xs text-slate-300">{s.name}</span>
-                               <button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button>
+                            <div key={s.id} className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-900 rounded-lg border border-slate-800">
+                               <span className="text-[10px] md:text-xs text-slate-300">{s.name}</span>
+                               <button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={10}/></button>
                             </div>
                          ))}
-                         {editingId && subCategories.filter(s => s.categoryId === editingId).length === 0 && <span className="text-slate-500 text-xs italic">No subcategories defined.</span>}
+                         {editingId && subCategories.filter(s => s.categoryId === editingId).length === 0 && <span className="text-slate-500 text-[10px] italic">No subcategories defined.</span>}
                       </div>
                    </div>
                 </div>
              </div>
-             <div className="flex flex-col md:flex-row gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
+             <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-4 md:py-5 bg-primary text-slate-900 font-black uppercase text-[10px] md:text-xs rounded-xl active:scale-95 transition-all">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-4 md:py-5 bg-slate-800 text-slate-400 font-black uppercase text-[10px] md:text-xs rounded-xl active:scale-95 transition-all">Cancel</button></div>
           </div>
        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-             <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+             <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-32 md:h-40 border-2 border-dashed border-slate-800 rounded-2xl md:rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary transition-all"><Plus size={24} className="md:w-8 md:h-8" /><span className="font-black text-[9px] md:text-[10px] uppercase tracking-widest">New Dept</span></button>
              {categories.map(c => (
-                <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
-                   <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl">{React.createElement((LucideIcons as any)[c.icon] || LucideIcons.Package, { size: 20 })}</div><h4 className="font-bold text-white text-lg">{c.name}</h4></div></div>
-                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => handleDeleteCategory(c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div>
+                <div key={c.id} className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
+                   <div className="h-28 md:h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-6 md:px-8 gap-3 md:gap-4"><div className="w-10 h-10 md:w-12 md:h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0">{React.createElement((LucideIcons as any)[c.icon] || LucideIcons.Package, { size: 18 })}</div><h4 className="font-bold text-white text-base md:text-lg truncate">{c.name}</h4></div></div>
+                   <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-1.5 md:p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={12}/></button><button onClick={() => handleDeleteCategory(c.id)} className="p-1.5 md:p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={12}/></button></div>
                 </div>
              ))}
           </div>
@@ -1349,26 +1309,26 @@ const Admin: React.FC = () => {
   );
 
   const renderTeam = () => (
-     <div className="space-y-8 max-w-5xl mx-auto text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
+     <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
         {showAdminForm ? (
-           <div className="bg-slate-900 p-6 md:p-12 rounded-[3rem] border border-slate-800 space-y-12">
-              <div className="grid md:grid-cols-2 gap-12">
+           <div className="bg-slate-900 p-6 md:p-12 rounded-2xl md:rounded-[3rem] border border-slate-800 space-y-8 md:space-y-12">
+              <div className="grid md:grid-cols-2 gap-8 md:gap-12">
                  <div className="space-y-6">
-                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Personal Details</h3>
+                    <h3 className="text-white font-bold text-lg md:text-xl border-b border-slate-800 pb-3 md:pb-4">Personal Details</h3>
                     <SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} />
                     <SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} />
                     <SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" />
                     
-                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Security Credentials</h3>
+                    <h3 className="text-white font-bold text-lg md:text-xl border-b border-slate-800 pb-3 md:pb-4 pt-4 md:pt-6">Security Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
                     <SettingField label="Password" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" />
                  </div>
                  <div className="space-y-6">
-                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Access Control</h3>
+                    <h3 className="text-white font-bold text-lg md:text-xl border-b border-slate-800 pb-3 md:pb-4">Access Control</h3>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">System Role</label>
+                       <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block">System Role</label>
                        <select 
-                        className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" 
+                        className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" 
                         value={adminData.role} 
                         onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}
                        >
@@ -1376,53 +1336,53 @@ const Admin: React.FC = () => {
                           <option value="owner">System Owner (Root)</option>
                        </select>
                     </div>
-                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Detailed Permissions</label>
+                    <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Detailed Permissions</label>
                     <PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} />
                  </div>
               </div>
-              <div className="flex justify-end gap-4 pt-8 border-t border-slate-800">
-                <button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button>
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 md:pt-8 border-t border-slate-800">
+                <button onClick={() => setShowAdminForm(false)} className="order-2 sm:order-1 px-8 py-3.5 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cancel</button>
                 <button 
                   onClick={handleSaveAdmin} 
                   disabled={creatingAdmin}
-                  className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2"
+                  className="order-1 sm:order-2 px-8 md:px-12 py-3.5 bg-primary text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
-                  {creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}
+                  {creatingAdmin ? <Loader2 size={14} className="animate-spin"/> : <ShieldCheck size={16}/>}
                   {editingId ? 'Update Privileges' : 'Deploy Member'}
                 </button>
               </div>
            </div>
         ) : (
-           <div className="grid gap-6">
+           <div className="grid gap-4 md:gap-6">
+             <button onClick={() => { setAdminData({role: 'admin', permissions: []}); setShowAdminForm(true); setEditingId(null); }} className="w-full py-8 border-2 border-dashed border-slate-800 rounded-2xl md:rounded-[2.5rem] flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary transition-all"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">Deploy Member</span></button>
              {admins.map(a => (
-               <div key={a.id} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group">
-                 <div className="flex items-center gap-8 w-full">
-                    <div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">
-                      {a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}
+               <div key={a.id} className="bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2.5rem] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 hover:border-primary/40 transition-all group">
+                 <div className="flex items-center gap-5 md:gap-8 w-full">
+                    <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-800 rounded-2xl md:rounded-3xl flex items-center justify-center text-slate-400 text-2xl md:text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors flex-shrink-0 overflow-hidden">
+                      {a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover"/> : a.name?.charAt(0)}
                     </div>
-                    <div className="space-y-2 flex-grow">
-                       <div className="flex items-center gap-3">
-                          <h4 className="text-white text-xl font-bold">{a.name}</h4>
-                          <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${a.role === 'owner' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400'}`}>
+                    <div className="space-y-1 md:space-y-2 flex-grow text-left min-w-0">
+                       <div className="flex items-center gap-2.5 flex-wrap">
+                          <h4 className="text-white text-lg md:text-xl font-bold truncate max-w-[150px] sm:max-w-none">{a.name}</h4>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${a.role === 'owner' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400'}`}>
                             {a.role}
                           </span>
                        </div>
-                       <div className="flex flex-wrap gap-x-6 gap-y-1 text-slate-500 text-sm">
-                          <span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>
-                          {a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}
+                       <div className="flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-0.5 text-slate-500 text-xs md:text-sm">
+                          <span className="flex items-center gap-1.5 truncate"><Mail size={12} className="text-primary flex-shrink-0"/> {a.email}</span>
+                          {a.phone && <span className="flex items-center gap-1.5 truncate"><Phone size={12} className="text-primary flex-shrink-0"/> {a.phone}</span>}
                        </div>
-                       <div className="pt-2 flex flex-wrap gap-2">
-                          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Status:</span>
-                          <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> Verified</span>
-                          <span className="mx-2 text-slate-800">|</span>
-                          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.role === 'owner' ? 'Full System' : `${a.permissions.length} modules`}</span>
+                       <div className="pt-1.5 flex flex-wrap gap-x-2 gap-y-1 items-center">
+                          <span className="text-[8px] md:text-[10px] font-black text-slate-600 uppercase tracking-widest">Status:</span>
+                          <span className="text-[8px] md:text-[10px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1"><div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-green-500 rounded-full animate-pulse"/> Verified</span>
+                          <span className="text-[8px] md:text-[10px] font-black text-slate-600 uppercase tracking-widest ml-1 sm:ml-4">Access:</span>
+                          <span className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.role === 'owner' ? 'Full System' : `${a.permissions.length} modules`}</span>
                        </div>
                     </div>
                  </div>
-                 <div className="flex gap-3 w-full md:w-auto">
-                    <button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button>
-                    <button onClick={() => handleDeleteAdmin(a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all"><Trash2 size={20}/></button>
+                 <div className="flex gap-2 w-full md:w-auto justify-end">
+                    <button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-3 md:p-4 bg-slate-800 text-slate-400 rounded-xl md:rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={16}/></button>
+                    <button onClick={() => handleDeleteAdmin(a.id)} className="flex-1 md:flex-none p-3 md:p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-xl md:rounded-2xl transition-all"><Trash2 size={16}/></button>
                  </div>
                </div>
              ))}
@@ -1436,13 +1396,13 @@ const Admin: React.FC = () => {
     const url = getSupabaseUrl();
 
     return (
-     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
-        {/* ... System Charts ... */}
-        <div className="space-y-6">
-           <div className="flex justify-between items-end px-2">
-             <div className="space-y-2">
-                <h3 className="text-white font-bold text-xl flex items-center gap-3"><Map size={22} className="text-primary"/> Global Interaction Protocol</h3>
-                <p className="text-slate-500 text-xs uppercase tracking-widest font-black opacity-60">High-Precision Geographic Analytics</p>
+     <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
+        {/* Geographic Analytics */}
+        <div className="space-y-4 md:space-y-6">
+           <div className="flex justify-between items-end px-1">
+             <div className="space-y-1 md:space-y-2">
+                <h3 className="text-white font-bold text-lg md:text-xl flex items-center gap-3"><Map size={18} className="text-primary"/> Global Interaction Protocol</h3>
+                <p className="text-slate-500 text-[9px] md:text-xs uppercase tracking-widest font-black opacity-60">High-Precision Geographic Analytics</p>
              </div>
            </div>
            
@@ -1450,77 +1410,75 @@ const Admin: React.FC = () => {
         </div>
 
         {/* System Health Strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
            {[
              { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' },
              { label: 'Supabase Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' },
              { label: 'Storage Usage', value: '1.2 GB', icon: UploadCloud, color: 'text-blue-500' },
-             { label: 'Total Session Time', value: `${Math.floor(totalSessionTime / 60)}m ${totalSessionTime % 60}s`, icon: Timer, color: 'text-purple-500' }
+             { label: 'Total Active Time', value: `${Math.floor(totalSessionTime / 60)}m`, icon: Timer, color: 'text-purple-500' }
            ].map((item, i) => (
-             <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color}`}><item.icon size={20}/></div>
-                <div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">{item.label}</span>
-                  <span className="text-base font-bold text-white">{item.value}</span>
+             <div key={i} className="bg-slate-900/50 p-4 md:p-6 rounded-xl md:rounded-[2rem] border border-slate-800 flex items-center gap-3 md:gap-4 text-left">
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}><item.icon size={16}/></div>
+                <div className="min-w-0">
+                  <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block truncate">{item.label}</span>
+                  <span className="text-sm md:text-base font-bold text-white block truncate">{item.value}</span>
                 </div>
              </div>
            ))}
         </div>
 
-        {/* --- SUPABASE CONNECTION DIAGNOSTICS SECTION --- */}
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
-           <div className="relative z-10 flex flex-col md:flex-row gap-10 items-start">
-             <div className="flex-1 space-y-6">
+        {/* Supabase Connection Diagnostics */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
+           <div className="relative z-10 flex flex-col md:flex-row gap-8 md:gap-10 items-start">
+             <div className="flex-1 space-y-6 w-full">
                 <div>
-                  <h3 className="text-white font-bold text-2xl flex items-center gap-3"><Database size={24} className="text-primary"/> Connection Diagnostics</h3>
-                  <p className="text-slate-400 text-sm mt-2">Real-time status of your database backend connection.</p>
+                  <h3 className="text-white font-bold text-xl md:text-2xl flex items-center gap-3"><Database size={20} className="text-primary"/> Connection Diagnostics</h3>
+                  <p className="text-slate-400 text-xs md:text-sm mt-1.5 md:mt-2">Real-time status of your database backend connection.</p>
                 </div>
-                {/* ... */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50">
-                     <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Connection Status</span>
-                     <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                        <span className={`text-lg font-bold ${connectionHealth?.status === 'online' ? 'text-white' : 'text-red-400'}`}>{connectionHealth?.status === 'online' ? 'Operational' : 'Disconnected'}</span>
+
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                  <div className="bg-slate-800/50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-700/50">
+                     <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1.5 md:mb-2">Connection Status</span>
+                     <div className="flex items-center gap-2.5 md:gap-3">
+                        <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                        <span className={`text-base md:text-lg font-bold ${connectionHealth?.status === 'online' ? 'text-white' : 'text-red-400'}`}>{connectionHealth?.status === 'online' ? 'Operational' : 'Disconnected'}</span>
                      </div>
                   </div>
-                  <div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50">
-                     <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Network Latency</span>
-                     <div className="flex items-center gap-3">
-                        <Activity size={20} className={connectionHealth?.latency && connectionHealth.latency < 200 ? 'text-green-500' : 'text-yellow-500'} />
-                        <span className="text-lg font-bold text-white">{connectionHealth?.latency || 0} ms</span>
+                  <div className="bg-slate-800/50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-700/50">
+                     <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1.5 md:mb-2">Network Latency</span>
+                     <div className="flex items-center gap-2.5 md:gap-3">
+                        <Activity size={18} className={connectionHealth?.latency && connectionHealth.latency < 200 ? 'text-green-500' : 'text-yellow-500'} />
+                        <span className="text-base md:text-lg font-bold text-white">{connectionHealth?.latency || 0} ms</span>
                      </div>
                   </div>
                 </div>
 
-                <div className="p-4 bg-black/20 rounded-xl border border-slate-700/50 font-mono text-[10px] text-slate-400 break-all">
+                <div className="p-3.5 md:p-4 bg-black/20 rounded-xl border border-slate-700/50 font-mono text-[9px] md:text-[10px] text-slate-400 break-all text-left">
                    <div className="flex justify-between mb-2"><span className="uppercase font-bold text-slate-500">Endpoint URL</span> <span className="text-primary">{isSupabaseConfigured ? 'CONFIGURED' : 'MISSING'}</span></div>
                    {url ? url.replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}
                 </div>
                 
-                {/* Diagnostics Help Text */}
                 {!isSupabaseConfigured && (
-                  <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-xs text-red-300">
-                    <p className="font-bold mb-2 flex items-center gap-2"><AlertTriangle size={14}/> Environment Variable Missing</p>
-                    <p className="mb-2">The system cannot detect <code>VITE_SUPABASE_URL</code>.</p>
-                    <p><strong>Note:</strong> In Vite apps, environment variables MUST start with <code>VITE_</code>. If you named it <code>SUPABASE_URL</code> in Vercel, rename it to <code>VITE_SUPABASE_URL</code> and redeploy.</p>
+                  <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-xs text-red-300 space-y-2">
+                    <p className="font-bold flex items-center gap-2"><AlertTriangle size={14}/> Environment Variable Missing</p>
+                    <p className="leading-relaxed">The system cannot detect <code>VITE_SUPABASE_URL</code>. In Vite apps, environment variables MUST start with <code>VITE_</code>.</p>
                   </div>
                 )}
              </div>
 
-             <div className="w-full md:w-80 space-y-4">
-                <div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 flex flex-col items-center text-center">
-                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-white ${connectionHealth?.status === 'online' ? 'bg-green-500' : 'bg-slate-600'}`}>
-                      {connectionHealth?.status === 'online' ? <Wifi size={32}/> : <WifiOff size={32}/>}
+             <div className="w-full md:w-72 lg:w-80 space-y-4">
+                <div className="p-6 bg-slate-800 rounded-2xl md:rounded-3xl border border-slate-700 flex flex-col items-center text-center">
+                   <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 text-white ${connectionHealth?.status === 'online' ? 'bg-green-500' : 'bg-slate-600'}`}>
+                      {connectionHealth?.status === 'online' ? <Wifi size={24} className="md:w-8 md:h-8"/> : <WifiOff size={24} className="md:w-8 md:h-8"/>}
                    </div>
-                   <h4 className="text-white font-bold mb-1">{connectionHealth?.message || 'Checking...'}</h4>
-                   <p className="text-xs text-slate-400">Last heartbeat: {new Date().toLocaleTimeString()}</p>
+                   <h4 className="text-white font-bold text-sm md:text-base mb-1">{connectionHealth?.message || 'Checking...'}</h4>
+                   <p className="text-[10px] md:text-xs text-slate-400">Heartbeat: {new Date().toLocaleTimeString()}</p>
                 </div>
-                <div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 text-center">
-                   <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Active Session</span>
-                   <span className="text-sm font-bold text-white truncate w-full block">{user?.email || 'Local User'}</span>
-                   <span className="text-[9px] text-primary uppercase font-bold mt-1 block">{user?.role || 'Simulated'} Role</span>
+                <div className="p-4 md:p-6 bg-slate-800 rounded-2xl md:rounded-3xl border border-slate-700 text-center">
+                   <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1.5 md:mb-2">Active Identity</span>
+                   <span className="text-xs md:text-sm font-bold text-white truncate w-full block">{user?.email || 'Local User'}</span>
+                   <span className="text-[8px] md:text-[9px] text-primary uppercase font-bold mt-1 block">{user?.role || 'Root'} Identity</span>
                 </div>
              </div>
            </div>
@@ -1530,44 +1488,43 @@ const Admin: React.FC = () => {
   };
 
   const renderGuide = () => (
-     <div className="space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-6xl mx-auto text-left">
-        {/* ... [Guide content remains same but wrapped in better padding/stacking for mobile] ... */}
-        <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[3rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
-          <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-96 h-96 rotate-12" />
+     <div className="space-y-16 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24 md:pb-32 max-w-6xl mx-auto text-left">
+        <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-6 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
+          <Rocket className="absolute -bottom-10 -right-10 md:-bottom-20 md:-right-20 text-primary/10 w-64 h-64 md:w-96 md:h-96 rotate-12" />
           <div className="max-w-3xl relative z-10">
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-8 border border-primary/30">
+            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-primary/20 text-primary text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30">
                <Zap size={14}/> Implementation Protocol
             </div>
-            <h2 className="text-4xl md:text-7xl font-serif text-white mb-6 leading-none">The <span className="text-primary italic font-light lowercase">Architecture</span> of Success</h2>
-            <p className="text-slate-400 text-base md:text-xl font-light leading-relaxed">Your comprehensive blueprint for deploying a high-performance luxury affiliate portal from source to global production.</p>
+            <h2 className="text-3xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none">The <span className="text-primary italic font-light lowercase">Architecture</span> of Success</h2>
+            <p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed">Your comprehensive blueprint for deploying a high-performance luxury affiliate portal from source to global production.</p>
           </div>
         </div>
-        <div className="grid gap-16 md:gap-32">
+        <div className="grid gap-12 md:gap-32 px-1">
           {GUIDE_STEPS.map((step, idx) => (
             <div key={step.id} className="relative grid md:grid-cols-12 gap-8 md:gap-20">
               <div className="md:col-span-1 flex flex-col items-center">
-                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl md:sticky md:top-32">{idx + 1}</div>
+                 <div className="w-10 h-10 md:w-16 md:h-16 rounded-xl md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-lg md:text-2xl shadow-2xl md:sticky md:top-32">{idx + 1}</div>
                  <div className="flex-grow w-0.5 bg-gradient-to-b from-slate-800 to-transparent my-4 hidden md:block" />
               </div>
-              <div className="md:col-span-7 space-y-10">
-                <div className="space-y-4">
-                   <h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight">{step.title}</h3>
-                   <p className="text-slate-400 text-base md:text-lg leading-relaxed">{step.description}</p>
+              <div className="md:col-span-7 space-y-8 md:space-y-10">
+                <div className="space-y-3 md:space-y-4">
+                   <h3 className="text-xl md:text-4xl font-bold text-white tracking-tight">{step.title}</h3>
+                   <p className="text-slate-400 text-sm md:text-lg leading-relaxed">{step.description}</p>
                 </div>
                 {step.subSteps && (
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 md:gap-4">
                     {step.subSteps.map((sub, i) => (
-                      <div key={i} className="flex items-start gap-4 p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
-                        <CheckCircle size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                        <span className="text-slate-300 text-sm md:text-base leading-relaxed">{sub}</span>
+                      <div key={i} className="flex items-start gap-3 md:gap-4 p-4 md:p-6 bg-slate-900/50 rounded-2xl md:rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
+                        <CheckCircle size={18} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                        <span className="text-slate-300 text-xs md:text-base leading-relaxed">{sub}</span>
                       </div>
                     ))}
                   </div>
                 )}
                 {step.code && (<CodeBlock code={step.code} label={step.codeLabel} />)}
                 {step.tips && (
-                  <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-8 flex items-start gap-6 text-primary/80 text-sm md:text-base leading-relaxed">
-                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 text-primary"><Info size={24}/></div>
+                  <div className="bg-primary/5 border border-primary/20 rounded-2xl md:rounded-[2rem] p-6 md:p-8 flex items-start gap-4 md:gap-6 text-primary/80 text-[11px] md:text-base leading-relaxed">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 text-primary"><Info size={20}/></div>
                     <p>{step.tips}</p>
                   </div>
                 )}
@@ -1582,7 +1539,7 @@ const Admin: React.FC = () => {
   );
 
   const renderSiteEditor = () => (
-     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {[
           {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, 
           {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, 
@@ -1593,17 +1550,17 @@ const Admin: React.FC = () => {
           {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'},
           {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'}
         ].map(s => ( 
-          <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-8 rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between min-h-[250px]">
-             <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div>
-             <div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div>
-             <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div>
+          <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-2xl md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between min-h-[220px] md:min-h-[250px] active:scale-95">
+             <div className="w-10 h-10 md:w-12 md:h-12 bg-slate-800 rounded-xl md:rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={20} className="md:w-6 md:h-6"/></div>
+             <div><h3 className="text-white font-bold text-lg md:text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-[10px] md:text-xs">{s.desc}</p></div>
+             <div className="mt-6 md:mt-8 flex items-center gap-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={10}/></div>
           </button> 
         ))}
      </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-20">
+    <div className="min-h-screen bg-slate-950 pt-20 md:pt-32 pb-20 overflow-x-hidden">
       <style>{`
          @keyframes grow { from { height: 0; } to { height: 100%; } }
          @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
@@ -1611,15 +1568,15 @@ const Admin: React.FC = () => {
       {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
       {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
 
-      <header className="max-w-[1400px] mx-auto px-4 md:px-6 mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 text-left">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-4xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1>
-            <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (user?.email?.split('@')[0] || 'ADMIN')}</div>
+      <header className="max-w-[1400px] mx-auto px-4 md:px-6 mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 text-left">
+        <div className="flex flex-col gap-3 md:gap-6">
+          <div className="flex items-center gap-3 md:gap-4 flex-wrap">
+            <h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1>
+            <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-primary/10 border border-primary/20 rounded-full text-[8px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (user?.email?.split('@')[0] || 'ADMIN')}</div>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 overflow-x-auto no-scrollbar max-w-full">
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="flex flex-wrap gap-1.5 p-1.5 bg-slate-900 rounded-xl md:rounded-2xl border border-slate-800 overflow-x-auto no-scrollbar max-w-full">
             {[ 
               { id: 'enquiries', label: 'Inbox', icon: Inbox }, 
               { id: 'analytics', label: 'Insights', icon: BarChart3 },
@@ -1631,10 +1588,10 @@ const Admin: React.FC = () => {
               { id: 'system', label: 'System', icon: Activity }, 
               { id: 'guide', label: 'Pilot', icon: Rocket } 
             ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab.id ? 'bg-primary text-slate-900' : 'text-slate-500 hover:text-slate-300'}`}><div className="flex items-center gap-2"><tab.icon size={12} />{tab.label}</div></button>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab.id ? 'bg-primary text-slate-900' : 'text-slate-500 hover:text-slate-300'}`}><div className="flex items-center gap-2"><tab.icon size={10} />{tab.label}</div></button>
             ))}
           </div>
-          <button onClick={handleLogout} className="px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-fit"><LogOut size={14} /> Exit</button>
+          <button onClick={handleLogout} className="px-5 md:px-6 py-2.5 md:py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full sm:w-fit"><LogOut size={12} /> Exit</button>
         </div>
       </header>
 
@@ -1652,145 +1609,142 @@ const Admin: React.FC = () => {
 
       {/* Full Screen Editor Drawer */}
       {editorDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
-            <div className="flex justify-between items-center mb-10 pb-6 border-b border-slate-800">
-               <div><h3 className="text-2xl md:text-3xl font-serif text-white uppercase">{activeEditorSection}</h3><p className="text-slate-500 text-xs mt-1">Global Site Configuration</p></div>
-               <button onClick={() => setEditorDrawerOpen(false)} className="p-3 bg-slate-900 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"><X size={24}/></button>
+        <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-5 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
+            <div className="flex justify-between items-center mb-8 md:mb-10 pb-5 md:pb-6 border-b border-slate-800">
+               <div className="text-left"><h3 className="text-xl md:text-3xl font-serif text-white uppercase">{activeEditorSection}</h3><p className="text-slate-500 text-[10px] md:text-xs mt-1">Global Site Configuration</p></div>
+               <button onClick={() => setEditorDrawerOpen(false)} className="p-2.5 md:p-3 bg-slate-900 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"><X size={20} className="md:w-6 md:h-6"/></button>
             </div>
             
-            <div className="space-y-10 pb-20">
-               {/* Use tempSettings instead of settings for all inputs here */}
+            <div className="space-y-8 md:space-y-10 pb-24">
                {activeEditorSection === 'brand' && (
                   <>
-                     <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Globe size={18} className="text-primary"/> Basic Info</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({companyName: v})} /><SettingField label="Slogan" value={tempSettings.slogan || ''} onChange={v => updateTempSettings({slogan: v})} /><SettingField label="Logo Text" value={tempSettings.companyLogo} onChange={v => updateTempSettings({companyLogo: v})} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({companyLogoUrl: v})} className="h-32 w-full object-contain bg-slate-800/50" /></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold flex items-center gap-2"><Palette size={18} className="text-primary"/> Brand Colors</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary" value={tempSettings.primaryColor} onChange={v => updateTempSettings({primaryColor: v})} type="color" /><SettingField label="Secondary" value={tempSettings.secondaryColor || '#1E293B'} onChange={v => updateTempSettings({secondaryColor: v})} type="color" /><SettingField label="Accent" value={tempSettings.accentColor || '#F59E0B'} onChange={v => updateTempSettings({accentColor: v})} type="color" /></div></div>
+                     <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2 text-sm md:text-base"><Globe size={16} className="text-primary"/> Basic Info</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({companyName: v})} /><SettingField label="Slogan" value={tempSettings.slogan || ''} onChange={v => updateTempSettings({slogan: v})} /><SettingField label="Logo Text" value={tempSettings.companyLogo} onChange={v => updateTempSettings({companyLogo: v})} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({companyLogoUrl: v})} className="h-24 md:h-32 w-full object-contain bg-slate-800/50 rounded-xl" /></div>
+                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold flex items-center gap-2 text-sm md:text-base"><Palette size={16} className="text-primary"/> Brand Colors</h4><div className="grid grid-cols-3 gap-3 md:gap-4"><SettingField label="Primary" value={tempSettings.primaryColor} onChange={v => updateTempSettings({primaryColor: v})} type="color" /><SettingField label="Secondary" value={tempSettings.secondaryColor || '#1E293B'} onChange={v => updateTempSettings({secondaryColor: v})} type="color" /><SettingField label="Accent" value={tempSettings.accentColor || '#F59E0B'} onChange={v => updateTempSettings({accentColor: v})} type="color" /></div></div>
                   </>
                )}
-               {/* ... Other Editor Sections (same structure as original, using tempSettings) ... */}
                {activeEditorSection === 'nav' && (
                   <div className="space-y-8">
-                     <div className="space-y-6"><h4 className="text-white font-bold">Menu Labels</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Home" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({navHomeLabel: v})} /><SettingField label="Products" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({navProductsLabel: v})} /><SettingField label="About" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({navAboutLabel: v})} /><SettingField label="Contact" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({navContactLabel: v})} /></div></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Footer Content</h4><SettingField label="Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({footerDescription: v})} type="textarea" /><SettingField label="Copyright" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({footerCopyrightText: v})} /></div>
+                     <div className="space-y-6"><h4 className="text-white font-bold text-sm md:text-base">Menu Labels</h4><div className="grid grid-cols-2 gap-3 md:gap-4"><SettingField label="Home" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({navHomeLabel: v})} /><SettingField label="Products" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({navProductsLabel: v})} /><SettingField label="About" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({navAboutLabel: v})} /><SettingField label="Contact" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({navContactLabel: v})} /></div></div>
+                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold text-sm md:text-base">Footer Content</h4><SettingField label="Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({footerDescription: v})} type="textarea" /><SettingField label="Copyright" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({footerCopyrightText: v})} /></div>
                   </div>
                )}
-               {/* ... (Include all other editor sections from original code: home, collections, about, contact, legal, integrations) ... */}
                {activeEditorSection === 'home' && (
                   <>
-                     <div className="space-y-6"><h4 className="text-white font-bold">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({homeAboutTitle: v})} /><SettingField label="Body" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({homeAboutDescription: v})} type="textarea" /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({homeAboutCta: v})} /><SingleImageUploader label="Featured Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({homeAboutImage: v})} /></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Trust Strip</h4><SettingField label="Section Title" value={tempSettings.homeTrustSectionTitle} onChange={v => updateTempSettings({homeTrustSectionTitle: v})} /><div className="grid gap-6">{[1,2,3].map(i => (<div key={i} className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-3"><span className="text-[10px] font-black uppercase text-slate-500">Item {i}</span><SettingField label="Title" value={(tempSettings as any)[`homeTrustItem${i}Title`]} onChange={v => updateTempSettings({[`homeTrustItem${i}Title`]: v})} /><SettingField label="Desc" value={(tempSettings as any)[`homeTrustItem${i}Desc`]} onChange={v => updateTempSettings({[`homeTrustItem${i}Desc`]: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={(tempSettings as any)[`homeTrustItem${i}Icon`] || 'ShieldCheck'} onSelect={icon => updateTempSettings({[`homeTrustItem${i}Icon`]: icon})} /></div></div>))}</div></div>
+                     <div className="space-y-6"><h4 className="text-white font-bold text-sm md:text-base">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({homeAboutTitle: v})} /><SettingField label="Body" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({homeAboutDescription: v})} type="textarea" /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({homeAboutCta: v})} /><SingleImageUploader label="Featured Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({homeAboutImage: v})} /></div>
+                     <div className="space-y-6 border-t border-slate-800 pt-8 text-left"><h4 className="text-white font-bold text-sm md:text-base">Trust Strip</h4><SettingField label="Section Title" value={tempSettings.homeTrustSectionTitle} onChange={v => updateTempSettings({homeTrustSectionTitle: v})} /><div className="grid gap-6">{[1,2,3].map(i => (<div key={i} className="p-4 md:p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3"><span className="text-[9px] font-black uppercase text-slate-500">Item {i}</span><SettingField label="Title" value={(tempSettings as any)[`homeTrustItem${i}Title`]} onChange={v => updateTempSettings({[`homeTrustItem${i}Title`]: v})} /><SettingField label="Desc" value={(tempSettings as any)[`homeTrustItem${i}Desc`]} onChange={v => updateTempSettings({[`homeTrustItem${i}Desc`]: v})} type="textarea" rows={2}/><div className="space-y-2"><label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Icon</label><IconPicker selected={(tempSettings as any)[`homeTrustItem${i}Icon`] || 'ShieldCheck'} onSelect={icon => updateTempSettings({[`homeTrustItem${i}Icon`]: icon})} /></div></div>))}</div></div>
                   </>
                )}
                {activeEditorSection === 'collections' && (
                   <div className="space-y-6">
-                     <h4 className="text-white font-bold">Page Hero</h4>
+                     <h4 className="text-white font-bold text-sm md:text-base">Page Hero</h4>
                      <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({productsHeroTitle: v})} />
                      <SettingField label="Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({productsHeroSubtitle: v})} type="textarea" />
                      <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({productsSearchPlaceholder: v})} />
                      <div className="space-y-4 pt-4 border-t border-slate-800">
-                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Hero Carousel Images</label>
+                        <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Hero Carousel Images</label>
                         <FileUploader files={(tempSettings.productsHeroImages || []).map(url => ({id: url, url, name: 'hero', type: 'image/jpeg', size: 0}))} onFilesChange={files => updateTempSettings({productsHeroImages: files.map(f => f.url)})} />
                      </div>
                   </div>
                )}
                {activeEditorSection === 'about' && (
                   <>
-                     <div className="space-y-6"><h4 className="text-white font-bold">Hero</h4><SettingField label="Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({aboutHeroTitle: v})} /><SettingField label="Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({aboutHeroSubtitle: v})} type="textarea" /><SingleImageUploader label="Main Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({aboutMainImage: v})} /></div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Key Facts</h4>
-                        <div className="grid grid-cols-2 gap-4">
+                     <div className="space-y-6 text-left"><h4 className="text-white font-bold text-sm md:text-base">Hero</h4><SettingField label="Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({aboutHeroTitle: v})} /><SettingField label="Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({aboutHeroSubtitle: v})} type="textarea" /><SingleImageUploader label="Main Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({aboutMainImage: v})} /></div>
+                     <div className="space-y-6 border-t border-slate-800 pt-8 text-left"><h4 className="text-white font-bold text-sm md:text-base">Key Facts</h4>
+                        <div className="grid grid-cols-2 gap-3 md:gap-4 text-left">
                            <SettingField label="Established Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({aboutEstablishedYear: v})} />
                            <SettingField label="Founder Name" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({aboutFounderName: v})} />
                            <div className="col-span-2"><SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({aboutLocation: v})} /></div>
                         </div>
                      </div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Content Blocks</h4>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">History</h5><SettingField label="Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({aboutHistoryTitle: v})} /><SettingField label="Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({aboutHistoryBody: v})} type="textarea" /></div>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">Mission</h5><SettingField label="Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({aboutMissionTitle: v})} /><SettingField label="Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({aboutMissionBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={tempSettings.aboutMissionIcon || 'Target'} onSelect={icon => updateTempSettings({aboutMissionIcon: icon})} /></div></div>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">Community</h5><SettingField label="Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({aboutCommunityTitle: v})} /><SettingField label="Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({aboutCommunityBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={tempSettings.aboutCommunityIcon || 'Users'} onSelect={icon => updateTempSettings({aboutCommunityIcon: icon})} /></div></div>
-                        <div className="space-y-4 p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h5 className="text-primary font-bold text-xs uppercase">Integrity</h5><SettingField label="Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({aboutIntegrityTitle: v})} /><SettingField label="Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({aboutIntegrityBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={tempSettings.aboutIntegrityIcon || 'Award'} onSelect={icon => updateTempSettings({aboutIntegrityIcon: icon})} /></div></div>
+                     <div className="space-y-6 border-t border-slate-800 pt-8 text-left"><h4 className="text-white font-bold text-sm md:text-base">Content Blocks</h4>
+                        <div className="space-y-4 p-4 md:p-5 bg-slate-900 border border-slate-800 rounded-xl md:rounded-2xl"><h5 className="text-primary font-bold text-[10px] md:text-xs uppercase">History</h5><SettingField label="Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({aboutHistoryTitle: v})} /><SettingField label="Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({aboutHistoryBody: v})} type="textarea" /></div>
+                        <div className="space-y-4 p-4 md:p-5 bg-slate-900 border border-slate-800 rounded-xl md:rounded-2xl"><h5 className="text-primary font-bold text-[10px] md:text-xs uppercase">Mission</h5><SettingField label="Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({aboutMissionTitle: v})} /><SettingField label="Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({aboutMissionBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Icon</label><IconPicker selected={tempSettings.aboutMissionIcon || 'Target'} onSelect={icon => updateTempSettings({aboutMissionIcon: icon})} /></div></div>
+                        <div className="space-y-4 p-4 md:p-5 bg-slate-900 border border-slate-800 rounded-xl md:rounded-2xl"><h5 className="text-primary font-bold text-[10px] md:text-xs uppercase">Community</h5><SettingField label="Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({aboutCommunityTitle: v})} /><SettingField label="Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({aboutCommunityBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Icon</label><IconPicker selected={tempSettings.aboutCommunityIcon || 'Users'} onSelect={icon => updateTempSettings({aboutCommunityIcon: icon})} /></div></div>
+                        <div className="space-y-4 p-4 md:p-5 bg-slate-900 border border-slate-800 rounded-xl md:rounded-2xl"><h5 className="text-primary font-bold text-[10px] md:text-xs uppercase">Integrity</h5><SettingField label="Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({aboutIntegrityTitle: v})} /><SettingField label="Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({aboutIntegrityBody: v})} type="textarea" /><div className="space-y-2"><label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Icon</label><IconPicker selected={tempSettings.aboutIntegrityIcon || 'Award'} onSelect={icon => updateTempSettings({aboutIntegrityIcon: icon})} /></div></div>
                      </div>
-                     <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Gallery</h4><FileUploader files={(tempSettings.aboutGalleryImages || []).map(url => ({id: url, url, name: 'gallery', type: 'image/jpeg', size: 0}))} onFilesChange={files => updateTempSettings({aboutGalleryImages: files.map(f => f.url)})} /></div>
+                     <div className="space-y-6 border-t border-slate-800 pt-8 text-left"><h4 className="text-white font-bold text-sm md:text-base">Gallery</h4><FileUploader files={(tempSettings.aboutGalleryImages || []).map(url => ({id: url, url, name: 'gallery', type: 'image/jpeg', size: 0}))} onFilesChange={files => updateTempSettings({aboutGalleryImages: files.map(f => f.url)})} /></div>
                   </>
                )}
                {activeEditorSection === 'contact' && (
                   <>
-                    <div className="space-y-6"><h4 className="text-white font-bold">Hero & Info</h4><SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({contactHeroTitle: v})} /><SettingField label="Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({contactHeroSubtitle: v})} /></div>
-                    <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Company Details</h4>
-                       <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-6 text-left"><h4 className="text-white font-bold text-sm md:text-base">Hero & Info</h4><SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({contactHeroTitle: v})} /><SettingField label="Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({contactHeroSubtitle: v})} /></div>
+                    <div className="space-y-6 border-t border-slate-800 pt-8 text-left"><h4 className="text-white font-bold text-sm md:text-base">Company Details</h4>
+                       <div className="grid sm:grid-cols-2 gap-3 md:gap-4">
                           <SettingField label="Email Address" value={tempSettings.contactEmail} onChange={v => updateTempSettings({contactEmail: v})} />
                           <SettingField label="Phone Number" value={tempSettings.contactPhone} onChange={v => updateTempSettings({contactPhone: v})} />
                        </div>
                        <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({address: v})} />
-                       <div className="grid md:grid-cols-2 gap-4">
+                       <div className="grid sm:grid-cols-2 gap-3 md:gap-4">
                           <SettingField label="Hours (Weekdays)" value={tempSettings.contactHoursWeekdays} onChange={v => updateTempSettings({contactHoursWeekdays: v})} />
                           <SettingField label="Hours (Weekends)" value={tempSettings.contactHoursWeekends} onChange={v => updateTempSettings({contactHoursWeekends: v})} />
                        </div>
                     </div>
-                    <div className="space-y-6 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Social Links</h4>
+                    <div className="space-y-6 border-t border-slate-800 pt-8 text-left"><h4 className="text-white font-bold text-sm md:text-base">Social Links</h4>
                        {tempSettings.socialLinks?.map(link => (
-                          <div key={link.id} className="p-6 bg-slate-900 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-6 items-start">
-                             <div className="w-full md:w-32 flex-shrink-0">
-                                <SingleImageUploader label="Icon" value={link.iconUrl} onChange={v => updateTempSocialLink(link.id, 'iconUrl', v)} className="aspect-square w-full rounded-xl bg-slate-800" />
+                          <div key={link.id} className="p-4 md:p-6 bg-slate-900 rounded-xl md:rounded-2xl border border-slate-800 flex flex-col sm:flex-row gap-5 md:gap-6 items-start">
+                             <div className="w-20 md:w-32 flex-shrink-0">
+                                <SingleImageUploader label="Icon" value={link.iconUrl} onChange={v => updateTempSocialLink(link.id, 'iconUrl', v)} className="aspect-square w-full rounded-lg md:rounded-xl bg-slate-800" />
                              </div>
                              <div className="flex-grow w-full space-y-4">
                                 <SettingField label="Platform Name" value={link.name} onChange={v => updateTempSocialLink(link.id, 'name', v)} />
                                 <SettingField label="Profile URL" value={link.url} onChange={v => updateTempSocialLink(link.id, 'url', v)} />
                              </div>
-                             <button onClick={() => removeTempSocialLink(link.id)} className="self-end md:self-start p-3 text-slate-500 hover:text-red-500"><Trash2 size={18}/></button>
+                             <button onClick={() => removeTempSocialLink(link.id)} className="self-end sm:self-start p-2.5 md:p-3 text-slate-500 hover:text-red-500 bg-slate-800 rounded-lg"><Trash2 size={16}/></button>
                           </div>
                        ))}
-                       <button onClick={addTempSocialLink} className="w-full py-4 border border-dashed border-slate-700 text-slate-400 rounded-xl hover:text-white hover:border-slate-500 uppercase font-black text-xs flex items-center justify-center gap-2"><Plus size={16}/> Add Social Link</button>
+                       <button onClick={addTempSocialLink} className="w-full py-4 border border-dashed border-slate-700 text-slate-400 rounded-xl hover:text-white hover:border-slate-500 uppercase font-black text-[10px] flex items-center justify-center gap-2 active:scale-95 transition-all"><Plus size={14}/> Add Social Link</button>
                     </div>
                   </>
                )}
                {activeEditorSection === 'legal' && (
-                  <div className="space-y-8">
-                     <div className="space-y-4"><h4 className="text-white font-bold">Disclosure</h4><SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({disclosureTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({disclosureContent: v})} type="textarea" /></div>
-                     <div className="space-y-4 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Privacy Policy</h4><SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({privacyTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.privacyContent} onChange={v => updateTempSettings({privacyContent: v})} type="textarea" /></div>
-                     <div className="space-y-4 border-t border-slate-800 pt-8"><h4 className="text-white font-bold">Terms of Service</h4><SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({termsTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.termsContent} onChange={v => updateTempSettings({termsContent: v})} type="textarea" /></div>
+                  <div className="space-y-8 text-left">
+                     <div className="space-y-4"><h4 className="text-white font-bold text-sm md:text-base">Disclosure</h4><SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({disclosureTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({disclosureContent: v})} type="textarea" /></div>
+                     <div className="space-y-4 border-t border-slate-800 pt-8"><h4 className="text-white font-bold text-sm md:text-base">Privacy Policy</h4><SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({privacyTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.privacyContent} onChange={v => updateTempSettings({privacyContent: v})} type="textarea" /></div>
+                     <div className="space-y-4 border-t border-slate-800 pt-8"><h4 className="text-white font-bold text-sm md:text-base">Terms of Service</h4><SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({termsTitle: v})} /><SettingField label="Markdown Content" value={tempSettings.termsContent} onChange={v => updateTempSettings({termsContent: v})} type="textarea" /></div>
                   </div>
                )}
                {activeEditorSection === 'integrations' && (
-                  <div className="space-y-12">
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <div className="flex justify-between items-center">
-                           <h4 className="text-white font-bold flex items-center gap-3"><Database size={20} className="text-primary"/> Backend Protocol</h4>
-                           <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSupabaseConfigured ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                  <div className="space-y-10 md:space-y-12 text-left">
+                     <div className="p-5 md:p-8 bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] space-y-6">
+                        <div className="flex justify-between items-center gap-4">
+                           <h4 className="text-white font-bold flex items-center gap-3 text-sm md:text-base"><Database size={18} className="text-primary"/> Backend Protocol</h4>
+                           <div className={`px-2.5 py-1 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest flex-shrink-0 ${isSupabaseConfigured ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                               {isSupabaseConfigured ? 'Synchronized' : 'Offline'}
                            </div>
                         </div>
                         <AdminHelpBox title="Supabase Cloud" steps={["Configure VITE_SUPABASE_URL in Vercel", "Configure VITE_SUPABASE_ANON_KEY", "Deployment required for sync"]} />
                      </div>
-                     {/* ... Rest of integration settings ... */}
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <div className="flex items-center justify-between">
-                           <h4 className="text-white font-bold flex items-center gap-3"><Mail size={20} className="text-primary"/> Lead Routing (EmailJS)</h4>
+
+                     <div className="p-5 md:p-8 bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] space-y-6">
+                        <div className="flex items-center justify-between gap-4">
+                           <h4 className="text-white font-bold flex items-center gap-3 text-sm md:text-base"><Mail size={18} className="text-primary"/> Lead Routing (EmailJS)</h4>
                            <button 
                              onClick={() => setShowEmailTemplate(true)}
-                             className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:text-white"
+                             className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5 hover:text-white flex-shrink-0"
                            >
-                              <FileCode size={14} /> Get Template
+                              <FileCode size={12} /> Get Template
                            </button>
                         </div>
-                        <AdminHelpBox title="Setup Guide" steps={["Create Service & Template", "Use variables: {{message}}, {{subject}}, {{to_name}}", "Paste IDs below"]} />
+                        <AdminHelpBox title="Setup Guide" steps={["Connect Lead Inbox", "Use variables like {{message}}", "Copy Keys from EmailJS Portal"]} />
                         <div className="space-y-4">
                            <SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({emailJsServiceId: v})} placeholder="service_xxxxxx" />
                            <SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({emailJsTemplateId: v})} placeholder="template_xxxxxx" />
                            <SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({emailJsPublicKey: v})} placeholder="user_xxxxxxx" />
                         </div>
                      </div>
-                     {/* ... Pixel Settings ... */}
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <h4 className="text-white font-bold flex items-center gap-3"><BarChart size={20} className="text-primary"/> Pixel & Analytics</h4>
+
+                     <div className="p-5 md:p-8 bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] space-y-6">
+                        <h4 className="text-white font-bold flex items-center gap-3 text-sm md:text-base"><BarChart size={18} className="text-primary"/> Pixel & Analytics</h4>
                         <div className="grid gap-4">
                            <SettingField label="Google Analytics 4" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({googleAnalyticsId: v})} placeholder="G-XXXXXXXXXX" />
-                           <SettingField label="Meta (Facebook) Pixel" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({facebookPixelId: v})} placeholder="1234567890" />
+                           <SettingField label="Meta Pixel" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({facebookPixelId: v})} placeholder="1234567890" />
                            <SettingField label="TikTok Pixel" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({tiktokPixelId: v})} placeholder="CXXXXXXXXXXXXXXXXXXX" />
                         </div>
                      </div>
-                     {/* ... Affiliate Settings ... */}
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
-                        <h4 className="text-white font-bold flex items-center gap-3"><Tag size={20} className="text-primary"/> Affiliate Management</h4>
+
+                     <div className="p-5 md:p-8 bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] space-y-6">
+                        <h4 className="text-white font-bold flex items-center gap-3 text-sm md:text-base"><Tag size={18} className="text-primary"/> Affiliate Management</h4>
                         <div className="space-y-4">
                            <SettingField label="Amazon Associate ID" value={tempSettings.amazonAssociateId || ''} onChange={v => updateTempSettings({amazonAssociateId: v})} placeholder="storename-20" />
                            <SettingField label="Lead Webhook URL" value={tempSettings.webhookUrl || ''} onChange={v => updateTempSettings({webhookUrl: v})} placeholder="https://hooks.zapier.com/..." />
@@ -1800,8 +1754,8 @@ const Admin: React.FC = () => {
                )}
             </div>
 
-            <div className="fixed bottom-0 right-0 w-full max-w-2xl p-6 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 flex justify-end gap-4">
-              <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black uppercase text-xs tracking-widest hover:brightness-110 transition-all shadow-lg shadow-primary/20">Save Configuration</button>
+            <div className="fixed bottom-0 right-0 w-full max-w-2xl p-4 md:p-6 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 flex justify-end gap-3 md:gap-4 z-[110]">
+              <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="w-full sm:w-auto px-6 md:px-8 py-3.5 md:py-4 bg-primary text-slate-900 rounded-xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20">Save Configuration</button>
             </div>
           </div>
         </div>
@@ -1810,20 +1764,20 @@ const Admin: React.FC = () => {
       {/* Email Template Modal */}
       {showEmailTemplate && (
          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-           <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden">
-             <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-               <h3 className="text-white font-bold text-lg flex items-center gap-2"><FileCode size={18} className="text-primary"/> EmailJS HTML Template</h3>
-               <button onClick={() => setShowEmailTemplate(false)} className="text-slate-500 hover:text-white"><X size={24}/></button>
+           <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[85vh] md:h-[80vh] rounded-2xl md:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden">
+             <div className="p-4 md:p-6 border-b border-slate-800 flex justify-between items-center">
+               <h3 className="text-white font-bold text-base md:text-lg flex items-center gap-2"><FileCode size={18} className="text-primary"/> EmailJS HTML Template</h3>
+               <button onClick={() => setShowEmailTemplate(false)} className="text-slate-500 hover:text-white"><X size={20}/></button>
              </div>
-             <div className="p-6 overflow-y-auto flex-grow bg-slate-950">
+             <div className="p-4 md:p-6 overflow-y-auto flex-grow bg-slate-950 text-left">
                <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-xl">
-                 <p className="text-primary text-xs font-bold mb-2">IMPORTANT CONFIGURATION:</p>
-                 <ol className="list-decimal list-inside text-slate-400 text-xs space-y-1">
-                   <li>Copy the code below.</li>
-                   <li>Go to your EmailJS Dashboard &rarr; Email Templates &rarr; Select Template.</li>
-                   <li><strong>CRITICAL:</strong> Click the "Source Code" icon ( <span className="font-mono text-white">&lt; &gt;</span> ) in the toolbar.</li>
-                   <li>Paste this code completely, replacing any existing content.</li>
-                   <li>Click "Source Code" again to exit code view, then Save.</li>
+                 <p className="text-primary text-[10px] md:text-xs font-bold mb-2">IMPORTANT CONFIGURATION:</p>
+                 <ol className="list-decimal list-inside text-slate-400 text-[10px] md:text-xs space-y-1">
+                   <li>Copy the code block below.</li>
+                   <li>In EmailJS Dashboard &rarr; Templates &rarr; Edit Template.</li>
+                   <li>Open the "Source Code" (&lt; &gt;) view.</li>
+                   <li>Paste and replace all content.</li>
+                   <li>Save and publish changes.</li>
                  </ol>
                </div>
                <CodeBlock code={EMAIL_TEMPLATE_HTML} language="html" label="Responsive HTML Template" />
