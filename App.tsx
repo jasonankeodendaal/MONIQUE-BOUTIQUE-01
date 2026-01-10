@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -11,8 +10,8 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
-import { INITIAL_SETTINGS } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable, seedDatabase } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, LogOut } from 'lucide-react';
 
@@ -137,7 +136,7 @@ const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, is
       {status === 'error' && <AlertTriangle size={16} className="text-white" />}
       <span className="text-[10px] font-black uppercase tracking-widest">
         {status === 'saving' && 'Syncing Cloud...'}
-        {status === 'migrating' && 'Initializing Data...'}
+        {status === 'migrating' && 'Provisioning DB...'}
         {status === 'saved' && 'Sync Complete'}
         {status === 'error' && 'Sync Failed'}
       </span>
@@ -177,18 +176,20 @@ const App: React.FC = () => {
       if (!isSupabaseConfigured) return;
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        console.log("Security Protocol: Session terminated on refresh.");
-        await supabase.auth.signOut();
-        setUser(null);
+        // Optional: Keep session on refresh or force logout. For security apps, forced logout is safer.
+        // For general apps, keeping session is better UX. 
+        // Commenting out forced signout to allow persistence.
+        // await supabase.auth.signOut();
+        // setUser(null);
       }
     };
     enforceSecurityOnMount();
   }, []);
 
-  // --- SECURITY: 5 MINUTE INACTIVITY TIMER ---
+  // --- SECURITY: 15 MINUTE INACTIVITY TIMER ---
   useEffect(() => {
     if (!user) return;
-    const INACTIVITY_LIMIT = 5 * 60 * 1000;
+    const INACTIVITY_LIMIT = 15 * 60 * 1000;
     let timeoutId: any;
     const resetTimer = () => {
       clearTimeout(timeoutId);
@@ -229,30 +230,69 @@ const App: React.FC = () => {
           fetchTableData('enquiries')
       ]);
 
-      if (settingsRes && settingsRes.length > 0) {
-          setSettings(settingsRes[0]);
-          setIsDatabaseProvisioned(true);
+      // Check if DB is empty (First deployment scenario)
+      if ((!settingsRes || settingsRes.length === 0) && isSupabaseConfigured) {
+          console.log("Empty Database Detected. Initiating Seed Sequence...");
+          setSaveStatus('migrating');
+          await seedDatabase({
+             settings: INITIAL_SETTINGS,
+             products: INITIAL_PRODUCTS,
+             categories: INITIAL_CATEGORIES,
+             subCategories: INITIAL_SUBCATEGORIES,
+             slides: INITIAL_CAROUSEL
+          });
+          
+          // Re-fetch after seeding
+          const [
+             newSettingsRes,
+             newProductsRes,
+             newCatsRes,
+             newSubCatsRes,
+             newSlidesRes
+          ] = await Promise.all([
+             fetchTableData('settings'),
+             fetchTableData('products'),
+             fetchTableData('categories'),
+             fetchTableData('subcategories'),
+             fetchTableData('carousel_slides')
+          ]);
+
+          if (newSettingsRes && newSettingsRes.length > 0) {
+             setSettings(newSettingsRes[0]);
+             setIsDatabaseProvisioned(true);
+          }
+          if (newProductsRes) setProducts(newProductsRes);
+          if (newCatsRes) setCategories(newCatsRes);
+          if (newSubCatsRes) setSubCategories(newSubCatsRes);
+          if (newSlidesRes) setHeroSlides(newSlidesRes);
+          
       } else {
-           // Use default settings strictly for UI rendering if DB is empty but connected
-           // This indicates the user has not run the seed script yet.
-           setSettings(INITIAL_SETTINGS);
-           setIsDatabaseProvisioned(false);
+          // Normal Load
+          if (settingsRes && settingsRes.length > 0) {
+              setSettings(settingsRes[0]);
+              setIsDatabaseProvisioned(true);
+          } else {
+               // Fallback only if fetch worked but table is truly empty after seed attempt failed?
+               // Should not happen if seed works.
+               setSettings(INITIAL_SETTINGS); 
+               setIsDatabaseProvisioned(false);
+          }
+          
+          if (productsRes) setProducts(productsRes);
+          if (catsRes) setCategories(catsRes);
+          if (subCatsRes) setSubCategories(subCatsRes);
+          if (slidesRes) setHeroSlides(slidesRes);
+          if (enquiriesRes) setEnquiries(enquiriesRes);
       }
       
-      if (productsRes) setProducts(productsRes);
-      if (catsRes) setCategories(catsRes);
-      if (subCatsRes) setSubCategories(subCatsRes);
-      if (slidesRes) setHeroSlides(slidesRes);
-      if (enquiriesRes) setEnquiries(enquiriesRes);
-      
       setDataLoaded(true);
+      setSaveStatus('idle');
 
     } catch (e) {
       console.error("Data Sync Critical Failure:", e);
       setSaveStatus('error');
     } finally {
       setDataLoaded(true); 
-      setTimeout(() => setSaveStatus(prev => prev === 'migrating' || prev === 'saved' ? 'idle' : prev), 2500);
     }
   }, []);
 

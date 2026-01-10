@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -15,27 +14,160 @@ if (!supabaseUrl) {
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
 
+export const getSupabaseUrl = () => supabaseUrl;
+
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
   supabaseAnonKey || 'placeholder'
 );
 
+// --- HELPER FUNCTIONS ---
+
+export const fetchTableData = async (table: string) => {
+  if (!isSupabaseConfigured) return null;
+  const { data, error } = await supabase.from(table).select('*');
+  if (error) {
+    console.error(`Error fetching ${table}:`, error);
+    return null;
+  }
+  return data;
+};
+
+export const upsertData = async (table: string, data: any) => {
+  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
+  
+  // Clean data: remove undefined fields to avoid Supabase errors if column doesn't exist or isn't nullable
+  const cleanData = JSON.parse(JSON.stringify(data));
+  
+  return await supabase.from(table).upsert(cleanData);
+};
+
+export const deleteData = async (table: string, id: string) => {
+  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
+  return await supabase.from(table).delete().eq('id', id);
+};
+
+export const uploadMedia = async (file: File) => {
+  if (!isSupabaseConfigured) throw new Error("Storage not configured");
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const filePath = `${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('media')
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage.from('media').getPublicUrl(filePath);
+  
+  return {
+    url: data.publicUrl,
+    name: file.name,
+    type: file.type,
+    size: file.size
+  };
+};
+
+export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
+  if (!isSupabaseConfigured) return null;
+  return supabase
+    .channel(`${table}_changes`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: table }, callback)
+    .subscribe();
+};
+
+export const updateProductStats = async (productId: string, type: 'view' | 'click') => {
+  if (!isSupabaseConfigured) return;
+  
+  // Call RPC or manual upsert. For simplicity, we'll try to get then update, 
+  // but in production, an RPC function `increment_stat` is better for concurrency.
+  // Here we use a simple upsert flow.
+  const { data: current } = await supabase.from('product_stats').select('*').eq('productId', productId).single();
+  
+  const now = Date.now();
+  const stats = current || { productId, views: 0, clicks: 0, totalViewTime: 0, lastUpdated: now };
+  
+  if (type === 'view') stats.views += 1;
+  if (type === 'click') stats.clicks += 1;
+  stats.lastUpdated = now;
+
+  await supabase.from('product_stats').upsert(stats);
+};
+
+export const measureConnection = async () => {
+   if (!isSupabaseConfigured) return { status: 'offline' as const, latency: 0, message: 'Not Configured' };
+   const start = performance.now();
+   const { error } = await supabase.from('settings').select('id').limit(1);
+   const end = performance.now();
+   return {
+      status: error ? 'offline' as const : 'online' as const,
+      latency: Math.round(end - start),
+      message: error ? error.message : 'Connected'
+   };
+};
+
+// --- DATABASE SEEDING ---
+
+export const seedDatabase = async (initialData: {
+  settings: any;
+  products: any[];
+  categories: any[];
+  subCategories: any[];
+  slides: any[];
+}) => {
+  if (!isSupabaseConfigured) return;
+
+  console.log("Creating Seed Data in Supabase...");
+
+  // 1. Settings
+  // Ensure we set the ID to match what App.tsx expects ('global_settings')
+  const settingsWithId = { ...initialData.settings, id: 'global_settings' };
+  await supabase.from('settings').upsert(settingsWithId);
+
+  // 2. Categories
+  if (initialData.categories.length > 0) {
+    await supabase.from('categories').upsert(initialData.categories);
+  }
+
+  // 3. SubCategories
+  if (initialData.subCategories.length > 0) {
+    await supabase.from('subcategories').upsert(initialData.subCategories);
+  }
+
+  // 4. Slides
+  if (initialData.slides.length > 0) {
+    await supabase.from('carousel_slides').upsert(initialData.slides);
+  }
+
+  // 5. Products
+  if (initialData.products.length > 0) {
+    await supabase.from('products').upsert(initialData.products);
+  }
+
+  console.log("Seeding Complete.");
+};
+
+
+// --- SQL SCHEMA FOR ADMIN SQL EDITOR ---
+
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # MASTER CONFIGURATION SCRIPT (FIXED & FULLY LOADED)
+-- # MASTER CONFIGURATION SCRIPT
 -- # Run this in Supabase SQL Editor to provision DB
 -- #####################################################
 
--- 1. CLEANUP (Optional - removes old structure if exists to ensure clean state)
--- Uncomment the next line if you want to wipe everything and start fresh
--- drop table if exists settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs cascade;
+-- 1. ENABLE EXTENSIONS (If needed)
+-- create extension if not exists "uuid-ossp";
 
 -- 2. CREATE TABLES
 
+-- Settings Table
 create table if not exists settings (
   id text primary key,
   "companyName" text, "slogan" text, "companyLogo" text, "companyLogoUrl" text,
-  "primaryColor" text, "secondaryColor" text, "accentColor" text,
+  "primaryColor" text, "secondaryColor" text, "accentColor" text, "backgroundColor" text, "textColor" text,
   "navHomeLabel" text, "navProductsLabel" text, "navAboutLabel" text, "navContactLabel" text, "navDashboardLabel" text,
   "contactEmail" text, "contactPhone" text, "whatsappNumber" text, "address" text,
   "socialLinks" jsonb,
@@ -61,85 +193,58 @@ create table if not exists settings (
   "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text
 );
 
+-- Products Table
 create table if not exists products (
   id text primary key,
   name text, sku text, price numeric, "affiliateLink" text,
   "categoryId" text, "subCategoryId" text, description text,
   features jsonb, specifications jsonb, media jsonb,
-  "discountRules" jsonb, reviews jsonb, "createdAt" bigint,
-  "createdBy" uuid default auth.uid()
+  "discountRules" jsonb, reviews jsonb, "createdAt" bigint, "createdBy" text
 );
 
+-- Categories Table
 create table if not exists categories (
   id text primary key,
   name text, icon text, image text, description text
 );
 
+-- Subcategories Table
 create table if not exists subcategories (
   id text primary key,
   "categoryId" text, name text
 );
 
+-- Carousel/Hero Table
 create table if not exists carousel_slides (
   id text primary key,
   image text, type text, title text, subtitle text, cta text
 );
 
+-- Enquiries Table
 create table if not exists enquiries (
   id text primary key,
   name text, email text, whatsapp text, subject text, message text, "createdAt" bigint, status text
 );
 
+-- Admin Users Table (Links to Supabase Auth)
 create table if not exists admin_users (
-  id uuid references auth.users on delete cascade primary key,
-  name text, 
-  email text, 
-  role text default 'admin', 
-  permissions jsonb default '[]', 
-  password text, -- legacy field, optional
-  "createdAt" bigint, 
-  "lastActive" bigint, 
-  "profileImage" text, 
-  phone text, 
-  address text
+  id text primary key,
+  name text, email text, role text, permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text
 );
 
+-- Stats Table
 create table if not exists product_stats (
   "productId" text primary key,
-  views numeric default 0, clicks numeric default 0, "totalViewTime" numeric default 0, "lastUpdated" bigint
+  views numeric, clicks numeric, "totalViewTime" numeric, "lastUpdated" bigint
 );
 
+-- Traffic Logs
 create table if not exists traffic_logs (
   id text primary key,
   type text, text text, time text, timestamp bigint
 );
 
--- 3. SECURITY DEFINER FUNCTIONS (Prevents Recursion in Policies)
-
--- Helper to check if current user is owner without recursion
-create or replace function public.is_owner()
-returns boolean as $$
-begin
-  return exists (
-    select 1 from public.admin_users
-    where id = auth.uid() and role = 'owner'
-  );
-end;
-$$ language plpgsql security definer;
-
--- Helper to check if current user is admin/owner
-create or replace function public.is_admin_or_owner()
-returns boolean as $$
-begin
-  return exists (
-    select 1 from public.admin_users
-    where id = auth.uid()
-  );
-end;
-$$ language plpgsql security definer;
-
--- 4. ENABLE ROW LEVEL SECURITY
-
+-- 3. ENABLE RLS (Row Level Security)
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -150,233 +255,57 @@ alter table admin_users enable row level security;
 alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
--- 5. POLICIES (Access Control)
+-- 4. CREATE POLICIES
 
--- Settings (Public Read, Admin Write)
-drop policy if exists "Settings Public Read" on settings;
-create policy "Settings Public Read" on settings for select using (true);
+-- Settings: Public Read, Admin Write
+create policy "Public Settings Read" on settings for select using (true);
+create policy "Admin Settings Write" on settings for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Settings Admin Write" on settings;
-create policy "Settings Admin Write" on settings for all using (auth.role() = 'authenticated');
+-- Products: Public Read, Admin Write
+create policy "Public Products Read" on products for select using (true);
+create policy "Admin Products Write" on products for all using (auth.role() = 'authenticated');
 
--- Products (Public Read, Admin Write)
-drop policy if exists "Products Public Read" on products;
-create policy "Products Public Read" on products for select using (true);
+-- Categories: Public Read, Admin Write
+create policy "Public Categories Read" on categories for select using (true);
+create policy "Admin Categories Write" on categories for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Products Admin Write" on products;
-create policy "Products Admin Write" on products for all using (auth.role() = 'authenticated');
+-- Subcategories: Public Read, Admin Write
+create policy "Public Subcategories Read" on subcategories for select using (true);
+create policy "Admin Subcategories Write" on subcategories for all using (auth.role() = 'authenticated');
 
--- Categories/Sub/Slides (Public Read, Admin Write)
-drop policy if exists "Categories Public Read" on categories;
-create policy "Categories Public Read" on categories for select using (true);
+-- Slides: Public Read, Admin Write
+create policy "Public Slides Read" on carousel_slides for select using (true);
+create policy "Admin Slides Write" on carousel_slides for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Categories Admin Write" on categories;
-create policy "Categories Admin Write" on categories for all using (auth.role() = 'authenticated');
+-- Enquiries: Public Insert, Admin Read/Write
+create policy "Public Enquiries Insert" on enquiries for insert with check (true);
+create policy "Admin Enquiries All" on enquiries for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Subcategories Public Read" on subcategories;
-create policy "Subcategories Public Read" on subcategories for select using (true);
+-- Admin Users: Authenticated Read/Write
+-- Allows admins to see other admins and manage them.
+create policy "Admin Users Access" on admin_users for all using (auth.role() = 'authenticated');
 
-drop policy if exists "Subcategories Admin Write" on subcategories;
-create policy "Subcategories Admin Write" on subcategories for all using (auth.role() = 'authenticated');
+-- Product Stats: Public Read/Write (for analytics increment)
+-- In production, restrict Write to RPC functions, but for simplicity here we allow public update.
+create policy "Public Stats Read" on product_stats for select using (true);
+create policy "Public Stats Update" on product_stats for all using (true);
 
-drop policy if exists "Slides Public Read" on carousel_slides;
-create policy "Slides Public Read" on carousel_slides for select using (true);
+-- Traffic Logs: Public Insert, Admin Read
+create policy "Public Logs Insert" on traffic_logs for insert with check (true);
+create policy "Admin Logs Read" on traffic_logs for select using (auth.role() = 'authenticated');
 
-drop policy if exists "Slides Admin Write" on carousel_slides;
-create policy "Slides Admin Write" on carousel_slides for all using (auth.role() = 'authenticated');
-
--- Enquiries (Public Insert, Admin Manage)
-drop policy if exists "Enquiries Public Insert" on enquiries;
-create policy "Enquiries Public Insert" on enquiries for insert with check (true);
-
-drop policy if exists "Enquiries Admin Manage" on enquiries;
-create policy "Enquiries Admin Manage" on enquiries for all using (auth.role() = 'authenticated');
-
--- Admin Users (CRITICAL - FIXED RECURSION)
-drop policy if exists "Read Self" on admin_users;
-create policy "Read Self" on admin_users for select using (auth.uid() = id);
-
-drop policy if exists "Update Self" on admin_users;
-create policy "Update Self" on admin_users for update using (auth.uid() = id);
-
-drop policy if exists "Insert Self" on admin_users;
-create policy "Insert Self" on admin_users for insert with check (auth.uid() = id);
-
-drop policy if exists "Owner Manage All" on admin_users;
-create policy "Owner Manage All" on admin_users for all using ( public.is_owner() );
-
--- Stats/Logs
-drop policy if exists "Stats Read" on product_stats;
-create policy "Stats Read" on product_stats for select using (true);
-
-drop policy if exists "Stats Public Update" on product_stats;
-create policy "Stats Public Update" on product_stats for all using (true);
-
-drop policy if exists "Logs Public Insert" on traffic_logs;
-create policy "Logs Public Insert" on traffic_logs for insert with check (true);
-
-drop policy if exists "Logs Admin Read" on traffic_logs;
-create policy "Logs Admin Read" on traffic_logs for select using (auth.role() = 'authenticated');
-
--- 6. STORAGE
+-- 5. STORAGE BUCKETS
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
 
 drop policy if exists "Public Access" on storage.objects;
-create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
+create policy "Public Access" 
+on storage.objects for select 
+using ( bucket_id = 'media' );
 
-drop policy if exists "Auth Upload" on storage.objects;
-create policy "Auth Upload" on storage.objects for insert with check ( bucket_id = 'media' and auth.role() = 'authenticated' );
-
-drop policy if exists "Auth Update" on storage.objects;
-create policy "Auth Update" on storage.objects for update using ( bucket_id = 'media' and auth.role() = 'authenticated' );
-
-drop policy if exists "Auth Delete" on storage.objects;
-create policy "Auth Delete" on storage.objects for delete using ( bucket_id = 'media' and auth.role() = 'authenticated' );
-
--- 7. REALTIME
-alter publication supabase_realtime add table settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs;
-
--- 8. TRIGGERS (Auto-Create Public Profile for Admin)
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.admin_users (id, email, name, role, permissions, "createdAt")
-  values (
-    new.id, 
-    new.email, 
-    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    'owner', -- First users default to owner for safety in this template
-    '["*"]'::jsonb,
-    extract(epoch from now()) * 1000
-  )
-  on conflict (id) do nothing; -- Prevents 409 errors
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- Re-create trigger
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
-
--- 9. SEED DATA (Bootstrap the application)
--- Only inserts if table is empty
-
-INSERT INTO settings (id, "companyName", "primaryColor", "secondaryColor", "accentColor", "backgroundColor", "textColor", "navHomeLabel", "navProductsLabel", "navAboutLabel", "navContactLabel", "navDashboardLabel", "contactEmail", "contactPhone", "whatsappNumber", "address", "footerDescription", "footerCopyrightText", "homeHeroBadge", "homeAboutTitle", "homeAboutDescription", "homeAboutCta", "homeCategorySectionTitle", "homeTrustSectionTitle", "productsHeroTitle", "productsHeroSubtitle", "aboutHeroTitle", "aboutHeroSubtitle", "contactHeroTitle", "contactHeroSubtitle", "disclosureTitle", "privacyTitle", "termsTitle", "productsSearchPlaceholder", "contactFormButtonText", "contactFormNameLabel", "contactFormEmailLabel", "contactFormSubjectLabel", "contactFormMessageLabel")
-VALUES (
-  'global_settings',
-  'Kasi Couture', '#D4AF37', '#1E293B', '#F59E0B', '#FDFCFB', '#0f172a',
-  'Home', 'My Picks', 'My Story', 'Ask Me', 'Portal',
-  'hello@kasicouture.com', '+27 11 900 2000', '+27119002000', 'Melrose Arch, Johannesburg',
-  'This isn''t just a store. It''s a collection of the things I love.', 'All rights reserved.',
-  'Curated by Kasi', 'Hi, I’m the Curator.', 'For years, I struggled to find fashion that balanced authentic African heritage with modern luxury. This website is the result of that journey.', 'Read My Full Story',
-  'Curated Categories', 'Why I Chose These',
-  'The Edit', 'A hand-picked selection of essentials that define the Kasi Couture aesthetic.',
-  'From Passion to Platform.', 'Kasi Couture is my personal curation platform.',
-  'Let''s Connect.', 'Have a question about a specific piece or just want to say hi?',
-  'Affiliate Disclosure', 'Privacy Policy', 'Terms of Service',
-  'Find something special...', 'Send Message', 'Your Name', 'Your Email', 'Subject', 'Message'
-)
-ON CONFLICT (id) DO NOTHING;
+drop policy if exists "Admin Control" on storage.objects;
+create policy "Admin Control" 
+on storage.objects for all 
+using ( auth.role() = 'authenticated' );
 `;
-
-export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
-  if (!isSupabaseConfigured) return null;
-  return supabase
-    .channel(`${table}_changes`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: table }, callback)
-    .subscribe();
-};
-
-export async function upsertData(table: string, data: any) {
-  if (!isSupabaseConfigured) return { data: null, error: { message: 'Supabase not configured' } };
-  try {
-    const { data: result, error } = await supabase.from(table).upsert(data).select();
-    if (error) throw error;
-    return { data: result, error: null };
-  } catch (e: any) {
-      return { data: null, error: e };
-  }
-}
-
-export async function deleteData(table: string, id: string) {
-  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
-  try {
-      const { error } = await supabase.from(table).delete().eq('id', id);
-      if (error) throw error;
-      return { error: null };
-  } catch (e: any) {
-      return { error: e };
-  }
-}
-
-export async function fetchTableData(table: string): Promise<any[] | null> {
-  if (!isSupabaseConfigured) return null;
-  try {
-      const { data, error } = await supabase.from(table).select('*');
-      if (error) return null;
-      return data || [];
-  } catch (e) {
-      return null;
-  }
-}
-
-export async function updateProductStats(productId: string, type: 'view' | 'click', timeSpent = 0) {
-  if (!isSupabaseConfigured) return;
-  try {
-    const { data: current } = await supabase.from('product_stats').select('*').eq('productId', productId).single();
-    const now = Date.now();
-    const newStats = {
-      productId,
-      views: (current?.views || 0) + (type === 'view' ? 1 : 0),
-      clicks: (current?.clicks || 0) + (type === 'click' ? 1 : 0),
-      totalViewTime: (current?.totalViewTime || 0) + timeSpent,
-      lastUpdated: now
-    };
-    await supabase.from('product_stats').upsert(newStats);
-  } catch (err) {
-    console.error("Error updating stats", err);
-  }
-}
-
-export interface UploadResult {
-  url: string;
-  type: string;
-  name: string;
-  size: number;
-}
-
-export async function uploadMedia(file: File, bucket = 'media'): Promise<UploadResult> {
-  const fallbackUrl = URL.createObjectURL(file);
-  if (!isSupabaseConfigured) return { url: fallbackUrl, type: file.type, name: file.name, size: file.size };
-
-  try {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-    const { error } = await supabase.storage.from(bucket).upload(fileName, file);
-    if (error) throw error;
-    const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
-    return { url: publicUrl.publicUrl, type: file.type, name: file.name, size: file.size };
-  } catch (e) {
-      return { url: fallbackUrl, type: file.type, name: file.name, size: file.size };
-  }
-}
-
-export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
-  if (!isSupabaseConfigured) return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
-  const start = performance.now();
-  try {
-    // Lightweight check
-    const { error } = await supabase.from('settings').select('id').limit(1);
-    const end = performance.now();
-    if (error) throw error;
-    return { status: 'online', latency: Math.round(end - start), message: 'Supabase Sync Active' };
-  } catch (err: any) {
-    return { status: 'offline', latency: 0, message: err.message || 'Connection Failed' };
-  }
-}
-
-export const getSupabaseUrl = () => supabaseUrl;
