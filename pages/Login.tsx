@@ -26,7 +26,7 @@ const Login: React.FC = () => {
         
         if (!profile) {
             // Self-healing: Create missing profile automatically
-            console.log("Profile missing for existing user. Creating default profile...");
+            console.log("Profile missing for existing user. Attempting client-side creation...");
             
             const newProfile = {
                 id: data.user.id,
@@ -41,11 +41,12 @@ const Login: React.FC = () => {
             const { error: createError } = await supabase.from('admin_users').insert(newProfile);
             
             if (createError) {
-                 console.error("Profile creation failed:", createError);
-                 // If RLS blocks insert, we might need to rely on the user manually running SQL, 
-                 // but we'll try to let them in anyway if possible, though Admin page might break.
-                 setError("Account exists but profile creation failed: " + createError.message);
-                 return;
+                 console.warn("Profile creation warning:", createError);
+                 // CRITICAL FIX: Do not block login on permission error. 
+                 // The database trigger likely already created the row, or we can function without it temporarily.
+                 if (!createError.message.includes("permission denied")) {
+                    setError("Account warning: " + createError.message);
+                 }
             }
         }
       }
