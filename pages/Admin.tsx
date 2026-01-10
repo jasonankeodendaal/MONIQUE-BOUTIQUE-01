@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -50,136 +49,48 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
 );
 
 /**
- * Traffic Area Chart component
+ * Traffic Area Chart component (Unchanged)
  */
 const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   const [regions, setRegions] = useState<{ name: string; traffic: number; status: string; count: number }[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
-
   const aggregatedProductViews = useMemo(() => stats?.reduce((acc, s) => acc + s.views, 0) || 0, [stats]);
-
   useEffect(() => {
     const loadGeoData = () => {
       const rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-      
-      if (rawData.length === 0) {
-        setRegions([]);
-        setTotalTraffic(0);
-        return;
-      }
-
+      if (rawData.length === 0) { setRegions([]); setTotalTraffic(0); return; }
       setTotalTraffic(rawData.length);
-
       const counts: Record<string, number> = {};
-      rawData.forEach((entry: any) => {
-        const label = (entry.region && entry.code) 
-          ? `${entry.region}, ${entry.code}` 
-          : (entry.country || 'Unknown Location');
-        
-        counts[label] = (counts[label] || 0) + 1;
-      });
-
+      rawData.forEach((entry: any) => { const label = (entry.region && entry.code) ? `${entry.region}, ${entry.code}` : (entry.country || 'Unknown Location'); counts[label] = (counts[label] || 0) + 1; });
       const total = rawData.length;
-      const sortedRegions = Object.entries(counts)
-        .map(([name, count]) => {
-          const percentage = Math.round((count / total) * 100);
-          
-          let status = 'Stable';
-          if (percentage >= 50) status = 'Dominant';
-          else if (percentage >= 30) status = 'Peak';
-          else if (percentage >= 15) status = 'Rising';
-          else if (percentage >= 5) status = 'Active';
-          else status = 'Minimal';
-
-          return { name, traffic: percentage, status, count };
-        })
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 6);
-
+      const sortedRegions = Object.entries(counts).map(([name, count]) => { const percentage = Math.round((count / total) * 100); let status = 'Stable'; if (percentage >= 50) status = 'Dominant'; else if (percentage >= 30) status = 'Peak'; else if (percentage >= 15) status = 'Rising'; else if (percentage >= 5) status = 'Active'; else status = 'Minimal'; return { name, traffic: percentage, status, count }; }).sort((a, b) => b.count - a.count).slice(0, 6);
       setRegions(sortedRegions);
     };
-
     loadGeoData();
     const interval = setInterval(loadGeoData, 5000);
     return () => clearInterval(interval);
   }, []);
-
   return (
     <div className="relative w-full min-h-[350px] md:min-h-[400px] bg-slate-900 rounded-2xl md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group p-6 md:p-10">
-      <div className="absolute inset-0 opacity-5 pointer-events-none" 
-           style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
-      </div>
-
+      <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex justify-between items-start mb-8 md:mb-12">
-          <div className="text-left">
-            <div className="flex items-center gap-2 md:gap-3 mb-1">
-              <div className="w-2 md:w-2.5 h-2 md:h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(var(--primary-rgb),0.8)]"></div>
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Geographic Distribution</span>
-            </div>
-            <h3 className="text-xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Area <span className="text-primary">Traffic</span></h3>
-          </div>
-          <div className="text-right bg-white/5 border border-white/10 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl hidden sm:block">
-             <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">Live Ingress</span>
-             <span className="text-sm md:text-xl font-bold text-white flex items-center gap-2">
-                <Globe size={14} className="text-primary"/> 100% Real-Time
-             </span>
-          </div>
+          <div className="text-left"><div className="flex items-center gap-2 md:gap-3 mb-1"><div className="w-2 md:w-2.5 h-2 md:h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(var(--primary-rgb),0.8)]"></div><span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Geographic Distribution</span></div><h3 className="text-xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Area <span className="text-primary">Traffic</span></h3></div>
+          <div className="text-right bg-white/5 border border-white/10 px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl hidden sm:block"><span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">Live Ingress</span><span className="text-sm md:text-xl font-bold text-white flex items-center gap-2"><Globe size={14} className="text-primary"/> 100% Real-Time</span></div>
         </div>
-
         <div className="space-y-6 md:space-y-8 flex-grow">
-          {regions.length > 0 ? regions.map((region, idx) => (
-            <div key={idx} className="space-y-2 md:space-y-3">
-              <div className="flex justify-between items-end">
-                <div className="flex items-center gap-3 md:gap-4">
-                  <span className="text-slate-600 font-serif font-bold text-base md:text-lg italic">0{idx + 1}</span>
-                  <div>
-                    <h4 className="text-white font-bold text-xs md:text-sm tracking-wide uppercase">{region.name}</h4>
-                    <span className="text-[8px] md:text-[9px] font-black text-primary/60 uppercase tracking-widest">{region.status}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-white font-black text-base md:text-lg">{region.traffic}%</span>
-                </div>
-              </div>
-              <div className="h-1.5 md:h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
-                <div 
-                  className="h-full bg-gradient-to-r from-primary/40 via-primary to-primary rounded-full transition-all duration-[2000ms] ease-out shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]" 
-                  style={{ width: `${region.traffic}%`, transitionDelay: `${idx * 200}ms` }}
-                />
-              </div>
-            </div>
-          )) : (
-            <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center opacity-50">
-              <Globe size={32} className="text-slate-600 mb-4" />
-              <h4 className="text-white font-bold uppercase tracking-widest text-xs">Awaiting Signal</h4>
-              <p className="text-slate-500 text-[10px] mt-2 max-w-xs px-4">Visit the public site to generate the first geographic traffic data points.</p>
-            </div>
-          )}
+          {regions.length > 0 ? regions.map((region, idx) => (<div key={idx} className="space-y-2 md:space-y-3"><div className="flex justify-between items-end"><div className="flex items-center gap-3 md:gap-4"><span className="text-slate-600 font-serif font-bold text-base md:text-lg italic">0{idx + 1}</span><div><h4 className="text-white font-bold text-xs md:text-sm tracking-wide uppercase">{region.name}</h4><span className="text-[8px] md:text-[9px] font-black text-primary/60 uppercase tracking-widest">{region.status}</span></div></div><div className="text-right"><span className="text-white font-black text-base md:text-lg">{region.traffic}%</span></div></div><div className="h-1.5 md:h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5"><div className="h-full bg-gradient-to-r from-primary/40 via-primary to-primary rounded-full transition-all duration-[2000ms] ease-out shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]" style={{ width: `${region.traffic}%`, transitionDelay: `${idx * 200}ms` }}/></div></div>)) : (<div className="flex flex-col items-center justify-center py-8 md:py-12 text-center opacity-50"><Globe size={32} className="text-slate-600 mb-4" /><h4 className="text-white font-bold uppercase tracking-widest text-xs">Awaiting Signal</h4><p className="text-slate-500 text-[10px] mt-2 max-w-xs px-4">Visit the public site to generate the first geographic traffic data points.</p></div>)}
         </div>
-
         <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="flex gap-6 md:gap-10">
-              <div className="text-left">
-                 <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Visitors</span>
-                 <span className="text-lg md:text-2xl font-bold text-white">{totalTraffic.toLocaleString()}</span>
-              </div>
-              <div className="text-left border-l border-white/5 pl-6 md:pl-10">
-                 <span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Page Impressions</span>
-                 <span className="text-lg md:text-2xl font-bold text-primary">{aggregatedProductViews.toLocaleString()}</span>
-              </div>
-           </div>
-           <div className="flex items-center gap-2 md:gap-3 bg-primary/10 border border-primary/20 px-4 md:px-6 py-2 md:py-3 rounded-full">
-              <Activity size={12} className="text-primary animate-pulse"/>
-              <span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-widest">Sync Active</span>
-           </div>
+           <div className="flex gap-6 md:gap-10"><div className="text-left"><span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Visitors</span><span className="text-lg md:text-2xl font-bold text-white">{totalTraffic.toLocaleString()}</span></div><div className="text-left border-l border-white/5 pl-6 md:pl-10"><span className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Page Impressions</span><span className="text-lg md:text-2xl font-bold text-primary">{aggregatedProductViews.toLocaleString()}</span></div></div>
+           <div className="flex items-center gap-2 md:gap-3 bg-primary/10 border border-primary/20 px-4 md:px-6 py-2 md:py-3 rounded-full"><Activity size={12} className="text-primary animate-pulse"/><span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-widest">Sync Active</span></div>
         </div>
       </div>
     </div>
   );
 };
 
-// --- Detailed Analytics View Component ---
+// --- Detailed Analytics View Component (Unchanged) ---
 interface AnalyticsViewProps {
   products: Product[];
   stats: ProductStats[];
@@ -190,7 +101,6 @@ interface AnalyticsViewProps {
 
 const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categories, trafficEvents, onEditProduct }) => {
   const [sortField, setSortField] = useState<'views' | 'clicks' | 'ctr'>('clicks');
-
   const enrichedProducts = useMemo(() => {
     return products.map(p => {
       const stat = stats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, lastUpdated: 0 };
@@ -199,16 +109,13 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
       return { ...p, ...stat, ctr, avgTime };
     });
   }, [products, stats]);
-
   const sortedProducts = useMemo(() => {
     return [...enrichedProducts].sort((a, b) => b[sortField] - a[sortField]);
   }, [enrichedProducts, sortField]);
-
   const totalViews = enrichedProducts.reduce((acc, p) => acc + p.views, 0);
   const totalClicks = enrichedProducts.reduce((acc, p) => acc + p.clicks, 0);
   const globalCtr = totalViews > 0 ? (totalClicks / totalViews) * 100 : 0;
   const totalTime = enrichedProducts.reduce((acc, p) => acc + p.totalViewTime, 0);
-
   const categoryPerformance = useMemo(() => {
     return categories.map(cat => {
       const catProducts = enrichedProducts.filter(p => p.categoryId === cat.id);
@@ -217,237 +124,53 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ products, stats, categori
       return { ...cat, views: catViews, clicks: catClicks };
     }).sort((a, b) => b.views - a.views);
   }, [categories, enrichedProducts]);
-
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-           <div className="space-y-1 md:space-y-2 text-left">
-              <h2 className="text-2xl md:text-3xl font-serif text-white">Intelligence Hub</h2>
-              <p className="text-slate-400 text-xs md:text-sm">Deep dive into product performance and user behavior.</p>
-           </div>
-           <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-2 px-4">
-              <Calendar size={14} className="text-slate-400" />
-              <span className="text-[10px] md:text-xs font-bold text-slate-300">Last 30 Days</span>
-           </div>
+           <div className="space-y-1 md:space-y-2 text-left"><h2 className="text-2xl md:text-3xl font-serif text-white">Intelligence Hub</h2><p className="text-slate-400 text-xs md:text-sm">Deep dive into product performance and user behavior.</p></div>
+           <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-2 px-4"><Calendar size={14} className="text-slate-400" /><span className="text-[10px] md:text-xs font-bold text-slate-300">Last 30 Days</span></div>
         </div>
-
-        {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {[
-              { label: 'Total Impressions', value: totalViews.toLocaleString(), icon: Eye, color: 'blue', width: '3/4' },
-              { label: 'Outbound Clicks', value: totalClicks.toLocaleString(), icon: MousePointer2, color: 'primary', width: '1/2' },
-              { label: 'Global CTR', value: `${globalCtr.toFixed(2)}%`, icon: Target, color: 'green', sub: '+2.4%' },
-              { label: 'Total Time', value: `${(totalTime / 60).toFixed(0)}m`, icon: Clock, color: 'purple', width: '2/3' }
-            ].map((kpi, i) => (
+            {[{ label: 'Total Impressions', value: totalViews.toLocaleString(), icon: Eye, color: 'blue', width: '3/4' }, { label: 'Outbound Clicks', value: totalClicks.toLocaleString(), icon: MousePointer2, color: 'primary', width: '1/2' }, { label: 'Global CTR', value: `${globalCtr.toFixed(2)}%`, icon: Target, color: 'green', sub: '+2.4%' }, { label: 'Total Time', value: `${(totalTime / 60).toFixed(0)}m`, icon: Clock, color: 'purple', width: '2/3' }].map((kpi, i) => (
               <div key={i} className="bg-slate-900 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-800 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-3 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <kpi.icon size={32} className={kpi.color === 'primary' ? 'text-primary' : `text-${kpi.color}-500`} />
-                  </div>
-                  <div className="relative z-10 text-left">
-                      <span className="text-[8px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">{kpi.label}</span>
-                      <div className="flex items-baseline gap-1 md:gap-2 mt-1 md:mt-2">
-                          <span className="text-xl md:text-3xl font-bold text-white">{kpi.value}</span>
-                          {kpi.sub && <span className="text-[8px] md:text-[10px] font-bold text-green-500 flex items-center bg-green-500/10 px-1 py-0.5 rounded">{kpi.sub}</span>}
-                      </div>
-                  </div>
-                  <div className="w-full bg-slate-800 h-1 mt-3 md:mt-4 rounded-full overflow-hidden">
-                      <div className={`h-full bg-${kpi.color === 'primary' ? 'primary' : kpi.color + '-500'}`} style={{ width: kpi.width || '100%' }}></div>
-                  </div>
+                  <div className="absolute top-0 right-0 p-3 md:p-4 opacity-10 group-hover:opacity-20 transition-opacity"><kpi.icon size={32} className={kpi.color === 'primary' ? 'text-primary' : `text-${kpi.color}-500`} /></div>
+                  <div className="relative z-10 text-left"><span className="text-[8px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">{kpi.label}</span><div className="flex items-baseline gap-1 md:gap-2 mt-1 md:mt-2"><span className="text-xl md:text-3xl font-bold text-white">{kpi.value}</span>{kpi.sub && <span className="text-[8px] md:text-[10px] font-bold text-green-500 flex items-center bg-green-500/10 px-1 py-0.5 rounded">{kpi.sub}</span>}</div></div>
+                  <div className="w-full bg-slate-800 h-1 mt-3 md:mt-4 rounded-full overflow-hidden"><div className={`h-full bg-${kpi.color === 'primary' ? 'primary' : kpi.color + '-500'}`} style={{ width: kpi.width || '100%' }}></div></div>
               </div>
             ))}
         </div>
-
-        {/* Charts Section */}
         <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-            {/* Main Table Area */}
             <div className="lg:col-span-2 bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-5 md:p-8 flex flex-col h-[500px] md:h-[600px]">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                     <h3 className="text-white font-bold text-lg md:text-xl flex items-center gap-3">
-                        <ListOrdered className="text-primary" size={18} />
-                        Top Performing Products
-                     </h3>
-                     <div className="flex bg-slate-800 rounded-lg p-1 overflow-x-auto max-w-full">
-                        {(['views', 'clicks', 'ctr'] as const).map(f => (
-                            <button 
-                                key={f}
-                                onClick={() => setSortField(f)}
-                                className={`px-3 md:px-4 py-1.5 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${sortField === f ? 'bg-primary text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                {f}
-                            </button>
-                        ))}
-                     </div>
-                </div>
-
-                <div className="overflow-x-auto flex-grow custom-scrollbar">
-                    <table className="w-full text-left border-collapse min-w-[500px]">
-                        <thead>
-                            <tr className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
-                                <th className="pb-4 pl-2 md:pl-4">Product</th>
-                                <th className="pb-4 text-center">Price</th>
-                                <th className="pb-4 text-center">Views</th>
-                                <th className="pb-4 text-center">Clicks</th>
-                                <th className="pb-4 text-center">CTR</th>
-                                <th className="pb-4 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedProducts.map((p, idx) => (
-                                <tr key={p.id} className="group border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                                    <td className="py-3 md:py-4 pl-2 md:pl-4">
-                                        <div className="flex items-center gap-3 md:gap-4">
-                                            <span className="text-slate-600 font-serif italic w-4 md:w-6 text-center text-xs">{idx + 1}</span>
-                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-slate-800 overflow-hidden border border-slate-700 flex-shrink-0">
-                                                <img src={p.media?.[0]?.url} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-white text-xs md:text-sm font-bold truncate max-w-[120px] md:max-w-[180px]">{p.name}</p>
-                                                <p className="text-slate-500 text-[8px] md:text-[10px] uppercase font-bold">{categories.find(c => c.id === p.categoryId)?.name}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-3 md:py-4 text-center text-slate-400 text-[10px] md:text-xs font-mono">R {p.price}</td>
-                                    <td className="py-3 md:py-4 text-center">
-                                        <span className="text-white text-xs md:text-sm font-bold">{p.views}</span>
-                                        <div className="w-12 md:w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden">
-                                            <div className="h-full bg-blue-500" style={{ width: `${Math.min((p.views / (sortedProducts[0].views || 1)) * 100, 100)}%` }}></div>
-                                        </div>
-                                    </td>
-                                    <td className="py-3 md:py-4 text-center">
-                                        <span className="text-primary text-xs md:text-sm font-bold">{p.clicks}</span>
-                                         <div className="w-12 md:w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden">
-                                            <div className="h-full bg-primary" style={{ width: `${Math.min((p.clicks / (sortedProducts[0].clicks || 1)) * 100, 100)}%` }}></div>
-                                        </div>
-                                    </td>
-                                    <td className="py-3 md:py-4 text-center">
-                                        <span className={`text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded ${p.ctr > 5 ? 'bg-green-500/20 text-green-500' : p.ctr > 2 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-slate-800 text-slate-400'}`}>
-                                            {p.ctr.toFixed(1)}%
-                                        </span>
-                                    </td>
-                                    <td className="py-3 md:py-4 text-center">
-                                        <button onClick={() => onEditProduct(p)} className="p-1.5 md:p-2 bg-slate-800 text-slate-400 rounded-lg hover:text-white transition-colors">
-                                            <Edit2 size={12} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"><h3 className="text-white font-bold text-lg md:text-xl flex items-center gap-3"><ListOrdered className="text-primary" size={18} /> Top Performing Products</h3><div className="flex bg-slate-800 rounded-lg p-1 overflow-x-auto max-w-full">{(['views', 'clicks', 'ctr'] as const).map(f => (<button key={f} onClick={() => setSortField(f)} className={`px-3 md:px-4 py-1.5 rounded-md text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${sortField === f ? 'bg-primary text-slate-900 shadow-sm' : 'text-slate-400 hover:text-white'}`}>{f}</button>))}</div></div>
+                <div className="overflow-x-auto flex-grow custom-scrollbar"><table className="w-full text-left border-collapse min-w-[500px]"><thead><tr className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800 sticky top-0 bg-slate-900 z-10"><th className="pb-4 pl-2 md:pl-4">Product</th><th className="pb-4 text-center">Price</th><th className="pb-4 text-center">Views</th><th className="pb-4 text-center">Clicks</th><th className="pb-4 text-center">CTR</th><th className="pb-4 text-center">Action</th></tr></thead><tbody>{sortedProducts.map((p, idx) => (<tr key={p.id} className="group border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors"><td className="py-3 md:py-4 pl-2 md:pl-4"><div className="flex items-center gap-3 md:gap-4"><span className="text-slate-600 font-serif italic w-4 md:w-6 text-center text-xs">{idx + 1}</span><div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-slate-800 overflow-hidden border border-slate-700 flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><p className="text-white text-xs md:text-sm font-bold truncate max-w-[120px] md:max-w-[180px]">{p.name}</p><p className="text-slate-500 text-[8px] md:text-[10px] uppercase font-bold">{categories.find(c => c.id === p.categoryId)?.name}</p></div></div></td><td className="py-3 md:py-4 text-center text-slate-400 text-[10px] md:text-xs font-mono">R {p.price}</td><td className="py-3 md:py-4 text-center"><span className="text-white text-xs md:text-sm font-bold">{p.views}</span><div className="w-12 md:w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden"><div className="h-full bg-blue-500" style={{ width: `${Math.min((p.views / (sortedProducts[0].views || 1)) * 100, 100)}%` }}></div></div></td><td className="py-3 md:py-4 text-center"><span className="text-primary text-xs md:text-sm font-bold">{p.clicks}</span><div className="w-12 md:w-16 h-1 bg-slate-800 rounded-full mx-auto mt-1 overflow-hidden"><div className="h-full bg-primary" style={{ width: `${Math.min((p.clicks / (sortedProducts[0].clicks || 1)) * 100, 100)}%` }}></div></div></td><td className="py-3 md:py-4 text-center"><span className={`text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded ${p.ctr > 5 ? 'bg-green-500/20 text-green-500' : p.ctr > 2 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-slate-800 text-slate-400'}`}>{p.ctr.toFixed(1)}%</span></td><td className="py-3 md:py-4 text-center"><button onClick={() => onEditProduct(p)} className="p-1.5 md:p-2 bg-slate-800 text-slate-400 rounded-lg hover:text-white transition-colors"><Edit2 size={12} /></button></td></tr>))}</tbody></table></div>
             </div>
-
-            {/* Right Column: Category & Traffic */}
             <div className="flex flex-col gap-6 md:gap-8">
-                 {/* Category Distribution */}
-                <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 flex-1">
-                     <h3 className="text-white font-bold text-base md:text-lg mb-6 flex items-center gap-3">
-                        <PieChart className="text-purple-500" size={18} /> Category Share
-                     </h3>
-                     <div className="space-y-5 md:space-y-6 text-left">
-                        {categoryPerformance.map((c, i) => (
-                            <div key={c.id}>
-                                <div className="flex justify-between items-end mb-1.5">
-                                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wide">{c.name}</span>
-                                    <span className="text-white text-[10px] font-bold">{((c.views / (totalViews || 1)) * 100).toFixed(0)}%</span>
-                                </div>
-                                <div className="w-full bg-slate-800 h-1.5 md:h-2 rounded-full overflow-hidden flex">
-                                    <div className="h-full bg-purple-500" style={{ width: `${(c.views / (totalViews || 1)) * 100}%`, opacity: 1 - (i * 0.15) }}></div>
-                                </div>
-                                <div className="mt-1 flex justify-between text-[8px] md:text-[9px] text-slate-600 font-mono">
-                                   <span>{c.views} Views</span>
-                                   <span>{c.clicks} Clicks</span>
-                                </div>
-                            </div>
-                        ))}
-                     </div>
-                </div>
-
-                {/* Real-time Ticker */}
-                <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 flex-1 overflow-hidden relative">
-                    <h3 className="text-white font-bold text-base md:text-lg mb-6 flex items-center gap-3">
-                        <Activity className="text-green-500" size={18} /> Live Traffic
-                    </h3>
-                    <div className="space-y-4 max-h-[180px] md:max-h-[200px] overflow-y-auto custom-scrollbar text-left">
-                        {trafficEvents.map((log, idx) => (
-                            <div key={idx} className="flex gap-2.5 md:gap-3 items-start animate-in fade-in slide-in-from-right-4">
-                                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${log.type === 'click' ? 'bg-primary' : log.type === 'view' ? 'bg-blue-500' : 'bg-slate-500'}`}></div>
-                                <div>
-                                    <p className="text-slate-300 text-[11px] md:text-xs line-clamp-2 leading-snug">{log.text}</p>
-                                    <p className="text-slate-600 text-[8px] md:text-[9px] font-mono mt-0.5">{log.time}</p>
-                                </div>
-                            </div>
-                        ))}
-                         {trafficEvents.length === 0 && <p className="text-slate-600 text-xs italic">Waiting for events...</p>}
-                    </div>
-                </div>
+                <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 flex-1"><h3 className="text-white font-bold text-base md:text-lg mb-6 flex items-center gap-3"><PieChart className="text-purple-500" size={18} /> Category Share</h3><div className="space-y-5 md:space-y-6 text-left">{categoryPerformance.map((c, i) => (<div key={c.id}><div className="flex justify-between items-end mb-1.5"><span className="text-slate-400 text-[10px] font-bold uppercase tracking-wide">{c.name}</span><span className="text-white text-[10px] font-bold">{((c.views / (totalViews || 1)) * 100).toFixed(0)}%</span></div><div className="w-full bg-slate-800 h-1.5 md:h-2 rounded-full overflow-hidden flex"><div className="h-full bg-purple-500" style={{ width: `${(c.views / (totalViews || 1)) * 100}%`, opacity: 1 - (i * 0.15) }}></div></div><div className="mt-1 flex justify-between text-[8px] md:text-[9px] text-slate-600 font-mono"><span>{c.views} Views</span><span>{c.clicks} Clicks</span></div></div>))}</div></div>
+                <div className="bg-slate-900 rounded-2xl md:rounded-[2.5rem] border border-slate-800 p-6 md:p-8 flex-1 overflow-hidden relative"><h3 className="text-white font-bold text-base md:text-lg mb-6 flex items-center gap-3"><Activity className="text-green-500" size={18} /> Live Traffic</h3><div className="space-y-4 max-h-[180px] md:max-h-[200px] overflow-y-auto custom-scrollbar text-left">{trafficEvents.map((log, idx) => (<div key={idx} className="flex gap-2.5 md:gap-3 items-start animate-in fade-in slide-in-from-right-4"><div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${log.type === 'click' ? 'bg-primary' : log.type === 'view' ? 'bg-blue-500' : 'bg-slate-500'}`}></div><div><p className="text-slate-300 text-[11px] md:text-xs line-clamp-2 leading-snug">{log.text}</p><p className="text-slate-600 text-[8px] md:text-[9px] font-mono mt-0.5">{log.time}</p></div></div>))} {trafficEvents.length === 0 && <p className="text-slate-600 text-xs italic">Waiting for events...</p>}</div></div>
             </div>
         </div>
-        
-        {/* Geographic Map Section (Reused) */}
-        <div className="mt-6">
-             <TrafficAreaChart stats={stats} />
-        </div>
+        <div className="mt-6"><TrafficAreaChart stats={stats} /></div>
     </div>
   );
 };
 
-// --- Added Missing Helper Components ---
-
 const SingleImageUploader: React.FC<{ label: string; value: string; onChange: (val: string) => void; className?: string }> = ({ label, value, onChange, className }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setIsUploading(true);
-      try {
-        const result = await uploadMedia(e.target.files[0]);
-        onChange(result.url);
-      } catch (err) {
-        alert("Upload Failed. Check connection.");
-      } finally {
-        setIsUploading(false);
-      }
+      try { const result = await uploadMedia(e.target.files[0]); onChange(result.url); } catch (err) { alert("Upload Failed. Check connection."); } finally { setIsUploading(false); }
     }
   };
-
   const isVideo = value?.match(/\.(mp4|webm|mov)$/i);
-
   return (
     <div className={`space-y-2 ${className}`}>
       <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">{label}</label>
-      <div 
-        className={`relative rounded-xl md:rounded-2xl overflow-hidden border-2 border-dashed transition-all group ${value ? 'border-slate-700 bg-slate-800' : 'border-slate-700 bg-slate-900 hover:bg-slate-800/50 hover:border-primary/50 cursor-pointer h-32 md:h-40 flex flex-col items-center justify-center'}`}
-        onClick={() => !value && fileInputRef.current?.click()}
-      >
+      <div className={`relative rounded-xl md:rounded-2xl overflow-hidden border-2 border-dashed transition-all group ${value ? 'border-slate-700 bg-slate-800' : 'border-slate-700 bg-slate-900 hover:bg-slate-800/50 hover:border-primary/50 cursor-pointer h-32 md:h-40 flex flex-col items-center justify-center'}`} onClick={() => !value && fileInputRef.current?.click()}>
          <input ref={fileInputRef} type="file" className="hidden" onChange={handleFile} accept="image/*,video/*" />
-         
-         {isUploading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 z-20">
-               <Loader2 className="animate-spin text-primary" size={24} />
-            </div>
-         ) : null}
-
-         {value ? (
-           <>
-              {isVideo ? (
-                <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" muted />
-              ) : (
-                <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />
-              )}
-              <div className="absolute inset-0 flex flex-wrap items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2 p-2">
-                 <button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} className="flex-1 min-w-[80px] p-2 bg-primary text-slate-900 rounded-lg font-bold text-[9px] uppercase shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-1.5"><RefreshCcw size={12}/> Replace</button>
-                 <button onClick={(e) => { e.stopPropagation(); onChange(''); }} className="flex-1 min-w-[80px] p-2 bg-red-500 text-white rounded-lg font-bold text-[9px] uppercase shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-1.5"><Trash size={12}/> Remove</button>
-              </div>
-           </>
-         ) : (
-           <div className="text-center p-4">
-              <UploadCloud size={24} className="text-slate-500 mx-auto mb-2 group-hover:text-primary transition-colors" />
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-white">Click to Upload</p>
-              <p className="text-[8px] text-slate-600 mt-1">Images or Videos</p>
-           </div>
-         )}
+         {isUploading ? (<div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 z-20"><Loader2 className="animate-spin text-primary" size={24} /></div>) : null}
+         {value ? (<>{isVideo ? (<video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" muted />) : (<img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" />)}<div className="absolute inset-0 flex flex-wrap items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2 p-2"><button onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} className="flex-1 min-w-[80px] p-2 bg-primary text-slate-900 rounded-lg font-bold text-[9px] uppercase shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-1.5"><RefreshCcw size={12}/> Replace</button><button onClick={(e) => { e.stopPropagation(); onChange(''); }} className="flex-1 min-w-[80px] p-2 bg-red-500 text-white rounded-lg font-bold text-[9px] uppercase shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-1.5"><Trash size={12}/> Remove</button></div></>) : (<div className="text-center p-4"><UploadCloud size={24} className="text-slate-500 mx-auto mb-2 group-hover:text-primary transition-colors" /><p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-white">Click to Upload</p><p className="text-[8px] text-slate-600 mt-1">Images or Videos</p></div>)}
       </div>
     </div>
   );
@@ -455,56 +178,32 @@ const SingleImageUploader: React.FC<{ label: string; value: string; onChange: (v
 
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void }> = ({ files, onFilesChange }) => {
    const [isUploading, setIsUploading] = useState(false);
-   
    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
          setIsUploading(true);
          const newFiles: MediaFile[] = [...files];
-         
          try {
            for (let i=0; i<e.target.files.length; i++) {
                const file = e.target.files[i];
                const result = await uploadMedia(file);
-               newFiles.push({
-                 id: Date.now().toString() + i,
-                 url: result.url,
-                 name: result.name,
-                 type: result.type,
-                 size: result.size
-               });
+               newFiles.push({ id: Date.now().toString() + i, url: result.url, name: result.name, type: result.type, size: result.size });
            }
            onFilesChange(newFiles);
-         } catch (err) {
-           alert("Batch upload interrupted.");
-         } finally {
-           setIsUploading(false);
-         }
+         } catch (err) { alert("Batch upload interrupted."); } finally { setIsUploading(false); }
       }
    };
-
    return (
      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
        {files.map((f, i) => (
          <div key={i} className="relative aspect-square bg-slate-800 rounded-lg md:rounded-xl overflow-hidden border border-slate-700 group">
-            {f.type.startsWith('video') ? (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-black/40 text-slate-400">
-                 <FileVideo size={20} className="mb-1.5"/>
-                 <span className="text-[8px] uppercase font-black">Video</span>
-              </div>
-            ) : (
-              <img src={f.url} className="w-full h-full object-cover" />
-            )}
-            
+            {f.type.startsWith('video') ? (<div className="w-full h-full flex flex-col items-center justify-center bg-black/40 text-slate-400"><FileVideo size={20} className="mb-1.5"/><span className="text-[8px] uppercase font-black">Video</span></div>) : (<img src={f.url} className="w-full h-full object-cover" />)}
             <button onClick={() => onFilesChange(files.filter((_, idx) => idx !== i))} className="absolute top-1.5 right-1.5 p-1 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><X size={10}/></button>
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1">
-              <p className="text-[7px] text-white truncate text-center">{f.name}</p>
-            </div>
+            <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1"><p className="text-[7px] text-white truncate text-center">{f.name}</p></div>
          </div>
        ))}
-       
        <label className={`aspect-square bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-lg md:rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 cursor-pointer transition-colors relative ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
           {isUploading ? <Loader2 size={20} className="animate-spin mb-1.5 text-primary" /> : <UploadCloud size={20} className="mb-1.5"/>}
-          <span className="text-[8px] font-black uppercase text-center px-1">{isUploading ? 'Uploading...' : 'Add Media'}</span>
+          <span className="text-[8px] font-black uppercase text-center px-1">{isUploading ? 'Uploading...' : 'Multi Upload'}</span>
           <input type="file" multiple className="hidden" onChange={handleUpload} accept="image/*,video/*" />
        </label>
      </div>
@@ -516,20 +215,8 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
   const commonIcons = ['Package', 'ShoppingBag', 'Tag', 'Gift', 'Truck', 'Star', 'Heart', 'Globe', 'Watch', 'Shirt', 'Smartphone', 'Laptop', 'Camera', 'Home', 'Music', 'Sun', 'Moon', 'Zap', 'Award', 'Smile'];
   return (
     <div className="relative">
-       <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2.5 md:gap-3 w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-left">
-          {React.createElement((LucideIcons as any)[selected] || LucideIcons.Package, { size: 16 })}
-          <span className="text-sm flex-grow truncate">{selected}</span>
-          <ChevronDown size={12} className="text-slate-500" />
-       </button>
-       {isOpen && (
-         <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 grid grid-cols-5 gap-1.5 max-h-48 overflow-y-auto">
-            {commonIcons.map(icon => (
-               <button key={icon} onClick={() => { onSelect(icon); setIsOpen(false); }} className={`p-1.5 rounded-lg flex items-center justify-center hover:bg-slate-700 ${selected === icon ? 'bg-primary text-slate-900' : 'text-slate-400'}`}>
-                  {React.createElement((LucideIcons as any)[icon] || LucideIcons.HelpCircle, { size: 14 })}
-               </button>
-            ))}
-         </div>
-       )}
+       <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2.5 md:gap-3 w-full px-4 md:px-6 py-3 md:py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-left">{React.createElement((LucideIcons as any)[selected] || LucideIcons.Package, { size: 16 })}<span className="text-sm flex-grow truncate">{selected}</span><ChevronDown size={12} className="text-slate-500" /></button>
+       {isOpen && (<div className="absolute top-full left-0 right-0 mt-2 p-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 grid grid-cols-5 gap-1.5 max-h-48 overflow-y-auto">{commonIcons.map(icon => (<button key={icon} onClick={() => { onSelect(icon); setIsOpen(false); }} className={`p-1.5 rounded-lg flex items-center justify-center hover:bg-slate-700 ${selected === icon ? 'bg-primary text-slate-900' : 'text-slate-400'}`}>{React.createElement((LucideIcons as any)[icon] || LucideIcons.HelpCircle, { size: 14 })}</button>))}</div>)}
     </div>
   );
 };
@@ -539,61 +226,30 @@ const CodeBlock: React.FC<{ code: string; label?: string; language?: string }> =
   const handleCopy = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   return (
     <div className="rounded-xl md:rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden my-4">
-       <div className="flex justify-between items-center px-4 py-2 bg-slate-900 border-b border-slate-800">
-          <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</span>
-          <button onClick={handleCopy} className="flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold text-slate-400 hover:text-white transition-colors">
-             {copied ? <Check size={10} className="text-green-500"/> : <Copy size={10}/>} {copied ? 'Copied' : 'Copy'}
-          </button>
-       </div>
-       <pre className="p-4 overflow-x-auto text-[10px] md:text-xs font-mono text-slate-300 leading-relaxed text-left">
-         <code>{code}</code>
-       </pre>
+       <div className="flex justify-between items-center px-4 py-2 bg-slate-900 border-b border-slate-800"><span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</span><button onClick={handleCopy} className="flex items-center gap-1.5 text-[9px] md:text-[10px] font-bold text-slate-400 hover:text-white transition-colors">{copied ? <Check size={10} className="text-green-500"/> : <Copy size={10}/>} {copied ? 'Copied' : 'Copy'}</button></div>
+       <pre className="p-4 overflow-x-auto text-[10px] md:text-xs font-mono text-slate-300 leading-relaxed text-left"><code>{code}</code></pre>
     </div>
   );
 };
 
 const PermissionSelector: React.FC<{ permissions: string[]; onChange: (p: string[]) => void; role: 'owner' | 'admin' }> = ({ permissions, onChange, role }) => {
   if (role === 'owner') return <div className="p-3 bg-primary/10 text-primary text-[10px] md:text-xs font-bold rounded-xl flex items-center gap-2"><ShieldCheck size={14}/> Owner has full system access.</div>;
-  
-  const toggle = (id: string) => {
-    if (permissions.includes(id)) onChange(permissions.filter(p => p !== id));
-    else onChange([...permissions, id]);
-  };
-
+  const toggle = (id: string) => { if (permissions.includes(id)) onChange(permissions.filter(p => p !== id)); else onChange([...permissions, id]); };
   return (
     <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar text-left">
-      {PERMISSION_TREE.map(node => (
-        <div key={node.id} className="space-y-2">
-           <div className="flex items-center gap-2 text-white font-bold text-xs md:text-sm">
-              <div className="w-1.5 h-1.5 bg-primary rounded-full"></div> {node.label}
-           </div>
-           <div className="pl-3.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              {node.children?.map(child => (
-                 <label key={child.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer">
-                    <input type="checkbox" checked={permissions.includes(child.id)} onChange={() => toggle(child.id)} className="accent-primary w-3.5 h-3.5" />
-                    <span className="text-slate-400 text-[10px] md:text-xs">{child.label}</span>
-                 </label>
-              ))}
-           </div>
-        </div>
-      ))}
+      {PERMISSION_TREE.map(node => (<div key={node.id} className="space-y-2"><div className="flex items-center gap-2 text-white font-bold text-xs md:text-sm"><div className="w-1.5 h-1.5 bg-primary rounded-full"></div> {node.label}</div><div className="pl-3.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5">{node.children?.map(child => (<label key={child.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer"><input type="checkbox" checked={permissions.includes(child.id)} onChange={() => toggle(child.id)} className="accent-primary w-3.5 h-3.5" /><span className="text-slate-400 text-[10px] md:text-xs">{child.label}</span></label>))}</div></div>))}
     </div>
   );
 };
 
 const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => {
-  const iconMap: Record<string, any> = {
-    forge: Terminal, vault: Database, satellite: Globe, database: Server, shield: ShieldCheck, 
-    identity: Key, mail: Mail, beacon: Rocket, globe: Globe2, growth: BarChart3
-  };
+  const iconMap: Record<string, any> = { forge: Terminal, vault: Database, satellite: Globe, database: Server, shield: ShieldCheck, identity: Key, mail: Mail, beacon: Rocket, globe: Globe2, growth: BarChart3 };
   const Icon = iconMap[id || ''] || Info;
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] p-8 md:p-12 flex items-center justify-center aspect-square relative overflow-hidden group">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
       <Icon size={80} className="text-slate-800 group-hover:text-primary/20 transition-colors duration-500 md:w-[120px] md:h-[120px]" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Icon size={40} className="text-primary drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)] animate-pulse md:w-[64px] md:h-[64px]" />
-      </div>
+      <div className="absolute inset-0 flex items-center justify-center"><Icon size={40} className="text-primary drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)] animate-pulse md:w-[64px] md:h-[64px]" /></div>
     </div>
   );
 };
@@ -605,9 +261,7 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
         <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20}/></button>
         <h3 className="text-lg md:text-xl font-bold text-white mb-3">Ad Generator</h3>
         <p className="text-slate-400 text-xs md:text-sm mb-6 text-left">Generate social media captions for <span className="text-primary">{product.name}</span>.</p>
-        <div className="bg-slate-800 p-4 rounded-xl text-slate-300 text-[11px] md:text-sm italic border-l-4 border-primary mb-6 text-left">
-          "Discover the {product.name}. A touch of elegance for your wardrobe. Shop now at Kasi Couture. #Luxury #Style #{product.categoryId}"
-        </div>
+        <div className="bg-slate-800 p-4 rounded-xl text-slate-300 text-[11px] md:text-sm italic border-l-4 border-primary mb-6 text-left">"Discover the {product.name}. A touch of elegance for your wardrobe. Shop now at Kasi Couture. #Luxury #Style #{product.categoryId}"</div>
         <button className="w-full py-3.5 bg-primary text-slate-900 font-bold rounded-xl uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all">Copy to Clipboard</button>
       </div>
     </div>
@@ -616,26 +270,40 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
 
 const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
   const [message, setMessage] = useState('');
+  const [subject, setSubject] = useState(`Re: ${enquiry.subject}`);
+  const [toEmail, setToEmail] = useState(enquiry.email);
+  const [attachments, setAttachments] = useState<MediaFile[]>([]);
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl md:rounded-3xl p-6 md:p-8 relative">
+      <div className="bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl md:rounded-3xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
         <button onClick={onClose} className="absolute top-4 right-4 md:top-6 md:right-6 text-slate-500 hover:text-white"><X size={24}/></button>
         <h3 className="text-xl md:text-2xl font-bold text-white mb-1.5 text-left">Reply to Enquiry</h3>
-        <p className="text-slate-400 text-xs md:text-sm mb-6 text-left">Replying to <span className="text-primary">{enquiry.email}</span></p>
+        <p className="text-slate-400 text-xs md:text-sm mb-6 text-left">Compose your response to <span className="text-primary">{enquiry.name}</span>.</p>
         <div className="space-y-4">
-          <div className="bg-slate-800/50 p-4 rounded-xl text-slate-400 text-[11px] md:text-xs italic text-left">
+          <div className="grid md:grid-cols-2 gap-4">
+            <SettingField label="To" value={toEmail} onChange={setToEmail} />
+            <SettingField label="Subject" value={subject} onChange={setSubject} />
+          </div>
+          <div className="bg-slate-800/50 p-4 rounded-xl text-slate-400 text-[11px] md:text-xs italic text-left border-l-2 border-slate-700">
             Original: "{enquiry.message}"
           </div>
           <textarea 
-            rows={5}
-            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-white outline-none focus:border-primary resize-none text-sm"
-            placeholder="Type your reply..."
+            rows={6}
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 text-white outline-none focus:border-primary resize-none text-sm font-light leading-relaxed"
+            placeholder="Type your professional response here..."
             value={message}
             onChange={e => setMessage(e.target.value)}
           />
-          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
-            <button onClick={onClose} className="order-2 sm:order-1 px-6 py-3 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Cancel</button>
-            <button onClick={() => { alert('Reply Sent (Simulated)'); onClose(); }} className="order-1 sm:order-2 px-6 py-3 bg-primary text-slate-900 font-bold rounded-xl uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all">Send Reply</button>
+          
+          <div className="space-y-2 text-left">
+             <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest">Attachments</label>
+             <FileUploader files={attachments} onFilesChange={setAttachments} />
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-800">
+            <button onClick={onClose} className="order-2 sm:order-1 px-6 py-3 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-white">Cancel</button>
+            <button onClick={() => { alert('Reply Sent (Simulated) with ' + attachments.length + ' attachments'); onClose(); }} className="order-1 sm:order-2 px-6 py-3 bg-primary text-slate-900 font-bold rounded-xl uppercase text-[10px] tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"><Send size={14} /> Send Reply</button>
           </div>
         </div>
       </div>
@@ -708,6 +376,9 @@ const Admin: React.FC = () => {
 
   // Real Traffic State
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
+
+  // Bulk Hero Upload Ref
+  const bulkHeroInputRef = useRef<HTMLInputElement>(null);
 
   // --- DATA LOADING EFFECT ---
   useEffect(() => {
@@ -782,11 +453,7 @@ const Admin: React.FC = () => {
   // Updated Save Wrapper to handle Cloud Sync Correctly
   const performSave = async (localAction: () => void, tableName?: string, data?: any, deleteId?: string) => {
     setSaveStatus('saving');
-    
-    // 1. Update Local State UI Immediately for responsiveness (Optimistic)
     localAction();
-
-    // 2. Persist to Cloud & Sync Frontend
     if (isSupabaseConfigured && tableName) {
        try {
            let result;
@@ -795,12 +462,10 @@ const Admin: React.FC = () => {
            } else if (data) {
                result = await upsertData(tableName, data);
            }
-           
            if (result && result.error) {
               console.error("Save failed remotely:", result.error);
               setSaveStatus('error');
            } else {
-              // Realtime subscription in App.tsx will handle the state update from server
               setSaveStatus('saved');
            }
        } catch (e) {
@@ -808,18 +473,14 @@ const Admin: React.FC = () => {
            setSaveStatus('error');
        }
     } else {
-       // Simulate delay for local mode
        await new Promise(resolve => setTimeout(resolve, 600));
        setSaveStatus('saved');
     }
-    
-    // Reset status after a delay unless it's an error
     setTimeout(() => {
         setSaveStatus((prev: any) => prev === 'error' ? 'error' : 'idle');
     }, 2000);
   };
 
-  // Helper for Local Editor Settings (Prevents auto-save)
   const updateTempSettings = (newSettings: Partial<SiteSettings>) => {
     setTempSettings(prev => ({ ...prev, ...newSettings }));
   };
@@ -829,32 +490,20 @@ const Admin: React.FC = () => {
   const removeTempSocialLink = (id: string) => updateTempSettings({ socialLinks: (tempSettings.socialLinks || []).filter(link => link.id !== id) });
 
   const handleOpenEditor = (section: any) => {
-      // Initialize local state with current global settings when opening
       setTempSettings({...settings}); 
       setActiveEditorSection(section);
       setEditorDrawerOpen(true);
   }
 
-  // Enquiry Logic
   const toggleEnquiryStatus = (id: string) => {
       const enquiry = enquiries.find(e => e.id === id);
       if (!enquiry) return;
       const updated = { ...enquiry, status: enquiry.status === 'read' ? 'unread' : 'read' };
-      
-      performSave(
-          () => setEnquiries(prev => prev.map(e => e.id === id ? updated as Enquiry : e)), 
-          'enquiries', 
-          updated
-      );
+      performSave(() => setEnquiries(prev => prev.map(e => e.id === id ? updated as Enquiry : e)), 'enquiries', updated);
   };
 
   const deleteEnquiry = (id: string) => {
-      performSave(
-          () => setEnquiries(prev => prev.filter(e => e.id !== id)),
-          'enquiries',
-          null,
-          id
-      );
+      performSave(() => setEnquiries(prev => prev.filter(e => e.id !== id)), 'enquiries', null, id);
   };
   
   const exportEnquiries = () => {
@@ -873,7 +522,6 @@ const Admin: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
   
-  // Products Management
   const handleSaveProduct = () => {
      let newItem: Product;
      if (editingId) {
@@ -882,26 +530,11 @@ const Admin: React.FC = () => {
      } else {
          newItem = { ...productData, id: Date.now().toString(), createdAt: Date.now() } as Product;
      }
-
-     performSave(
-         () => {
-             if (editingId) setProducts(prev => prev.map(p => p.id === editingId ? newItem : p)); 
-             else setProducts(prev => [newItem, ...prev]); 
-             setShowProductForm(false); 
-             setEditingId(null);
-         },
-         'products',
-         newItem
-     );
+     performSave(() => { if (editingId) setProducts(prev => prev.map(p => p.id === editingId ? newItem : p)); else setProducts(prev => [newItem, ...prev]); setShowProductForm(false); setEditingId(null); }, 'products', newItem);
   };
 
   const handleDeleteProduct = (id: string) => {
-      performSave(
-          () => setProducts(prev => prev.filter(p => p.id !== id)),
-          'products',
-          null,
-          id
-      );
+      performSave(() => setProducts(prev => prev.filter(p => p.id !== id)), 'products', null, id);
   };
 
   const handleSaveCategory = () => {
@@ -912,26 +545,11 @@ const Admin: React.FC = () => {
       } else {
           newItem = { ...catData, id: Date.now().toString() } as Category;
       }
-
-      performSave(
-          () => {
-             if (editingId) setCategories(prev => prev.map(c => c.id === editingId ? newItem : c)); 
-             else setCategories(prev => [...prev, newItem]); 
-             setShowCategoryForm(false); 
-             setEditingId(null); 
-          },
-          'categories',
-          newItem
-      );
+      performSave(() => { if (editingId) setCategories(prev => prev.map(c => c.id === editingId ? newItem : c)); else setCategories(prev => [...prev, newItem]); setShowCategoryForm(false); setEditingId(null); }, 'categories', newItem);
   };
 
   const handleDeleteCategory = (id: string) => {
-      performSave(
-          () => setCategories(prev => prev.filter(c => c.id !== id)),
-          'categories',
-          null,
-          id
-      );
+      performSave(() => setCategories(prev => prev.filter(c => c.id !== id)), 'categories', null, id);
   };
 
   const handleSaveHero = () => {
@@ -942,49 +560,51 @@ const Admin: React.FC = () => {
       } else {
           newItem = { ...heroData, id: Date.now().toString() } as CarouselSlide;
       }
+      performSave(() => { if (editingId) setHeroSlides(prev => prev.map(h => h.id === editingId ? newItem : h)); else setHeroSlides(prev => [...prev, newItem]); setShowHeroForm(false); setEditingId(null); }, 'carousel_slides', newItem);
+  };
 
-      performSave(
-          () => {
-             if (editingId) setHeroSlides(prev => prev.map(h => h.id === editingId ? newItem : h)); 
-             else setHeroSlides(prev => [...prev, newItem]); 
-             setShowHeroForm(false); 
-             setEditingId(null);
-          },
-          'carousel_slides',
-          newItem
-      );
+  const handleBulkHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSaveStatus('saving');
+      const newSlides: CarouselSlide[] = [];
+      try {
+        for (let i = 0; i < e.target.files.length; i++) {
+          const file = e.target.files[i];
+          const result = await uploadMedia(file);
+          const newSlide: CarouselSlide = {
+             id: Date.now().toString() + i,
+             title: 'New Collection',
+             subtitle: 'Showcase your style',
+             cta: 'Explore',
+             type: file.type.startsWith('video') ? 'video' : 'image',
+             image: result.url
+          };
+          newSlides.push(newSlide);
+          // Persist each immediately or batch logic
+          await upsertData('carousel_slides', newSlide);
+        }
+        setHeroSlides(prev => [...prev, ...newSlides]);
+        setSaveStatus('saved');
+      } catch (err) {
+        setSaveStatus('error');
+      }
+    }
   };
 
   const handleDeleteHero = (id: string) => {
-      performSave(
-          () => setHeroSlides(prev => prev.filter(h => h.id !== id)),
-          'carousel_slides',
-          null,
-          id
-      );
+      performSave(() => setHeroSlides(prev => prev.filter(h => h.id !== id)), 'carousel_slides', null, id);
   };
 
-  // Helper for Subcategories
   const handleAddSubCategory = (categoryId: string) => {
     if (!tempSubCatName.trim()) return;
     const newSub: SubCategory = { id: Date.now().toString(), categoryId, name: tempSubCatName };
-    performSave(
-        () => setSubCategories(prev => [...prev, newSub]),
-        'subcategories',
-        newSub
-    );
+    performSave(() => setSubCategories(prev => [...prev, newSub]), 'subcategories', newSub);
     setTempSubCatName('');
   };
   const handleDeleteSubCategory = (id: string) => {
-      performSave(
-          () => setSubCategories(prev => prev.filter(s => s.id !== id)),
-          'subcategories',
-          null,
-          id
-      );
+      performSave(() => setSubCategories(prev => prev.filter(s => s.id !== id)), 'subcategories', null, id);
   };
 
-  // Helper for Discount Rules
   const handleAddDiscountRule = () => {
     if (!tempDiscountRule.value || !tempDiscountRule.description) return;
     const newRule: DiscountRule = { id: Date.now().toString(), type: tempDiscountRule.type || 'percentage', value: Number(tempDiscountRule.value), description: tempDiscountRule.description };
@@ -995,46 +615,30 @@ const Admin: React.FC = () => {
     setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) });
   };
 
-  // Helper for Features (Highlights)
   const handleAddFeature = () => {
     if (!tempFeature.trim()) return;
-    setProductData(prev => ({
-      ...prev,
-      features: [...(prev.features || []), tempFeature]
-    }));
+    setProductData(prev => ({ ...prev, features: [...(prev.features || []), tempFeature] }));
     setTempFeature('');
   };
   
   const handleRemoveFeature = (index: number) => {
-    setProductData(prev => ({
-      ...prev,
-      features: (prev.features || []).filter((_, i) => i !== index)
-    }));
+    setProductData(prev => ({ ...prev, features: (prev.features || []).filter((_, i) => i !== index) }));
   };
 
-  // Helper for Specifications
   const handleAddSpec = () => {
     if (!tempSpec.key.trim() || !tempSpec.value.trim()) return;
-    setProductData(prev => ({
-      ...prev,
-      specifications: { ...(prev.specifications || {}), [tempSpec.key]: tempSpec.value }
-    }));
+    setProductData(prev => ({ ...prev, specifications: { ...(prev.specifications || {}), [tempSpec.key]: tempSpec.value } }));
     setTempSpec({ key: '', value: '' });
   };
   
   const handleRemoveSpec = (key: string) => {
-    setProductData(prev => {
-      const newSpecs = { ...(prev.specifications || {}) };
-      delete newSpecs[key];
-      return { ...prev, specifications: newSpecs };
-    });
+    setProductData(prev => { const newSpecs = { ...(prev.specifications || {}) }; delete newSpecs[key]; return { ...prev, specifications: newSpecs }; });
   };
   
   const handleSaveAdmin = async () => {
     if (!adminData.email || !adminData.password) return;
     setCreatingAdmin(true);
     setSaveStatus('saving');
-    
     let newItem: AdminUser;
     if (editingId) {
         const existing = admins.find(a => a.id === editingId);
@@ -1042,43 +646,18 @@ const Admin: React.FC = () => {
     } else {
         newItem = { ...adminData, id: Date.now().toString(), createdAt: Date.now() } as AdminUser;
     }
-
     try {
       if (!editingId && isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signUp({
-          email: adminData.email,
-          password: adminData.password,
-          options: { data: { name: adminData.name, role: adminData.role } }
-        });
+        const { data, error } = await supabase.auth.signUp({ email: adminData.email, password: adminData.password, options: { data: { name: adminData.name, role: adminData.role } } });
         if (error) throw error;
       }
-      
-      await performSave(
-          () => {
-             if (editingId) setAdmins(prev => prev.map(a => a.id === editingId ? newItem : a));
-             else setAdmins(prev => [...prev, newItem]); 
-          },
-          'admin_users',
-          newItem
-      );
-      
-      setShowAdminForm(false);
-      setEditingId(null);
-    } catch (err: any) {
-      alert(`Error saving member: ${err.message}`);
-      setSaveStatus('error');
-    } finally {
-      setCreatingAdmin(false);
-    }
+      await performSave(() => { if (editingId) setAdmins(prev => prev.map(a => a.id === editingId ? newItem : a)); else setAdmins(prev => [...prev, newItem]); }, 'admin_users', newItem);
+      setShowAdminForm(false); setEditingId(null);
+    } catch (err: any) { alert(`Error saving member: ${err.message}`); setSaveStatus('error'); } finally { setCreatingAdmin(false); }
   };
 
   const handleDeleteAdmin = (id: string) => {
-     performSave(
-         () => setAdmins(prev => prev.filter(a => a.id !== id)),
-         'admin_users',
-         null,
-         id
-     );
+     performSave(() => setAdmins(prev => prev.filter(a => a.id !== id)), 'admin_users', null, id);
   };
 
 
@@ -1144,6 +723,27 @@ const Admin: React.FC = () => {
                 <SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} />
                 <SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" />
                 <SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} />
+                
+                <div className="space-y-4 border-t border-slate-800 pt-6">
+                   <h4 className="text-white font-bold text-sm">Discount Rules</h4>
+                   <div className="flex gap-2">
+                      <select className="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}>
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed (ZAR)</option>
+                      </select>
+                      <input type="number" placeholder="Value" className="w-20 bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2" value={tempDiscountRule.value || ''} onChange={e => setTempDiscountRule({...tempDiscountRule, value: Number(e.target.value)})} />
+                      <input type="text" placeholder="Description" className="flex-grow bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2" value={tempDiscountRule.description || ''} onChange={e => setTempDiscountRule({...tempDiscountRule, description: e.target.value})} />
+                      <button onClick={handleAddDiscountRule} className="bg-primary text-slate-900 rounded-lg px-3 py-2 text-xs font-bold hover:brightness-110"><Plus size={14}/></button>
+                   </div>
+                   <div className="space-y-2">
+                      {productData.discountRules?.map(rule => (
+                        <div key={rule.id} className="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                           <span className="text-xs text-slate-300">{rule.description} ({rule.type === 'percentage' ? `${rule.value}%` : `R${rule.value}`})</span>
+                           <button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-red-400 hover:text-red-500"><X size={12}/></button>
+                        </div>
+                      ))}
+                   </div>
+                </div>
              </div>
              <div className="space-y-6">
                 <div className="space-y-2">
@@ -1170,7 +770,7 @@ const Admin: React.FC = () => {
           </div>
 
           <div className="space-y-4 pt-4 border-t border-slate-800">
-             <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Media Gallery</label>
+             <label className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block text-left">Media Gallery (Images & Videos)</label>
              <FileUploader files={productData.media || []} onFilesChange={files => setProductData({...productData, media: files})} />
           </div>
           
@@ -1247,6 +847,13 @@ const Admin: React.FC = () => {
         ) : ( 
            <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
               <button onClick={() => { setHeroData({ title: '', subtitle: '', cta: 'Explore', image: '', type: 'image' }); setShowHeroForm(true); setEditingId(null); }} className="w-full aspect-video border-2 border-dashed border-slate-800 rounded-2xl md:rounded-[3rem] flex flex-col items-center justify-center gap-3 md:gap-4 text-slate-500 hover:text-primary transition-all"><Plus size={32} className="md:w-12 md:h-12" /><span className="font-black uppercase tracking-widest text-[9px] md:text-xs">New Slide</span></button>
+              
+              <button onClick={() => bulkHeroInputRef.current?.click()} className="w-full aspect-video border-2 border-dashed border-slate-800 rounded-2xl md:rounded-[3rem] flex flex-col items-center justify-center gap-3 md:gap-4 text-slate-500 hover:text-primary transition-all">
+                <Images size={32} className="md:w-12 md:h-12" />
+                <span className="font-black uppercase tracking-widest text-[9px] md:text-xs">Bulk Upload Slides</span>
+                <input ref={bulkHeroInputRef} type="file" multiple className="hidden" onChange={handleBulkHeroUpload} accept="image/*,video/*" />
+              </button>
+
               {heroSlides.map(s => (
                  <div key={s.id} className="relative aspect-video rounded-2xl md:rounded-[3rem] overflow-hidden group border border-slate-800">
                     {s.type === 'video' ? <video src={s.image} className="w-full h-full object-cover" muted /> : <img src={s.image} className="w-full h-full object-cover" />}

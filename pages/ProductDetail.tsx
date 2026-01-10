@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Download, Instagram } from 'lucide-react';
 import { useSettings } from '../App';
 import { Product, ProductStats, Review } from '../types';
+import { upsertData } from '../lib/supabase';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
@@ -30,62 +31,54 @@ const ProductDetail: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     const timeout = setTimeout(() => setIsLoaded(true), 100);
-    
-    // Track View and Start Session Timer
-    if (id) {
-      // Logic for tracking view count could be moved to logEvent or Supabase RPC
-      // For now, we keep local tracking simulation but rely on App.tsx for persistence
-    }
-
     return () => clearTimeout(timeout);
   }, [id]);
 
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!product) return;
     setIsSubmittingReview(true);
     
-    // Note: In a real Supabase app, we would insert into a 'reviews' table.
-    // Here we update the product jsonb column for reviews if that's the schema.
-    // For now, we simulate by updating local state and triggering refresh if possible.
-    setTimeout(async () => {
-      const review: Review = {
-        id: Date.now().toString(),
-        userName: newReview.userName || 'Guest',
-        rating: newReview.rating,
-        comment: newReview.comment,
-        createdAt: Date.now()
-      };
-      
-      // We rely on the App context update method if we were to support writing reviews from public.
-      // Since this is a bridge page, we assume read-only mostly, but if we wanted to save:
-      // await supabase.from('products').update({ reviews: [review, ...product.reviews] }).eq('id', id);
-      // await refreshAllData();
+    const review: Review = {
+      id: Date.now().toString(),
+      userName: newReview.userName || 'Guest',
+      rating: newReview.rating,
+      comment: newReview.comment,
+      createdAt: Date.now()
+    };
+    
+    // Live update logic: Append to existing reviews and upsert the entire product record
+    const updatedReviews = [review, ...(product.reviews || [])];
+    const updatedProduct = { ...product, reviews: updatedReviews };
 
-      setNewReview({ userName: '', comment: '', rating: 5 });
-      setIsSubmittingReview(false);
-      alert("Review submitted! (This is a demo action)");
-    }, 800);
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: product?.name,
-          text: `Check out ${product?.name} at ${settings.companyName}`,
-          url: window.location.href
-        });
-      } catch (err) {
-        console.log("Share skipped", err);
+    try {
+      const { error } = await upsertData('products', updatedProduct);
+      if (error) {
+        alert("Connection interrupted. Please try again.");
+      } else {
+        await refreshAllData();
+        setNewReview({ userName: '', comment: '', rating: 5 });
+        setOpenAccordion(null); // Close form
       }
-    } else {
-      setIsShareOpen(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    // Force open the custom social builder instead of native share for richer experience
+    setIsShareOpen(true);
+  };
+
+  const socialCaption = useMemo(() => {
+    if (!product) return '';
+    return `Just discovered this masterpiece: ${product.name} at ${settings.companyName}. \n\n${product.description.substring(0, 100)}...\n\nAvailable here: ${window.location.href}`;
+  }, [product, settings]);
+
+  const handleCopyCaption = () => {
+    navigator.clipboard.writeText(socialCaption);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
@@ -95,17 +88,6 @@ const ProductDetail: React.FC = () => {
     const sum = product.reviews.reduce((acc, r) => acc + r.rating, 0);
     return Math.round(sum / product.reviews.length);
   }, [product?.reviews]);
-
-  const socialShares = useMemo(() => {
-     const url = window.location.href;
-     const text = `Check out ${product?.name}`;
-     return [
-      { name: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]', text: 'text-white', url: `https://wa.me/?text=${encodeURIComponent(`${text}: ${url}`)}` },
-      { name: 'Facebook', icon: Facebook, color: 'bg-[#1877F2]', text: 'text-white', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
-      { name: 'Twitter', icon: Twitter, color: 'bg-[#1DA1F2]', text: 'text-white', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
-      { name: 'Email', icon: Mail, color: 'bg-slate-100', text: 'text-slate-900', url: `mailto:?subject=${encodeURIComponent(product?.name || '')}&body=${encodeURIComponent(`${text}: ${url}`)}` },
-    ];
-  }, [product]);
 
   if (!product) {
     return (
@@ -338,7 +320,7 @@ const ProductDetail: React.FC = () => {
                        />
                     </div>
                     <button disabled={isSubmittingReview} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-colors disabled:opacity-50">
-                       {isSubmittingReview ? 'Submitting...' : 'Post Review'}
+                       {isSubmittingReview ? 'Publishing Live...' : 'Post Review'}
                     </button>
                  </form>
                )}
@@ -367,34 +349,79 @@ const ProductDetail: React.FC = () => {
         </div>
       </div>
       
-      {/* Share Modal */}
+      {/* Full Page Social Builder Overlay */}
       {isShareOpen && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm relative">
-               <button onClick={() => setIsShareOpen(false)} className="absolute top-4 right-4 p-2 bg-slate-50 rounded-full hover:bg-slate-100"><X size={20} className="text-slate-500"/></button>
-               <h3 className="text-xl font-serif text-slate-900 mb-6 text-center">Share This Piece</h3>
-               <div className="grid grid-cols-4 gap-4 mb-6">
-                  {socialShares.map((s) => (
-                     <a 
-                      key={s.name} 
-                      href={s.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center gap-2 group"
-                     >
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${s.color} ${s.text} group-hover:scale-110 transition-transform`}>
-                           <s.icon size={20} />
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+            <button 
+                onClick={() => setIsShareOpen(false)} 
+                className="absolute top-6 right-6 p-3 bg-white/10 rounded-full text-white hover:bg-white hover:text-slate-900 transition-colors z-50"
+            >
+                <X size={24} />
+            </button>
+            
+            <div className="w-full max-w-6xl h-full md:h-[80vh] flex flex-col md:flex-row rounded-[3rem] overflow-hidden shadow-2xl bg-black border border-white/10 m-4 md:m-0">
+                {/* Visual Side */}
+                <div className="w-full md:w-1/2 h-1/2 md:h-full relative bg-slate-900">
+                    <img 
+                        src={currentMedia?.url} 
+                        className="w-full h-full object-cover opacity-80" 
+                        alt="Share Preview"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                    <div className="absolute bottom-8 left-8 right-8">
+                        <div className="inline-block px-3 py-1 bg-primary text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
+                            Kasi Couture Selection
                         </div>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">{s.name}</span>
-                     </a>
-                  ))}
-               </div>
-               <div className="relative">
-                  <input readOnly value={window.location.href} className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 outline-none" />
-                  <button onClick={handleCopyLink} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white shadow-sm border border-slate-100 rounded-lg hover:text-primary transition-colors">
-                     {copySuccess ? <Check size={16} className="text-green-500"/> : <Copy size={16}/>}
-                  </button>
-               </div>
+                        <h2 className="text-3xl md:text-5xl font-serif text-white mb-2 leading-tight">{product.name}</h2>
+                        <p className="text-white/60 text-lg font-light">R {product.price.toLocaleString()}</p>
+                    </div>
+                </div>
+
+                {/* Composer Side */}
+                <div className="w-full md:w-1/2 h-1/2 md:h-full bg-slate-900 p-8 md:p-12 flex flex-col">
+                    <h3 className="text-white font-bold text-xl md:text-2xl mb-2 flex items-center gap-3">
+                        <Share2 size={24} className="text-primary"/> Social Builder
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-8">Customize and broadcast this piece to your network.</p>
+
+                    <div className="flex-grow space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Auto-Generated Caption</label>
+                            <div className="relative group">
+                                <textarea 
+                                    readOnly 
+                                    value={socialCaption}
+                                    className="w-full h-40 bg-slate-800 border border-slate-700 rounded-2xl p-5 text-slate-300 text-sm leading-relaxed resize-none focus:outline-none focus:border-primary transition-colors"
+                                />
+                                <button 
+                                    onClick={handleCopyCaption}
+                                    className="absolute bottom-4 right-4 p-2 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-wide flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg"
+                                >
+                                    {copySuccess ? <Check size={14}/> : <Copy size={14}/>} {copySuccess ? 'Copied' : 'Copy Text'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                             <a href={`https://wa.me/?text=${encodeURIComponent(socialCaption)}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 p-4 bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/30 rounded-xl hover:bg-[#25D366] hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
+                                <MessageCircle size={18} /> WhatsApp
+                             </a>
+                             <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(socialCaption)}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 p-4 bg-[#1DA1F2]/20 text-[#1DA1F2] border border-[#1DA1F2]/30 rounded-xl hover:bg-[#1DA1F2] hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
+                                <Twitter size={18} /> X / Twitter
+                             </a>
+                             <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 p-4 bg-[#1877F2]/20 text-[#1877F2] border border-[#1877F2]/30 rounded-xl hover:bg-[#1877F2] hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
+                                <Facebook size={18} /> Facebook
+                             </a>
+                             <button className="flex items-center justify-center gap-3 p-4 bg-white/5 text-white border border-white/10 rounded-xl hover:bg-white hover:text-slate-900 transition-all font-bold text-xs uppercase tracking-widest cursor-not-allowed opacity-50" disabled>
+                                <Instagram size={18} /> Story (Mobile)
+                             </button>
+                        </div>
+                        
+                        <a href={currentMedia?.url} download className="w-full flex items-center justify-center gap-3 p-4 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl hover:text-white hover:border-slate-500 transition-all font-bold text-xs uppercase tracking-widest mt-4">
+                            <Download size={18} /> Download High-Res Asset
+                        </a>
+                    </div>
+                </div>
             </div>
          </div>
       )}

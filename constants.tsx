@@ -306,71 +306,77 @@ export const EMAIL_TEMPLATE_HTML = `<!DOCTYPE html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 0; }
-  .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f5; padding-bottom: 60px; }
-  .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 16px; color: #334155; line-height: 1.6; }
-  .header { background-color: #1e293b; padding: 40px 20px; text-align: center; }
-  .logo-img { max-height: 60px; width: auto; display: block; margin: 0 auto; }
-  .logo-text { font-size: 24px; font-weight: bold; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; font-family: serif; }
-  .body-content { padding: 40px 30px; }
-  .message-box { background-color: #f8fafc; border-left: 4px solid #D4AF37; padding: 20px; margin: 25px 0; border-radius: 4px; font-size: 15px; color: #475569; }
-  .btn { display: inline-block; padding: 12px 30px; background-color: #D4AF37; color: #1e293b; text-decoration: none; font-weight: bold; border-radius: 4px; margin-top: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-  .products-title { text-align: center; margin: 40px 0 20px; font-family: serif; font-size: 22px; color: #1e293b; position: relative; }
-  .products-title span { background: #fff; padding: 0 15px; position: relative; z-index: 1; }
-  .products-title:after { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid #e2e8f0; z-index: 0; }
-  .product-grid { width: 100%; border-collapse: collapse; }
-  .product-cell { width: 50%; padding: 10px; vertical-align: top; }
-  .product-card { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff; text-align: left; }
-  .product-img { width: 100%; height: 180px; object-fit: cover; background-color: #f1f5f9; display: block; }
-  .product-info { padding: 15px; }
-  .product-name { font-size: 14px; font-weight: bold; color: #1e293b; margin: 0 0 5px; height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .product-price { font-size: 14px; color: #D4AF37; font-weight: bold; margin-bottom: 10px; display: block; }
-  .product-link { font-size: 12px; color: #64748b; text-decoration: none; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
-  .footer { background-color: #1e293b; padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 12px; }
-  .social-icons { margin-bottom: 20px; }
-  .social-icon { display: inline-block; width: 32px; height: 32px; margin: 0 5px; }
-  .footer p { margin: 5px 0; }
+  body { font-family: 'Playfair Display', serif; background-color: #f8fafc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  .wrapper { width: 100%; table-layout: fixed; background-color: #f8fafc; padding-bottom: 60px; }
+  .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 640px; border-radius: 0; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+  .header { background-color: #1e293b; padding: 50px 20px; text-align: center; border-bottom: 4px solid #D4AF37; }
+  .logo-img { max-height: 80px; width: auto; display: block; margin: 0 auto; filter: brightness(0) invert(1); }
+  .logo-text { font-size: 28px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.2em; margin: 0; }
+  .body-content { padding: 50px 40px; color: #334155; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+  .greeting { font-size: 20px; font-weight: bold; color: #1e293b; margin-bottom: 20px; font-family: 'Playfair Display', serif; }
+  .message-box { background-color: #f8fafc; border-left: 3px solid #D4AF37; padding: 30px; margin: 30px 0; border-radius: 4px; font-size: 16px; color: #475569; line-height: 1.8; font-style: italic; }
+  .btn { display: inline-block; padding: 16px 36px; background-color: #D4AF37; color: #1e293b; text-decoration: none; font-weight: 900; border-radius: 0; margin-top: 20px; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 4px 6px rgba(212, 175, 55, 0.3); }
+  .showcase-header { text-align: center; margin: 50px 0 30px; position: relative; }
+  .showcase-header span { background: #fff; padding: 0 20px; position: relative; z-index: 1; font-family: 'Playfair Display', serif; font-size: 24px; font-style: italic; color: #1e293b; }
+  .showcase-header:after { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid #cbd5e1; z-index: 0; }
+  .product-row { width: 100%; margin-top: 20px; }
+  .product-col { width: 48%; display: inline-block; vertical-align: top; margin: 0 1%; background: #ffffff; border: 1px solid #e2e8f0; }
+  .product-img { width: 100%; height: 250px; object-fit: cover; display: block; }
+  .product-detail { padding: 20px; text-align: center; }
+  .product-title { font-size: 16px; font-weight: bold; color: #1e293b; margin: 0 0 8px; font-family: 'Playfair Display', serif; }
+  .product-link { display: inline-block; font-size: 11px; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; text-decoration: none; border-bottom: 1px solid #D4AF37; padding-bottom: 2px; }
+  .footer { background-color: #1e293b; padding: 40px 20px; text-align: center; color: #64748b; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: 0.5px; border-top: 1px solid #334155; }
+  .footer p { margin: 8px 0; }
   .footer a { color: #D4AF37; text-decoration: none; }
-  
-  @media only screen and (max-width: 480px) {
-    .product-cell { display: block; width: 100%; padding: 10px 0; }
-    .product-img { height: 220px; }
-  }
 </style>
 </head>
 <body>
   <div class="wrapper">
     <div class="main">
       <div class="header">
-        {{#if company_logo_url}}
-          <img src="{{company_logo_url}}" alt="{{company_name}}" class="logo-img" />
-        {{else}}
-          <h1 class="logo-text">{{company_name}}</h1>
-        {{/if}}
+        <img src="{{company_logo_url}}" alt="{{company_name}}" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+        <h1 class="logo-text" style="display:none;">{{company_name}}</h1>
       </div>
       
       <div class="body-content">
-        <p>Dear {{to_name}},</p>
-        <p>Thank you for connecting with <strong>{{company_name}}</strong> regarding <strong>{{subject}}</strong>.</p>
+        <div class="greeting">Dear {{to_name}},</div>
+        <p>Thank you for reaching out to <strong>{{company_name}}</strong>. We have received your enquiry regarding <strong>{{subject}}</strong>.</p>
         
         <div class="message-box">
           {{{message}}}
         </div>
         
-        <p>If you require further assistance, please reply directly to this email.</p>
+        <p>A member of our concierge team is reviewing your request and will provide a detailed follow-up shortly. We appreciate your patience.</p>
         
-        <div style="text-align: center; margin-top: 30px;">
-          <a href="{{company_website}}" class="btn">Access Portal</a>
+        <div style="text-align: center; margin-top: 40px;">
+          <a href="{{company_website}}" class="btn">Visit Portal</a>
         </div>
 
-        {{{products_html}}}
+        <div class="showcase-header"><span>Curator's Selection</span></div>
+        
+        <div class="product-row">
+           <!-- Dynamic Placeholders for Top Products -->
+           <div class="product-col">
+              <img src="{{product_1_image}}" class="product-img" alt="Selection 1">
+              <div class="product-detail">
+                 <div class="product-title">{{product_1_name}}</div>
+                 <a href="{{product_1_link}}" class="product-link">View Item</a>
+              </div>
+           </div>
+           <div class="product-col">
+              <img src="{{product_2_image}}" class="product-img" alt="Selection 2">
+              <div class="product-detail">
+                 <div class="product-title">{{product_2_name}}</div>
+                 <a href="{{product_2_link}}" class="product-link">View Item</a>
+              </div>
+           </div>
+        </div>
       </div>
 
       <div class="footer">
-        {{{socials_html}}}
-        <p>&copy; {{year}} {{company_name}}. All rights reserved.</p>
+        <p>&copy; {{year}} {{company_name}}. All Rights Reserved.</p>
         <p>{{company_address}}</p>
-        <p><a href="{{company_website}}">Visit Website</a></p>
+        <p><a href="{{company_website}}">www.kasicouture.com</a></p>
       </div>
     </div>
   </div>
