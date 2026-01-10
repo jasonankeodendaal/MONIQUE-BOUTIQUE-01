@@ -260,7 +260,13 @@ const App: React.FC = () => {
           if (newSettingsRes && newSettingsRes.length > 0) {
              setSettings(newSettingsRes[0]);
              setIsDatabaseProvisioned(true);
+          } else {
+             // If still empty after seed, we are in a critical error state.
+             // Do NOT fall back to local constants.
+             console.error("Critical: Seeding failed or DB unreachable.");
+             setSaveStatus('error');
           }
+
           if (newProductsRes) setProducts(newProductsRes);
           if (newCatsRes) setCategories(newCatsRes);
           if (newSubCatsRes) setSubCategories(newSubCatsRes);
@@ -272,9 +278,10 @@ const App: React.FC = () => {
               setSettings(settingsRes[0]);
               setIsDatabaseProvisioned(true);
           } else {
-               // Fallback only if fetch worked but table is truly empty after seed attempt failed?
-               // Should not happen if seed works.
-               setSettings(INITIAL_SETTINGS); 
+               // If settings table exists but fetch returned empty array (unlikely if seeded),
+               // OR if fetch failed (null).
+               // We will NOT fall back to local constants.
+               console.error("Database connection established but no settings found.");
                setIsDatabaseProvisioned(false);
           }
           

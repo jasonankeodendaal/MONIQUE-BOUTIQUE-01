@@ -156,7 +156,19 @@ export const SUPABASE_SCHEMA = `
 -- #####################################################
 -- # MASTER CONFIGURATION SCRIPT
 -- # Run this in Supabase SQL Editor to provision DB
+-- # WARNING: THIS WILL WIPE ALL DATA AND RESET TABLES
 -- #####################################################
+
+-- 0. RESET / WIPE (Use with Caution)
+DROP TABLE IF EXISTS traffic_logs CASCADE;
+DROP TABLE IF EXISTS product_stats CASCADE;
+DROP TABLE IF EXISTS admin_users CASCADE;
+DROP TABLE IF EXISTS enquiries CASCADE;
+DROP TABLE IF EXISTS carousel_slides CASCADE;
+DROP TABLE IF EXISTS subcategories CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS settings CASCADE;
 
 -- 1. ENABLE EXTENSIONS (If needed)
 -- create extension if not exists "uuid-ossp";
