@@ -135,7 +135,7 @@ const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, is
       <span className="text-[10px] font-black uppercase tracking-widest">
         {status === 'saving' && 'Syncing Cloud...'}
         {status === 'migrating' && 'Initializing Data...'}
-        {status === 'saved' && 'Cloud Sync Complete'}
+        {status === 'saved' && 'Sync Complete'}
         {status === 'error' && 'Sync Failed'}
       </span>
     </div>
@@ -174,13 +174,61 @@ const App: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(false);
 
-  // Realtime Subscriptions
-  useEffect(() => {
+  // Absolute Sync logic - Force Supabase to be the master
+  const refreshAllData = useCallback(async () => {
     if (!isSupabaseConfigured) return;
+    
+    setSaveStatus('migrating');
+    try {
+      const remoteSettings = await fetchTableData('settings');
+      if (remoteSettings && remoteSettings.length > 0) {
+        const cloudSettings = { ...INITIAL_SETTINGS, ...remoteSettings[0] };
+        setSettings(cloudSettings);
+        localStorage.setItem('site_settings', JSON.stringify(cloudSettings));
+        setIsDatabaseProvisioned(true);
+      } else {
+        // First ever run: Push defaults to cloud
+        await upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' });
+      }
 
-    const handleTableChange = (payload: any, eventType: string, setState: React.Dispatch<React.SetStateAction<any[]>>, storageKey: string) => {
+      const syncTable = async (tableName: string, setter: any, storageKey: string, initialData: any) => {
+        const remote = await fetchTableData(tableName);
+        if (remote && remote.length > 0) {
+          setter(remote);
+          localStorage.setItem(storageKey, JSON.stringify(remote));
+        } else if (remote !== null) {
+          // Table exists but empty, push initial local data to cloud once
+          const local = safeJSONParse(storageKey, initialData);
+          if (local && local.length > 0) {
+            await upsertData(tableName, local);
+          }
+        }
+      };
+
+      await Promise.all([
+        syncTable('products', setProducts, 'admin_products', INITIAL_PRODUCTS),
+        syncTable('categories', setCategories, 'admin_categories', INITIAL_CATEGORIES),
+        syncTable('subcategories', setSubCategories, 'admin_subcategories', INITIAL_SUBCATEGORIES),
+        syncTable('carousel_slides', setHeroSlides, 'admin_hero', INITIAL_CAROUSEL),
+        syncTable('enquiries', setEnquiries, 'admin_enquiries', INITIAL_ENQUIRIES)
+      ]);
+
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (e) {
+      setSaveStatus('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoadingAuth(false);
+      return;
+    }
+
+    const handleTableChange = (payload: any, eventType: string, setState: any, storageKey: string) => {
       const { new: newRecord, old: oldRecord } = payload;
-      setState(prev => {
+      setState((prev: any[]) => {
         let updated = [...prev];
         if (eventType === 'INSERT') {
           if (!updated.find(i => i.id === newRecord.id)) updated = [newRecord, ...updated];
@@ -202,81 +250,30 @@ const App: React.FC = () => {
       subscribeToTable('enquiries', p => handleTableChange(p, p.eventType, setEnquiries, 'admin_enquiries')),
       subscribeToTable('settings', p => {
         if (p.new && (p.new as any).id === 'global_settings') {
-          const merged = { ...INITIAL_SETTINGS, ...p.new };
-          setSettings(merged);
-          localStorage.setItem('site_settings', JSON.stringify(merged));
+          setSettings(prev => {
+            const up = { ...INITIAL_SETTINGS, ...prev, ...p.new };
+            localStorage.setItem('site_settings', JSON.stringify(up));
+            return up;
+          });
         }
       })
     ];
 
-    return () => subs.forEach(s => s?.unsubscribe());
-  }, []);
-
-  // Main Data Refresh & Seeding Logic
-  const refreshAllData = useCallback(async () => {
-    if (!isSupabaseConfigured) return;
-    
-    setSaveStatus('saving');
-    try {
-      const fetchAndSeed = async <T,>(tableName: string, setter: React.Dispatch<React.SetStateAction<T[]>>, initialData: T[], storageKey: string) => {
-        const remote = await fetchTableData(tableName);
-        if (remote === null) return; // Connection error
-        
-        if (remote.length > 0) {
-          setter(remote);
-          localStorage.setItem(storageKey, JSON.stringify(remote));
-        } else {
-          // SEEDING: Supabase is empty, push initial data
-          setSaveStatus('migrating');
-          await upsertData(tableName, initialData);
-          setter(initialData);
-          localStorage.setItem(storageKey, JSON.stringify(initialData));
-        }
-      };
-
-      const remoteSettings = await fetchTableData('settings');
-      if (remoteSettings && remoteSettings.length > 0) {
-        const merged = { ...INITIAL_SETTINGS, ...remoteSettings[0] };
-        setSettings(merged);
-        localStorage.setItem('site_settings', JSON.stringify(merged));
-        setIsDatabaseProvisioned(true);
-      } else if (remoteSettings !== null) {
-        setSaveStatus('migrating');
-        const seedSettings = { ...INITIAL_SETTINGS, id: 'global_settings' };
-        await upsertData('settings', seedSettings);
-        setSettings(INITIAL_SETTINGS);
-        setIsDatabaseProvisioned(true);
-      }
-
-      await Promise.all([
-        fetchAndSeed('products', setProducts, INITIAL_PRODUCTS, 'admin_products'),
-        fetchAndSeed('categories', setCategories, INITIAL_CATEGORIES, 'admin_categories'),
-        fetchAndSeed('subcategories', setSubCategories, INITIAL_SUBCATEGORIES, 'admin_subcategories'),
-        fetchAndSeed('carousel_slides', setHeroSlides, INITIAL_CAROUSEL, 'admin_hero'),
-        fetchAndSeed('enquiries', setEnquiries, INITIAL_ENQUIRIES, 'admin_enquiries')
-      ]);
-
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } catch (e) {
-      setSaveStatus('error');
-    }
-  }, []);
-
-  useEffect(() => {
     refreshAllData();
-    if (isSupabaseConfigured) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-      }).finally(() => setLoadingAuth(false));
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null);
-      });
-      return () => subscription.unsubscribe();
-    } else {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setLoadingAuth(false);
-    }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subs.forEach(s => s?.unsubscribe());
+      subscription.unsubscribe();
+    };
   }, [refreshAllData]);
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
@@ -285,28 +282,25 @@ const App: React.FC = () => {
     setSettings(updated);
     
     if (isSupabaseConfigured) {
-      await upsertData('settings', { ...updated, id: 'global_settings' });
+      const { error } = await upsertData('settings', { ...updated, id: 'global_settings' });
+      if (error) setSaveStatus('error');
+      else {
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }
     } else {
       localStorage.setItem('site_settings', JSON.stringify(updated));
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     }
-    setSaveStatus('saved');
-    setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
-  const logEvent = useCallback((type: 'view' | 'click' | 'system', label: string) => {
-    const event = {
-      id: Date.now().toString(),
-      type,
-      text: type === 'view' ? `Page: ${label}` : label,
-      time: new Date().toLocaleTimeString(),
-      timestamp: Date.now()
-    };
-    if (isSupabaseConfigured) {
-      supabase.from('traffic_logs').insert([event]).then(() => {});
-    }
+  const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
+    const newEvent = { id: Date.now().toString(), type, text: type === 'view' ? `Page View: ${label}` : label, time: new Date().toLocaleTimeString(), timestamp: Date.now() };
+    if (isSupabaseConfigured) supabase.from('traffic_logs').insert([newEvent]);
     const existing = safeJSONParse('site_traffic_logs', []);
-    localStorage.setItem('site_traffic_logs', JSON.stringify([event, ...existing].slice(0, 50)));
-  }, []);
+    localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
+  };
 
   useEffect(() => {
     const hexToRgb = (hex: string) => {
@@ -319,14 +313,14 @@ const App: React.FC = () => {
 
   return (
     <SettingsContext.Provider value={{ 
-      settings, updateSettings, products, setProducts, categories, setCategories,
-      subCategories, setSubCategories, heroSlides, setHeroSlides, enquiries, setEnquiries,
+      settings, updateSettings, products, setProducts, categories, setCategories, subCategories, setSubCategories, heroSlides, setHeroSlides, enquiries, setEnquiries,
       user, loadingAuth, isLocalMode: !isSupabaseConfigured, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
     }}>
       <Router>
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
         <SaveStatusIndicator status={saveStatus} isProvisioned={isDatabaseProvisioned} />
+        <style>{`.text-primary { color: var(--primary-color); } .bg-primary { background-color: var(--primary-color); } .border-primary { border-color: var(--primary-color); } .hover\\:bg-primary:hover { background-color: var(--primary-color); }`}</style>
         <div className="min-h-screen flex flex-col">
           <Header />
           <div className="flex-grow">

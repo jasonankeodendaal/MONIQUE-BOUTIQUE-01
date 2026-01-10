@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ADMINS, INITIAL_ENQUIRIES } from '../constants';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
 const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
@@ -7,6 +8,17 @@ const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
+// Log status to help user debug connection issues
+if (!supabaseUrl) {
+  console.warn("%c[Supabase] URL not found.", "color: orange; font-weight: bold;");
+  console.log("To fix: Create a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY");
+} else if (!supabaseUrl.includes('supabase.co')) {
+  console.warn("%c[Supabase] Invalid URL format.", "color: red; font-weight: bold;", supabaseUrl);
+} else {
+  console.log("%c[Supabase] Configuration detected.", "color: green; font-weight: bold;");
+}
+
+// STRICT CHECK: Only configured if URL is present AND contains supabase.co
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
 
 export const supabase = createClient(
@@ -14,6 +26,180 @@ export const supabase = createClient(
   supabaseAnonKey || 'placeholder'
 );
 
+export const SUPABASE_SCHEMA = `
+-- #####################################################
+-- # KASI COUTURE DATABASE SETUP SCRIPT (V3 - RE-RUN SAFE)
+-- # PASTE THIS INTO SUPABASE SQL EDITOR TO FIX/RESET
+-- #####################################################
+
+-- 1. Create Tables (Idempotent)
+create table if not exists settings (
+  id text primary key,
+  "companyName" text, "slogan" text, "companyLogo" text, "companyLogoUrl" text,
+  "primaryColor" text, "secondaryColor" text, "accentColor" text,
+  "navHomeLabel" text, "navProductsLabel" text, "navAboutLabel" text, "navContactLabel" text, "navDashboardLabel" text,
+  "contactEmail" text, "contactPhone" text, "whatsappNumber" text, "address" text,
+  "socialLinks" jsonb,
+  "footerDescription" text, "footerCopyrightText" text,
+  "homeHeroBadge" text, "homeAboutTitle" text, "homeAboutDescription" text, "homeAboutImage" text, "homeAboutCta" text,
+  "homeCategorySectionTitle" text, "homeCategorySectionSubtitle" text, "homeTrustSectionTitle" text,
+  "homeTrustItem1Title" text, "homeTrustItem1Desc" text, "homeTrustItem1Icon" text,
+  "homeTrustItem2Title" text, "homeTrustItem2Desc" text, "homeTrustItem2Icon" text,
+  "homeTrustItem3Title" text, "homeTrustItem3Desc" text, "homeTrustItem3Icon" text,
+  "productsHeroTitle" text, "productsHeroSubtitle" text, "productsHeroImage" text, "productsHeroImages" jsonb, "productsSearchPlaceholder" text,
+  "aboutHeroTitle" text, "aboutHeroSubtitle" text, "aboutMainImage" text,
+  "aboutEstablishedYear" text, "aboutFounderName" text, "aboutLocation" text,
+  "aboutHistoryTitle" text, "aboutHistoryBody" text,
+  "aboutMissionTitle" text, "aboutMissionBody" text, "aboutMissionIcon" text,
+  "aboutCommunityTitle" text, "aboutCommunityBody" text, "aboutCommunityIcon" text,
+  "aboutIntegrityTitle" text, "aboutIntegrityBody" text, "aboutIntegrityIcon" text,
+  "aboutSignatureImage" text, "aboutGalleryImages" jsonb,
+  "contactHeroTitle" text, "contactHeroSubtitle" text, "contactFormNameLabel" text, "contactFormEmailLabel" text,
+  "contactFormSubjectLabel" text, "contactFormMessageLabel" text, "contactFormButtonText" text,
+  "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text,
+  "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text,
+  "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text,
+  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text
+);
+
+create table if not exists products (
+  id text primary key,
+  name text, sku text, price numeric, "affiliateLink" text,
+  "categoryId" text, "subCategoryId" text, description text,
+  features jsonb, specifications jsonb, media jsonb,
+  "discountRules" jsonb, reviews jsonb, "createdAt" bigint
+);
+
+create table if not exists categories (
+  id text primary key,
+  name text, icon text, image text, description text
+);
+
+create table if not exists subcategories (
+  id text primary key,
+  "categoryId" text, name text
+);
+
+create table if not exists carousel_slides (
+  id text primary key,
+  image text, type text, title text, subtitle text, cta text
+);
+
+create table if not exists enquiries (
+  id text primary key,
+  name text, email text, whatsapp text, subject text, message text, "createdAt" bigint, status text
+);
+
+create table if not exists admin_users (
+  id text primary key,
+  name text, email text, role text, permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text
+);
+
+create table if not exists product_stats (
+  "productId" text primary key,
+  views numeric, clicks numeric, "totalViewTime" numeric, "lastUpdated" bigint
+);
+
+create table if not exists traffic_logs (
+  id text primary key,
+  type text, text text, time text, timestamp bigint
+);
+
+-- 2. ENABLE ROW LEVEL SECURITY
+alter table settings enable row level security;
+alter table products enable row level security;
+alter table categories enable row level security;
+alter table subcategories enable row level security;
+alter table carousel_slides enable row level security;
+alter table enquiries enable row level security;
+alter table admin_users enable row level security;
+alter table product_stats enable row level security;
+alter table traffic_logs enable row level security;
+
+-- 3. CREATE POLICIES (DROP FIRST TO PREVENT ERRORS)
+
+-- Settings
+drop policy if exists "Public Read Settings" on settings;
+create policy "Public Read Settings" on settings for select using (true);
+drop policy if exists "Public/Admin All Settings" on settings;
+create policy "Public/Admin All Settings" on settings for all using (true) with check (true);
+
+-- Products
+drop policy if exists "Public Read Products" on products;
+create policy "Public Read Products" on products for select using (true);
+drop policy if exists "Public/Admin All Products" on products;
+create policy "Public/Admin All Products" on products for all using (true) with check (true);
+
+-- Categories
+drop policy if exists "Public Read Categories" on categories;
+create policy "Public Read Categories" on categories for select using (true);
+drop policy if exists "Public/Admin All Categories" on categories;
+create policy "Public/Admin All Categories" on categories for all using (true) with check (true);
+
+-- Subcategories
+drop policy if exists "Public Read Subcategories" on subcategories;
+create policy "Public Read Subcategories" on subcategories for select using (true);
+drop policy if exists "Public/Admin All Subcategories" on subcategories;
+create policy "Public/Admin All Subcategories" on subcategories for all using (true) with check (true);
+
+-- Carousel Slides
+drop policy if exists "Public Read Slides" on carousel_slides;
+create policy "Public Read Slides" on carousel_slides for select using (true);
+drop policy if exists "Public/Admin All Slides" on carousel_slides;
+create policy "Public/Admin All Slides" on carousel_slides for all using (true) with check (true);
+
+-- Enquiries
+drop policy if exists "Public Insert Enquiries" on enquiries;
+create policy "Public Insert Enquiries" on enquiries for insert with check (true);
+drop policy if exists "Admin All Enquiries" on enquiries;
+create policy "Admin All Enquiries" on enquiries for all using (true) with check (true);
+
+-- Traffic Logs
+drop policy if exists "Public Insert Logs" on traffic_logs;
+create policy "Public Insert Logs" on traffic_logs for insert with check (true);
+drop policy if exists "Admin All Logs" on traffic_logs;
+create policy "Admin All Logs" on traffic_logs for all using (true) with check (true);
+
+-- Admin Users (Restricted)
+drop policy if exists "Admin Control Users" on admin_users;
+create policy "Admin Control Users" on admin_users for all using (true) with check (true);
+
+-- 4. Setup Storage Buckets
+insert into storage.buckets (id, name, public) 
+values ('media', 'media', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Public Access" on storage.objects;
+create policy "Public Access" 
+on storage.objects for select 
+using ( bucket_id = 'media' );
+
+drop policy if exists "Public Upload" on storage.objects;
+create policy "Public Upload" 
+on storage.objects for insert 
+with check ( bucket_id = 'media' );
+
+drop policy if exists "Admin Update" on storage.objects;
+create policy "Admin Update"
+on storage.objects for update
+using ( bucket_id = 'media' );
+`;
+
+export const LOCAL_STORAGE_KEYS: Record<string, string> = {
+  'products': 'admin_products',
+  'categories': 'admin_categories',
+  'subcategories': 'admin_subcategories',
+  'carousel_slides': 'admin_hero',
+  'enquiries': 'admin_enquiries',
+  'admin_users': 'admin_users',
+  'product_stats': 'admin_product_stats',
+  'settings': 'site_settings',
+  'traffic_logs': 'site_traffic_logs'
+};
+
+/**
+ * Helper to subscribe to Realtime changes on a specific table.
+ */
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
   if (!isSupabaseConfigured) return null;
   return supabase
@@ -22,18 +208,34 @@ export const subscribeToTable = (table: string, callback: (payload: any) => void
     .subscribe();
 };
 
+/**
+ * Generic Upsert Function
+ */
 export async function upsertData(table: string, data: any) {
   if (!isSupabaseConfigured) return { data: null, error: { message: 'Supabase not configured' } };
   try {
-    const { data: result, error } = await supabase.from(table).upsert(data).select();
-    if (error) throw error;
-    return { data: result, error: null };
+    // If it's an array of data
+    if (Array.isArray(data)) {
+      if (data.length === 0) return { data: [], error: null };
+      const { data: result, error } = await supabase.from(table).upsert(data).select();
+      if (error) throw error;
+      return { data: result, error: null };
+    } 
+    // Single object
+    else {
+      const { data: result, error } = await supabase.from(table).upsert(data).select();
+      if (error) throw error;
+      return { data: result, error: null };
+    }
   } catch (e: any) {
-      console.error(`Supabase Upsert Error [${table}]:`, e);
+      console.error(`Exception upserting ${table}`, e);
       return { data: null, error: e };
   }
 }
 
+/**
+ * Generic Delete Function
+ */
 export async function deleteData(table: string, id: string) {
   if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
   try {
@@ -41,105 +243,93 @@ export async function deleteData(table: string, id: string) {
       if (error) throw error;
       return { error: null };
   } catch (e: any) {
+      console.error(`Exception deleting ${table}`, e);
       return { error: e };
   }
 }
 
+/**
+ * Fetch all data for a specific table with fallback
+ * Returns NULL on error to distinguish between "Empty Table" and "Connection Failure"
+ */
 export async function fetchTableData(table: string): Promise<any[] | null> {
-  if (!isSupabaseConfigured) return null;
+  const localKey = LOCAL_STORAGE_KEYS[table] || `admin_${table}`;
+
+  if (!isSupabaseConfigured) {
+    const local = localStorage.getItem(localKey);
+    return local ? JSON.parse(local) : [];
+  }
+  
   try {
       const { data, error } = await supabase.from(table).select('*');
+      
       if (error) {
-        console.warn(`Supabase Fetch Warning [${table}]:`, error.message);
+        console.error(`Fetch error for ${table}: ${error.message}`);
+        // Return null to indicate FAILURE, not empty
         return null;
       }
+      
       return data || [];
   } catch (e) {
+      console.error(`Exception fetching ${table}`, e);
       return null;
   }
 }
 
-export async function uploadMedia(file: File, bucket = 'media') {
+export interface UploadResult {
+  url: string;
+  type: string;
+  name: string;
+  size: number;
+}
+
+export async function uploadMedia(file: File, bucket = 'media'): Promise<UploadResult> {
   const fallbackUrl = URL.createObjectURL(file);
   if (!isSupabaseConfigured) return { url: fallbackUrl, type: file.type, name: file.name, size: file.size };
+
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-    const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
+
     if (error) throw error;
-    const { data: publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
-    return { url: publicUrl.publicUrl, type: file.type, name: file.name, size: file.size };
+
+    const { data: publicUrl } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+    return { 
+      url: publicUrl.publicUrl,
+      type: file.type,
+      name: file.name,
+      size: file.size
+    };
   } catch (e) {
+      console.error("Upload failed, falling back to blob", e);
       return { url: fallbackUrl, type: file.type, name: file.name, size: file.size };
   }
 }
 
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
-  if (!isSupabaseConfigured) return { status: 'offline', latency: 0, message: 'Supabase Not Configured' };
+  if (!isSupabaseConfigured) {
+    return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
+  }
+  
   const start = performance.now();
   try {
+    // Simple check on settings table
     const { error } = await supabase.from('settings').select('id').limit(1);
+    const end = performance.now();
+    
     if (error) throw error;
-    return { status: 'online', latency: Math.round(performance.now() - start), message: 'Supabase Sync Active' };
+    return { status: 'online', latency: Math.round(end - start), message: 'Supabase Sync Active' };
   } catch (err: any) {
     return { status: 'offline', latency: 0, message: err.message || 'Connection Failed' };
   }
 }
 
 export const getSupabaseUrl = () => supabaseUrl;
-
-export const LOCAL_STORAGE_KEYS: Record<string, string> = {
-  'products': 'admin_products',
-  'categories': 'admin_categories',
-  'subcategories': 'admin_subcategories',
-  'carousel_slides': 'admin_hero',
-  'enquiries': 'admin_enquiries',
-  'settings': 'site_settings'
-};
-
-export const SUPABASE_SCHEMA = `-- SUPABASE MASTER SETUP SCRIPT
--- 1. Create Tables
-CREATE TABLE IF NOT EXISTS settings (id TEXT PRIMARY KEY, "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT, "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT, "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT, "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT, "socialLinks" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT, "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT, "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeTrustSectionTitle" TEXT, "homeTrustItem1Title" TEXT, "homeTrustItem1Desc" TEXT, "homeTrustItem1Icon" TEXT, "homeTrustItem2Title" TEXT, "homeTrustItem2Desc" TEXT, "homeTrustItem2Icon" TEXT, "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT, "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" JSONB, "productsSearchPlaceholder" TEXT, "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT, "aboutEstablishedYear" TEXT, "aboutFounderName" TEXT, "aboutLocation" TEXT, "aboutHistoryTitle" TEXT, "aboutHistoryBody" TEXT, "aboutMissionTitle" TEXT, "aboutMissionBody" TEXT, "aboutMissionIcon" TEXT, "aboutCommunityTitle" TEXT, "aboutCommunityBody" TEXT, "aboutCommunityIcon" TEXT, "aboutIntegrityTitle" TEXT, "aboutIntegrityBody" TEXT, "aboutIntegrityIcon" TEXT, "aboutSignatureImage" TEXT, "aboutGalleryImages" JSONB, "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT, "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT, "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT, "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT, "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT, "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT);
-CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT);
-CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT);
-CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT);
-CREATE TABLE IF NOT EXISTS carousel_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT);
-CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
-CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions JSONB, password TEXT, "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
-CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT);
-CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views NUMERIC, clicks NUMERIC, "totalViewTime" NUMERIC, "lastUpdated" BIGINT );
-
--- 2. Enable RLS on all tables
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE carousel_slides ENABLE ROW LEVEL SECURITY;
-ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
-
--- 3. Create Public Read Policies (Allow anyone to see the site)
-CREATE POLICY "Allow Public Select Settings" ON settings FOR SELECT USING (true);
-CREATE POLICY "Allow Public Select Products" ON products FOR SELECT USING (true);
-CREATE POLICY "Allow Public Select Categories" ON categories FOR SELECT USING (true);
-CREATE POLICY "Allow Public Select Subcategories" ON subcategories FOR SELECT USING (true);
-CREATE POLICY "Allow Public Select Carousel" ON carousel_slides FOR SELECT USING (true);
-
--- 4. Create Public Insert Policies (Allow visitors to send enquiries and logs)
-CREATE POLICY "Allow Public Insert Enquiries" ON enquiries FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow Public Insert Logs" ON traffic_logs FOR INSERT WITH CHECK (true);
-
--- 5. Create Admin All Policies (Allow Authenticated Users to manage everything)
--- Note: Replace 'authenticated' with your role logic if needed, but this is standard for Supabase Auth
-CREATE POLICY "Allow Authenticated All Settings" ON settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Products" ON products FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Categories" ON categories FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Subcategories" ON subcategories FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Carousel" ON carousel_slides FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Enquiries" ON enquiries FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Users" ON admin_users FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Logs" ON traffic_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow Authenticated All Stats" ON product_stats FOR ALL TO authenticated USING (true) WITH CHECK (true);
-`;
