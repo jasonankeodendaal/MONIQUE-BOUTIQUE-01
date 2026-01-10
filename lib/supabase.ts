@@ -22,11 +22,12 @@ export const supabase = createClient(
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # MASTER CONFIGURATION SCRIPT (COMPLETE)
+-- # MASTER CONFIGURATION SCRIPT (FIXED & FULLY LOADED)
 -- # Run this in Supabase SQL Editor to provision DB
 -- #####################################################
 
--- 1. CLEANUP (Optional - removes old structure if exists)
+-- 1. CLEANUP (Optional - removes old structure if exists to ensure clean state)
+-- Uncomment the next line if you want to wipe everything and start fresh
 -- drop table if exists settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs cascade;
 
 -- 2. CREATE TABLES
@@ -95,7 +96,7 @@ create table if not exists admin_users (
   email text, 
   role text default 'admin', 
   permissions jsonb default '[]', 
-  password text, -- optional legacy field
+  password text, -- legacy field, optional
   "createdAt" bigint, 
   "lastActive" bigint, 
   "profileImage" text, 
@@ -113,13 +114,32 @@ create table if not exists traffic_logs (
   type text, text text, time text, timestamp bigint
 );
 
--- 3. HELPER FUNCTIONS (Prevent Recursion)
-create or replace function public.get_my_role()
-returns text as $$
-  select role from public.admin_users where id = auth.uid();
-$$ language sql security definer;
+-- 3. SECURITY DEFINER FUNCTIONS (Prevents Recursion in Policies)
+
+-- Helper to check if current user is owner without recursion
+create or replace function public.is_owner()
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.admin_users
+    where id = auth.uid() and role = 'owner'
+  );
+end;
+$$ language plpgsql security definer;
+
+-- Helper to check if current user is admin/owner
+create or replace function public.is_admin_or_owner()
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.admin_users
+    where id = auth.uid()
+  );
+end;
+$$ language plpgsql security definer;
 
 -- 4. ENABLE ROW LEVEL SECURITY
+
 alter table settings enable row level security;
 alter table products enable row level security;
 alter table categories enable row level security;
@@ -132,52 +152,87 @@ alter table traffic_logs enable row level security;
 
 -- 5. POLICIES (Access Control)
 
--- Settings
-create policy "Settings Read" on settings for select using (true);
-create policy "Settings Write" on settings for all using (auth.role() = 'authenticated');
+-- Settings (Public Read, Admin Write)
+drop policy if exists "Settings Public Read" on settings;
+create policy "Settings Public Read" on settings for select using (true);
 
--- Products
-create policy "Products Read" on products for select using (true);
-create policy "Products Write" on products for all using (auth.role() = 'authenticated');
+drop policy if exists "Settings Admin Write" on settings;
+create policy "Settings Admin Write" on settings for all using (auth.role() = 'authenticated');
 
--- Categories/Sub/Slides
-create policy "Public Read Cats" on categories for select using (true);
-create policy "Auth Write Cats" on categories for all using (auth.role() = 'authenticated');
-create policy "Public Read Subs" on subcategories for select using (true);
-create policy "Auth Write Subs" on subcategories for all using (auth.role() = 'authenticated');
-create policy "Public Read Slides" on carousel_slides for select using (true);
-create policy "Auth Write Slides" on carousel_slides for all using (auth.role() = 'authenticated');
+-- Products (Public Read, Admin Write)
+drop policy if exists "Products Public Read" on products;
+create policy "Products Public Read" on products for select using (true);
 
--- Enquiries (Public write for contact form, Admin read)
-create policy "Public Insert Enquiries" on enquiries for insert with check (true);
-create policy "Admin Manage Enquiries" on enquiries for all using (auth.role() = 'authenticated');
+drop policy if exists "Products Admin Write" on products;
+create policy "Products Admin Write" on products for all using (auth.role() = 'authenticated');
 
--- Admin Users (CRITICAL POLICIES)
--- Allow users to read their own data
+-- Categories/Sub/Slides (Public Read, Admin Write)
+drop policy if exists "Categories Public Read" on categories;
+create policy "Categories Public Read" on categories for select using (true);
+
+drop policy if exists "Categories Admin Write" on categories;
+create policy "Categories Admin Write" on categories for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Subcategories Public Read" on subcategories;
+create policy "Subcategories Public Read" on subcategories for select using (true);
+
+drop policy if exists "Subcategories Admin Write" on subcategories;
+create policy "Subcategories Admin Write" on subcategories for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Slides Public Read" on carousel_slides;
+create policy "Slides Public Read" on carousel_slides for select using (true);
+
+drop policy if exists "Slides Admin Write" on carousel_slides;
+create policy "Slides Admin Write" on carousel_slides for all using (auth.role() = 'authenticated');
+
+-- Enquiries (Public Insert, Admin Manage)
+drop policy if exists "Enquiries Public Insert" on enquiries;
+create policy "Enquiries Public Insert" on enquiries for insert with check (true);
+
+drop policy if exists "Enquiries Admin Manage" on enquiries;
+create policy "Enquiries Admin Manage" on enquiries for all using (auth.role() = 'authenticated');
+
+-- Admin Users (CRITICAL - FIXED RECURSION)
+drop policy if exists "Read Self" on admin_users;
 create policy "Read Self" on admin_users for select using (auth.uid() = id);
--- Allow users to update their own data
+
+drop policy if exists "Update Self" on admin_users;
 create policy "Update Self" on admin_users for update using (auth.uid() = id);
--- Allow authenticated users to INSERT their OWN profile if it doesn't exist (Self-Healing)
+
+drop policy if exists "Insert Self" on admin_users;
 create policy "Insert Self" on admin_users for insert with check (auth.uid() = id);
--- Allow 'owner' role to manage everyone else (using Security Definer function to avoid recursion)
-create policy "Owner Manage All" on admin_users for all using (
-  public.get_my_role() = 'owner'
-);
+
+drop policy if exists "Owner Manage All" on admin_users;
+create policy "Owner Manage All" on admin_users for all using ( public.is_owner() );
 
 -- Stats/Logs
+drop policy if exists "Stats Read" on product_stats;
 create policy "Stats Read" on product_stats for select using (true);
-create policy "Stats Write" on product_stats for all using (true); -- Allow public to increment views
-create policy "Logs Write" on traffic_logs for insert with check (true);
-create policy "Logs Read" on traffic_logs for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Stats Public Update" on product_stats;
+create policy "Stats Public Update" on product_stats for all using (true);
+
+drop policy if exists "Logs Public Insert" on traffic_logs;
+create policy "Logs Public Insert" on traffic_logs for insert with check (true);
+
+drop policy if exists "Logs Admin Read" on traffic_logs;
+create policy "Logs Admin Read" on traffic_logs for select using (auth.role() = 'authenticated');
 
 -- 6. STORAGE
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
 
+drop policy if exists "Public Access" on storage.objects;
 create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
+
+drop policy if exists "Auth Upload" on storage.objects;
 create policy "Auth Upload" on storage.objects for insert with check ( bucket_id = 'media' and auth.role() = 'authenticated' );
+
+drop policy if exists "Auth Update" on storage.objects;
 create policy "Auth Update" on storage.objects for update using ( bucket_id = 'media' and auth.role() = 'authenticated' );
+
+drop policy if exists "Auth Delete" on storage.objects;
 create policy "Auth Delete" on storage.objects for delete using ( bucket_id = 'media' and auth.role() = 'authenticated' );
 
 -- 7. REALTIME
@@ -187,28 +242,45 @@ alter publication supabase_realtime add table settings, products, categories, su
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  -- Check if profile already exists to prevent error
-  if not exists (select 1 from public.admin_users where id = new.id) then
-      insert into public.admin_users (id, email, name, role, permissions, "createdAt")
-      values (
-        new.id, 
-        new.email, 
-        split_part(new.email, '@', 1),
-        'admin', -- Default role
-        '[]',
-        extract(epoch from now()) * 1000
-      );
-  end if;
+  insert into public.admin_users (id, email, name, role, permissions, "createdAt")
+  values (
+    new.id, 
+    new.email, 
+    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    'owner', -- First users default to owner for safety in this template
+    '["*"]'::jsonb,
+    extract(epoch from now()) * 1000
+  )
+  on conflict (id) do nothing; -- Prevents 409 errors
   return new;
 end;
 $$ language plpgsql security definer;
 
--- Drop trigger if exists to prevent duplication error on re-run
+-- Re-create trigger
 drop trigger if exists on_auth_user_created on auth.users;
-
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- 9. SEED DATA (Bootstrap the application)
+-- Only inserts if table is empty
+
+INSERT INTO settings (id, "companyName", "primaryColor", "secondaryColor", "accentColor", "backgroundColor", "textColor", "navHomeLabel", "navProductsLabel", "navAboutLabel", "navContactLabel", "navDashboardLabel", "contactEmail", "contactPhone", "whatsappNumber", "address", "footerDescription", "footerCopyrightText", "homeHeroBadge", "homeAboutTitle", "homeAboutDescription", "homeAboutCta", "homeCategorySectionTitle", "homeTrustSectionTitle", "productsHeroTitle", "productsHeroSubtitle", "aboutHeroTitle", "aboutHeroSubtitle", "contactHeroTitle", "contactHeroSubtitle", "disclosureTitle", "privacyTitle", "termsTitle", "productsSearchPlaceholder", "contactFormButtonText", "contactFormNameLabel", "contactFormEmailLabel", "contactFormSubjectLabel", "contactFormMessageLabel")
+VALUES (
+  'global_settings',
+  'Kasi Couture', '#D4AF37', '#1E293B', '#F59E0B', '#FDFCFB', '#0f172a',
+  'Home', 'My Picks', 'My Story', 'Ask Me', 'Portal',
+  'hello@kasicouture.com', '+27 11 900 2000', '+27119002000', 'Melrose Arch, Johannesburg',
+  'This isn''t just a store. It''s a collection of the things I love.', 'All rights reserved.',
+  'Curated by Kasi', 'Hi, I’m the Curator.', 'For years, I struggled to find fashion that balanced authentic African heritage with modern luxury. This website is the result of that journey.', 'Read My Full Story',
+  'Curated Categories', 'Why I Chose These',
+  'The Edit', 'A hand-picked selection of essentials that define the Kasi Couture aesthetic.',
+  'From Passion to Platform.', 'Kasi Couture is my personal curation platform.',
+  'Let''s Connect.', 'Have a question about a specific piece or just want to say hi?',
+  'Affiliate Disclosure', 'Privacy Policy', 'Terms of Service',
+  'Find something special...', 'Send Message', 'Your Name', 'Your Email', 'Subject', 'Message'
+)
+ON CONFLICT (id) DO NOTHING;
 `;
 
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {

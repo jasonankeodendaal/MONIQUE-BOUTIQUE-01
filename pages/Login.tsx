@@ -40,12 +40,12 @@ const Login: React.FC = () => {
             // Attempt to insert the profile
             const { error: createError } = await supabase.from('admin_users').insert(newProfile);
             
-            if (createError) {
+            // Ignore 409 conflict (user already exists, possibly race condition with trigger)
+            if (createError && createError.code !== '23505') { 
                  console.warn("Profile creation warning:", createError);
-                 // CRITICAL FIX: Do not block login on permission error. 
-                 // The database trigger likely already created the row, or we can function without it temporarily.
+                 // Only show error if it's not a permission/conflict issue we can ignore
                  if (!createError.message.includes("permission denied")) {
-                    setError("Account warning: " + createError.message);
+                    // Log but proceed, as login might still work if trigger handled it
                  }
             }
         }

@@ -11,7 +11,7 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
+import { INITIAL_SETTINGS } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, LogOut } from 'lucide-react';
@@ -212,86 +212,45 @@ const App: React.FC = () => {
     if (!isSupabaseConfigured) return;
 
     try {
-      // 1. Check if DB is already seeded
-      const { data: existingSettings, error: freshnessError } = await supabase.from('settings').select('id').limit(1);
-      
-      if (freshnessError) {
-        console.error("Connection Check Failed:", freshnessError);
-        // If critical table check fails, we cannot proceed.
-        // This might be due to table missing (500/404) or network (0).
-        // If it's a new project, table might not exist. 
-        // We will attempt migration ONLY if we confirm we are in a valid environment but empty.
-        // For now, treat as error to enforce Single Source rule.
-        throw freshnessError; 
-      }
+      // Fetch strictly from DB. No local fallbacks.
+      const [
+          settingsRes,
+          productsRes,
+          catsRes,
+          subCatsRes,
+          slidesRes,
+          enquiriesRes
+      ] = await Promise.all([
+          fetchTableData('settings'),
+          fetchTableData('products'),
+          fetchTableData('categories'),
+          fetchTableData('subcategories'),
+          fetchTableData('carousel_slides'),
+          fetchTableData('enquiries')
+      ]);
 
-      const isFreshDb = !existingSettings || existingSettings.length === 0;
-
-      if (isFreshDb) {
-        // --- SEEDING MODE ---
-        setSaveStatus('migrating');
-        console.log("Fresh Database Detected. Commencing Cloud Seed...");
-
-        // Insert initial data
-        await Promise.all([
-           upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' }),
-           ...INITIAL_PRODUCTS.map(p => upsertData('products', p)),
-           ...INITIAL_CATEGORIES.map(c => upsertData('categories', c)),
-           ...INITIAL_SUBCATEGORIES.map(s => upsertData('subcategories', s)),
-           ...INITIAL_CAROUSEL.map(s => upsertData('carousel_slides', s))
-        ]);
-
-        // After seeding, set state from constants
-        setSettings(INITIAL_SETTINGS);
-        setProducts(INITIAL_PRODUCTS);
-        setCategories(INITIAL_CATEGORIES);
-        setSubCategories(INITIAL_SUBCATEGORIES);
-        setHeroSlides(INITIAL_CAROUSEL);
-        setSaveStatus('saved');
-        setIsDatabaseProvisioned(true);
-
+      if (settingsRes && settingsRes.length > 0) {
+          setSettings(settingsRes[0]);
+          setIsDatabaseProvisioned(true);
       } else {
-        // --- FETCH MODE ---
-        // Fetch strictly from DB. No local fallbacks.
-        const [
-            settingsRes,
-            productsRes,
-            catsRes,
-            subCatsRes,
-            slidesRes,
-            enquiriesRes
-        ] = await Promise.all([
-            fetchTableData('settings'),
-            fetchTableData('products'),
-            fetchTableData('categories'),
-            fetchTableData('subcategories'),
-            fetchTableData('carousel_slides'),
-            fetchTableData('enquiries')
-        ]);
-
-        if (settingsRes && settingsRes.length > 0) {
-            setSettings(settingsRes[0]);
-        } else {
-             // If DB exists but settings table is empty (and not caught by fresh check), 
-             // we have a data integrity issue. Do not load app.
-             console.error("Critical: Settings table empty in provisioned DB.");
-        }
-        
-        if (productsRes) setProducts(productsRes);
-        if (catsRes) setCategories(catsRes);
-        if (subCatsRes) setSubCategories(subCatsRes);
-        if (slidesRes) setHeroSlides(slidesRes);
-        if (enquiriesRes) setEnquiries(enquiriesRes);
-        setIsDatabaseProvisioned(true);
+           // Use default settings strictly for UI rendering if DB is empty but connected
+           // This indicates the user has not run the seed script yet.
+           setSettings(INITIAL_SETTINGS);
+           setIsDatabaseProvisioned(false);
       }
-
+      
+      if (productsRes) setProducts(productsRes);
+      if (catsRes) setCategories(catsRes);
+      if (subCatsRes) setSubCategories(subCatsRes);
+      if (slidesRes) setHeroSlides(slidesRes);
+      if (enquiriesRes) setEnquiries(enquiriesRes);
+      
       setDataLoaded(true);
 
     } catch (e) {
       console.error("Data Sync Critical Failure:", e);
       setSaveStatus('error');
     } finally {
-      // Allow loading to finish so we can show error screen if needed
       setDataLoaded(true); 
       setTimeout(() => setSaveStatus(prev => prev === 'migrating' || prev === 'saved' ? 'idle' : prev), 2500);
     }
@@ -421,7 +380,7 @@ const App: React.FC = () => {
     );
   }
 
-  // Block rendering until data is loaded AND settings are present
+  // Block rendering until data is loaded
   if (!dataLoaded || !settings) {
       if (dataLoaded && !settings) {
         // Loaded but failed to get settings (Error state)
