@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -22,11 +23,30 @@ const Login: React.FC = () => {
       // Check if admin profile exists
       if (data.user) {
         const { data: profile } = await supabase.from('admin_users').select('role').eq('id', data.user.id).single();
+        
         if (!profile) {
-            // Attempt to self-heal using the new trigger logic, or show error
-            // The trigger in SQL should handle this, but if it fails:
-            setError("Account exists but profile missing. Please contact support.");
-            return;
+            // Self-healing: Create missing profile automatically
+            console.log("Profile missing for existing user. Creating default profile...");
+            
+            const newProfile = {
+                id: data.user.id,
+                email: data.user.email,
+                name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Admin',
+                role: 'owner', // Default to owner to ensure full access for the first user
+                permissions: ['*'],
+                createdAt: Date.now()
+            };
+            
+            // Attempt to insert the profile
+            const { error: createError } = await supabase.from('admin_users').insert(newProfile);
+            
+            if (createError) {
+                 console.error("Profile creation failed:", createError);
+                 // If RLS blocks insert, we might need to rely on the user manually running SQL, 
+                 // but we'll try to let them in anyway if possible, though Admin page might break.
+                 setError("Account exists but profile creation failed: " + createError.message);
+                 return;
+            }
         }
       }
 

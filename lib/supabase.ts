@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -21,7 +22,7 @@ export const supabase = createClient(
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################
--- # MASTER CONFIGURATION SCRIPT (UPDATED)
+-- # MASTER CONFIGURATION SCRIPT (COMPLETE)
 -- # Run this in Supabase SQL Editor to provision DB
 -- #####################################################
 
@@ -145,9 +146,14 @@ create policy "Auth Write Slides" on carousel_slides for all using (auth.role() 
 create policy "Public Insert Enquiries" on enquiries for insert with check (true);
 create policy "Admin Manage Enquiries" on enquiries for all using (auth.role() = 'authenticated');
 
--- Admin Users (Users can read/write their OWN profile, Owners can read/write ALL)
+-- Admin Users (CRITICAL POLICIES FOR SELF-HEALING)
+-- Allow admin to see their own profile
 create policy "Admin Read Self" on admin_users for select using (auth.uid() = id);
+-- Allow admin to update their own profile
 create policy "Admin Update Self" on admin_users for update using (auth.uid() = id);
+-- Allow authenticated users to INSERT their OWN profile if it doesn't exist (Self-Healing)
+create policy "Admin Insert Self" on admin_users for insert with check (auth.uid() = id);
+-- Allow 'owner' role to manage everyone else
 create policy "Owner Manage All" on admin_users for all using (
   exists (select 1 from admin_users where id = auth.uid() and role = 'owner')
 );
@@ -172,8 +178,6 @@ create policy "Auth Delete" on storage.objects for delete using ( bucket_id = 'm
 alter publication supabase_realtime add table settings, products, categories, subcategories, carousel_slides, enquiries, admin_users, product_stats, traffic_logs;
 
 -- 7. TRIGGERS (Auto-Create Public Profile for Admin)
--- This ensures when you sign up in Auth, a public profile is created immediately.
-
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
@@ -196,9 +200,6 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
-
--- Optional: Manually insert the first user as owner if table is empty (run manually if needed)
--- update admin_users set role = 'owner' where email = 'YOUR_EMAIL_HERE';
 `;
 
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {

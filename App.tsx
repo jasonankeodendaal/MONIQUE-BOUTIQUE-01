@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
@@ -13,7 +14,7 @@ import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } 
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, RefreshCw } from 'lucide-react';
+import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, RefreshCw, LogOut } from 'lucide-react';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
 
@@ -155,9 +156,9 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 };
 
 const App: React.FC = () => {
-  // STRICT MODE: Initialize empty. No local fallbacks allowed.
+  // STRICT MODE: Initialize empty. No local fallbacks allowed unless seeding.
   // Data must come from Supabase.
-  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS); // Fallback only for layout rendering before fetch
+  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS); 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
@@ -171,6 +172,52 @@ const App: React.FC = () => {
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
+  // --- SECURITY: LOGOUT ON REFRESH ---
+  useEffect(() => {
+    const enforceSecurityOnMount = async () => {
+      if (!isSupabaseConfigured) return;
+      
+      // If a session exists when the app mounts (refresh), kill it.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        console.log("Security Protocol: Session terminated on refresh.");
+        await supabase.auth.signOut();
+        setUser(null);
+      }
+    };
+    enforceSecurityOnMount();
+  }, []);
+
+  // --- SECURITY: 5 MINUTE INACTIVITY TIMER ---
+  useEffect(() => {
+    if (!user) return; // Only track activity if user is logged in
+
+    const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
+    let timeoutId: any;
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(async () => {
+        console.log("Security Protocol: Auto-logout due to inactivity.");
+        await supabase.auth.signOut();
+        setUser(null);
+        window.location.hash = '#/login'; // Force redirect using hash since we are outside Router context here
+      }, INACTIVITY_LIMIT);
+    };
+
+    // Events to track activity
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+    events.forEach(event => window.addEventListener(event, resetTimer));
+
+    // Start timer immediately
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => window.removeEventListener(event, resetTimer));
+    };
+  }, [user]);
+
   const refreshAllData = useCallback(async () => {
     if (!isSupabaseConfigured) return;
 
@@ -182,11 +229,13 @@ const App: React.FC = () => {
 
       if (isFreshDb) {
         // --- SEEDING MODE ---
+        // Only trigger seeding if we are authenticated OR if we allow public seeding (which we typically don't).
+        // If unauthenticated, this might fail with 403, but we try anyway in case RLS allows it or we are admin.
         setSaveStatus('migrating');
         console.log("Fresh Database Detected. Commencing One-Time Seed...");
 
         // Run inserts in parallel for speed
-        await Promise.all([
+        const results = await Promise.all([
            upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' }),
            ...INITIAL_PRODUCTS.map(p => upsertData('products', p)),
            ...INITIAL_CATEGORIES.map(c => upsertData('categories', c)),
@@ -194,13 +243,14 @@ const App: React.FC = () => {
            ...INITIAL_CAROUSEL.map(s => upsertData('carousel_slides', s))
         ]);
 
-        // Set local state to initial constants after successful seed
+        // If seeding successful, set local state to constants
         setSettings(INITIAL_SETTINGS);
         setProducts(INITIAL_PRODUCTS);
         setCategories(INITIAL_CATEGORIES);
         setSubCategories(INITIAL_SUBCATEGORIES);
         setHeroSlides(INITIAL_CAROUSEL);
         setSaveStatus('saved');
+        setIsDatabaseProvisioned(true);
 
       } else {
         // --- FETCH MODE ---
@@ -227,9 +277,9 @@ const App: React.FC = () => {
         if (subCatsRes) setSubCategories(subCatsRes);
         if (slidesRes) setHeroSlides(slidesRes);
         if (enquiriesRes) setEnquiries(enquiriesRes);
+        setIsDatabaseProvisioned(true);
       }
 
-      setIsDatabaseProvisioned(true);
       setDataLoaded(true);
 
     } catch (e) {
@@ -257,19 +307,8 @@ const App: React.FC = () => {
          if (adminProfile) {
             setUserRole(adminProfile.role);
          } else {
-             // Fallback: If auth exists but public profile is missing (rare), force create it
-             const { count } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
-             const isFirst = count === 0;
-             const newProfile = {
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
-                role: isFirst ? 'owner' : 'admin',
-                permissions: [],
-                createdAt: Date.now()
-             };
-             await supabase.from('admin_users').insert(newProfile);
-             setUserRole(newProfile.role as any);
+             // Fallback profile check handled in Login.tsx, but good to have safety
+             setUserRole('admin');
          }
       }
       setLoadingAuth(false);
@@ -310,7 +349,14 @@ const App: React.FC = () => {
     ];
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const previousUser = user;
       setUser(session?.user ?? null);
+      
+      // If we just logged in (and weren't before), trigger a refresh to ensure
+      // we can seed data if the DB was empty (since we now have write permissions)
+      if (session?.user && !previousUser) {
+          refreshAllData();
+      }
     });
 
     return () => {
