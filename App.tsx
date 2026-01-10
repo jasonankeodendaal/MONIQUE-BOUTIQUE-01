@@ -52,6 +52,7 @@ export const useSettings = () => {
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loadingAuth } = useSettings();
+  
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -60,6 +61,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
       </div>
     </div>
   );
+  
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
@@ -155,6 +157,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 };
 
 const App: React.FC = () => {
+  // Initialize settings with defaults to ensure layout doesn't break, but other content arrays start empty to strictly use Cloud data.
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -168,46 +171,69 @@ const App: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(false);
 
-  // Absolute Sync logic - Force Supabase to be the master
   const refreshAllData = useCallback(async () => {
-    setSaveStatus('migrating');
+    if (!isSupabaseConfigured) return;
+
     try {
-      const remoteSettings = await fetchTableData('settings');
-      if (remoteSettings && remoteSettings.length > 0) {
-        setSettings({ ...INITIAL_SETTINGS, ...remoteSettings[0] });
-        setIsDatabaseProvisioned(true);
-      } else {
-        // First ever run: Push defaults to cloud
-        await upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' });
-      }
-
-      const syncTable = async (tableName: string, setter: any, initialData: any) => {
-        const remote = await fetchTableData(tableName);
-        if (remote && remote.length > 0) {
-          setter(remote);
-        } else if (remote !== null) {
-           // Table exists but empty, push initial defaults to cloud
-           if (Array.isArray(initialData) && initialData.length > 0) {
-             for (const item of initialData) {
-               await upsertData(tableName, item);
-             }
-             setter(initialData);
-           }
-        }
-      };
-
-      await Promise.all([
-        syncTable('products', setProducts, INITIAL_PRODUCTS),
-        syncTable('categories', setCategories, INITIAL_CATEGORIES),
-        syncTable('subcategories', setSubCategories, INITIAL_SUBCATEGORIES),
-        syncTable('carousel_slides', setHeroSlides, INITIAL_CAROUSEL),
-        syncTable('enquiries', setEnquiries, INITIAL_ENQUIRIES)
+      // 1. Fetch data in parallel to avoid waterfalls
+      const [
+        settingsRes,
+        productsRes,
+        catsRes,
+        subCatsRes,
+        slidesRes,
+        enquiriesRes
+      ] = await Promise.all([
+        fetchTableData('settings'),
+        fetchTableData('products'),
+        fetchTableData('categories'),
+        fetchTableData('subcategories'),
+        fetchTableData('carousel_slides'),
+        fetchTableData('enquiries')
       ]);
 
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      // 2. Check if seeding is needed (if settings table is empty and we have a valid connection)
+      if (settingsRes && settingsRes.length === 0) {
+        setSaveStatus('migrating');
+        console.log("Detected fresh database. Commencing seed sequence...");
+
+        // Seed tables in parallel
+        await Promise.all([
+           upsertData('settings', { ...INITIAL_SETTINGS, id: 'global_settings' }),
+           ...INITIAL_PRODUCTS.map(p => upsertData('products', p)),
+           ...INITIAL_CATEGORIES.map(c => upsertData('categories', c)),
+           ...INITIAL_SUBCATEGORIES.map(s => upsertData('subcategories', s)),
+           ...INITIAL_CAROUSEL.map(s => upsertData('carousel_slides', s))
+        ]);
+
+        // Apply seeded data immediately to local state
+        setSettings(INITIAL_SETTINGS);
+        setProducts(INITIAL_PRODUCTS);
+        setCategories(INITIAL_CATEGORIES);
+        setSubCategories(INITIAL_SUBCATEGORIES);
+        setHeroSlides(INITIAL_CAROUSEL);
+        // Enquiries start empty
+        setSaveStatus('saved');
+      } else {
+        // 3. Normal Data Hydration
+        if (settingsRes && settingsRes.length > 0) setSettings(prev => ({ ...prev, ...settingsRes[0] }));
+        if (productsRes) setProducts(productsRes);
+        if (catsRes) setCategories(catsRes);
+        if (subCatsRes) setSubCategories(subCatsRes);
+        if (slidesRes) setHeroSlides(slidesRes);
+        if (enquiriesRes) setEnquiries(enquiriesRes);
+      }
+
+      setIsDatabaseProvisioned(true);
+
     } catch (e) {
+      console.error("Data Sync Failure:", e);
+      // Keep saveStatus idle if it was a silent refresh, or error if manual? 
+      // We'll leave it as idle/error in UI via SaveStatusIndicator
       setSaveStatus('error');
+    } finally {
+      // Clear status after delay
+      setTimeout(() => setSaveStatus(prev => prev === 'migrating' || prev === 'saved' ? 'idle' : prev), 2500);
     }
   }, []);
 
@@ -217,6 +243,30 @@ const App: React.FC = () => {
       return;
     }
 
+    const init = async () => {
+      try {
+        // 1. Auth Check
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          setUser(session.user);
+          // Fetch Role
+          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
+          if (adminProfile) setUserRole(adminProfile.role);
+        }
+      } catch (err) {
+        console.error("Authentication check failed", err);
+      } finally {
+        // ALWAYS finish loading state
+        setLoadingAuth(false);
+      }
+    };
+
+    // Run Initialization
+    init();
+    refreshAllData();
+
+    // Setup Realtime Subscriptions
     const handleTableChange = (payload: any, eventType: string, setState: any) => {
       const { new: newRecord, old: oldRecord } = payload;
       setState((prev: any[]) => {
@@ -245,32 +295,27 @@ const App: React.FC = () => {
       })
     ];
 
-    refreshAllData();
-
-    // Check Authentication & User Role
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        // Fetch Role from admin_users table
-        const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
-        if (adminProfile) {
-          setUserRole(adminProfile.role);
-        } else {
-          // If no profile exists yet, create one as Owner if it's the first user, or admin otherwise
-          // Logic handled in Login/SignUp, here we default to admin safe mode
-          setUserRole('admin'); 
-        }
-      }
-      setLoadingAuth(false);
-    };
-    checkUser();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
-         if (adminProfile) setUserRole(adminProfile.role);
+         if (adminProfile) {
+            setUserRole(adminProfile.role);
+         } else {
+             // CRITICAL FIX: Create First Admin/Owner if not exists
+             const { count } = await supabase.from('admin_users').select('*', { count: 'exact', head: true });
+             const isFirst = count === 0;
+             const newProfile = {
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Admin',
+                role: isFirst ? 'owner' : 'admin',
+                permissions: isFirst ? ['*'] : [],
+                createdAt: Date.now()
+             };
+             await supabase.from('admin_users').insert(newProfile);
+             setUserRole(newProfile.role as any);
+         }
       }
     });
 

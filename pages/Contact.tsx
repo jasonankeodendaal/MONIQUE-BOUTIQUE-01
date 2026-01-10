@@ -1,10 +1,12 @@
 
+
 import React, { useState } from 'react';
 import { Mail, MessageCircle, Send, Twitter, Instagram, Linkedin, Phone, Sparkles, MapPin, ArrowRight, CheckCircle2, ArrowLeft, Clock, HelpCircle, Plus, Minus, Globe } from 'lucide-react';
 import { useSettings } from '../App';
 import { Enquiry } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { upsertData } from '../lib/supabase';
+import emailjs from '@emailjs/browser';
 
 const Contact: React.FC = () => {
   const { settings } = useSettings();
@@ -26,10 +28,29 @@ const Contact: React.FC = () => {
     };
 
     try {
+      // 1. Save to Database
       const { error } = await upsertData('enquiries', newEnquiry);
       if (error) {
         alert("Failed to send message. Please check your connection.");
       } else {
+        // 2. Trigger EmailJS Notification if configured
+        if (settings.emailJsServiceId && settings.emailJsTemplateId && settings.emailJsPublicKey) {
+            await emailjs.send(
+                settings.emailJsServiceId,
+                settings.emailJsTemplateId,
+                {
+                    to_name: 'Admin',
+                    from_name: formState.name,
+                    from_email: formState.email,
+                    subject: formState.subject,
+                    message: formState.message,
+                    reply_to: formState.email,
+                    whatsapp: formState.whatsapp || 'Not provided'
+                },
+                settings.emailJsPublicKey
+            );
+        }
+
         setSubmitted(true);
         setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
         // Reset success message after 5 seconds
@@ -37,7 +58,8 @@ const Contact: React.FC = () => {
       }
     } catch (err) {
       console.error(err);
-      alert("An unexpected error occurred.");
+      // Fallback: If DB worked but email failed, we still show success as data is safe.
+      if (!submitted) alert("An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }

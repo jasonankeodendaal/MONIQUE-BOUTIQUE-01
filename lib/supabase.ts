@@ -199,6 +199,29 @@ export async function fetchTableData(table: string): Promise<any[] | null> {
   }
 }
 
+export async function updateProductStats(productId: string, type: 'view' | 'click', timeSpent = 0) {
+  if (!isSupabaseConfigured) return;
+  
+  try {
+    // Get current stats
+    const { data: current } = await supabase.from('product_stats').select('*').eq('productId', productId).single();
+    
+    const now = Date.now();
+    const newStats = {
+      productId,
+      views: (current?.views || 0) + (type === 'view' ? 1 : 0),
+      clicks: (current?.clicks || 0) + (type === 'click' ? 1 : 0),
+      totalViewTime: (current?.totalViewTime || 0) + timeSpent,
+      lastUpdated: now
+    };
+
+    const { error } = await supabase.from('product_stats').upsert(newStats);
+    if (error) console.error("Failed to update stats", error);
+  } catch (err) {
+    console.error("Error updating product stats:", err);
+  }
+}
+
 export interface UploadResult {
   url: string;
   type: string;

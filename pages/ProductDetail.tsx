@@ -1,9 +1,11 @@
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Download, Instagram } from 'lucide-react';
 import { useSettings } from '../App';
 import { Product, ProductStats, Review } from '../types';
-import { upsertData } from '../lib/supabase';
+import { upsertData, updateProductStats } from '../lib/supabase';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
@@ -31,6 +33,12 @@ const ProductDetail: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     const timeout = setTimeout(() => setIsLoaded(true), 100);
+    
+    // ANALYTICS: Track view on mount
+    if (id) {
+       updateProductStats(id, 'view');
+    }
+
     return () => clearTimeout(timeout);
   }, [id]);
 
@@ -68,8 +76,13 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleShare = async () => {
-    // Force open the custom social builder instead of native share for richer experience
     setIsShareOpen(true);
+  };
+
+  const handleAcquire = () => {
+    if (product) {
+       updateProductStats(product.id, 'click');
+    }
   };
 
   const socialCaption = useMemo(() => {
@@ -229,7 +242,8 @@ const ProductDetail: React.FC = () => {
                  href={product.affiliateLink} 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="w-full py-6 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-sm rounded-full hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 group animate-pulse hover:animate-none"
+                 onClick={handleAcquire}
+                 className="w-full py-6 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-sm rounded-full hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 group animate-pulse hover:animate-none cursor-pointer"
                >
                  <span>Secure Acquisition</span>
                  <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
