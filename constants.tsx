@@ -1,5 +1,4 @@
 
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
@@ -128,7 +127,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   homeHeroBadge: 'Kasi Couture Exclusive',
   homeAboutTitle: 'Modern Heritage. Timeless Elegance.',
   homeAboutDescription: 'I founded Kasi Couture to bridge the gap between street-inspired authenticity and high-end luxury. Every piece featured here is a testament to the vibrant spirit of Johannesburg refined for the global stage.',
-  homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200', // FIXED URL
+  homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200', 
   homeAboutCta: 'Read My Story',
   homeCategorySectionTitle: 'Shop by Department',
   homeCategorySectionSubtitle: 'The Collection',
@@ -194,7 +193,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   contactFormMessageLabel: 'Your Message',
   contactFormButtonText: 'Transmit Inquiry',
   
-  // New Contact Editable Fields
+  // Contact Editable Fields
   contactInfoTitle: 'Global HQ',
   contactAddressLabel: 'Address',
   contactHoursLabel: 'Operating Hours',
@@ -214,8 +213,11 @@ export const INITIAL_SETTINGS: SiteSettings = {
   emailJsTemplateId: '',
   emailJsPublicKey: '',
   googleAnalyticsId: '',
+  googlePixelId: '',
   facebookPixelId: '',
   tiktokPixelId: '',
+  pinterestPixelId: '',
+  snapchatPixelId: '',
   amazonAssociateId: '',
   webhookUrl: ''
 };
@@ -476,7 +478,8 @@ create table if not exists settings (
   "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text, 
   "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text, 
   "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text, 
-  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text
+  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text,
+  "googlePixelId" text, "pinterestPixelId" text, "snapchatPixelId" text
 );
 
 create table if not exists products (id text primary key, name text, sku text, price numeric, "affiliateLink" text, "categoryId" text, "subCategoryId" text, description text, features jsonb, specifications jsonb, media jsonb, "discountRules" jsonb, reviews jsonb, "createdAt" bigint);

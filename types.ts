@@ -95,9 +95,9 @@ export interface SocialLink {
 export interface SiteSettings {
   // Brand & Nav
   companyName: string;
-  slogan: string; // Added Slogan
-  companyLogo: string; // Text fallback
-  companyLogoUrl?: string; // PNG Upload
+  slogan: string;
+  companyLogo: string;
+  companyLogoUrl?: string;
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
@@ -143,8 +143,8 @@ export interface SiteSettings {
   // Products Page Content
   productsHeroTitle: string;
   productsHeroSubtitle: string;
-  productsHeroImage: string; // Legacy support
-  productsHeroImages: string[]; // New: Array of images for carousel
+  productsHeroImage: string;
+  productsHeroImages: string[];
   productsSearchPlaceholder: string;
 
   // About Page Content
@@ -152,7 +152,6 @@ export interface SiteSettings {
   aboutHeroSubtitle: string;
   aboutMainImage: string;
   
-  // New Granular About Fields
   aboutEstablishedYear: string;
   aboutFounderName: string;
   aboutLocation: string;
@@ -184,7 +183,7 @@ export interface SiteSettings {
   contactFormMessageLabel: string;
   contactFormButtonText: string;
   
-  // New Contact Editable Fields
+  // Contact Editable Fields
   contactInfoTitle: string;
   contactAddressLabel: string;
   contactHoursLabel: string;
@@ -203,9 +202,14 @@ export interface SiteSettings {
   emailJsServiceId?: string;
   emailJsTemplateId?: string;
   emailJsPublicKey?: string;
+  
+  // Marketing Pixels
   googleAnalyticsId?: string;
+  googlePixelId?: string; // New
   facebookPixelId?: string;
   tiktokPixelId?: string;
+  pinterestPixelId?: string; // New
+  snapchatPixelId?: string; // New
   amazonAssociateId?: string;
   webhookUrl?: string;
 }
@@ -222,13 +226,31 @@ export interface AdminUser {
   name: string;
   email: string;
   role: 'owner' | 'admin';
-  permissions: string[]; // Array of Permission IDs (flattened)
-  password?: string; // Permanent password (stored locally for demo/local mode)
+  permissions: string[];
+  password?: string;
   createdAt: number;
   lastActive?: number;
   profileImage?: string;
   phone?: string;
   address?: string;
+}
+
+export interface VisitorSession {
+  id: string; // Session ID
+  ip: string;
+  city: string;
+  region: string;
+  country: string;
+  device: string;
+  browser: string;
+  os: string;
+  referrer: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  landingPage: string;
+  timestamp: number;
+  isReturnVisitor: boolean;
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -241,7 +263,7 @@ export interface SettingsContextType {
   categories: Category[];
   subCategories: SubCategory[];
   heroSlides: CarouselSlide[];
-  enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
+  enquiries: Enquiry[]; 
   admins: AdminUser[];
   stats: ProductStats[];
   // Actions

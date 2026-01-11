@@ -12,11 +12,12 @@ import {
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
-  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2
+  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2,
+  PieChart, MoveDown, MousePointer
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, VisitorSession } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupabaseUrl } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -216,174 +217,174 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
   );
 };
 
-interface GeoStat {
-  city: string;
-  region: string;
-  country: string;
-  device: string;
-  os: string;
-  browser: string;
-  count: number;
-  lastActive: number;
-}
+// --- MARKETING INTELLIGENCE COMPONENTS ---
 
-const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
-  const [geoStats, setGeoStats] = useState<GeoStat[]>([]);
-  const [totalTraffic, setTotalTraffic] = useState(0);
-  const [deviceStats, setDeviceStats] = useState<{mobile: number, desktop: number, tablet: number}>({mobile: 0, desktop: 0, tablet: 0});
+const MarketingIntelligence: React.FC<{ stats: ProductStats[] }> = ({ stats }) => {
+  const [sessions, setSessions] = useState<VisitorSession[]>([]);
+  const [totalSessions, setTotalSessions] = useState(0);
   
   useEffect(() => {
-    const loadDetailedGeo = () => {
+    const loadSessions = () => {
       const rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-      setTotalTraffic(rawData.length);
-
-      // Aggregate by precise location
-      const agg: Record<string, GeoStat> = {};
-      let dev = { mobile: 0, desktop: 0, tablet: 0 };
-      
-      rawData.forEach((entry: any) => {
-        const city = entry.city || 'Unknown City';
-        const region = entry.region || '';
-        const country = entry.country || 'Global';
-        const device = entry.device || 'Desktop';
-        
-        // Count Devices
-        if (device === 'Mobile') dev.mobile++;
-        else if (device === 'Tablet') dev.tablet++;
-        else dev.desktop++;
-
-        const key = `${city}-${region}-${country}`;
-        
-        if (!agg[key]) {
-          agg[key] = {
-            city,
-            region,
-            country,
-            device,
-            os: entry.os || 'Unknown',
-            browser: entry.browser || 'Unknown',
-            count: 0,
-            lastActive: 0
-          };
-        }
-        agg[key].count += 1;
-        agg[key].lastActive = Math.max(agg[key].lastActive, entry.timestamp || 0);
-      });
-
-      setDeviceStats(dev);
-      const sorted = Object.values(agg).sort((a, b) => b.count - a.count).slice(0, 15); // Top 15
-      setGeoStats(sorted);
+      setSessions(rawData);
+      setTotalSessions(rawData.length);
     };
-
-    loadDetailedGeo();
-    const interval = setInterval(loadDetailedGeo, 5000); // 5s Refresh
+    loadSessions();
+    const interval = setInterval(loadSessions, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main Location Feed */}
-      <div className="lg:col-span-2 relative min-h-[500px] bg-slate-900 rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
-        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-        
-        {/* Header */}
-        <div className="relative z-10 p-8 md:p-10 pb-4 border-b border-white/5 flex justify-between items-start">
-           <div>
-              <div className="flex items-center gap-3 mb-2">
-                 <div className="relative w-3 h-3">
-                    <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                    <div className="relative w-3 h-3 bg-green-500 rounded-full"></div>
-                 </div>
-                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-green-500">Live Traffic Feed</span>
-              </div>
-              <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Precise <span className="text-primary">Location</span></h3>
-           </div>
-           <div className="text-right">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Hits</span>
-              <span className="text-3xl font-bold text-white font-mono">{totalTraffic.toLocaleString()}</span>
-           </div>
-        </div>
+  // Compute Marketing Metrics
+  const campaignPerformance = useMemo(() => {
+    const campaigns: Record<string, { clicks: number, views: number, source: string }> = {};
+    sessions.forEach(s => {
+      if (s.utmCampaign) {
+        const key = s.utmCampaign;
+        if (!campaigns[key]) campaigns[key] = { clicks: 0, views: 0, source: s.utmSource || 'Unknown' };
+        campaigns[key].views++;
+      }
+    });
+    return Object.entries(campaigns).sort((a, b) => b[1].views - a[1].views);
+  }, [sessions]);
 
-        {/* List */}
-        <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-6">
-          {geoStats.length > 0 ? (
-            <div className="grid gap-3">
-               <div className="grid grid-cols-12 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                  <div className="col-span-1 hidden md:block">#</div>
-                  <div className="col-span-8 md:col-span-6">Location (Town/City)</div>
-                  <div className="col-span-2 text-right hidden md:block">Hits</div>
-                  <div className="col-span-4 md:col-span-3 text-right">Device/Status</div>
-               </div>
-               {geoStats.map((geo, idx) => {
-                 const isLive = (Date.now() - geo.lastActive) < 300000;
-                 return (
-                    <div key={idx} className="grid grid-cols-12 items-center p-4 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800 transition-colors group/item">
-                       <div className="col-span-1 hidden md:block">
-                          <span className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700">{idx + 1}</span>
-                       </div>
-                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-2">
-                          <div className="font-bold text-white text-sm flex items-center gap-2">
-                             <MapPin size={14} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity"/>
-                             {geo.city}
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">{geo.region}, {geo.country}</div>
-                       </div>
-                       <div className="col-span-2 text-right hidden md:block">
-                          <div className="text-white font-mono font-bold">{geo.count}</div>
-                       </div>
-                       <div className="col-span-4 md:col-span-3 flex flex-col items-end gap-1">
-                          {isLive ? (
-                             <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest border border-green-500/20">Online</span>
-                          ) : (
-                             <span className="text-[9px] text-slate-600 font-bold uppercase">Last: {new Date(geo.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                          )}
-                          <div className="flex items-center gap-1 text-[9px] text-slate-500">
-                             {geo.device === 'Mobile' ? <Smartphone size={10} /> : <Monitor size={10} />}
-                             <span className="hidden md:inline">{geo.os}</span>
-                          </div>
-                       </div>
-                    </div>
-                 );
-               })}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
-               <Globe size={48} className="text-slate-500 mb-4 animate-pulse" />
-               <h4 className="text-white font-bold uppercase tracking-widest">Awaiting Signal</h4>
-               <p className="text-slate-500 text-xs mt-2 max-w-xs">Data populates as visitors access your bridge page.</p>
-            </div>
-          )}
+  const sourceBreakdown = useMemo(() => {
+    const sources: Record<string, number> = { 'Direct': 0, 'Social': 0, 'Search': 0, 'Referral': 0 };
+    sessions.forEach(s => {
+      if (s.referrer === 'Direct / None') sources['Direct']++;
+      else if (s.referrer.includes('Social')) sources['Social']++;
+      else if (s.referrer.includes('Google') || s.referrer.includes('Bing')) sources['Search']++;
+      else sources['Referral']++;
+    });
+    return Object.entries(sources).sort((a, b) => b[1] - a[1]);
+  }, [sessions]);
+
+  const funnelData = useMemo(() => {
+    const visitors = totalSessions;
+    const productViews = stats.reduce((acc, s) => acc + s.views, 0);
+    const affiliateClicks = stats.reduce((acc, s) => acc + s.clicks, 0);
+    return [
+      { step: 'Visitors', count: visitors, percent: 100 },
+      { step: 'Product Views', count: productViews, percent: visitors > 0 ? Math.round((productViews / visitors) * 100) : 0 },
+      { step: 'Affiliate Clicks', count: affiliateClicks, percent: productViews > 0 ? Math.round((affiliateClicks / productViews) * 100) : 0 }
+    ];
+  }, [totalSessions, stats]);
+
+  return (
+    <div className="space-y-8">
+      {/* 1. Conversion Funnel */}
+      <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 overflow-hidden relative">
+        <div className="flex items-center gap-3 mb-8">
+           <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary"><Filter size={20}/></div>
+           <div><h3 className="text-white font-bold text-lg">Conversion Funnel</h3><p className="text-slate-500 text-xs">Visitor Journey Analysis</p></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+           {funnelData.map((stage, i) => (
+             <div key={i} className="relative bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex flex-col items-center justify-center text-center group hover:border-primary/50 transition-colors">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">{stage.step}</span>
+                <span className="text-4xl font-black text-white mb-2">{stage.count.toLocaleString()}</span>
+                {i > 0 && <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">{stage.percent}% Conv.</span>}
+                {i < 2 && <div className="hidden md:block absolute top-1/2 -right-6 w-8 h-8 bg-slate-900 rotate-45 border-t border-r border-slate-700 z-20"></div>}
+             </div>
+           ))}
         </div>
       </div>
 
-      {/* Device Breakdown */}
-      <div className="bg-slate-900 rounded-[3rem] border border-white/10 p-8 flex flex-col shadow-2xl">
-         <div className="mb-6">
-            <h3 className="text-white font-bold text-xl flex items-center gap-2"><Smartphone size={20} className="text-primary"/> Device Breakdown</h3>
-            <p className="text-slate-500 text-xs mt-1">Platform Distribution</p>
-         </div>
-         <div className="space-y-6 flex-grow">
-            {[
-              { label: 'Mobile', count: deviceStats.mobile, icon: Smartphone, color: 'text-primary', bar: 'bg-primary' },
-              { label: 'Desktop', count: deviceStats.desktop, icon: Monitor, color: 'text-blue-500', bar: 'bg-blue-500' },
-              { label: 'Tablet', count: deviceStats.tablet, icon: Tablet, color: 'text-purple-500', bar: 'bg-purple-500' }
-            ].map((d, i) => (
-              <div key={i} className="bg-slate-800/50 p-6 rounded-3xl border border-slate-800">
-                 <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-3">
-                       <div className={`p-2 bg-slate-800 rounded-xl ${d.color}`}><d.icon size={18}/></div>
-                       <span className="text-white font-bold text-sm">{d.label}</span>
-                    </div>
-                    <span className="text-white font-mono font-bold">{d.count}</span>
-                 </div>
-                 <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
-                    <div className={`h-full ${d.bar} transition-all duration-1000`} style={{ width: `${totalTraffic > 0 ? (d.count / totalTraffic) * 100 : 0}%` }}></div>
-                 </div>
-                 <div className="mt-2 text-right">
-                    <span className="text-[10px] text-slate-500 font-bold">{totalTraffic > 0 ? Math.round((d.count / totalTraffic) * 100) : 0}% share</span>
-                 </div>
+      <div className="grid lg:grid-cols-3 gap-8">
+        
+        {/* 2. Campaign Performance Table */}
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8">
+           <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center text-purple-500"><Megaphone size={20}/></div>
+                <div><h3 className="text-white font-bold text-lg">Campaign Performance</h3><p className="text-slate-500 text-xs">UTM Tracking (TikTok, IG, etc.)</p></div>
               </div>
+           </div>
+           {campaignPerformance.length > 0 ? (
+             <div className="overflow-x-auto">
+               <table className="w-full text-left">
+                 <thead>
+                   <tr className="border-b border-slate-800">
+                     <th className="py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Campaign Name</th>
+                     <th className="py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Source</th>
+                     <th className="py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Sessions</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-800">
+                   {campaignPerformance.map(([name, data], i) => (
+                     <tr key={i} className="group hover:bg-slate-800/30 transition-colors">
+                       <td className="py-4 font-bold text-white text-sm">{name}</td>
+                       <td className="py-4 text-xs text-slate-400">{data.source}</td>
+                       <td className="py-4 text-sm font-mono text-white text-right">{data.views}</td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
+           ) : (
+             <div className="p-12 text-center text-slate-600 border border-dashed border-slate-800 rounded-2xl">
+                No UTM data detected yet. Use <code>?utm_source=tiktok&utm_campaign=winter_sale</code> links.
+             </div>
+           )}
+        </div>
+
+        {/* 3. Traffic Sources */}
+        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8">
+           <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-500"><PieChart size={20}/></div>
+              <div><h3 className="text-white font-bold text-lg">Traffic Sources</h3><p className="text-slate-500 text-xs">Acquisition Channels</p></div>
+           </div>
+           <div className="space-y-4">
+              {sourceBreakdown.map(([source, count], i) => (
+                <div key={i} className="group">
+                   <div className="flex justify-between text-xs font-bold text-slate-300 mb-2">
+                     <span>{source}</span>
+                     <span>{totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0}%</span>
+                   </div>
+                   <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                     <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${totalSessions > 0 ? (count / totalSessions) * 100 : 0}%` }}></div>
+                   </div>
+                </div>
+              ))}
+           </div>
+        </div>
+      </div>
+
+      {/* 4. Live Session Feed (Enhanced) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 h-[600px] flex flex-col">
+         <div className="flex items-center gap-3 mb-6 flex-shrink-0">
+             <div className="relative w-3 h-3">
+                <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                <div className="relative w-3 h-3 bg-green-500 rounded-full"></div>
+             </div>
+             <h3 className="text-white font-bold text-lg">Live Session Inspector</h3>
+         </div>
+         <div className="flex-grow overflow-y-auto custom-scrollbar space-y-3">
+            {sessions.map((s, i) => (
+               <div key={i} className="bg-slate-800/30 p-4 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all">
+                  <div className="flex flex-col md:flex-row justify-between gap-4">
+                     <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-slate-400">
+                           {s.device === 'Mobile' ? <Smartphone size={16}/> : s.device === 'Tablet' ? <Tablet size={16}/> : <Monitor size={16}/>}
+                        </div>
+                        <div>
+                           <div className="flex items-center gap-2">
+                              <span className="text-white font-bold text-sm">{s.city || 'Unknown City'}, {s.country}</span>
+                              {s.isReturnVisitor && <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase rounded">Return</span>}
+                           </div>
+                           <span className="text-slate-500 text-xs">{s.os} • {s.browser}</span>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">{new Date(s.timestamp).toLocaleTimeString()}</span>
+                        {s.utmSource && <span className="text-xs text-purple-400 font-bold">via {s.utmSource}</span>}
+                     </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-800/50 flex items-center gap-2 text-xs text-slate-400">
+                     <ArrowRight size={12}/> Entry: <span className="text-slate-300">{s.landingPage}</span>
+                  </div>
+               </div>
             ))}
+            {sessions.length === 0 && <div className="text-center text-slate-500 py-20">Waiting for live traffic...</div>}
          </div>
       </div>
     </div>
@@ -614,8 +615,6 @@ const Admin: React.FC = () => {
     const myProductIds = displayProducts.map(p => p.id);
     return stats.filter(s => myProductIds.includes(s.productId));
   }, [stats, isOwner, displayProducts]);
-  // Enquiries generally seen by all or Owner only? Let's assume all admins see all enquiries for support, but could be filtered if needed.
-  // We will keep enquiries visible to all admins for collaboration.
 
   useEffect(() => {
     const fetchTraffic = () => {
@@ -1016,10 +1015,12 @@ const Admin: React.FC = () => {
         <AdminTip title="System Health Monitoring">
           This dashboard provides a real-time pulse of your application. Use the 'Global Interaction Protocol' map to see exactly where your visitors are coming from. Check 'Connection Diagnostics' to ensure your Supabase database is syncing correctly.
         </AdminTip>
-        <div className="space-y-6"><div className="flex justify-between items-end px-2"><div className="space-y-2"><h3 className="text-white font-bold text-xl flex items-center gap-3"><Map size={22} className="text-primary"/> Global Interaction Protocol</h3><p className="text-slate-500 text-xs uppercase tracking-widest font-black opacity-60">High-Precision Geographic Analytics</p></div></div><TrafficAreaChart stats={stats} /></div>
+        <div className="space-y-6"><div className="flex justify-between items-end px-2"><div className="space-y-2"><h3 className="text-white font-bold text-xl flex items-center gap-3"><Map size={22} className="text-primary"/> Global Interaction Protocol</h3><p className="text-slate-500 text-xs uppercase tracking-widest font-black opacity-60">High-Precision Geographic Analytics</p></div></div>
+            <MarketingIntelligence stats={stats} />
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{[ { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' }, { label: 'Supabase Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, { label: 'Storage Usage', value: '1.2 GB', icon: UploadCloud, color: 'text-blue-500' }, { label: 'Total Session Time', value: `${Math.floor(totalSessionTime / 60)}m ${totalSessionTime % 60}s`, icon: Timer, color: 'text-purple-500' } ].map((item, i) => (<div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color}`}><item.icon size={20}/></div><div><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">{item.label}</span><span className="text-base font-bold text-white">{item.value}</span></div></div>))}</div>
         <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 relative overflow-hidden"><div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div><div className="relative z-10 flex flex-col md:flex-row gap-10 items-start"><div className="flex-1 space-y-6"><div><h3 className="text-white font-bold text-2xl flex items-center gap-3"><Database size={24} className="text-primary"/> Connection Diagnostics</h3><p className="text-slate-400 text-sm mt-2">Real-time status of your database backend connection.</p></div><div className="grid grid-cols-2 gap-4"><div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Connection Status</span><div className="flex items-center gap-3"><div className={`w-3 h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div><span className="text-lg font-bold text-white">{connectionHealth?.status === 'online' ? 'Operational' : 'Disconnected'}</span></div></div><div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Network Latency</span><div className="flex items-center gap-3"><Activity size={20} className={connectionHealth?.latency && connectionHealth.latency < 200 ? 'text-green-500' : 'text-yellow-500'} /><span className="text-lg font-bold text-white">{connectionHealth?.latency || 0} ms</span></div></div></div><div className="p-4 bg-black/20 rounded-xl border border-slate-700/50 font-mono text-[10px] text-slate-400 break-all"><div className="flex justify-between mb-2"><span className="uppercase font-bold text-slate-500">Endpoint URL</span> <span className="text-primary">{isSupabaseConfigured ? 'CONFIGURED' : 'MISSING'}</span></div>{getSupabaseUrl() ? getSupabaseUrl().replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}</div></div><div className="w-full md:w-80 space-y-4"><div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 flex flex-col items-center text-center"><div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-white ${connectionHealth?.status === 'online' ? 'bg-green-500' : 'bg-slate-600'}`}>{connectionHealth?.status === 'online' ? <Wifi size={32}/> : <WifiOff size={32}/>}</div><h4 className="text-white font-bold mb-1">{connectionHealth?.message || 'Checking...'}</h4><p className="text-xs text-slate-400">Last heartbeat: {new Date().toLocaleTimeString()}</p></div><div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 text-center"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Active Session</span><span className="text-sm font-bold text-white truncate w-full block">{user?.email || 'Local User'}</span><span className="text-[9px] text-primary uppercase font-bold mt-1 block">{user?.role || 'Simulated'} Role</span></div></div></div></div>
-        <div className="grid lg:grid-cols-3 gap-8"><div className="lg:col-span-2 space-y-6"><h3 className="text-white font-bold text-xl px-2">Live Traffic Feed</h3><div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 overflow-hidden divide-y divide-slate-800">{trafficEvents.map(event => (<div key={event.id} className="p-6 flex items-center justify-between hover:bg-slate-800/20 transition-colors"><div className="flex items-center gap-4"><div className={`w-2 h-2 rounded-full animate-pulse ${event.type === 'view' ? 'bg-blue-500' : event.type === 'click' ? 'bg-primary' : 'bg-green-500'}`} /><span className="text-slate-300 text-sm font-medium">{event.text}</span></div><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{event.time}</span></div>))}{trafficEvents.length === 0 && <div className="p-20 text-center text-slate-600 font-bold uppercase tracking-widest text-xs">Awaiting Global Interaction...</div>}</div></div><div className="space-y-6"><h3 className="text-white font-bold text-xl px-2">Data Operations</h3><div className="space-y-4"><div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 text-left space-y-4"><h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Data Snapshot</h3><p className="text-slate-500 text-xs leading-relaxed">Securely export all catalog items, analytics, and settings to a portable JSON format.</p><button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2">Backup Master</button></div><div className="bg-red-950/10 p-8 rounded-[2.5rem] border border-red-500/20 text-left space-y-4"><h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> Core Wipe</h3><p className="text-slate-500 text-xs leading-relaxed">Irreversibly factory reset all local storage data. This action cannot be undone.</p><button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Reset</button></div></div></div></div>
+        <div className="grid lg:grid-cols-3 gap-8"><div className="lg:col-span-2 space-y-6"><h3 className="text-white font-bold text-xl px-2">Data Operations</h3><div className="space-y-4"><div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 text-left space-y-4"><h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Data Snapshot</h3><p className="text-slate-500 text-xs leading-relaxed">Securely export all catalog items, analytics, and settings to a portable JSON format.</p><button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2">Backup Master</button></div><div className="bg-red-950/10 p-8 rounded-[2.5rem] border border-red-500/20 text-left space-y-4"><h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> Core Wipe</h3><p className="text-slate-500 text-xs leading-relaxed">Irreversibly factory reset all local storage data. This action cannot be undone.</p><button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Reset</button></div></div></div></div>
      </div>
     );
   };
@@ -1038,7 +1039,7 @@ const Admin: React.FC = () => {
           This is your central design studio. Click on any tile to open the configuration drawer. Changes made here update the live site instantly for visitors.
        </AdminTip>
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
+          {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Pixels'} ].map(s => ( 
             <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-8 rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
                <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div>
             </button> 
@@ -1212,7 +1213,22 @@ const Admin: React.FC = () => {
                      <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex justify-between items-center"><h4 className="text-white font-bold flex items-center gap-3"><Database size={20} className="text-primary"/> Backend Protocol</h4><div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSupabaseConfigured ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{isSupabaseConfigured ? 'Synchronized' : 'Offline'}</div></div><AdminTip title="Supabase Cloud">
                          Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your Vercel/Netlify environment variables. This connects your dashboard to the persistent database.
                      </AdminTip></div>
+                     
                      <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex items-center justify-between"><h4 className="text-white font-bold flex items-center gap-3"><Mail size={20} className="text-primary"/> Lead Routing (EmailJS)</h4><button onClick={() => setShowEmailTemplate(true)} className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:text-white"><FileCode size={14} /> Get Template</button></div><div className="space-y-4"><SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({emailJsServiceId: v})} placeholder="service_xxxxxx" /><SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({emailJsTemplateId: v})} placeholder="template_xxxxxx" /><SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({emailJsPublicKey: v})} placeholder="user_xxxxxxx" /></div></div>
+
+                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6">
+                        <div className="flex items-center justify-between"><h4 className="text-white font-bold flex items-center gap-3"><Target size={20} className="text-primary"/> Marketing Pixels</h4></div>
+                        <div className="space-y-4">
+                           <SettingField label="Google Analytics ID (G-XXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({googleAnalyticsId: v})} />
+                           <div className="grid grid-cols-2 gap-4">
+                              <SettingField label="Google Pixel ID" value={tempSettings.googlePixelId || ''} onChange={v => updateTempSettings({googlePixelId: v})} />
+                              <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({facebookPixelId: v})} />
+                              <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({tiktokPixelId: v})} />
+                              <SettingField label="Pinterest Pixel ID" value={tempSettings.pinterestPixelId || ''} onChange={v => updateTempSettings({pinterestPixelId: v})} />
+                              <SettingField label="Snapchat Pixel ID" value={tempSettings.snapchatPixelId || ''} onChange={v => updateTempSettings({snapchatPixelId: v})} />
+                           </div>
+                        </div>
+                     </div>
                   </div>
                )}
             </div>
