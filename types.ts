@@ -5,12 +5,14 @@ export interface Category {
   icon: string;
   image: string;
   description?: string;
+  createdBy?: string;
 }
 
 export interface SubCategory {
   id: string;
   categoryId: string;
   name: string;
+  createdBy?: string;
 }
 
 export interface MediaFile {
@@ -51,6 +53,7 @@ export interface Product {
   discountRules?: DiscountRule[];
   reviews?: Review[];
   createdAt: number;
+  createdBy?: string;
 }
 
 export interface ProductStats {
@@ -68,6 +71,7 @@ export interface CarouselSlide {
   title: string;
   subtitle: string;
   cta: string;
+  createdBy?: string;
 }
 
 export interface Enquiry {

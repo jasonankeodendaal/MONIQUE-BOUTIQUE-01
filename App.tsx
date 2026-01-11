@@ -112,12 +112,30 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
       logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname);
     }
 
-    // 2. Fetch Geo Data for System Status (One-time per session/load)
+    // 2. Fetch Geo & Device Data
     const fetchGeo = async () => {
         if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
         
         const stored = localStorage.getItem('site_visitor_locations');
         try {
+            // Get Device Info
+            const ua = navigator.userAgent;
+            let deviceType = "Desktop";
+            if (/Mobi|Android/i.test(ua)) deviceType = "Mobile";
+            if (/iPad|Tablet/i.test(ua)) deviceType = "Tablet";
+            
+            let browser = "Unknown";
+            if (ua.indexOf("Chrome") > -1) browser = "Chrome";
+            else if (ua.indexOf("Safari") > -1) browser = "Safari";
+            else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
+
+            let os = "Unknown OS";
+            if (ua.indexOf("Win") !== -1) os = "Windows";
+            if (ua.indexOf("Mac") !== -1) os = "MacOS";
+            if (ua.indexOf("Linux") !== -1) os = "Linux";
+            if (ua.indexOf("Android") !== -1) os = "Android";
+            if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
             if (data.error) return; 
@@ -128,6 +146,12 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
                 region: data.region,
                 country: data.country_name,
                 code: data.country_code,
+                lat: data.latitude,
+                lon: data.longitude,
+                org: data.org,
+                device: deviceType,
+                browser: browser,
+                os: os,
                 timestamp: Date.now()
             };
 
@@ -211,19 +235,11 @@ const App: React.FC = () => {
 
   // 2. Logout on Refresh / Initial Load Logic
   useEffect(() => {
-    // We check if this is a fresh page load (not a SPA navigation)
-    // If we have a user, we force logout to satisfy "Logout on Refresh"
     const initAuth = async () => {
        if (isSupabaseConfigured) {
-         // Check if we already have a session
          const { data: { session } } = await supabase.auth.getSession();
          if (session) {
-             // If user refreshed, we want to kill the session
-             // We use sessionStorage to detect if this is a reload within the same tab/session lifecycle
-             // OR if the user requirement "logout on refresh" implies strict non-persistence.
-             // We'll opt for Strict Non-Persistence on mount.
-             
-             // UNCOMMENT BELOW TO ENFORCE STRICT LOGOUT ON EVERY REFRESH
+             // Strict Logout on Refresh
              await supabase.auth.signOut();
              setUser(null);
          }
@@ -231,16 +247,13 @@ const App: React.FC = () => {
        setLoadingAuth(false);
     };
     initAuth();
-  }, []); // Run once on mount
+  }, []);
 
   const refreshAllData = async () => {
-    // This runs in background to sync, but doesn't block UI
     try {
       if (isSupabaseConfigured) {
-        // 1. Fetch Settings
         const remoteSettings = await fetchTableData('settings');
         if (!remoteSettings || remoteSettings.length === 0) {
-          // Migration: Push local to cloud if cloud is empty
           await upsertData('settings', { ...settings, id: 'global' });
           setSettingsId('global');
           await syncLocalToCloud('products', products);
@@ -255,22 +268,16 @@ const App: React.FC = () => {
 
         const p = await fetchTableData('products');
         if (p.length) setProducts(p);
-        
         const c = await fetchTableData('categories');
         if (c.length) setCategories(c);
-        
         const sc = await fetchTableData('subcategories');
         if (sc.length) setSubCategories(sc);
-
         const hs = await fetchTableData('hero_slides');
         if (hs.length) setHeroSlides(hs);
-
         const enq = await fetchTableData('enquiries');
         if (enq.length) setEnquiries(enq);
-
         const adm = await fetchTableData('admin_users');
         if (adm.length) setAdmins(adm);
-
         const st = await fetchTableData('product_stats');
         if (st.length) setStats(st);
 
@@ -296,22 +303,10 @@ const App: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    refreshAllData();
-    if (isSupabaseConfigured) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null);
-      });
-      return () => subscription.unsubscribe();
-    } else {
-      setLoadingAuth(false);
-    }
-  }, []);
-
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
     const updated = { ...settings, ...newSettings };
-    setSettings(updated); // Optimistic Update
+    setSettings(updated);
     
     if (isSupabaseConfigured) {
       await upsertData('settings', { ...updated, id: settingsId });
@@ -324,8 +319,6 @@ const App: React.FC = () => {
 
   const updateData = async (table: string, data: any) => {
     setSaveStatus('saving');
-    
-    // Optimistic Update Logic
     const updateLocalState = (prev: any[]) => {
        const exists = prev.some(item => item.id === data.id);
        if (exists) return prev.map(item => item.id === data.id ? data : item);
@@ -356,15 +349,12 @@ const App: React.FC = () => {
       return true;
     } catch (e) {
       setSaveStatus('error');
-      // Revert optimistic update here if needed (omitted for brevity)
       return false;
     }
   };
 
   const deleteData = async (table: string, id: string) => {
     setSaveStatus('saving');
-    
-    // Optimistic Delete
     const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
     switch(table) {
         case 'products': setProducts(deleteLocalState(products)); break;
@@ -388,7 +378,7 @@ const App: React.FC = () => {
       return true;
     } catch (e) {
       setSaveStatus('error');
-      refreshAllData(); // Revert on error
+      refreshAllData();
       return false;
     }
   };
@@ -415,7 +405,6 @@ const App: React.FC = () => {
         const productName = label.replace('Product: ', '').trim();
         const currentProducts = productsRef.current;
         const currentStats = statsRef.current;
-        
         const product = currentProducts.find(p => p.name === productName);
         
         if (product) {
@@ -426,19 +415,16 @@ const App: React.FC = () => {
                 totalViewTime: 0, 
                 lastUpdated: Date.now() 
             };
-
             const newStat: ProductStats = {
                 ...currentStat,
                 views: currentStat.views + (type === 'view' ? 1 : 0),
                 clicks: currentStat.clicks + (type === 'click' ? 1 : 0),
                 lastUpdated: Date.now()
             };
-
             setStats(prev => {
                 const filtered = prev.filter(s => s.productId !== product.id);
                 return [...filtered, newStat];
             });
-
             if (isSupabaseConfigured) {
                 await upsertData('product_stats', newStat);
             } else {
@@ -449,6 +435,38 @@ const App: React.FC = () => {
         }
     }
   }, []);
+
+  useEffect(() => {
+    refreshAllData();
+    if (isSupabaseConfigured) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+      return () => subscription.unsubscribe();
+    } else {
+      setLoadingAuth(false);
+    }
+  }, []);
+
+  // --- SYNC AUTH USER TO ADMIN TABLE ---
+  useEffect(() => {
+    if (user && isSupabaseConfigured && admins.length > 0) {
+      const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
+      if (!existingAdmin) {
+        // Automatically add logged-in Auth user to Admin Table if missing
+        const newAdmin: AdminUser = {
+          id: user.id,
+          email: user.email || '',
+          name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin',
+          role: 'admin',
+          permissions: [],
+          createdAt: Date.now(),
+          lastActive: Date.now()
+        };
+        updateData('admin_users', newAdmin);
+      }
+    }
+  }, [user, admins]);
 
   useEffect(() => {
     const hexToRgb = (hex: string) => {
