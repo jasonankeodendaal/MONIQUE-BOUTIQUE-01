@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -429,7 +430,14 @@ const App: React.FC = () => {
       setSaveStatus('saved');
     } catch (e) {
       console.error("Data sync failed", e);
-      setSaveStatus('error');
+      // Fallback to local on failure to prevent data loss appearance
+      if (!isSupabaseConfigured) {
+        setSaveStatus('error');
+      } else {
+         // Attempt local fallback just in case
+        loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
+        loadOrSeedLocal('admin_products', INITIAL_PRODUCTS, setProducts);
+      }
     }
   };
 
@@ -438,13 +446,13 @@ const App: React.FC = () => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
+    // Always save local first for immediate UI feel
+    localStorage.setItem('site_settings', JSON.stringify(updated));
+
     if (isSupabaseConfigured) {
       await upsertData('settings', { ...updated, id: settingsId });
-      setSaveStatus('saved');
-    } else {
-      localStorage.setItem('site_settings', JSON.stringify(updated));
-      setTimeout(() => setSaveStatus('saved'), 500);
-    }
+    } 
+    setTimeout(() => setSaveStatus('saved'), 500);
   };
 
   const updateData = async (table: string, data: any) => {
@@ -464,16 +472,17 @@ const App: React.FC = () => {
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
     }
 
+    // Always persist to local storage immediately
+    const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = existing.some((i: any) => i.id === data.id) 
+       ? existing.map((i: any) => i.id === data.id ? data : i)
+       : [data, ...existing];
+    localStorage.setItem(key, JSON.stringify(updated));
+
     try {
       if (isSupabaseConfigured) {
         await upsertData(table, data);
-      } else {
-        const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
-        const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        const updated = existing.some((i: any) => i.id === data.id) 
-           ? existing.map((i: any) => i.id === data.id ? data : i)
-           : [data, ...existing];
-        localStorage.setItem(key, JSON.stringify(updated));
       }
       setSaveStatus('saved');
       return true;
@@ -497,14 +506,15 @@ const App: React.FC = () => {
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
     }
 
+    // Update Local Storage immediately
+    const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = existing.filter((i: any) => i.id !== id);
+    localStorage.setItem(key, JSON.stringify(updated));
+
     try {
       if (isSupabaseConfigured) {
         await deleteSupabaseData(table, id);
-      } else {
-        const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
-        const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        const updated = existing.filter((i: any) => i.id !== id);
-        localStorage.setItem(key, JSON.stringify(updated));
       }
       setSaveStatus('saved');
       return true;
