@@ -11,7 +11,8 @@ import {
   Megaphone, Sparkles, Wand2, CopyCheck, Loader2, Users, Key, Lock, Briefcase, Download, UploadCloud, FileJson, Link as LinkIcon, Reply, Paperclip, Send, AlertOctagon,
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
-  BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin
+  BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
+  FileBox
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE } from '../constants';
@@ -48,7 +49,7 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
 );
 
 // --- STRICT FILE UPLOADER (NO URLs) ---
-const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "aspect-video w-full" }) => {
+const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   
@@ -82,12 +83,14 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
        <div 
         onClick={() => !uploading && inputRef.current?.click()}
-        className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl`}
+        className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0`}
        >
           {uploading ? (
-            <div className="w-full h-full flex flex-col items-center justify-center text-primary">
-               <Loader2 size={32} className="animate-spin mb-2" />
-               <span className="text-[10px] font-black uppercase tracking-widest">Uploading to Cloud...</span>
+            <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center">
+               <Loader2 size={24} className="animate-spin mb-2" />
+               <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden">
+                 <div className="bg-primary h-full animate-[grow_2s_infinite]"></div>
+               </div>
             </div>
           ) : value ? (
             <>
@@ -97,15 +100,15 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
                  <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" />
               )}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold flex items-center gap-2">
-                   <Upload size={14}/> Replace Media
+                <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold">
+                   <Edit2 size={16}/>
                 </div>
               </div>
             </>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-               <Image size={32} className="mb-3 opacity-50" />
-               <span className="text-[10px] font-black uppercase tracking-widest text-center px-4">Click to Upload</span>
+               <Image size={24} className="mb-2 opacity-50" />
+               <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span>
             </div>
           )}
           <input 
@@ -166,28 +169,25 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
   return (
     <div className="space-y-4 text-left w-full">
       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
-      <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[120px]">
-        {uploading ? (
-           <Loader2 size={24} className="animate-spin text-primary" />
-        ) : (
-           <>
-            <Upload className="text-slate-400 group-hover:text-white mb-2" size={24} />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Add Images</span>
-           </>
-        )}
-        <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
-      </div>
       
-      {images.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          {images.map((url, idx) => (
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+        {/* Upload Button */}
+        <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group">
+          {uploading ? (
+             <Loader2 size={24} className="animate-spin text-primary" />
+          ) : (
+             <Plus className="text-slate-400 group-hover:text-white" size={24} />
+          )}
+          <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
+        </div>
+
+        {images.map((url, idx) => (
             <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
               <img src={url} className="w-full h-full object-cover" alt="preview" />
               <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
             </div>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 };
@@ -261,7 +261,7 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
   const [search, setSearch] = useState(''); const [isOpen, setIsOpen] = useState(false); const [limit, setLimit] = useState(100);
   const CUSTOM_KEYS = Object.keys(CustomIcons); const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { const val = (LucideIcons as any)[key]; return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); });
   const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; const displayed = filtered.slice(0, limit); const SelectedIconComponent = CustomIcons[selected] || (LucideIcons as any)[selected] || LucideIcons.Package;
-  return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white hover:border-slate-600'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>);
+  return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>);
 };
 
 const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
@@ -281,8 +281,42 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
   useEffect(() => { const baseText = `Check out the ${product.name} from ${settings.companyName}.`; const price = `Price: R ${product.price}`; const link = `${product.affiliateLink}`; const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; let generated = ''; switch(platform.id) { case 'instagram': generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; break; default: generated = `${product.name} is now available.\n\n${product.description}\n\n${features}\n\nShop securely here: ${link}`; } setCustomText(generated); }, [platform, product, settings]);
   const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const handleDownloadImage = async () => { if (!product.media?.[0]?.url) return; try { const response = await fetch(product.media[0].url); const blob = await response.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${product.name.replace(/\s/g, '_')}_social.jpg`; document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); document.body.removeChild(a); } catch (err) { console.error("Download failed", err); } };
-  const handleShare = async () => { if (navigator.share) { try { await navigator.share({ title: settings.companyName, text: customText, url: product.affiliateLink }); } catch (error) { console.error('Error sharing', error); } } else { alert('Sharing is not supported on this device/browser.'); } };
-  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleDownloadImage} className="py-4 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 flex items-center justify-center gap-2"><Download size={16}/> Save Image</button><button onClick={handleCopy} className="py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20">{copied ? <Check size={16}/> : <Copy size={16}/>} Copy Text</button></div></div></div></div>);
+  
+  // Native Share with File support
+  const handleShareBundle = async () => {
+    if (!navigator.share) {
+      alert("Sharing not supported on this device/browser.");
+      return;
+    }
+    
+    try {
+      const shareData: any = {
+        title: settings.companyName,
+        text: customText,
+        url: product.affiliateLink
+      };
+
+      // Try to bundle image
+      if (product.media?.[0]?.url) {
+        try {
+          const response = await fetch(product.media[0].url);
+          const blob = await response.blob();
+          const file = new File([blob], "product.jpg", { type: blob.type });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+             shareData.files = [file];
+          }
+        } catch (e) {
+          console.warn("Could not bundle image for share", e);
+        }
+      }
+
+      await navigator.share(shareData);
+    } catch (error) {
+      console.error('Error sharing', error);
+    }
+  };
+
+  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> Share Bundle (Image + Link)</button><button onClick={handleDownloadImage} className="py-4 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 flex items-center justify-center gap-2"><Download size={16}/> Save Image</button><button onClick={handleCopy} className="py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2">{copied ? <Check size={16}/> : <Copy size={16}/>} Copy Text</button></div></div></div></div>);
 };
 
 const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => {
@@ -293,11 +327,14 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
 // --- File Uploader ---
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   
   const processFiles = (incomingFiles: FileList | null) => {
     if (!incomingFiles) return;
+    setUploading(true);
+
+    // Non-blocking upload simulation (fire and forget per file)
     Array.from(incomingFiles).forEach(file => {
-      // Direct upload logic for Products
       const reader = new FileReader();
       reader.onload = async (e) => {
         let result = e.target?.result as string;
@@ -314,7 +351,9 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
           type: file.type, 
           size: file.size 
         };
+        // Add to list immediately once this specific file is done
         onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
+        setUploading(false); // Simplified: assumes last one turns off spinner or parent manages loading state better for multiples
       };
       reader.readAsDataURL(file);
     });
@@ -322,16 +361,26 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
 
   return (
     <div className="space-y-4 text-left w-full">
-      <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[160px]">
-        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-           <Upload className="text-slate-400 group-hover:text-white" size={20} />
-        </div>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Click or Drag to Upload {label}</p>
+      <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]">
+        {uploading ? (
+           <div className="flex flex-col items-center">
+             <Loader2 size={24} className="animate-spin text-primary mb-2" />
+             <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden">
+                <div className="bg-primary h-full animate-[grow_2s_infinite]"></div>
+             </div>
+             <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span>
+           </div>
+        ) : (
+           <>
+            <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} />
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p>
+           </>
+        )}
         <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
       </div>
       
       {files.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-bottom-2">
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2">
           {files.map(f => (
             <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
               {f.type.startsWith('video') ? (
@@ -340,7 +389,7 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
                  <img src={f.url} className="w-full h-full object-cover" alt="preview" />
               )}
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={14}/></button>
+                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button>
               </div>
             </div>
           ))}
@@ -692,7 +741,7 @@ const Admin: React.FC = () => {
           <div className="bg-slate-900 p-8 rounded-[3rem] border border-slate-800 space-y-8">
              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
-                <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="aspect-[4/3] w-full rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
+                <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
              </div>
              <div className="flex gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
           </div>
@@ -807,7 +856,7 @@ const Admin: React.FC = () => {
                     <SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({companyName: v})} />
                     <SettingField label="Slogan" value={tempSettings.slogan || ''} onChange={v => updateTempSettings({slogan: v})} />
                     <SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({companyLogo: v})} />
-                    <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({companyLogoUrl: v})} className="h-32 w-full object-contain bg-slate-800/50" />
+                    <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({companyLogoUrl: v})} className="h-24 w-24 object-contain bg-slate-800/50" />
                     <div className="grid grid-cols-2 gap-4">
                        <SettingField label="Primary Color (Hex)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({primaryColor: v})} />
                        <SettingField label="Accent Color (Hex)" value={tempSettings.accentColor} onChange={v => updateTempSettings({accentColor: v})} />
@@ -878,7 +927,7 @@ const Admin: React.FC = () => {
                      <h4 className="text-white font-bold flex items-center gap-2 mt-8"><BookOpen size={18} className="text-primary"/> Narrative</h4>
                      <SettingField label="History Title" value={tempSettings.aboutHistoryTitle || ''} onChange={v => updateTempSettings({aboutHistoryTitle: v})} />
                      <SettingField label="History Body" value={tempSettings.aboutHistoryBody || ''} onChange={v => updateTempSettings({aboutHistoryBody: v})} type="textarea" rows={8} />
-                     <SingleImageUploader label="Founder Signature (PNG)" value={tempSettings.aboutSignatureImage || ''} onChange={v => updateTempSettings({aboutSignatureImage: v})} className="h-24 w-full object-contain bg-white/10" />
+                     <SingleImageUploader label="Founder Signature (PNG)" value={tempSettings.aboutSignatureImage || ''} onChange={v => updateTempSettings({aboutSignatureImage: v})} className="h-24 w-48 object-contain bg-white/10" />
 
                      <h4 className="text-white font-bold flex items-center gap-2 mt-8"><Images size={18} className="text-primary"/> Visual Journey</h4>
                      <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages || []} onChange={v => updateTempSettings({aboutGalleryImages: v})} />
@@ -897,6 +946,22 @@ const Admin: React.FC = () => {
                        <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({address: v})} type="textarea" rows={2} />
                        <SettingField label="Weekday Hours" value={tempSettings.contactHoursWeekdays || ''} onChange={v => updateTempSettings({contactHoursWeekdays: v})} />
                      </div>
+                  </div>
+               )}
+
+               {activeEditorSection === 'legal' && (
+                  <div className="space-y-6">
+                     <h4 className="text-white font-bold flex items-center gap-2"><FileBox size={18} className="text-primary"/> Affiliate Disclosure</h4>
+                     <SettingField label="Page Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({disclosureTitle: v})} />
+                     <SettingField label="Content (Markdown Supported)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({disclosureContent: v})} type="textarea" rows={6} />
+                     
+                     <h4 className="text-white font-bold flex items-center gap-2 mt-8"><Shield size={18} className="text-primary"/> Privacy Policy</h4>
+                     <SettingField label="Page Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({privacyTitle: v})} />
+                     <SettingField label="Content (Markdown Supported)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({privacyContent: v})} type="textarea" rows={6} />
+
+                     <h4 className="text-white font-bold flex items-center gap-2 mt-8"><FileText size={18} className="text-primary"/> Terms of Service</h4>
+                     <SettingField label="Page Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({termsTitle: v})} />
+                     <SettingField label="Content (Markdown Supported)" value={tempSettings.termsContent} onChange={v => updateTempSettings({termsContent: v})} type="textarea" rows={6} />
                   </div>
                )}
 

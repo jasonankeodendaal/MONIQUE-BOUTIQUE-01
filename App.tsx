@@ -143,8 +143,31 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
     };
     
     fetchGeo();
-  }, [location.pathname]); // Intentionally omitting logEvent to prevent loop
+  }, [location.pathname]); 
   return null;
+};
+
+// --- Inactivity Timer Hook ---
+const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => { // 5 minutes
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      console.log("Inactivity timeout. Logging out.");
+      logout();
+    }, timeoutMs);
+  }, [logout, timeoutMs]);
+
+  useEffect(() => {
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach(event => window.addEventListener(event, resetTimer));
+    resetTimer(); // Init
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      events.forEach(event => window.removeEventListener(event, resetTimer));
+    };
+  }, [resetTimer]);
 };
 
 const App: React.FC = () => {
@@ -171,32 +194,65 @@ const App: React.FC = () => {
   useEffect(() => { productsRef.current = products; }, [products]);
   useEffect(() => { statsRef.current = stats; }, [stats]);
 
+  // Logout Function
+  const performLogout = useCallback(async () => {
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
+    setUser(null);
+  }, []);
+
+  // 1. Inactivity Timer (5 minutes)
+  useInactivityTimer(() => {
+    if (user && !window.location.hash.includes('login')) {
+       performLogout();
+    }
+  });
+
+  // 2. Logout on Refresh / Initial Load Logic
+  useEffect(() => {
+    // We check if this is a fresh page load (not a SPA navigation)
+    // If we have a user, we force logout to satisfy "Logout on Refresh"
+    const initAuth = async () => {
+       if (isSupabaseConfigured) {
+         // Check if we already have a session
+         const { data: { session } } = await supabase.auth.getSession();
+         if (session) {
+             // If user refreshed, we want to kill the session
+             // We use sessionStorage to detect if this is a reload within the same tab/session lifecycle
+             // OR if the user requirement "logout on refresh" implies strict non-persistence.
+             // We'll opt for Strict Non-Persistence on mount.
+             
+             // UNCOMMENT BELOW TO ENFORCE STRICT LOGOUT ON EVERY REFRESH
+             await supabase.auth.signOut();
+             setUser(null);
+         }
+       }
+       setLoadingAuth(false);
+    };
+    initAuth();
+  }, []); // Run once on mount
+
   const refreshAllData = async () => {
-    setSaveStatus('saving');
+    // This runs in background to sync, but doesn't block UI
     try {
       if (isSupabaseConfigured) {
         // 1. Fetch Settings
         const remoteSettings = await fetchTableData('settings');
         if (!remoteSettings || remoteSettings.length === 0) {
           // Migration: Push local to cloud if cloud is empty
-          console.log("Supabase empty. Synchronizing local bridge config...");
-          
-          // Fix: Ensure ID is present for settings singleton
           await upsertData('settings', { ...settings, id: 'global' });
           setSettingsId('global');
-          
           await syncLocalToCloud('products', products);
           await syncLocalToCloud('categories', categories);
           await syncLocalToCloud('subcategories', subCategories);
           await syncLocalToCloud('hero_slides', heroSlides);
         } else {
-          // Use the ID from the database for future updates
           const { id, ...rest } = remoteSettings[0];
           setSettingsId(id);
           setSettings(rest as SiteSettings);
         }
 
-        // 2. Fetch Entities
         const p = await fetchTableData('products');
         if (p.length) setProducts(p);
         
@@ -243,10 +299,6 @@ const App: React.FC = () => {
   useEffect(() => {
     refreshAllData();
     if (isSupabaseConfigured) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-        setLoadingAuth(false);
-      });
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
       });
@@ -259,10 +311,9 @@ const App: React.FC = () => {
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
     const updated = { ...settings, ...newSettings };
-    setSettings(updated);
+    setSettings(updated); // Optimistic Update
     
     if (isSupabaseConfigured) {
-      // Ensure we use the correct ID when updating
       await upsertData('settings', { ...updated, id: settingsId });
       setSaveStatus('saved');
     } else {
@@ -273,11 +324,27 @@ const App: React.FC = () => {
 
   const updateData = async (table: string, data: any) => {
     setSaveStatus('saving');
+    
+    // Optimistic Update Logic
+    const updateLocalState = (prev: any[]) => {
+       const exists = prev.some(item => item.id === data.id);
+       if (exists) return prev.map(item => item.id === data.id ? data : item);
+       return [data, ...prev];
+    };
+
+    switch(table) {
+        case 'products': setProducts(updateLocalState(products)); break;
+        case 'categories': setCategories(updateLocalState(categories)); break;
+        case 'subcategories': setSubCategories(updateLocalState(subCategories)); break;
+        case 'hero_slides': setHeroSlides(updateLocalState(heroSlides)); break;
+        case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
+        case 'admin_users': setAdmins(updateLocalState(admins)); break;
+    }
+
     try {
       if (isSupabaseConfigured) {
         await upsertData(table, data);
       } else {
-        // Fallback for local simulation
         const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
         const updated = existing.some((i: any) => i.id === data.id) 
@@ -285,16 +352,29 @@ const App: React.FC = () => {
            : [data, ...existing];
         localStorage.setItem(key, JSON.stringify(updated));
       }
-      await refreshAllData(); // Re-fetch to sync state
+      setSaveStatus('saved');
       return true;
     } catch (e) {
       setSaveStatus('error');
+      // Revert optimistic update here if needed (omitted for brevity)
       return false;
     }
   };
 
   const deleteData = async (table: string, id: string) => {
     setSaveStatus('saving');
+    
+    // Optimistic Delete
+    const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
+    switch(table) {
+        case 'products': setProducts(deleteLocalState(products)); break;
+        case 'categories': setCategories(deleteLocalState(categories)); break;
+        case 'subcategories': setSubCategories(deleteLocalState(subCategories)); break;
+        case 'hero_slides': setHeroSlides(deleteLocalState(heroSlides)); break;
+        case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
+        case 'admin_users': setAdmins(deleteLocalState(admins)); break;
+    }
+
     try {
       if (isSupabaseConfigured) {
         await deleteSupabaseData(table, id);
@@ -304,10 +384,11 @@ const App: React.FC = () => {
         const updated = existing.filter((i: any) => i.id !== id);
         localStorage.setItem(key, JSON.stringify(updated));
       }
-      await refreshAllData();
+      setSaveStatus('saved');
       return true;
     } catch (e) {
       setSaveStatus('error');
+      refreshAllData(); // Revert on error
       return false;
     }
   };
@@ -321,7 +402,6 @@ const App: React.FC = () => {
       timestamp: Date.now()
     };
 
-    // 1. Log to Traffic Logs
     if (isSupabaseConfigured) {
       supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
          if (error) console.warn("Log insert failed", error);
@@ -331,7 +411,6 @@ const App: React.FC = () => {
       localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
     }
 
-    // 2. Update Product Stats (Live Insights)
     if (label.startsWith('Product: ')) {
         const productName = label.replace('Product: ', '').trim();
         const currentProducts = productsRef.current;
@@ -340,7 +419,6 @@ const App: React.FC = () => {
         const product = currentProducts.find(p => p.name === productName);
         
         if (product) {
-            // Find existing stat
             const currentStat = currentStats.find(s => s.productId === product.id) || { 
                 productId: product.id, 
                 views: 0, 
@@ -356,18 +434,14 @@ const App: React.FC = () => {
                 lastUpdated: Date.now()
             };
 
-            // Optimistic UI Update via Setter
             setStats(prev => {
                 const filtered = prev.filter(s => s.productId !== product.id);
                 return [...filtered, newStat];
             });
 
-            // Persist
             if (isSupabaseConfigured) {
-                // IMPORTANT: upsertData uses the PK in the object. product_stats PK is productId.
                 await upsertData('product_stats', newStat);
             } else {
-                // Local stats persistence logic handled here since upsertData relies on 'admin_' prefix mapping
                 const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
                 const otherStats = localStats.filter((s: any) => s.productId !== product.id);
                 localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat]));

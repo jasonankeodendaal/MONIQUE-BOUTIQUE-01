@@ -215,6 +215,7 @@ const ProductDetail: React.FC = () => {
                   </div>
                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">({product.reviews?.length || 0} Verified Reviews)</span>
                 </div>
+                {/* Header Share Button - Kept for consistency */}
                 <button onClick={handleShare} className="p-2 rounded-full hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-colors">
                   <Share2 size={18} />
                 </button>
@@ -233,18 +234,27 @@ const ProductDetail: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col gap-4 py-8 border-y border-slate-100">
+            <div className="grid grid-cols-6 gap-3 py-8 border-y border-slate-100">
                <a 
                  href={product.affiliateLink} 
                  target="_blank" 
                  rel="noopener noreferrer"
                  onClick={() => logEvent('click', `Product: ${product.name}`)}
-                 className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
+                 className="col-span-5 py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
                >
                  <span>Secure Acquisition</span>
                  <ExternalLink size={16} />
                </a>
-               <p className="text-[10px] text-center text-slate-400">Transactions processed securely by our authorized retail partner.</p>
+               <button 
+                onClick={handleShare}
+                className="col-span-1 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-slate-800 transition-colors"
+                title="Share this product"
+               >
+                 <Share2 size={20} />
+               </button>
+               <div className="col-span-6">
+                 <p className="text-[10px] text-center text-slate-400 mt-2">Transactions processed securely by our authorized retail partner.</p>
+               </div>
             </div>
 
             {/* Description */}
