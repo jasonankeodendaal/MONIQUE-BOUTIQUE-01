@@ -13,7 +13,6 @@ import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, A
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Loader2 } from 'lucide-react';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
