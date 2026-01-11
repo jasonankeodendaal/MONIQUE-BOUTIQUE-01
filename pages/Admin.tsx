@@ -21,7 +21,6 @@ import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupa
 import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 import { CustomIcons } from '../components/CustomIcons';
-import { GoogleGenAI } from "@google/genai";
 
 // --- Reusable UI Components for Admin ---
 
@@ -68,103 +67,6 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
       <pre className="p-4 text-xs font-mono text-slate-300 overflow-x-auto">
         <code>{code}</code>
       </pre>
-    </div>
-  );
-};
-
-const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => {
-  const [platform, setPlatform] = useState('Instagram');
-  const [tone, setTone] = useState('Luxury');
-  const [generatedAd, setGeneratedAd] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleGenerate = async () => {
-    setLoading(true);
-    try {
-      const apiKey = process.env.API_KEY;
-      if (!apiKey) {
-        setGeneratedAd("API Key missing. Please configure process.env.API_KEY.");
-        setLoading(false);
-        return;
-      }
-      
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = `Write a ${tone.toLowerCase()} ad copy for ${platform} for a luxury product named "${product.name}". 
-      Description: ${product.description}. 
-      Price: ${product.price}. 
-      Include 3-5 relevant hashtags.`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt,
-      });
-      
-      setGeneratedAd(response.text || 'No content generated.');
-    } catch (error: any) {
-      console.error(error);
-      setGeneratedAd(`Error: ${error.message || 'Failed to generate ad'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex justify-between items-center">
-          <h3 className="text-white font-bold text-lg flex items-center gap-2"><Sparkles size={18} className="text-primary"/> AI Ad Generator</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-white"><X size={20}/></button>
-        </div>
-        <div className="p-6 space-y-4 text-left">
-          <div className="grid grid-cols-2 gap-4">
-             <div>
-               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Platform</label>
-               <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full bg-slate-800 text-white p-3 rounded-xl border border-slate-700 outline-none focus:border-primary text-sm">
-                 <option>Instagram</option>
-                 <option>Twitter / X</option>
-                 <option>Facebook</option>
-                 <option>Email Newsletter</option>
-               </select>
-             </div>
-             <div>
-               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Tone</label>
-               <select value={tone} onChange={(e) => setTone(e.target.value)} className="w-full bg-slate-800 text-white p-3 rounded-xl border border-slate-700 outline-none focus:border-primary text-sm">
-                 <option>Luxury</option>
-                 <option>Minimalist</option>
-                 <option>Excited</option>
-                 <option>Professional</option>
-               </select>
-             </div>
-          </div>
-          
-          <div className="bg-slate-950 rounded-xl p-4 border border-slate-800 min-h-[150px] relative">
-            {loading ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 size={24} className="text-primary animate-spin"/>
-              </div>
-            ) : generatedAd ? (
-              <textarea 
-                readOnly 
-                value={generatedAd} 
-                className="w-full h-32 bg-transparent text-slate-300 text-sm resize-none outline-none" 
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-slate-600">
-                <Wand2 size={24} className="mb-2 opacity-50"/>
-                <span className="text-xs">Ready to generate magic</span>
-              </div>
-            )}
-          </div>
-          
-          <button 
-            onClick={handleGenerate} 
-            disabled={loading}
-            className="w-full py-4 bg-primary text-slate-900 font-bold uppercase text-xs tracking-widest rounded-xl hover:brightness-110 flex items-center justify-center gap-2"
-          >
-            {loading ? 'Generating...' : 'Generate Copy'}
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
@@ -353,7 +255,6 @@ const Admin: React.FC = () => {
   const [showHeroForm, setShowHeroForm] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedAdProduct, setSelectedAdProduct] = useState<Product | null>(null);
   const [replyEnquiry, setReplyEnquiry] = useState<Enquiry | null>(null);
   
   const [showEmailTemplate, setShowEmailTemplate] = useState(false);
@@ -779,7 +680,6 @@ const Admin: React.FC = () => {
          @keyframes grow { from { height: 0; } to { height: 100%; } }
          @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
       `}</style>
-      {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
       {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
 
       <header className="max-w-[1400px] mx-auto px-4 md:px-6 mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 text-left">

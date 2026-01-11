@@ -1,5 +1,6 @@
 
 
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
@@ -34,8 +35,7 @@ export const PERMISSION_TREE: PermissionNode[] = [
       { id: 'catalog.products.edit', label: 'Edit Products' },
       { id: 'catalog.products.delete', label: 'Delete Products' },
       { id: 'catalog.categories.manage', label: 'Manage Departments' },
-      { id: 'catalog.subcategories.manage', label: 'Manage Sub-Categories' },
-      { id: 'catalog.ads', label: 'Generate Ad Copy' }
+      { id: 'catalog.subcategories.manage', label: 'Manage Sub-Categories' }
     ]
   },
   {
