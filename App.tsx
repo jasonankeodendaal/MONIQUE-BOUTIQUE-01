@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -10,7 +9,7 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, VisitorSession } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -113,18 +112,11 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
       logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname);
     }
 
-    // 2. Fetch Geo & Device & Marketing Data
+    // 2. Fetch Geo & Device Data
     const fetchGeo = async () => {
         if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
         
         const stored = localStorage.getItem('site_visitor_locations');
-        const visitorId = localStorage.getItem('visitor_id') || Math.random().toString(36).substr(2, 9);
-        const isReturn = !!localStorage.getItem('visitor_id');
-        
-        if (!isReturn) {
-            localStorage.setItem('visitor_id', visitorId);
-        }
-
         try {
             // Get Device Info
             const ua = navigator.userAgent;
@@ -144,50 +136,33 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
             if (ua.indexOf("Android") !== -1) os = "Android";
             if (ua.indexOf("like Mac") !== -1) os = "iOS";
 
-            // Parse Marketing Data (UTMs & Referrer)
-            const params = new URLSearchParams(window.location.search);
-            const utmSource = params.get('utm_source') || undefined;
-            const utmMedium = params.get('utm_medium') || undefined;
-            const utmCampaign = params.get('utm_campaign') || undefined;
-            
-            // Normalize Referrer
-            let referrer = document.referrer;
-            if (!referrer) referrer = "Direct / None";
-            else if (referrer.includes(window.location.hostname)) referrer = "Internal";
-            else if (referrer.includes("google")) referrer = "Google Search";
-            else if (referrer.includes("facebook") || referrer.includes("instagram")) referrer = "Social (Meta)";
-            else if (referrer.includes("tiktok")) referrer = "Social (TikTok)";
-
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
-            if (data.error) throw new Error("IP Lookup Failed"); 
+            if (data.error) return; 
 
-            const visitData: VisitorSession = {
-                id: visitorId,
+            const visitData = {
                 ip: data.ip,
                 city: data.city,
                 region: data.region,
                 country: data.country_name,
+                code: data.country_code,
+                lat: data.latitude,
+                lon: data.longitude,
+                org: data.org,
                 device: deviceType,
                 browser: browser,
                 os: os,
-                referrer: referrer,
-                utmSource: utmSource,
-                utmMedium: utmMedium,
-                utmCampaign: utmCampaign,
-                landingPage: window.location.pathname,
-                timestamp: Date.now(),
-                isReturnVisitor: isReturn
+                timestamp: Date.now()
             };
 
             const existing = JSON.parse(stored || '[]');
-            // Keep last 100 visits for deeper analytics
-            const updated = [visitData, ...existing].slice(0, 100);
+            // Keep last 50 visits
+            const updated = [visitData, ...existing].slice(0, 50);
             localStorage.setItem('site_visitor_locations', JSON.stringify(updated));
             sessionStorage.setItem('geo_tracked', 'true');
             hasTrackedGeo.current = true;
         } catch (e) {
-            console.warn("Geo-tracking skipped/blocked", e);
+            console.warn("Geo-tracking skipped/blocked");
         }
     };
     
