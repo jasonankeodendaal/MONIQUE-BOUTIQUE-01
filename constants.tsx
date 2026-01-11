@@ -1,28 +1,17 @@
 
 
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard & Reports',
-    description: 'Access to the main command center.',
-    children: [
-      { id: 'dashboard.view', label: 'View Analytics Overview' },
-      { id: 'dashboard.export', label: 'Export Reports' },
-    ]
-  },
   {
     id: 'sales',
     label: 'Sales & Enquiries',
     description: 'Manage incoming leads and communications.',
     children: [
-      { id: 'sales.view', label: 'View Inbox' },
-      { id: 'sales.reply', label: 'Reply to Enquiries' },
-      { id: 'sales.status', label: 'Update Status' },
-      { id: 'sales.delete', label: 'Delete Messages' },
-      { id: 'sales.export', label: 'Export Enquiries' }
+      { id: 'sales.view', label: 'View Enquiries' },
+      { id: 'sales.manage', label: 'Manage Status (Read/Unread)' },
+      { id: 'sales.delete', label: 'Delete Enquiries' },
+      { id: 'sales.export', label: 'Export Data' }
     ]
   },
   {
@@ -31,25 +20,33 @@ export const PERMISSION_TREE: PermissionNode[] = [
     description: 'Control products and categories.',
     children: [
       { id: 'catalog.products.view', label: 'View Products' },
-      { id: 'catalog.products.create', label: 'Create Products' },
-      { id: 'catalog.products.edit', label: 'Edit Products' },
+      { id: 'catalog.products.manage', label: 'Add/Edit Products' },
       { id: 'catalog.products.delete', label: 'Delete Products' },
       { id: 'catalog.categories.manage', label: 'Manage Departments' },
-      { id: 'catalog.subcategories.manage', label: 'Manage Sub-Categories' }
+      { id: 'catalog.ads', label: 'Generate Ads' }
     ]
   },
   {
     id: 'content',
-    label: 'Site Content & Visuals',
+    label: 'Site Content',
     description: 'Edit pages and visual elements.',
     children: [
-      { id: 'content.hero', label: 'Manage Hero Slides' },
-      { id: 'content.brand', label: 'Brand Identity (Logo/Colors)' },
-      { id: 'content.nav', label: 'Navigation & Footer' },
+      { id: 'content.hero', label: 'Hero Carousel' },
+      { id: 'content.identity', label: 'Brand Identity' },
       { id: 'content.home', label: 'Home Page Sections' },
-      { id: 'content.about', label: 'About Page Story' },
-      { id: 'content.contact', label: 'Contact Page Details' },
+      { id: 'content.about', label: 'About Page' },
+      { id: 'content.contact', label: 'Contact Page' },
       { id: 'content.legal', label: 'Legal Pages' }
+    ]
+  },
+  {
+    id: 'analytics',
+    label: 'Business Intelligence',
+    description: 'View traffic and performance reports.',
+    children: [
+      { id: 'analytics.view', label: 'View Dashboard' },
+      { id: 'analytics.products', label: 'Product Performance' },
+      { id: 'analytics.export', label: 'Export Reports' }
     ]
   },
   {
@@ -57,11 +54,9 @@ export const PERMISSION_TREE: PermissionNode[] = [
     label: 'System Administration',
     description: 'Advanced settings and team management.',
     children: [
-      { id: 'system.team.view', label: 'View Team Members' },
-      { id: 'system.team.manage', label: 'Add/Edit Members' },
-      { id: 'system.team.delete', label: 'Remove Members' },
-      { id: 'system.integrations', label: 'Manage Integrations (API Keys)' },
-      { id: 'system.logs', label: 'View System Logs' }
+      { id: 'system.team.manage', label: 'Manage Team' },
+      { id: 'system.settings.core', label: 'Core Site Settings' },
+      { id: 'system.reset', label: 'Factory Reset' }
     ]
   }
 ];
@@ -111,16 +106,13 @@ export const INITIAL_SETTINGS: SiteSettings = {
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
-  backgroundColor: '#FDFCFB',
-  textColor: '#0f172a',
-  
   navHomeLabel: 'Home',
-  navProductsLabel: 'My Picks',
+  navProductsLabel: 'Collections',
   navAboutLabel: 'My Story',
-  navContactLabel: 'Ask Me',
+  navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
-  contactEmail: 'hello@kasicouture.com',
+  contactEmail: 'curation@kasicouture.com',
   contactPhone: '+27 11 900 2000',
   whatsappNumber: '+27119002000',
   address: 'Melrose Arch, Johannesburg',
@@ -129,64 +121,61 @@ export const INITIAL_SETTINGS: SiteSettings = {
     { id: '2', name: 'Twitter', url: 'https://twitter.com/kasicouture', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3256/3256013.png' }
   ],
 
-  footerDescription: "This isn't just a store. It's a collection of the things I love, vetted for quality and style, brought together for the modern South African.",
-  footerCopyrightText: "All rights reserved. Curated with love.",
+  footerDescription: "The digital bridge to South African luxury. Curating elite fashion and lifestyle affiliate picks for the discerning modern closet.",
+  footerCopyrightText: "All rights reserved. Made with love in South Africa.",
 
   // Home
-  homeHeroBadge: 'Curated by Kasi',
-  homeAboutTitle: 'Hi, I’m the Curator.',
-  homeAboutDescription: 'For years, I struggled to find fashion that balanced authentic African heritage with modern luxury. I spent months vetting suppliers, testing fabrics, and building relationships. This website is the result of that journey—a bridge to the finest pieces I trust and wear myself.',
+  homeHeroBadge: 'Kasi Couture Exclusive',
+  homeAboutTitle: 'Modern Heritage. Timeless Elegance.',
+  homeAboutDescription: 'I founded Kasi Couture to bridge the gap between street-inspired authenticity and high-end luxury. Every piece featured here is a testament to the vibrant spirit of Johannesburg refined for the global stage.',
   homeAboutImage: 'https://images.unsplash.com/photo-1539109136881-3be06109477e?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Read My Full Story',
-  homeCategorySectionTitle: 'Curated Categories',
+  homeAboutCta: 'Read My Story',
+  homeCategorySectionTitle: 'Shop by Department',
   homeCategorySectionSubtitle: 'The Collection',
-  homeTrustSectionTitle: 'Why I Chose These',
-  
-  homeTrustItem1Title: 'Personally Vetted',
-  homeTrustItem1Desc: 'I do not list anything I haven’t researched. Every link leads to a trusted retailer.',
+  homeTrustSectionTitle: 'The Standard',
+  homeTrustItem1Title: 'Verified Luxury',
+  homeTrustItem1Desc: 'Every product link is personally tested and leads to a secure, verified retailer.',
   homeTrustItem1Icon: 'ShieldCheck',
-
-  homeTrustItem2Title: 'Authentic Style',
-  homeTrustItem2Desc: 'Selected for the individual who values unique expression over fast fashion trends.',
+  homeTrustItem2Title: 'Curated Taste',
+  homeTrustItem2Desc: 'No algorithms. Only human-selected pieces that embody the Kasi Couture aesthetic.',
   homeTrustItem2Icon: 'Sparkles',
-
-  homeTrustItem3Title: 'Direct Access',
-  homeTrustItem3Desc: 'I act as your bridge to global and local luxury, ensuring you get the best price.',
-  homeTrustItem3Icon: 'Link',
+  homeTrustItem3Title: 'Global Reach',
+  homeTrustItem3Desc: 'Sourcing the best of South African design and international luxury couture.',
+  homeTrustItem3Icon: 'Globe',
 
   // Products
-  productsHeroTitle: 'The Edit',
-  productsHeroSubtitle: 'A hand-picked selection of essentials that define the Kasi Couture aesthetic.',
+  productsHeroTitle: 'Boutique Explorer',
+  productsHeroSubtitle: 'Refine your selection by department, category, or trend.',
   productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Find something special...',
+  productsSearchPlaceholder: 'Search collections...',
 
   // About
-  aboutHeroTitle: 'From Passion to Platform.',
+  aboutHeroTitle: 'The Story of the Silhouette.',
   aboutHeroSubtitle: 'Kasi Couture is my personal curation platform, dedicated to finding the most exquisite garments and accessories across the continent.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Your Name',
+  aboutFounderName: 'Kasi Couture',
   aboutLocation: 'South Africa',
 
-  aboutHistoryTitle: 'My Journey',
-  aboutHistoryBody: 'It started with a simple frustration: finding high-quality, authentic luxury pieces was overwhelming. I was tired of scrolling through endless generic stores. \n\nI decided to become the filter. I started meeting designers, visiting showrooms, and testing materials. What you see here is not an algorithm—it is a reflection of my personal taste and rigorous standards. Every item has a story, and I am here to share it with you.',
+  aboutHistoryTitle: 'A Passion for Craft',
+  aboutHistoryBody: 'What began as a style blog in the heart of Soweto has evolved into a premier luxury bridge page. Our mission is to highlight the intricate craftsmanship of local and international designers.',
   
-  aboutMissionTitle: 'My Promise',
-  aboutMissionBody: 'To only recommend products that I would be proud to own myself. Quality over quantity, always.',
-  aboutMissionIcon: 'Heart',
+  aboutMissionTitle: 'Elite Curation',
+  aboutMissionBody: 'To provide a seamless, aesthetically pleasing interface for fashion enthusiasts to discover premium affiliate products.',
+  aboutMissionIcon: 'Target',
 
-  aboutCommunityTitle: 'The Vision',
-  aboutCommunityBody: 'To build a community of like-minded individuals who appreciate the finer details of African luxury.',
+  aboutCommunityTitle: 'The Inner Circle',
+  aboutCommunityBody: 'Join a global community of style icons who value quality over quantity.',
   aboutCommunityIcon: 'Users',
   
-  aboutIntegrityTitle: 'Transparency',
-  aboutIntegrityBody: 'I believe in total honesty. As an affiliate curator, I may earn a commission when you purchase through my links. This comes at no extra cost to you, but it supports my work in finding the next hidden gem.',
+  aboutIntegrityTitle: 'Transparency First',
+  aboutIntegrityBody: 'As an affiliate bridge page, we receive a small commission on purchases made through our links, allowing us to keep curating the best for you without bias.',
   aboutIntegrityIcon: 'Award',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
@@ -197,19 +186,20 @@ export const INITIAL_SETTINGS: SiteSettings = {
   ],
 
   // Contact
-  contactHeroTitle: 'Let\'s Connect.',
-  contactHeroSubtitle: 'Have a question about a specific piece or just want to say hi? I read every message.',
-  contactFormNameLabel: 'Your Name',
-  contactFormEmailLabel: 'Your Email',
-  contactFormSubjectLabel: 'Subject',
-  contactFormMessageLabel: 'Message',
-  contactFormButtonText: 'Send Message',
+  contactHeroTitle: 'Tailored Assistance.',
+  contactHeroSubtitle: 'Have a question about a specific curation or want to collaborate? My concierge team is ready to assist.',
+  contactFormNameLabel: 'Full Identity',
+  contactFormEmailLabel: 'Digital Mailbox',
+  contactFormSubjectLabel: 'Inquiry Subject',
+  contactFormMessageLabel: 'Your Message',
+  contactFormButtonText: 'Transmit Inquiry',
   
-  contactInfoTitle: 'Contact Info',
-  contactAddressLabel: 'Based In',
-  contactHoursLabel: 'Online Hours',
-  contactHoursWeekdays: 'Mon - Fri: 09:00 - 18:00',
-  contactHoursWeekends: 'Sat: 10:00 - 14:00',
+  // New Contact Editable Fields
+  contactInfoTitle: 'Global HQ',
+  contactAddressLabel: 'Address',
+  contactHoursLabel: 'Operating Hours',
+  contactHoursWeekdays: 'Mon - Fri: 09:00 - 18:00 (SAST)',
+  contactHoursWeekends: 'Sat: 09:00 - 13:00',
 
   // Legal
   disclosureTitle: 'Affiliate Disclosure',
@@ -235,24 +225,24 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'The Curator\'s Edit',
-    subtitle: 'A personal selection of this season\'s most compelling pieces.',
-    cta: 'View My Picks'
+    title: 'Autumn Silk Series',
+    subtitle: 'Flowing silhouettes designed for the golden hour in the city.',
+    cta: 'View Series'
   },
   {
     id: '2',
     image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Modern Heritage',
-    subtitle: 'Bridging the gap between traditional craft and contemporary style.',
-    cta: 'Read the Story'
+    title: 'The Tailored Man',
+    subtitle: 'Bespoke-inspired cuts that redefine urban professional attire.',
+    cta: 'Explore Suiting'
   },
   {
     id: '3',
     image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Evening Essentials',
-    subtitle: 'The pieces I trust for those special nights out.',
+    title: 'Velvet Nights',
+    subtitle: 'Evening wear that captures the essence of luxury after dark.',
     cta: 'Shop Evening'
   }
 ];
@@ -316,77 +306,71 @@ export const EMAIL_TEMPLATE_HTML = `<!DOCTYPE html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: 'Playfair Display', serif; background-color: #f8fafc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-  .wrapper { width: 100%; table-layout: fixed; background-color: #f8fafc; padding-bottom: 60px; }
-  .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 640px; border-radius: 0; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
-  .header { background-color: #1e293b; padding: 50px 20px; text-align: center; border-bottom: 4px solid #D4AF37; }
-  .logo-img { max-height: 80px; width: auto; display: block; margin: 0 auto; filter: brightness(0) invert(1); }
-  .logo-text { font-size: 28px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.2em; margin: 0; }
-  .body-content { padding: 50px 40px; color: #334155; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-  .greeting { font-size: 20px; font-weight: bold; color: #1e293b; margin-bottom: 20px; font-family: 'Playfair Display', serif; }
-  .message-box { background-color: #f8fafc; border-left: 3px solid #D4AF37; padding: 30px; margin: 30px 0; border-radius: 4px; font-size: 16px; color: #475569; line-height: 1.8; font-style: italic; }
-  .btn { display: inline-block; padding: 16px 36px; background-color: #D4AF37; color: #1e293b; text-decoration: none; font-weight: 900; border-radius: 0; margin-top: 20px; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; box-shadow: 0 4px 6px rgba(212, 175, 55, 0.3); }
-  .showcase-header { text-align: center; margin: 50px 0 30px; position: relative; }
-  .showcase-header span { background: #fff; padding: 0 20px; position: relative; z-index: 1; font-family: 'Playfair Display', serif; font-size: 24px; font-style: italic; color: #1e293b; }
-  .showcase-header:after { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid #cbd5e1; z-index: 0; }
-  .product-row { width: 100%; margin-top: 20px; }
-  .product-col { width: 48%; display: inline-block; vertical-align: top; margin: 0 1%; background: #ffffff; border: 1px solid #e2e8f0; }
-  .product-img { width: 100%; height: 250px; object-fit: cover; display: block; }
-  .product-detail { padding: 20px; text-align: center; }
-  .product-title { font-size: 16px; font-weight: bold; color: #1e293b; margin: 0 0 8px; font-family: 'Playfair Display', serif; }
-  .product-link { display: inline-block; font-size: 11px; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; text-decoration: none; border-bottom: 1px solid #D4AF37; padding-bottom: 2px; }
-  .footer { background-color: #1e293b; padding: 40px 20px; text-align: center; color: #64748b; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; letter-spacing: 0.5px; border-top: 1px solid #334155; }
-  .footer p { margin: 8px 0; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 0; }
+  .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f5; padding-bottom: 60px; }
+  .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 16px; color: #334155; line-height: 1.6; }
+  .header { background-color: #1e293b; padding: 40px 20px; text-align: center; }
+  .logo-img { max-height: 60px; width: auto; display: block; margin: 0 auto; }
+  .logo-text { font-size: 24px; font-weight: bold; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; font-family: serif; }
+  .body-content { padding: 40px 30px; }
+  .message-box { background-color: #f8fafc; border-left: 4px solid #D4AF37; padding: 20px; margin: 25px 0; border-radius: 4px; font-size: 15px; color: #475569; }
+  .btn { display: inline-block; padding: 12px 30px; background-color: #D4AF37; color: #1e293b; text-decoration: none; font-weight: bold; border-radius: 4px; margin-top: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .products-title { text-align: center; margin: 40px 0 20px; font-family: serif; font-size: 22px; color: #1e293b; position: relative; }
+  .products-title span { background: #fff; padding: 0 15px; position: relative; z-index: 1; }
+  .products-title:after { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid #e2e8f0; z-index: 0; }
+  .product-grid { width: 100%; border-collapse: collapse; }
+  .product-cell { width: 50%; padding: 10px; vertical-align: top; }
+  .product-card { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff; text-align: left; }
+  .product-img { width: 100%; height: 180px; object-fit: cover; background-color: #f1f5f9; display: block; }
+  .product-info { padding: 15px; }
+  .product-name { font-size: 14px; font-weight: bold; color: #1e293b; margin: 0 0 5px; height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .product-price { font-size: 14px; color: #D4AF37; font-weight: bold; margin-bottom: 10px; display: block; }
+  .product-link { font-size: 12px; color: #64748b; text-decoration: none; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+  .footer { background-color: #1e293b; padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 12px; }
+  .social-icons { margin-bottom: 20px; }
+  .social-icon { display: inline-block; width: 32px; height: 32px; margin: 0 5px; }
+  .footer p { margin: 5px 0; }
   .footer a { color: #D4AF37; text-decoration: none; }
+  
+  @media only screen and (max-width: 480px) {
+    .product-cell { display: block; width: 100%; padding: 10px 0; }
+    .product-img { height: 220px; }
+  }
 </style>
 </head>
 <body>
   <div class="wrapper">
     <div class="main">
       <div class="header">
-        <img src="{{company_logo_url}}" alt="{{company_name}}" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-        <h1 class="logo-text" style="display:none;">{{company_name}}</h1>
+        {{#if company_logo_url}}
+          <img src="{{company_logo_url}}" alt="{{company_name}}" class="logo-img" />
+        {{else}}
+          <h1 class="logo-text">{{company_name}}</h1>
+        {{/if}}
       </div>
       
       <div class="body-content">
-        <div class="greeting">Dear {{to_name}},</div>
-        <p>Thank you for reaching out to <strong>{{company_name}}</strong>. We have received your enquiry regarding <strong>{{subject}}</strong>.</p>
+        <p>Dear {{to_name}},</p>
+        <p>Thank you for connecting with <strong>{{company_name}}</strong> regarding <strong>{{subject}}</strong>.</p>
         
         <div class="message-box">
           {{{message}}}
         </div>
         
-        <p>A member of our concierge team is reviewing your request and will provide a detailed follow-up shortly. We appreciate your patience.</p>
+        <p>If you require further assistance, please reply directly to this email.</p>
         
-        <div style="text-align: center; margin-top: 40px;">
-          <a href="{{company_website}}" class="btn">Visit Portal</a>
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="{{company_website}}" class="btn">Access Portal</a>
         </div>
 
-        <div class="showcase-header"><span>Curator's Selection</span></div>
-        
-        <div class="product-row">
-           <!-- Dynamic Placeholders for Top Products -->
-           <div class="product-col">
-              <img src="{{product_1_image}}" class="product-img" alt="Selection 1">
-              <div class="product-detail">
-                 <div class="product-title">{{product_1_name}}</div>
-                 <a href="{{product_1_link}}" class="product-link">View Item</a>
-              </div>
-           </div>
-           <div class="product-col">
-              <img src="{{product_2_image}}" class="product-img" alt="Selection 2">
-              <div class="product-detail">
-                 <div class="product-title">{{product_2_name}}</div>
-                 <a href="{{product_2_link}}" class="product-link">View Item</a>
-              </div>
-           </div>
-        </div>
+        {{{products_html}}}
       </div>
 
       <div class="footer">
-        <p>&copy; {{year}} {{company_name}}. All Rights Reserved.</p>
+        {{{socials_html}}}
+        <p>&copy; {{year}} {{company_name}}. All rights reserved.</p>
         <p>{{company_address}}</p>
-        <p><a href="{{company_website}}">www.kasicouture.com</a></p>
+        <p><a href="{{company_website}}">Visit Website</a></p>
       </div>
     </div>
   </div>
@@ -462,99 +446,25 @@ git push -u origin main`,
   {
     id: 'supabase_sql',
     title: '5. Setting the Foundations (SQL)',
-    description: 'The Concept: SQL is the language we use to tell the database how to organize itself. We are going to execute a master script that builds your Product Catalog, Settings Configuration, and Media Storage Vault in one go.',
-    code: `-- MASTER SETUP SCRIPT
--- Copy and paste all of this into the Supabase SQL Editor
+    description: 'The Concept: SQL is the language we use to tell the database how to organize itself. We are going to create a "Storage Bucket"—a digital closet where your high-resolution product photos and videos will live securely.',
+    code: `-- Copy and paste this into the Supabase SQL Editor:
 
--- 1. DATA STRUCTURES (Tables)
-create table if not exists settings (
-  id text primary key,
-  "companyName" text, "slogan" text, "companyLogo" text, "companyLogoUrl" text,
-  "primaryColor" text, "secondaryColor" text, "accentColor" text,
-  "navHomeLabel" text, "navProductsLabel" text, "navAboutLabel" text, "navContactLabel" text, "navDashboardLabel" text,
-  "contactEmail" text, "contactPhone" text, "whatsappNumber" text, "address" text,
-  "socialLinks" jsonb,
-  "footerDescription" text, "footerCopyrightText" text,
-  "homeHeroBadge" text, "homeAboutTitle" text, "homeAboutDescription" text, "homeAboutImage" text, "homeAboutCta" text,
-  "homeCategorySectionTitle" text, "homeCategorySectionSubtitle" text, "homeTrustSectionTitle" text,
-  "homeTrustItem1Title" text, "homeTrustItem1Desc" text, "homeTrustItem1Icon" text,
-  "homeTrustItem2Title" text, "homeTrustItem2Desc" text, "homeTrustItem2Icon" text,
-  "homeTrustItem3Title" text, "homeTrustItem3Desc" text, "homeTrustItem3Icon" text,
-  "productsHeroTitle" text, "productsHeroSubtitle" text, "productsHeroImage" text, "productsHeroImages" jsonb, "productsSearchPlaceholder" text,
-  "aboutHeroTitle" text, "aboutHeroSubtitle" text, "aboutMainImage" text,
-  "aboutEstablishedYear" text, "aboutFounderName" text, "aboutLocation" text,
-  "aboutHistoryTitle" text, "aboutHistoryBody" text,
-  "aboutMissionTitle" text, "aboutMissionBody" text, "aboutMissionIcon" text,
-  "aboutCommunityTitle" text, "aboutCommunityBody" text, "aboutCommunityIcon" text,
-  "aboutIntegrityTitle" text, "aboutIntegrityBody" text, "aboutIntegrityIcon" text,
-  "aboutSignatureImage" text, "aboutGalleryImages" jsonb,
-  "contactHeroTitle" text, "contactHeroSubtitle" text, "contactFormNameLabel" text, "contactFormEmailLabel" text,
-  "contactFormSubjectLabel" text, "contactFormMessageLabel" text, "contactFormButtonText" text,
-  "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text,
-  "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text,
-  "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text,
-  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text
-);
-
-create table if not exists products (
-  id text primary key,
-  name text, sku text, price numeric, "affiliateLink" text,
-  "categoryId" text, "subCategoryId" text, description text,
-  features jsonb, specifications jsonb, media jsonb,
-  "discountRules" jsonb, reviews jsonb, "createdAt" bigint
-);
-
-create table if not exists categories (
-  id text primary key,
-  name text, icon text, image text, description text
-);
-
-create table if not exists subcategories (
-  id text primary key,
-  "categoryId" text, name text
-);
-
-create table if not exists carousel_slides (
-  id text primary key,
-  image text, type text, title text, subtitle text, cta text
-);
-
-create table if not exists enquiries (
-  id text primary key,
-  name text, email text, whatsapp text, subject text, message text, "createdAt" bigint, status text
-);
-
-create table if not exists admin_users (
-  id text primary key,
-  name text, email text, role text, permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text
-);
-
-create table if not exists product_stats (
-  "productId" text primary key,
-  views numeric, clicks numeric, "totalViewTime" numeric, "lastUpdated" bigint
-);
-
-create table if not exists traffic_logs (
-  id text primary key,
-  type text, text text, time text, timestamp bigint
-);
-
--- 2. MEDIA STORAGE
+-- 1. Create the 'media' closet for our files
 insert into storage.buckets (id, name, public) 
 values ('media', 'media', true)
 on conflict (id) do nothing;
 
-drop policy if exists "Public Access" on storage.objects;
+-- 2. Allow the public to SEE the images
 create policy "Public Access" 
 on storage.objects for select 
 using ( bucket_id = 'media' );
 
-drop policy if exists "Admin Control" on storage.objects;
+-- 3. Only allow YOU (the curator) to add or delete files
 create policy "Admin Control" 
 on storage.objects for all 
 using ( auth.role() = 'authenticated' );`,
-    codeLabel: 'Full System Provisioning Script',
-    tips: 'Why this matters: This script builds the actual "rooms" of your digital house (Product Room, Settings Room, Media Closet) so your content has a permanent home.',
+    codeLabel: 'Database Logic Injection',
+    tips: 'Why this matters: This script ensures that while customers can see your beautiful catalogs, only you have the power to change them.',
     illustrationId: 'shield'
   },
   {
@@ -565,7 +475,7 @@ using ( auth.role() = 'authenticated' );`,
       'Google Cloud: Visit the Google Cloud Console and create a new project.',
       'Credentials: Create an "OAuth 2.0 Client ID."',
       'The Callback: Add your Supabase project URL to the "Authorized Redirect URIs" list.',
-      'Activation: Paste your Client ID and Secret into the Supabase "Authentication -> Providers" section and ENABLE the Google Provider.'
+      'Activation: Paste your Client ID and Secret into the Supabase "Authentication -> Providers" section.'
     ],
     illustrationId: 'identity'
   },
@@ -621,3 +531,4 @@ using ( auth.role() = 'authenticated' );`,
     illustrationId: 'growth'
   }
 ];
+

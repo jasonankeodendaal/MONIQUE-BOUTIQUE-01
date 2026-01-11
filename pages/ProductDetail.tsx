@@ -1,19 +1,24 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Download, Instagram, ShieldCheck, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check } from 'lucide-react';
+import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../constants';
 import { useSettings } from '../App';
 import { Product, ProductStats, Review } from '../types';
-import { upsertData, updateProductStats } from '../lib/supabase';
 
 const ProductDetail: React.FC = () => {
-  const { id } = useParams<{id: string}>();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { settings, products, categories, refreshAllData } = useSettings();
+  const { settings } = useSettings();
   
-  // Find product from global state
-  const product = products.find((p: Product) => p.id === id);
-  const category = categories.find(c => c.id === product?.categoryId);
+  // Use state for products to allow local updates (for reviews)
+  const [allProducts, setAllProducts] = useState<Product[]>(() => {
+    const saved = localStorage.getItem('admin_products');
+    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+  });
+
+  const product = allProducts.find((p: Product) => p.id === id);
+  const category = INITIAL_CATEGORIES.find(c => c.id === product?.categoryId);
   
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -33,64 +38,95 @@ const ProductDetail: React.FC = () => {
     window.scrollTo(0, 0);
     const timeout = setTimeout(() => setIsLoaded(true), 100);
     
-    // ANALYTICS: Track view on mount
+    // Track View and Start Session Timer
     if (id) {
-       updateProductStats(id, 'view');
+      const savedStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
+      const index = savedStats.findIndex((s: ProductStats) => s.productId === id);
+      if (index > -1) {
+        savedStats[index].views += 1;
+        savedStats[index].lastUpdated = Date.now();
+      } else {
+        savedStats.push({ productId: id, views: 1, clicks: 0, totalViewTime: 0, lastUpdated: Date.now() });
+      }
+      localStorage.setItem('admin_product_stats', JSON.stringify(savedStats));
+
+      // Start View Time Tracker
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        const currentStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
+        const idx = currentStats.findIndex((s: ProductStats) => s.productId === id);
+        if (idx > -1) {
+          currentStats[idx].totalViewTime = (currentStats[idx].totalViewTime || 0) + 1;
+          currentStats[idx].lastUpdated = Date.now();
+          localStorage.setItem('admin_product_stats', JSON.stringify(currentStats));
+        }
+      }, 1000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
     }
 
     return () => clearTimeout(timeout);
   }, [id]);
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
+  const handleTrackClick = () => {
+    if (id) {
+      const savedStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
+      const index = savedStats.findIndex((s: ProductStats) => s.productId === id);
+      if (index > -1) {
+        savedStats[index].clicks += 1;
+        savedStats[index].lastUpdated = Date.now();
+        localStorage.setItem('admin_product_stats', JSON.stringify(savedStats));
+      }
+    }
+  };
+
+  const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!product) return;
     setIsSubmittingReview(true);
     
-    const review: Review = {
-      id: Date.now().toString(),
-      userName: newReview.userName || 'Guest',
-      rating: newReview.rating,
-      comment: newReview.comment,
-      createdAt: Date.now()
-    };
-    
-    // Live update logic: Append to existing reviews and upsert the entire product record
-    const updatedReviews = [review, ...(product.reviews || [])];
-    const updatedProduct = { ...product, reviews: updatedReviews };
+    setTimeout(() => {
+      const review: Review = {
+        id: Date.now().toString(),
+        userName: newReview.userName || 'Guest',
+        rating: newReview.rating,
+        comment: newReview.comment,
+        createdAt: Date.now()
+      };
 
-    try {
-      const { error } = await upsertData('products', updatedProduct);
-      if (error) {
-        alert("Connection interrupted. Please try again.");
-      } else {
-        await refreshAllData();
-        setNewReview({ userName: '', comment: '', rating: 5 });
-        setOpenAccordion(null); // Close form
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
+      const updatedProducts = allProducts.map(p => 
+        p.id === id ? { ...p, reviews: [review, ...(p.reviews || [])] } : p
+      );
+      
+      setAllProducts(updatedProducts);
+      localStorage.setItem('admin_products', JSON.stringify(updatedProducts));
+      
+      setNewReview({ userName: '', comment: '', rating: 5 });
       setIsSubmittingReview(false);
-    }
+    }, 800);
   };
 
   const handleShare = async () => {
-    setIsShareOpen(true);
-  };
-
-  const handleAcquire = () => {
-    if (product) {
-       updateProductStats(product.id, 'click');
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product?.name,
+          text: `Check out ${product?.name} at ${settings.companyName}`,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log("Share skipped", err);
+      }
+    } else {
+      setIsShareOpen(true);
     }
   };
 
-  const socialCaption = useMemo(() => {
-    if (!product) return '';
-    return `Just discovered this masterpiece: ${product.name} at ${settings.companyName}. \n\n${product.description.substring(0, 100)}...\n\nAvailable here: ${window.location.href}`;
-  }, [product, settings]);
-
-  const handleCopyCaption = () => {
-    navigator.clipboard.writeText(socialCaption);
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
@@ -100,6 +136,17 @@ const ProductDetail: React.FC = () => {
     const sum = product.reviews.reduce((acc, r) => acc + r.rating, 0);
     return Math.round(sum / product.reviews.length);
   }, [product?.reviews]);
+
+  const socialShares = useMemo(() => {
+     const url = window.location.href;
+     const text = `Check out ${product?.name}`;
+     return [
+      { name: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]', text: 'text-white', url: `https://wa.me/?text=${encodeURIComponent(`${text}: ${url}`)}` },
+      { name: 'Facebook', icon: Facebook, color: 'bg-[#1877F2]', text: 'text-white', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
+      { name: 'Twitter', icon: Twitter, color: 'bg-[#1DA1F2]', text: 'text-white', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
+      { name: 'Email', icon: Mail, color: 'bg-slate-100', text: 'text-slate-900', url: `mailto:?subject=${encodeURIComponent(product?.name || '')}&body=${encodeURIComponent(`${text}: ${url}`)}` },
+    ];
+  }, [product]);
 
   if (!product) {
     return (
@@ -235,21 +282,19 @@ const ProductDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* HIGH CONVERSION ACTION BUTTON */}
+            {/* Actions */}
             <div className="flex flex-col gap-4 py-8 border-y border-slate-100">
                <a 
                  href={product.affiliateLink} 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 onClick={handleAcquire}
-                 className="w-full py-6 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-sm rounded-full hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 group animate-pulse hover:animate-none cursor-pointer"
+                 onClick={handleTrackClick}
+                 className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
                >
                  <span>Secure Acquisition</span>
-                 <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
+                 <ExternalLink size={16} />
                </a>
-               <p className="text-[10px] text-center text-slate-400 flex items-center justify-center gap-1">
-                 <ShoppingBag size={10} /> Transactions processed securely by retail partner
-               </p>
+               <p className="text-[10px] text-center text-slate-400">Transactions processed securely by our authorized retail partner.</p>
             </div>
 
             {/* Description */}
@@ -265,24 +310,6 @@ const ProductDetail: React.FC = () => {
                   ))}
                 </ul>
               )}
-            </div>
-
-            {/* Curator's Guarantee - Bridge Page Element */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
-                <div className="flex items-start gap-4">
-                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-primary shadow-sm flex-shrink-0">
-                      <ShieldCheck size={20} />
-                   </div>
-                   <div>
-                      <h4 className="font-serif text-slate-900 font-bold mb-1">Curator's Guarantee</h4>
-                      <p className="text-xs text-slate-500 leading-relaxed">
-                         Personally vetted by {settings.aboutFounderName || 'the curator'}. We only bridge you to retailers that meet our strict standards for authenticity and quality.
-                      </p>
-                      <Link to="/about" className="text-[10px] font-black uppercase tracking-widest text-primary mt-3 inline-flex items-center gap-1 hover:gap-2 transition-all">
-                         Read Our Philosophy <ArrowLeft size={10} className="rotate-180" />
-                      </Link>
-                   </div>
-                </div>
             </div>
 
             {/* Specifications Accordion */}
@@ -351,7 +378,7 @@ const ProductDetail: React.FC = () => {
                        />
                     </div>
                     <button disabled={isSubmittingReview} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-colors disabled:opacity-50">
-                       {isSubmittingReview ? 'Publishing Live...' : 'Post Review'}
+                       {isSubmittingReview ? 'Submitting...' : 'Post Review'}
                     </button>
                  </form>
                )}
@@ -380,79 +407,34 @@ const ProductDetail: React.FC = () => {
         </div>
       </div>
       
-      {/* Full Page Social Builder Overlay */}
+      {/* Share Modal */}
       {isShareOpen && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
-            <button 
-                onClick={() => setIsShareOpen(false)} 
-                className="absolute top-6 right-6 p-3 bg-white/10 rounded-full text-white hover:bg-white hover:text-slate-900 transition-colors z-50"
-            >
-                <X size={24} />
-            </button>
-            
-            <div className="w-full max-w-6xl h-full md:h-[80vh] flex flex-col md:flex-row rounded-[3rem] overflow-hidden shadow-2xl bg-black border border-white/10 m-4 md:m-0">
-                {/* Visual Side */}
-                <div className="w-full md:w-1/2 h-1/2 md:h-full relative bg-slate-900">
-                    <img 
-                        src={currentMedia?.url} 
-                        className="w-full h-full object-cover opacity-80" 
-                        alt="Share Preview"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-                    <div className="absolute bottom-8 left-8 right-8">
-                        <div className="inline-block px-3 py-1 bg-primary text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
-                            Kasi Couture Selection
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+            <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm relative">
+               <button onClick={() => setIsShareOpen(false)} className="absolute top-4 right-4 p-2 bg-slate-50 rounded-full hover:bg-slate-100"><X size={20} className="text-slate-500"/></button>
+               <h3 className="text-xl font-serif text-slate-900 mb-6 text-center">Share This Piece</h3>
+               <div className="grid grid-cols-4 gap-4 mb-6">
+                  {socialShares.map((s) => (
+                     <a 
+                      key={s.name} 
+                      href={s.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center gap-2 group"
+                     >
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${s.color} ${s.text} group-hover:scale-110 transition-transform`}>
+                           <s.icon size={20} />
                         </div>
-                        <h2 className="text-3xl md:text-5xl font-serif text-white mb-2 leading-tight">{product.name}</h2>
-                        <p className="text-white/60 text-lg font-light">R {product.price.toLocaleString()}</p>
-                    </div>
-                </div>
-
-                {/* Composer Side */}
-                <div className="w-full md:w-1/2 h-1/2 md:h-full bg-slate-900 p-8 md:p-12 flex flex-col">
-                    <h3 className="text-white font-bold text-xl md:text-2xl mb-2 flex items-center gap-3">
-                        <Share2 size={24} className="text-primary"/> Social Builder
-                    </h3>
-                    <p className="text-slate-400 text-sm mb-8">Customize and broadcast this piece to your network.</p>
-
-                    <div className="flex-grow space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Auto-Generated Caption</label>
-                            <div className="relative group">
-                                <textarea 
-                                    readOnly 
-                                    value={socialCaption}
-                                    className="w-full h-40 bg-slate-800 border border-slate-700 rounded-2xl p-5 text-slate-300 text-sm leading-relaxed resize-none focus:outline-none focus:border-primary transition-colors"
-                                />
-                                <button 
-                                    onClick={handleCopyCaption}
-                                    className="absolute bottom-4 right-4 p-2 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-wide flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg"
-                                >
-                                    {copySuccess ? <Check size={14}/> : <Copy size={14}/>} {copySuccess ? 'Copied' : 'Copy Text'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                             <a href={`https://wa.me/?text=${encodeURIComponent(socialCaption)}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 p-4 bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/30 rounded-xl hover:bg-[#25D366] hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
-                                <MessageCircle size={18} /> WhatsApp
-                             </a>
-                             <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(socialCaption)}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 p-4 bg-[#1DA1F2]/20 text-[#1DA1F2] border border-[#1DA1F2]/30 rounded-xl hover:bg-[#1DA1F2] hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
-                                <Twitter size={18} /> X / Twitter
-                             </a>
-                             <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 p-4 bg-[#1877F2]/20 text-[#1877F2] border border-[#1877F2]/30 rounded-xl hover:bg-[#1877F2] hover:text-white transition-all font-bold text-xs uppercase tracking-widest">
-                                <Facebook size={18} /> Facebook
-                             </a>
-                             <button className="flex items-center justify-center gap-3 p-4 bg-white/5 text-white border border-white/10 rounded-xl hover:bg-white hover:text-slate-900 transition-all font-bold text-xs uppercase tracking-widest cursor-not-allowed opacity-50" disabled>
-                                <Instagram size={18} /> Story (Mobile)
-                             </button>
-                        </div>
-                        
-                        <a href={currentMedia?.url} download className="w-full flex items-center justify-center gap-3 p-4 bg-slate-800 text-slate-300 border border-slate-700 rounded-xl hover:text-white hover:border-slate-500 transition-all font-bold text-xs uppercase tracking-widest mt-4">
-                            <Download size={18} /> Download High-Res Asset
-                        </a>
-                    </div>
-                </div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">{s.name}</span>
+                     </a>
+                  ))}
+               </div>
+               <div className="relative">
+                  <input readOnly value={window.location.href} className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 outline-none" />
+                  <button onClick={handleCopyLink} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white shadow-sm border border-slate-100 rounded-lg hover:text-primary transition-colors">
+                     {copySuccess ? <Check size={16} className="text-green-500"/> : <Copy size={16}/>}
+                  </button>
+               </div>
             </div>
          </div>
       )}

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { Target, Users, Award, ArrowLeft, Star, Heart, Quote, ImageIcon, MapPin, Calendar, Rocket } from 'lucide-react';
+import { Target, Users, Award, ArrowLeft, Star, Heart, Quote, ImageIcon } from 'lucide-react';
 import { useSettings } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { CustomIcons } from '../components/CustomIcons';
@@ -66,19 +66,15 @@ const About: React.FC = () => {
         {/* History / Main Body */}
         <div className="grid md:grid-cols-12 gap-12 mb-24">
             <div className="md:col-span-3 hidden md:block">
-                <div className="sticky top-32 border-l-2 border-slate-100 pl-6 py-2 space-y-8">
-                    <div>
-                        <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Established</span>
-                        <span className="text-xl font-serif text-slate-900 block">{settings.aboutEstablishedYear || '2024'}</span>
-                    </div>
-                    <div>
-                        <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Founder</span>
-                        <span className="text-xl font-serif text-slate-900 block">{settings.aboutFounderName || settings.companyName}</span>
-                    </div>
-                    <div>
-                        <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Location</span>
-                        <span className="text-xl font-serif text-slate-900 block">{settings.aboutLocation || 'South Africa'}</span>
-                    </div>
+                <div className="sticky top-32 border-l-2 border-slate-100 pl-6 py-2">
+                    <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Established</span>
+                    <span className="text-xl font-serif text-slate-900 block mb-8">{settings.aboutEstablishedYear || '2024'}</span>
+                    
+                    <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Founder</span>
+                    <span className="text-xl font-serif text-slate-900 block mb-8">{settings.aboutFounderName || settings.companyName}</span>
+
+                    <span className="text-xs font-black uppercase tracking-widest text-slate-400 block mb-2">Location</span>
+                    <span className="text-xl font-serif text-slate-900 block">{settings.aboutLocation || 'South Africa'}</span>
                 </div>
             </div>
             <div className="md:col-span-9 prose prose-lg prose-slate text-slate-500 font-light leading-loose text-left">
@@ -92,36 +88,6 @@ const About: React.FC = () => {
                     <img src={settings.aboutSignatureImage} alt="Founder Signature" className="h-20 object-contain opacity-70" />
                   </div>
                 )}
-            </div>
-        </div>
-
-        {/* Timeline Visualization */}
-        <div className="mb-24 py-12 border-t border-slate-100">
-            <div className="text-center mb-16">
-               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary block mb-2">Milestones</span>
-               <h3 className="text-3xl font-serif text-slate-900">The Path to Curation</h3>
-            </div>
-            
-            <div className="relative border-l border-slate-200 ml-6 md:ml-1/2 space-y-12">
-                {[
-                    { year: 'Inception', title: 'The Spark', desc: 'The realization that authentic style was hard to find.', icon: MapPin },
-                    { year: 'Exploration', title: 'The Search', desc: 'Traveling to source materials and meet designers directly.', icon: Rocket },
-                    { year: 'Launch', title: settings.companyName, desc: 'Opening the doors to a curated collection for you.', icon: Star }
-                ].map((item, idx) => (
-                    <div key={idx} className="relative pl-12 md:pl-0">
-                        {/* Dot */}
-                        <div className="absolute left-0 top-0 -translate-x-[calc(50%+1px)] w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-primary shadow-sm z-10">
-                            <item.icon size={14} />
-                        </div>
-                        
-                        {/* Content */}
-                        <div className={`md:absolute md:top-0 ${idx % 2 === 0 ? 'md:left-[calc(50%+2rem)]' : 'md:right-[calc(50%+2rem)] md:text-right'} w-full md:w-[calc(50%-2rem)]`}>
-                             <span className="text-xs font-black text-slate-300 uppercase tracking-widest mb-1 block">{item.year}</span>
-                             <h4 className="text-xl font-serif text-slate-900 mb-2">{item.title}</h4>
-                             <p className="text-slate-500 font-light text-sm">{item.desc}</p>
-                        </div>
-                    </div>
-                ))}
             </div>
         </div>
 

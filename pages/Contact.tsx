@@ -4,8 +4,6 @@ import { Mail, MessageCircle, Send, Twitter, Instagram, Linkedin, Phone, Sparkle
 import { useSettings } from '../App';
 import { Enquiry } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { upsertData } from '../lib/supabase';
-import emailjs from '@emailjs/browser';
 
 const Contact: React.FC = () => {
   const { settings } = useSettings();
@@ -15,53 +13,30 @@ const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const newEnquiry: Enquiry = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...formState,
-      createdAt: Date.now(),
-      status: 'unread'
-    };
+    // Simulate API delay
+    setTimeout(() => {
+      const newEnquiry: Enquiry = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...formState,
+        createdAt: Date.now(),
+        status: 'unread'
+      };
 
-    try {
-      // 1. Save to Database
-      const { error } = await upsertData('enquiries', newEnquiry);
-      if (error) {
-        alert("Failed to send message. Please check your connection.");
-      } else {
-        // 2. Trigger EmailJS Notification if configured
-        if (settings.emailJsServiceId && settings.emailJsTemplateId && settings.emailJsPublicKey) {
-            await emailjs.send(
-                settings.emailJsServiceId,
-                settings.emailJsTemplateId,
-                {
-                    to_name: 'Admin',
-                    from_name: formState.name,
-                    from_email: formState.email,
-                    subject: formState.subject,
-                    message: formState.message,
-                    reply_to: formState.email,
-                    whatsapp: formState.whatsapp || 'Not provided'
-                },
-                settings.emailJsPublicKey
-            );
-        }
+      // Save to localStorage for Admin consumption
+      const existing = JSON.parse(localStorage.getItem('admin_enquiries') || '[]');
+      localStorage.setItem('admin_enquiries', JSON.stringify([newEnquiry, ...existing]));
 
-        setSubmitted(true);
-        setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
-        // Reset success message after 5 seconds
-        setTimeout(() => setSubmitted(false), 5000);
-      }
-    } catch (err) {
-      console.error(err);
-      // Fallback: If DB worked but email failed, we still show success as data is safe.
-      if (!submitted) alert("An unexpected error occurred.");
-    } finally {
       setIsSubmitting(false);
-    }
+      setSubmitted(true);
+      setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => setSubmitted(false), 5000);
+    }, 1500);
   };
 
   const faqs = [

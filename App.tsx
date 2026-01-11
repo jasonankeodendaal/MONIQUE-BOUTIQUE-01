@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
@@ -10,37 +10,28 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
+import { SiteSettings, Product, Category, CarouselSlide, SubCategory } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, seedDatabase, upsertData } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, LogOut, ShieldAlert } from 'lucide-react';
+import { Check, Loader2, AlertTriangle } from 'lucide-react';
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 interface SettingsContextType {
   settings: SiteSettings;
-  updateSettings: (newSettings: Partial<SiteSettings>) => void;
   products: Product[];
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   categories: Category[];
-  setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
   subCategories: SubCategory[];
-  setSubCategories: React.Dispatch<React.SetStateAction<SubCategory[]>>;
   heroSlides: CarouselSlide[];
-  setHeroSlides: React.Dispatch<React.SetStateAction<CarouselSlide[]>>;
-  enquiries: Enquiry[];
-  setEnquiries: React.Dispatch<React.SetStateAction<Enquiry[]>>;
-  user: User | null;
-  userRole: 'owner' | 'admin';
-  loadingAuth: boolean;
-  isDatabaseProvisioned: boolean;
-  saveStatus: SaveStatus;
-  setSaveStatus: React.Dispatch<React.SetStateAction<SaveStatus>>;
-  logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
+  updateSettings: (newSettings: Partial<SiteSettings>) => Promise<void>;
   refreshAllData: () => Promise<void>;
-  enableOfflineAdmin: () => void;
-  offlineAdmin: boolean;
+  user: User | null;
+  loadingAuth: boolean;
+  isLocalMode: boolean;
+  saveStatus: SaveStatus;
+  setSaveStatus: (status: SaveStatus) => void;
+  logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -52,25 +43,19 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, loadingAuth, offlineAdmin } = useSettings();
-  
-  if (offlineAdmin) return <>{children}</>;
-
+  const { user, loadingAuth, isLocalMode } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-        <p className="text-slate-500 text-xs font-black uppercase tracking-widest animate-pulse">Verifying Secure Session...</p>
-      </div>
+      <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
     </div>
   );
-  
-  if (!user) return <Navigate to="/login" />;
+  if (isLocalMode) return <>{children}</>;
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
 const Footer: React.FC = () => {
-  const { settings, user, offlineAdmin } = useSettings();
+  const { settings, user } = useSettings();
   const location = useLocation();
   if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
 
@@ -106,13 +91,12 @@ const Footer: React.FC = () => {
             <ul className="space-y-3 text-sm font-light">
               <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
               <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
-              <li><Link to="/terms" className="hover:text-primary transition-colors">{settings.termsTitle}</Link></li>
             </ul>
           </div>
         </div>
         <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>&copy; {new Date().getFullYear()} {settings.companyName}. {settings.footerCopyrightText}</p>
-          <Link to={user || offlineAdmin ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
+          <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
             Bridge Concierge Portal
           </Link>
         </div>
@@ -127,32 +111,18 @@ const ScrollToTop = () => {
   return null;
 };
 
-const SaveStatusIndicator = ({ status, isProvisioned, offlineAdmin }: { status: SaveStatus, isProvisioned: boolean, offlineAdmin: boolean }) => {
-  const location = useLocation();
-  if (status === 'idle' && !offlineAdmin) return null;
-  if (!location.pathname.startsWith('/admin')) return null;
-
-  if (offlineAdmin) {
-    return (
-      <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl bg-orange-500 text-white animate-in slide-in-from-bottom-4">
-         <ShieldAlert size={16} />
-         <span className="text-[10px] font-black uppercase tracking-widest">Offline Mode</span>
-      </div>
-    );
-  }
-
+const SaveStatusIndicator = ({ status }: { status: SaveStatus }) => {
+  if (status === 'idle') return null;
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl transition-all duration-300 ${
       status === 'error' ? 'bg-red-500 text-white' : 'bg-slate-900 text-white border border-slate-800'
     } animate-in slide-in-from-bottom-4`}>
       {status === 'saving' && <Loader2 size={16} className="animate-spin text-primary" />}
-      {status === 'migrating' && <CloudUpload size={16} className="animate-bounce text-blue-400" />}
       {status === 'saved' && <Check size={16} className="text-green-500" />}
       {status === 'error' && <AlertTriangle size={16} className="text-white" />}
       <span className="text-[10px] font-black uppercase tracking-widest">
-        {status === 'saving' && 'Syncing Cloud...'}
-        {status === 'migrating' && 'Provisioning DB...'}
-        {status === 'saved' && 'Sync Complete'}
+        {status === 'saving' && 'Syncing Supabase...'}
+        {status === 'saved' && 'Cloud Sync Complete'}
         {status === 'error' && 'Sync Failed'}
       </span>
     </div>
@@ -163,215 +133,90 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
   const location = useLocation();
   useEffect(() => {
     if (!location.pathname.startsWith('/admin')) {
-      logEvent('view', location.pathname === '/' ? 'Home' : location.pathname);
+      logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname);
     }
   }, [location.pathname, logEvent]);
   return null;
 };
 
 const App: React.FC = () => {
-  const [settings, setSettings] = useState<SiteSettings | null>(null); 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>([]);
-  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
+  // Global State
+  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
+  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(INITIAL_CAROUSEL);
   
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'owner' | 'admin'>('admin');
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [offlineAdmin, setOfflineAdmin] = useState(false);
 
-  // --- SECURITY: 15 MINUTE INACTIVITY TIMER ---
-  useEffect(() => {
-    if (!user && !offlineAdmin) return;
-    const INACTIVITY_LIMIT = 15 * 60 * 1000;
-    let timeoutId: any;
-    const resetTimer = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(async () => {
-        console.log("Security Protocol: Auto-logout due to inactivity.");
-        if (user) await supabase.auth.signOut();
-        setUser(null);
-        setOfflineAdmin(false);
-        window.location.hash = '#/login';
-      }, INACTIVITY_LIMIT);
-    };
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
-    events.forEach(event => window.addEventListener(event, resetTimer));
-    resetTimer();
-    return () => {
-      clearTimeout(timeoutId);
-      events.forEach(event => window.removeEventListener(event, resetTimer));
-    };
-  }, [user, offlineAdmin]);
-
-  const refreshAllData = useCallback(async () => {
-    if (!isSupabaseConfigured) {
-       // Fallback for non-configured env
-       setSettings(INITIAL_SETTINGS);
-       setProducts(INITIAL_PRODUCTS);
-       setCategories(INITIAL_CATEGORIES);
-       setSubCategories(INITIAL_SUBCATEGORIES);
-       setHeroSlides(INITIAL_CAROUSEL);
-       setIsDatabaseProvisioned(false);
-       setDataLoaded(true);
-       return;
-    }
-
-    try {
-      const [
-          settingsRes,
-          productsRes,
-          catsRes,
-          subCatsRes,
-          slidesRes,
-          enquiriesRes
-      ] = await Promise.all([
-          fetchTableData('settings'),
-          fetchTableData('products'),
-          fetchTableData('categories'),
-          fetchTableData('subcategories'),
-          fetchTableData('carousel_slides'),
-          fetchTableData('enquiries')
-      ]);
-
-      if (settingsRes && settingsRes.length > 0) {
-          setSettings(settingsRes[0]);
-          setIsDatabaseProvisioned(true);
-      } else {
-          console.warn("[App] Database empty or unreachable. Bootstrapping with local defaults.");
-          setSettings(INITIAL_SETTINGS);
-          setIsDatabaseProvisioned(false);
-      }
-      
-      setProducts((productsRes && productsRes.length > 0) ? productsRes : (isDatabaseProvisioned ? [] : INITIAL_PRODUCTS));
-      setCategories((catsRes && catsRes.length > 0) ? catsRes : (isDatabaseProvisioned ? [] : INITIAL_CATEGORIES));
-      setSubCategories((subCatsRes && subCatsRes.length > 0) ? subCatsRes : (isDatabaseProvisioned ? [] : INITIAL_SUBCATEGORIES));
-      setHeroSlides((slidesRes && slidesRes.length > 0) ? slidesRes : (isDatabaseProvisioned ? [] : INITIAL_CAROUSEL));
-      setEnquiries(enquiriesRes || []);
-
-      setSaveStatus('idle');
-
-    } catch (e) {
-      console.error("Data Sync Critical Failure:", e);
-      // Failsafe: Ensure app doesn't crash on network error, load local defaults
-      setSettings(INITIAL_SETTINGS);
-      setProducts(INITIAL_PRODUCTS);
-      setCategories(INITIAL_CATEGORIES);
-      setSubCategories(INITIAL_SUBCATEGORIES);
-      setHeroSlides(INITIAL_CAROUSEL);
-      setSaveStatus('error');
-    } finally {
-      setDataLoaded(true); 
-    }
-  }, [isDatabaseProvisioned]);
-
-  useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setLoadingAuth(false);
-      refreshAllData();
-      return;
-    }
-
-    const init = async () => {
+  const refreshAllData = async () => {
+    if (isSupabaseConfigured) {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
-          if (adminProfile) {
-              setUserRole(adminProfile.role);
-          }
-        }
+        // Attempt seed if empty (One-Way Migration)
+        await seedDatabase();
+
+        const [fetchedSettings, fetchedProducts, fetchedCategories, fetchedSubCats, fetchedHero] = await Promise.all([
+           fetchTableData('settings'),
+           fetchTableData('products'),
+           fetchTableData('categories'),
+           fetchTableData('subcategories'),
+           fetchTableData('hero_slides')
+        ]);
+
+        if (fetchedSettings && fetchedSettings.length > 0) setSettings(fetchedSettings[0]);
+        if (fetchedProducts) setProducts(fetchedProducts);
+        if (fetchedCategories) setCategories(fetchedCategories);
+        if (fetchedSubCats) setSubCategories(fetchedSubCats);
+        if (fetchedHero) setHeroSlides(fetchedHero);
+
       } catch (e) {
-        console.warn("Auth check failed, likely network issue:", e);
-      } finally {
-        setLoadingAuth(false);
-        await refreshAllData();
-      }
-    };
-
-    init();
-
-    const handleTableChange = (payload: any, setState: any) => {
-      const { new: newRecord, old: oldRecord, eventType } = payload;
-      setState((prev: any[]) => {
-        let updated = [...prev];
-        if (eventType === 'INSERT') {
-          if (!updated.find(i => i.id === newRecord.id)) updated = [newRecord, ...updated];
-        } else if (eventType === 'UPDATE') {
-          updated = updated.map(i => i.id === newRecord.id ? newRecord : i);
-        } else if (eventType === 'DELETE') {
-          updated = updated.filter(i => i.id !== oldRecord.id);
-        }
-        return updated;
-      });
-    };
-
-    const subs = [
-      subscribeToTable('products', p => handleTableChange(p, setProducts)),
-      subscribeToTable('categories', p => handleTableChange(p, setCategories)),
-      subscribeToTable('subcategories', p => handleTableChange(p, setSubCategories)),
-      subscribeToTable('carousel_slides', p => handleTableChange(p, setHeroSlides)),
-      subscribeToTable('enquiries', p => handleTableChange(p, setEnquiries)),
-      subscribeToTable('settings', p => {
-        if (p.new && (p.new as any).id === 'global_settings') {
-          setSettings(prev => ({ ...prev!, ...p.new }));
-        }
-      })
-    ];
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const previousUser = user;
-      setUser(session?.user ?? null);
-      if (session?.user && !previousUser) {
-          refreshAllData();
-      }
-    });
-
-    return () => {
-      subs.forEach(s => s?.unsubscribe());
-      subscription.unsubscribe();
-    };
-  }, [refreshAllData]);
-
-  const updateSettings = async (newSettings: Partial<SiteSettings>) => {
-    if (offlineAdmin) {
-       setSettings(prev => prev ? ({ ...prev, ...newSettings }) : null);
-       return;
-    }
-    setSaveStatus('saving');
-    // Optimistic update
-    setSettings(prev => prev ? ({ ...prev, ...newSettings }) : null);
-    
-    if (isSupabaseConfigured && settings) {
-      const { error } = await upsertData('settings', { ...settings, ...newSettings, id: 'global_settings' });
-      if (error) setSaveStatus('error');
-      else {
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
+        console.error("Failed to load content from Supabase:", e);
       }
     } else {
-      setSaveStatus('error');
+      console.warn("Supabase not configured. Using static constants.");
+    }
+  };
+
+  useEffect(() => {
+    refreshAllData();
+
+    if (isSupabaseConfigured) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        setLoadingAuth(false);
+      });
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+      return () => subscription.unsubscribe();
+    } else {
+      setLoadingAuth(false);
+    }
+  }, []);
+
+  const updateSettings = async (newSettings: Partial<SiteSettings>) => {
+    setSaveStatus('saving');
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
+    
+    if (isSupabaseConfigured) {
+      const { error } = await upsertData('settings', updated);
+      if (error) {
+        setSaveStatus('error');
+        console.error(error);
+      } else {
+        setSaveStatus('saved');
+      }
+    } else {
+      setTimeout(() => setSaveStatus('saved'), 500);
     }
   };
 
   const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
-    if (offlineAdmin) return;
-    const newEvent = { id: Date.now().toString(), type, text: type === 'view' ? `Page View: ${label}` : label, time: new Date().toLocaleTimeString(), timestamp: Date.now() };
-    if (isSupabaseConfigured) {
-      supabase.from('traffic_logs').insert([newEvent]);
-    }
-  };
-
-  const enableOfflineAdmin = () => {
-    setOfflineAdmin(true);
-    setLoadingAuth(false);
+    // Analytics logging - can be expanded to Supabase table 'analytics'
+    // For now, keeping it lightweight
   };
 
   useEffect(() => {
@@ -379,44 +224,26 @@ const App: React.FC = () => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '212, 175, 55';
     };
-    if (settings) {
-        document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
-        document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
-        document.documentElement.style.setProperty('--secondary-color', settings.secondaryColor);
-        document.documentElement.style.setProperty('--accent-color', settings.accentColor);
-        document.documentElement.style.setProperty('--bg-color', settings.backgroundColor || '#FDFCFB');
-        document.documentElement.style.setProperty('--text-color', settings.textColor || '#0f172a');
-    }
-  }, [settings]);
-
-  // Block rendering until data is loaded
-  if (!dataLoaded || !settings) {
-      return (
-        <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center">
-            <Loader2 size={48} className="text-[#D4AF37] animate-spin mb-4" />
-            <h2 className="text-xl font-serif text-slate-900 animate-pulse">Synchronizing with Cloud...</h2>
-            <p className="text-xs text-slate-400 uppercase tracking-widest mt-2 font-bold">Single Source of Truth</p>
-        </div>
-      );
-  }
+    document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
+    document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
+  }, [settings.primaryColor]);
 
   return (
     <SettingsContext.Provider value={{ 
-      settings: settings!, updateSettings, products, setProducts, categories, setCategories, subCategories, setSubCategories, heroSlides, setHeroSlides, enquiries, setEnquiries,
-      user, userRole, loadingAuth, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData, enableOfflineAdmin, offlineAdmin
+      settings, products, categories, subCategories, heroSlides,
+      updateSettings, refreshAllData, 
+      user, loadingAuth, 
+      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent
     }}>
       <Router>
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
-        <SaveStatusIndicator status={saveStatus} isProvisioned={isDatabaseProvisioned} offlineAdmin={offlineAdmin} />
+        <SaveStatusIndicator status={saveStatus} />
         <style>{`
-          .text-primary { color: var(--primary-color); } 
-          .bg-primary { background-color: var(--primary-color); } 
-          .border-primary { border-color: var(--primary-color); } 
+          .text-primary { color: var(--primary-color); }
+          .bg-primary { background-color: var(--primary-color); }
+          .border-primary { border-color: var(--primary-color); }
           .hover\\:bg-primary:hover { background-color: var(--primary-color); }
-          .bg-\\[\\#FDFCFB\\] { background-color: var(--bg-color) !important; }
-          .text-slate-900 { color: var(--text-color) !important; }
-          body { background-color: var(--bg-color); color: var(--text-color); }
         `}</style>
         <div className="min-h-screen flex flex-col">
           <Header />
@@ -428,11 +255,7 @@ const App: React.FC = () => {
               <Route path="/contact" element={<Contact />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                   <Admin />
-                </ProtectedRoute>
-              } />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/disclosure" element={<Legal />} />
               <Route path="/privacy" element={<Legal />} />
               <Route path="/terms" element={<Legal />} />

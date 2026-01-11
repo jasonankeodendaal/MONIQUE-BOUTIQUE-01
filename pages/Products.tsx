@@ -6,7 +6,7 @@ import { useSettings } from '../App';
 import { Product } from '../types';
 
 const Products: React.FC = () => {
-  const { settings, products, categories, subCategories: allSubCategories } = useSettings();
+  const { settings, products, categories, subCategories } = useSettings();
   const navigate = useNavigate();
   const query = new URLSearchParams(useLocation().search);
   const initialCat = query.get('category');
@@ -43,10 +43,10 @@ const Products: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const subCategories = useMemo(() => {
+  const currentSubCategories = useMemo(() => {
     if (selectedCat === 'all') return [];
-    return allSubCategories.filter((s: any) => s.categoryId === selectedCat);
-  }, [selectedCat, allSubCategories]);
+    return subCategories.filter((s) => s.categoryId === selectedCat);
+  }, [selectedCat, subCategories]);
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((p: Product) => {
@@ -192,7 +192,7 @@ const Products: React.FC = () => {
               >
                 Show All
               </button>
-              {subCategories.map((sub: any) => (
+              {currentSubCategories.map((sub: any) => (
                 <button
                   key={sub.id}
                   onClick={() => setSelectedSub(sub.id)}

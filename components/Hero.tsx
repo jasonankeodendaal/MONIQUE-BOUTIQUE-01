@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../App';
 
 const Hero: React.FC = () => {
   const { settings, heroSlides } = useSettings();
+  
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -101,7 +103,6 @@ const Hero: React.FC = () => {
                 <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">Kasi Couture Exclusive</span>
               </div>
               
-              {/* FLUID TYPOGRAPHY: Clamps between 2.5rem and 9rem based on viewport width */}
               <h1 className="font-serif text-white mb-6 md:mb-8 leading-[1.1] md:leading-[0.85] tracking-tighter text-balance"
                   style={{ fontSize: 'clamp(2.5rem, 8vw, 9rem)' }}>
                 {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>

@@ -1,77 +1,56 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, isSupabaseConfigured, getSupabaseUrl } from '../lib/supabase';
-import { LogIn, Mail, Lock, AlertCircle, Chrome, ShieldAlert, WifiOff } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { LogIn, Mail, Lock, AlertCircle, Chrome, Terminal, Info } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
+  const { settings, isLocalMode } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { enableOfflineAdmin } = useSettings();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
-    // Pre-check for configuration before attempting network request
-    if (!isSupabaseConfigured) {
-       setError('System Error: Supabase is not configured. Please check your VITE_SUPABASE_URL environment variable.');
-       setLoading(false);
-       return;
+
+    // Simulation for Local Mode
+    if (isLocalMode) {
+      setTimeout(() => {
+        setLoading(false);
+        // In local mode, ProtectedRoute allows access regardless of user state
+        navigate('/admin');
+      }, 1500);
+      return;
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-
-      // Check if admin profile exists
-      if (data.user) {
-        const { data: profile } = await supabase.from('admin_users').select('role').eq('id', data.user.id).single();
-        
-        if (!profile) {
-            // Self-healing: Create missing profile automatically
-            console.log("Profile missing for existing user. Attempting client-side creation...");
-            
-            const newProfile = {
-                id: data.user.id,
-                email: data.user.email,
-                name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Admin',
-                role: 'owner', // Default to owner to ensure full access for the first user
-                permissions: ['*'],
-                createdAt: Date.now()
-            };
-            
-            // Attempt to insert the profile
-            const { error: createError } = await supabase.from('admin_users').insert(newProfile);
-            
-            if (createError && createError.code !== '23505') { 
-                 console.warn("Profile creation warning:", createError);
-            }
-        }
-      }
-
       navigate('/admin');
     } catch (err: any) {
-      if (err.message === 'Failed to fetch') {
-        setError(`Network Error: Cannot reach ${getSupabaseUrl()}. Ensure you are connected to the internet.`);
-      } else {
-        setError(err.message || 'Failed to sign in');
-      }
+      setError(err.message || 'Failed to sign in');
     } finally {
-      setLoading(false);
+      if (!isLocalMode) setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
+    if (isLocalMode) {
+       // Simulation for Local Mode
+       navigate('/admin');
+       return;
+    }
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { 
+          // Use origin to prevent HashRouter issues during callback
           redirectTo: window.location.origin,
           queryParams: {
             access_type: 'offline',
@@ -82,17 +61,13 @@ const Login: React.FC = () => {
       if (error) throw error;
     } catch (err: any) {
       console.error("Auth Error:", err);
+      // Handle the specific 404 NOT_FOUND error from Supabase/GoTrue
       if (err.message?.includes('NOT_FOUND') || err.message?.includes('404')) {
         setError('Configuration Error: Google Login is disabled in Supabase or the Project URL is incorrect.');
       } else {
         setError(err.message || 'Google authentication failed');
       }
     }
-  };
-
-  const handleOfflineMode = () => {
-    enableOfflineAdmin();
-    navigate('/admin');
   };
 
   return (
@@ -112,22 +87,21 @@ const Login: React.FC = () => {
 
         <div className="bg-slate-900 border border-slate-800 p-6 md:p-10 rounded-[2.5rem] shadow-2xl">
           {error && (
-            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-2">
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 text-red-500 text-xs font-bold text-left">
-                <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-              
-              {/* Emergency Bypass Button */}
-              {error.includes("Network Error") && (
-                 <button 
-                   onClick={handleOfflineMode}
-                   className="w-full py-3 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center gap-2"
-                 >
-                    <ShieldAlert size={14} /> Enter Offline Mode
-                 </button>
-              )}
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-2">
+              <AlertCircle size={16} />
+              {error}
             </div>
+          )}
+
+          {isLocalMode && (
+             <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-2">
+                 <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest">
+                    <Info size={14} /> Simulation Mode
+                 </div>
+                 <p className="text-slate-400 text-[10px] leading-relaxed">
+                   Supabase is not configured. Authentication is simulated. Enter any details to proceed.
+                 </p>
+             </div>
           )}
 
           <form onSubmit={handleEmailLogin} className="space-y-6">
@@ -164,14 +138,14 @@ const Login: React.FC = () => {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full py-5 bg-primary text-slate-900 font-black uppercase text-xs tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-5 bg-primary text-slate-900 font-black uppercase text-xs tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></div>
               ) : (
                 <>
                   <LogIn size={18} />
-                  Authenticate
+                  {isLocalMode ? 'Simulate Entry' : 'Authenticate'}
                 </>
               )}
             </button>
@@ -184,10 +158,10 @@ const Login: React.FC = () => {
 
           <button 
             onClick={handleGoogleLogin}
-            className="w-full py-4 bg-white text-slate-900 font-bold text-xs rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all border border-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 bg-white text-slate-900 font-bold text-xs rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all border border-slate-200"
           >
             <Chrome size={18} />
-            Sign in with Google
+            {isLocalMode ? 'Simulate Google Login' : 'Sign in with Google'}
           </button>
         </div>
 
