@@ -143,7 +143,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
     };
     
     fetchGeo();
-  }, [location.pathname]); // Intentionally omitting logEvent to prevent loop
+  }, [location.pathname]); 
   return null;
 };
 
@@ -163,6 +163,10 @@ const App: React.FC = () => {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
+  // Idle Timer State
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const IDLE_LIMIT = 5 * 60 * 1000; // 5 Minutes
+
   // Refs for stable access inside logEvent
   const productsRef = useRef(products);
   const statsRef = useRef(stats);
@@ -172,7 +176,7 @@ const App: React.FC = () => {
   useEffect(() => { statsRef.current = stats; }, [stats]);
 
   const refreshAllData = async () => {
-    setSaveStatus('saving');
+    // Only set saving status if we initiated it, otherwise it's a background sync
     try {
       if (isSupabaseConfigured) {
         // 1. Fetch Settings
@@ -181,7 +185,6 @@ const App: React.FC = () => {
           // Migration: Push local to cloud if cloud is empty
           console.log("Supabase empty. Synchronizing local bridge config...");
           
-          // Fix: Ensure ID is present for settings singleton
           await upsertData('settings', { ...settings, id: 'global' });
           setSettingsId('global');
           
@@ -233,15 +236,25 @@ const App: React.FC = () => {
         const localEnq = localStorage.getItem('admin_enquiries');
         if (localEnq) setEnquiries(JSON.parse(localEnq));
       }
-      setSaveStatus('saved');
     } catch (e) {
       console.error("Data sync failed", e);
       setSaveStatus('error');
     }
   };
 
+  // 1. Setup Auth, Security, and Realtime Subscriptions
   useEffect(() => {
+    // 1a. Security: Logout on Refresh
+    const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+    if (navEntry && navEntry.type === 'reload' && isSupabaseConfigured) {
+       console.log("Security Protocol: Forced Logout on Refresh");
+       supabase.auth.signOut();
+    }
+
+    // 1b. Initial Data Load
     refreshAllData();
+
+    // 1c. Auth State Listener
     if (isSupabaseConfigured) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null);
@@ -250,11 +263,57 @@ const App: React.FC = () => {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
       });
-      return () => subscription.unsubscribe();
+
+      // 1d. Realtime Subscription (Live Updates)
+      const channel = supabase.channel('db_changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public' },
+          (payload) => {
+            console.log('Realtime update received:', payload);
+            refreshAllData(); // Hot reload data when DB changes
+          }
+        )
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+        supabase.removeChannel(channel);
+      };
     } else {
       setLoadingAuth(false);
     }
   }, []);
+
+  // 2. Idle Timer Implementation
+  const resetIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    if (user) {
+        idleTimerRef.current = setTimeout(async () => {
+            console.log("Security Protocol: Session Expired due to Inactivity");
+            if (isSupabaseConfigured) await supabase.auth.signOut();
+            alert("Session Expired: You have been logged out due to 5 minutes of inactivity.");
+            window.location.href = '/#/login';
+        }, IDLE_LIMIT);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+        window.addEventListener('mousemove', resetIdleTimer);
+        window.addEventListener('keypress', resetIdleTimer);
+        window.addEventListener('click', resetIdleTimer);
+        window.addEventListener('scroll', resetIdleTimer);
+        resetIdleTimer(); // Start timer
+    }
+    return () => {
+        if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        window.removeEventListener('mousemove', resetIdleTimer);
+        window.removeEventListener('keypress', resetIdleTimer);
+        window.removeEventListener('click', resetIdleTimer);
+        window.removeEventListener('scroll', resetIdleTimer);
+    };
+  }, [user, resetIdleTimer]);
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
@@ -262,7 +321,6 @@ const App: React.FC = () => {
     setSettings(updated);
     
     if (isSupabaseConfigured) {
-      // Ensure we use the correct ID when updating
       await upsertData('settings', { ...updated, id: settingsId });
       setSaveStatus('saved');
     } else {
@@ -286,6 +344,7 @@ const App: React.FC = () => {
         localStorage.setItem(key, JSON.stringify(updated));
       }
       await refreshAllData(); // Re-fetch to sync state
+      setSaveStatus('saved');
       return true;
     } catch (e) {
       setSaveStatus('error');
@@ -305,6 +364,7 @@ const App: React.FC = () => {
         localStorage.setItem(key, JSON.stringify(updated));
       }
       await refreshAllData();
+      setSaveStatus('saved');
       return true;
     } catch (e) {
       setSaveStatus('error');
@@ -364,10 +424,8 @@ const App: React.FC = () => {
 
             // Persist
             if (isSupabaseConfigured) {
-                // IMPORTANT: upsertData uses the PK in the object. product_stats PK is productId.
                 await upsertData('product_stats', newStat);
             } else {
-                // Local stats persistence logic handled here since upsertData relies on 'admin_' prefix mapping
                 const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
                 const otherStats = localStats.filter((s: any) => s.productId !== product.id);
                 localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat]));

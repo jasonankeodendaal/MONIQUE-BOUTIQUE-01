@@ -47,31 +47,53 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
   </div>
 );
 
-// --- STRICT FILE UPLOADER (NO URLs) ---
-const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "aspect-video w-full" }) => {
+// --- NON-BLOCKING ASYNC UPLOADERS ---
+
+const SingleImageUploader: React.FC<{ 
+    value: string; 
+    onChange: (v: string) => void; 
+    label: string; 
+    accept?: string; 
+    className?: string;
+    onUploadStatusChange?: (isUploading: boolean) => void; 
+}> = ({ value, onChange, label, accept = "image/*", className = "aspect-video w-full", onUploadStatusChange }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
+    setIsUploading(true);
+    if(onUploadStatusChange) onUploadStatusChange(true);
+    setProgress(0);
+
+    // Simulate progress since Supabase client basic upload doesn't expose stream
+    const interval = setInterval(() => {
+        setProgress(prev => Math.min(prev + 10, 90));
+    }, 200);
+
     try {
       if (isSupabaseConfigured) {
         const url = await uploadMedia(file, 'media');
         if (url) onChange(url);
       } else {
-        // Fallback for local testing only
         const reader = new FileReader();
         reader.onload = (ev) => onChange(ev.target?.result as string);
         reader.readAsDataURL(file);
       }
+      setProgress(100);
     } catch (err) {
       console.error("Upload failed", err);
       alert("Upload failed. Ensure Supabase storage is configured.");
     } finally {
-      setUploading(false);
+      clearInterval(interval);
+      setTimeout(() => {
+        setIsUploading(false);
+        if(onUploadStatusChange) onUploadStatusChange(false);
+        setProgress(0);
+      }, 500);
     }
   };
 
@@ -79,17 +101,27 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
 
   return (
     <div className="space-y-2 text-left w-full">
-       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
+       <div className="flex justify-between items-center">
+         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
+         {isUploading && <span className="text-[10px] font-bold text-primary animate-pulse">Uploading {progress}%</span>}
+       </div>
+       
        <div 
-        onClick={() => !uploading && inputRef.current?.click()}
-        className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl`}
+        onClick={() => !isUploading && inputRef.current?.click()}
+        className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed ${isUploading ? 'border-primary' : 'border-slate-700'} hover:border-primary/50 transition-all cursor-pointer group rounded-2xl`}
        >
-          {uploading ? (
-            <div className="w-full h-full flex flex-col items-center justify-center text-primary">
+          {isUploading && (
+             <div className="absolute top-0 left-0 h-1 bg-primary z-20 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+          )}
+
+          {isUploading ? (
+            <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900/50 backdrop-blur-sm z-10 absolute inset-0">
                <Loader2 size={32} className="animate-spin mb-2" />
-               <span className="text-[10px] font-black uppercase tracking-widest">Uploading to Cloud...</span>
+               <span className="text-[10px] font-black uppercase tracking-widest">Processing Media...</span>
             </div>
-          ) : value ? (
+          ) : null}
+
+          {value ? (
             <>
               {isVideo ? (
                  <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline />
@@ -114,46 +146,63 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
             ref={inputRef} 
             accept={accept}
             onChange={handleUpload}
-            disabled={uploading}
+            disabled={isUploading}
           />
        </div>
     </div>
   );
 };
 
-const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => {
+const MultiImageUploader: React.FC<{ 
+    images: string[]; 
+    onChange: (images: string[]) => void; 
+    label: string; 
+    onUploadStatusChange?: (isUploading: boolean) => void;
+}> = ({ images = [], onChange, label, onUploadStatusChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const [activeUploads, setActiveUploads] = useState<number[]>([]); // Track simulated progress of concurrent uploads
 
   const processFiles = async (incomingFiles: FileList | null) => {
     if (!incomingFiles) return;
-    setUploading(true);
     
-    const newUrls: string[] = [];
+    // Notify start
+    if(onUploadStatusChange) onUploadStatusChange(true);
     
+    // Create placeholders for tracking
+    const newPlaceholders = Array.from(incomingFiles).map(() => 0); 
+    setActiveUploads(prev => [...prev, ...newPlaceholders]);
+    
+    const uploadedUrls: string[] = [];
+
+    // Simulate progress for UI
+    const progressInterval = setInterval(() => {
+        setActiveUploads(prev => prev.map(p => Math.min(p + 15, 90)));
+    }, 300);
+
     try {
       for (let i = 0; i < incomingFiles.length; i++) {
         const file = incomingFiles[i];
         if (isSupabaseConfigured) {
           const url = await uploadMedia(file, 'media');
-          if (url) newUrls.push(url);
+          if (url) uploadedUrls.push(url);
         } else {
-           // Local fallback
            const reader = new FileReader();
            await new Promise<void>((resolve) => {
              reader.onload = (e) => {
-               if (e.target?.result) newUrls.push(e.target.result as string);
+               if (e.target?.result) uploadedUrls.push(e.target.result as string);
                resolve();
              };
              reader.readAsDataURL(file);
            });
         }
       }
-      onChange([...images, ...newUrls]);
+      onChange([...images, ...uploadedUrls]);
     } catch (err) {
       console.error(err);
     } finally {
-      setUploading(false);
+      clearInterval(progressInterval);
+      setActiveUploads([]);
+      if(onUploadStatusChange) onUploadStatusChange(false);
     }
   };
 
@@ -165,21 +214,30 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
 
   return (
     <div className="space-y-4 text-left w-full">
-      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
-      <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[120px]">
-        {uploading ? (
-           <Loader2 size={24} className="animate-spin text-primary" />
-        ) : (
-           <>
-            <Upload className="text-slate-400 group-hover:text-white mb-2" size={24} />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Add Images</span>
-           </>
-        )}
+      <div className="flex justify-between items-center">
+         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
+         {activeUploads.length > 0 && <span className="text-[10px] font-bold text-primary animate-pulse">{activeUploads.length} Uploads Pending...</span>}
+      </div>
+
+      <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[120px]">
+        <Upload className="text-slate-400 group-hover:text-white mb-2" size={24} />
+        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Add Images</span>
         <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
       </div>
       
-      {images.length > 0 && (
+      { (images.length > 0 || activeUploads.length > 0) && (
         <div className="grid grid-cols-3 gap-3">
+          {/* Active Upload Placeholders */}
+          {activeUploads.map((progress, idx) => (
+             <div key={`upload-${idx}`} className="aspect-square rounded-xl overflow-hidden relative border border-primary/50 bg-slate-900 flex flex-col items-center justify-center">
+                <Loader2 size={20} className="text-primary animate-spin mb-2" />
+                <div className="w-10 h-1 bg-slate-800 rounded-full overflow-hidden">
+                   <div className="h-full bg-primary" style={{ width: `${progress}%` }}></div>
+                </div>
+             </div>
+          ))}
+
+          {/* Completed Images */}
           {images.map((url, idx) => (
             <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
               <img src={url} className="w-full h-full object-cover" alt="preview" />
@@ -191,6 +249,129 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
     </div>
   );
 };
+
+// --- File Uploader with Background Queue ---
+const FileUploader: React.FC<{ 
+    files: MediaFile[]; 
+    onFilesChange: (files: MediaFile[]) => void; 
+    multiple?: boolean; 
+    label?: string; 
+    accept?: string;
+    onUploadStatusChange?: (status: boolean) => void;
+}> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*", onUploadStatusChange }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadQueue, setUploadQueue] = useState<{id: string, progress: number, name: string}[]>([]);
+
+  const processFiles = (incomingFiles: FileList | null) => {
+    if (!incomingFiles) return;
+
+    if (onUploadStatusChange) onUploadStatusChange(true);
+
+    Array.from(incomingFiles).forEach(file => {
+      // Create Queue Item
+      const queueId = Math.random().toString(36).substr(2, 9);
+      setUploadQueue(prev => [...prev, { id: queueId, progress: 0, name: file.name }]);
+
+      // Simulate Upload
+      let progress = 0;
+      const interval = setInterval(() => {
+          progress = Math.min(progress + Math.random() * 20, 90);
+          setUploadQueue(prev => prev.map(q => q.id === queueId ? { ...q, progress } : q));
+      }, 500);
+
+      // Perform Actual Upload
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        let result = e.target?.result as string;
+        
+        if (isSupabaseConfigured) {
+           try {
+             const publicUrl = await uploadMedia(file, 'media');
+             if (publicUrl) result = publicUrl;
+           } catch (err) { console.error("Upload failed", err); }
+        }
+
+        // Finalize
+        clearInterval(interval);
+        
+        // Remove from Queue
+        setUploadQueue(prev => {
+            const next = prev.filter(q => q.id !== queueId);
+            if(next.length === 0 && onUploadStatusChange) onUploadStatusChange(false);
+            return next;
+        });
+
+        // Add to Real List
+        const newMedia: MediaFile = { 
+          id: Math.random().toString(36).substr(2, 9), 
+          url: result, 
+          name: file.name, 
+          type: file.type, 
+          size: file.size 
+        };
+        onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
+      };
+      
+      // Artificial Delay to demonstrate async UI if local
+      setTimeout(() => {
+        reader.readAsDataURL(file);
+      }, 1000);
+    });
+  };
+
+  return (
+    <div className="space-y-4 text-left w-full">
+      <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[160px]">
+        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+           <Upload className="text-slate-400 group-hover:text-white" size={20} />
+        </div>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Click or Drag to Upload {label}</p>
+        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
+      </div>
+      
+      {/* Upload Queue (Active) */}
+      {uploadQueue.length > 0 && (
+          <div className="grid grid-cols-1 gap-2">
+              {uploadQueue.map(q => (
+                  <div key={q.id} className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center gap-4">
+                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                          <Loader2 size={16} className="text-primary animate-spin" />
+                      </div>
+                      <div className="flex-grow">
+                          <div className="flex justify-between text-[9px] font-bold uppercase text-slate-400 mb-1">
+                             <span>{q.name}</span>
+                             <span>{Math.round(q.progress)}%</span>
+                          </div>
+                          <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                             <div className="h-full bg-primary transition-all duration-300" style={{ width: `${q.progress}%` }}></div>
+                          </div>
+                      </div>
+                  </div>
+              ))}
+          </div>
+      )}
+
+      {/* Completed Files */}
+      {files.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-bottom-2">
+          {files.map(f => (
+            <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
+              {f.type.startsWith('video') ? (
+                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
+              ) : (
+                 <img src={f.url} className="w-full h-full object-cover" alt="preview" />
+              )}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={14}/></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   const [regions, setRegions] = useState<{ name: string; traffic: number; status: string }[]>([]);
@@ -290,67 +471,6 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
   return (<div className="relative group mb-6 text-left">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner"><code>{code}</code></pre></div>);
 };
 
-// --- File Uploader ---
-const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const processFiles = (incomingFiles: FileList | null) => {
-    if (!incomingFiles) return;
-    Array.from(incomingFiles).forEach(file => {
-      // Direct upload logic for Products
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        let result = e.target?.result as string;
-        if (isSupabaseConfigured) {
-           try {
-             const publicUrl = await uploadMedia(file, 'media');
-             if (publicUrl) result = publicUrl;
-           } catch (err) { console.error("Upload failed", err); }
-        }
-        const newMedia: MediaFile = { 
-          id: Math.random().toString(36).substr(2, 9), 
-          url: result, 
-          name: file.name, 
-          type: file.type, 
-          size: file.size 
-        };
-        onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  return (
-    <div className="space-y-4 text-left w-full">
-      <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[160px]">
-        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-           <Upload className="text-slate-400 group-hover:text-white" size={20} />
-        </div>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Click or Drag to Upload {label}</p>
-        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
-      </div>
-      
-      {files.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-bottom-2">
-          {files.map(f => (
-            <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
-              {f.type.startsWith('video') ? (
-                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
-              ) : (
-                 <img src={f.url} className="w-full h-full object-cover" alt="preview" />
-              )}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={14}/></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-
 // --- Main Admin Component ---
 
 const Admin: React.FC = () => {
@@ -366,6 +486,9 @@ const Admin: React.FC = () => {
   const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
+
+  // Upload State for Safety Checks
+  const [pendingUploads, setPendingUploads] = useState(false);
 
   // Forms
   const [showAdminForm, setShowAdminForm] = useState(false);
@@ -438,6 +561,10 @@ const Admin: React.FC = () => {
   
   // CRUD Wrappers
   const handleSaveProduct = async () => {
+    if (pendingUploads) {
+        alert("Please wait for images to finish uploading.");
+        return;
+    }
     const newProduct = { ...productData, id: editingId || Date.now().toString(), createdAt: productData.createdAt || Date.now() };
     await updateData('products', newProduct);
     setShowProductForm(false);
@@ -445,6 +572,10 @@ const Admin: React.FC = () => {
   };
 
   const handleSaveCategory = async () => {
+    if (pendingUploads) {
+        alert("Please wait for images to finish uploading.");
+        return;
+    }
     const newCat = { ...catData, id: editingId || Date.now().toString() };
     await updateData('categories', newCat);
     setShowCategoryForm(false);
@@ -452,6 +583,10 @@ const Admin: React.FC = () => {
   };
 
   const handleSaveHero = async () => {
+    if (pendingUploads) {
+        alert("Please wait for media to finish uploading.");
+        return;
+    }
     const newSlide = { ...heroData, id: editingId || Date.now().toString() };
     await updateData('hero_slides', newSlide);
     setShowHeroForm(false);
@@ -632,9 +767,9 @@ const Admin: React.FC = () => {
               <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight (e.g. '100% Silk')" value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
               <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Tag size={18} className="text-primary"/> Specifications</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Key (e.g. Material)" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="w-1/3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" /><input type="text" placeholder="Value (e.g. Silk)" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddSpec()} /><button onClick={handleAddSpec} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{Object.entries(productData.specifications || {}).map(([key, value]) => (<div key={key} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="flex flex-col"><span className="text-[10px] font-black uppercase text-slate-500">{key}</span><span className="text-sm text-slate-300">{value}</span></div><button onClick={() => handleRemoveSpec(key)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
           </div>
-          <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
+          <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} onUploadStatusChange={setPendingUploads} /></div>
           <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-4 items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
-          <div className="flex gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
+          <div className="flex gap-4 pt-8"><button onClick={handleSaveProduct} disabled={pendingUploads} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed">{pendingUploads ? 'Uploading Media...' : 'Save Product'}</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
         </div>
       ) : (
         <>
@@ -669,8 +804,9 @@ const Admin: React.FC = () => {
                 value={heroData.image || ''} 
                 onChange={v => setHeroData({...heroData, image: v})} 
                 accept={heroData.type === 'video' ? "video/*" : "image/*"}
+                onUploadStatusChange={setPendingUploads}
               />
-              <div className="flex gap-4"><button onClick={handleSaveHero} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Slide</button><button onClick={() => setShowHeroForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
+              <div className="flex gap-4"><button onClick={handleSaveHero} disabled={pendingUploads} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl disabled:opacity-50">{pendingUploads ? 'Uploading...' : 'Save Slide'}</button><button onClick={() => setShowHeroForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
            </div> 
         ) : ( 
            <div className="grid md:grid-cols-2 gap-6">
@@ -692,9 +828,9 @@ const Admin: React.FC = () => {
           <div className="bg-slate-900 p-8 rounded-[3rem] border border-slate-800 space-y-8">
              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
-                <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="aspect-[4/3] w-full rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
+                <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="aspect-[4/3] w-full rounded-2xl" onUploadStatusChange={setPendingUploads} /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
              </div>
-             <div className="flex gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
+             <div className="flex gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} disabled={pendingUploads} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl disabled:opacity-50">{pendingUploads ? 'Uploading...' : 'Save Dept'}</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
           </div>
        ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -807,7 +943,13 @@ const Admin: React.FC = () => {
                     <SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({companyName: v})} />
                     <SettingField label="Slogan" value={tempSettings.slogan || ''} onChange={v => updateTempSettings({slogan: v})} />
                     <SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({companyLogo: v})} />
-                    <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({companyLogoUrl: v})} className="h-32 w-full object-contain bg-slate-800/50" />
+                    <SingleImageUploader 
+                        label="Logo Image (PNG)" 
+                        value={tempSettings.companyLogoUrl || ''} 
+                        onChange={v => updateTempSettings({companyLogoUrl: v})} 
+                        className="h-32 w-full object-contain bg-slate-800/50" 
+                        onUploadStatusChange={setPendingUploads}
+                    />
                     <div className="grid grid-cols-2 gap-4">
                        <SettingField label="Primary Color (Hex)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({primaryColor: v})} />
                        <SettingField label="Accent Color (Hex)" value={tempSettings.accentColor} onChange={v => updateTempSettings({accentColor: v})} />
@@ -836,7 +978,12 @@ const Admin: React.FC = () => {
                      <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({homeAboutTitle: v})} />
                      <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({homeAboutDescription: v})} type="textarea" />
                      <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({homeAboutCta: v})} />
-                     <SingleImageUploader label="Snippet Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({homeAboutImage: v})} />
+                     <SingleImageUploader 
+                        label="Snippet Image" 
+                        value={tempSettings.homeAboutImage} 
+                        onChange={v => updateTempSettings({homeAboutImage: v})} 
+                        onUploadStatusChange={setPendingUploads}
+                     />
                      
                      <h4 className="text-white font-bold flex items-center gap-2 mt-8"><ShieldCheck size={18} className="text-primary"/> Trust Signals</h4>
                      <SettingField label="Section Title" value={tempSettings.homeTrustSectionTitle} onChange={v => updateTempSettings({homeTrustSectionTitle: v})} />
@@ -857,7 +1004,12 @@ const Admin: React.FC = () => {
                      <h4 className="text-white font-bold flex items-center gap-2"><ShoppingBag size={18} className="text-primary"/> Shop Header</h4>
                      <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({productsHeroTitle: v})} />
                      <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({productsHeroSubtitle: v})} />
-                     <MultiImageUploader label="Header Carousel Images" images={tempSettings.productsHeroImages || []} onChange={v => updateTempSettings({productsHeroImages: v})} />
+                     <MultiImageUploader 
+                        label="Header Carousel Images" 
+                        images={tempSettings.productsHeroImages || []} 
+                        onChange={v => updateTempSettings({productsHeroImages: v})} 
+                        onUploadStatusChange={setPendingUploads}
+                     />
                      <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({productsSearchPlaceholder: v})} />
                   </div>
                )}
@@ -867,7 +1019,7 @@ const Admin: React.FC = () => {
                      <h4 className="text-white font-bold flex items-center gap-2"><User size={18} className="text-primary"/> Story Details</h4>
                      <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({aboutHeroTitle: v})} />
                      <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({aboutHeroSubtitle: v})} type="textarea" />
-                     <SingleImageUploader label="Main Cover Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({aboutMainImage: v})} />
+                     <SingleImageUploader label="Main Cover Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({aboutMainImage: v})} onUploadStatusChange={setPendingUploads} />
                      
                      <div className="grid grid-cols-2 gap-4 mt-6">
                        <SettingField label="Founded Year" value={tempSettings.aboutEstablishedYear || ''} onChange={v => updateTempSettings({aboutEstablishedYear: v})} />
@@ -878,10 +1030,10 @@ const Admin: React.FC = () => {
                      <h4 className="text-white font-bold flex items-center gap-2 mt-8"><BookOpen size={18} className="text-primary"/> Narrative</h4>
                      <SettingField label="History Title" value={tempSettings.aboutHistoryTitle || ''} onChange={v => updateTempSettings({aboutHistoryTitle: v})} />
                      <SettingField label="History Body" value={tempSettings.aboutHistoryBody || ''} onChange={v => updateTempSettings({aboutHistoryBody: v})} type="textarea" rows={8} />
-                     <SingleImageUploader label="Founder Signature (PNG)" value={tempSettings.aboutSignatureImage || ''} onChange={v => updateTempSettings({aboutSignatureImage: v})} className="h-24 w-full object-contain bg-white/10" />
+                     <SingleImageUploader label="Founder Signature (PNG)" value={tempSettings.aboutSignatureImage || ''} onChange={v => updateTempSettings({aboutSignatureImage: v})} className="h-24 w-full object-contain bg-white/10" onUploadStatusChange={setPendingUploads} />
 
                      <h4 className="text-white font-bold flex items-center gap-2 mt-8"><Images size={18} className="text-primary"/> Visual Journey</h4>
-                     <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages || []} onChange={v => updateTempSettings({aboutGalleryImages: v})} />
+                     <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages || []} onChange={v => updateTempSettings({aboutGalleryImages: v})} onUploadStatusChange={setPendingUploads} />
                   </div>
                )}
 
@@ -907,7 +1059,7 @@ const Admin: React.FC = () => {
                   </div>
                )}
             </div>
-            <div className="fixed bottom-0 right-0 w-full max-w-2xl p-6 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 flex justify-end gap-4"><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black uppercase text-xs tracking-widest hover:brightness-110 transition-all shadow-lg shadow-primary/20">Save Configuration</button></div>
+            <div className="fixed bottom-0 right-0 w-full max-w-2xl p-6 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 flex justify-end gap-4"><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} disabled={pendingUploads} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black uppercase text-xs tracking-widest hover:brightness-110 transition-all shadow-lg shadow-primary/20 disabled:opacity-50">{pendingUploads ? 'Processing Uploads...' : 'Save Configuration'}</button></div>
           </div>
         </div>
       )}
