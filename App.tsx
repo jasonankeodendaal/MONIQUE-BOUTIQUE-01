@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
@@ -104,11 +104,46 @@ const ScrollToTop = () => {
 
 const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void }) => {
   const location = useLocation();
+  const hasTrackedGeo = useRef(false);
+  
   useEffect(() => {
+    // 1. Log View
     if (!location.pathname.startsWith('/admin')) {
       logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname);
     }
-  }, [location.pathname, logEvent]);
+
+    // 2. Fetch Geo Data for System Status (One-time per session/load)
+    const fetchGeo = async () => {
+        if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
+        
+        const stored = localStorage.getItem('site_visitor_locations');
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            if (data.error) return; 
+
+            const visitData = {
+                ip: data.ip,
+                city: data.city,
+                region: data.region,
+                country: data.country_name,
+                code: data.country_code,
+                timestamp: Date.now()
+            };
+
+            const existing = JSON.parse(stored || '[]');
+            // Keep last 50 visits
+            const updated = [visitData, ...existing].slice(0, 50);
+            localStorage.setItem('site_visitor_locations', JSON.stringify(updated));
+            sessionStorage.setItem('geo_tracked', 'true');
+            hasTrackedGeo.current = true;
+        } catch (e) {
+            console.warn("Geo-tracking skipped/blocked");
+        }
+    };
+    
+    fetchGeo();
+  }, [location.pathname]); // Intentionally omitting logEvent to prevent loop
   return null;
 };
 
@@ -127,6 +162,14 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+
+  // Refs for stable access inside logEvent
+  const productsRef = useRef(products);
+  const statsRef = useRef(stats);
+
+  // Keep refs synced
+  useEffect(() => { productsRef.current = products; }, [products]);
+  useEffect(() => { statsRef.current = stats; }, [stats]);
 
   const refreshAllData = async () => {
     setSaveStatus('saving');
@@ -269,7 +312,7 @@ const App: React.FC = () => {
     }
   };
 
-  const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
+  const logEvent = useCallback(async (type: 'view' | 'click' | 'system', label: string) => {
     const newEvent = {
       id: Date.now().toString(),
       type,
@@ -278,26 +321,60 @@ const App: React.FC = () => {
       timestamp: Date.now()
     };
 
+    // 1. Log to Traffic Logs
     if (isSupabaseConfigured) {
-      supabase.from('traffic_logs').insert([newEvent]).then(
-        ({ error }) => {
-          if (error) {
-             console.warn("Analytics DB Error (Falling back to local):", error.message);
-             const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-             localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
-          }
-        },
-        (err) => {
-           console.warn("Analytics Network Error (Falling back to local):", err);
-           const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-           localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
-        }
-      );
+      supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
+         if (error) console.warn("Log insert failed", error);
+      });
     } else {
       const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
       localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
     }
-  };
+
+    // 2. Update Product Stats (Live Insights)
+    if (label.startsWith('Product: ')) {
+        const productName = label.replace('Product: ', '').trim();
+        const currentProducts = productsRef.current;
+        const currentStats = statsRef.current;
+        
+        const product = currentProducts.find(p => p.name === productName);
+        
+        if (product) {
+            // Find existing stat
+            const currentStat = currentStats.find(s => s.productId === product.id) || { 
+                productId: product.id, 
+                views: 0, 
+                clicks: 0, 
+                totalViewTime: 0, 
+                lastUpdated: Date.now() 
+            };
+
+            const newStat: ProductStats = {
+                ...currentStat,
+                views: currentStat.views + (type === 'view' ? 1 : 0),
+                clicks: currentStat.clicks + (type === 'click' ? 1 : 0),
+                lastUpdated: Date.now()
+            };
+
+            // Optimistic UI Update via Setter
+            setStats(prev => {
+                const filtered = prev.filter(s => s.productId !== product.id);
+                return [...filtered, newStat];
+            });
+
+            // Persist
+            if (isSupabaseConfigured) {
+                // IMPORTANT: upsertData uses the PK in the object. product_stats PK is productId.
+                await upsertData('product_stats', newStat);
+            } else {
+                // Local stats persistence logic handled here since upsertData relies on 'admin_' prefix mapping
+                const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
+                const otherStats = localStats.filter((s: any) => s.productId !== product.id);
+                localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat]));
+            }
+        }
+    }
+  }, []);
 
   useEffect(() => {
     const hexToRgb = (hex: string) => {

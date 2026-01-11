@@ -1,4 +1,5 @@
 
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
@@ -285,7 +286,7 @@ export const INITIAL_PRODUCTS: Product[] = [
       'Length': 'Midi (120cm from shoulder)',
       'Fit': 'True to Size, Relaxed Fit'
     },
-    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1539109136881-3be06109477e?auto=format&fit=crop&q=80&w=800', name: 'Silk Dress', type: 'image/jpeg', size: 0 }],
+    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800', name: 'Silk Dress', type: 'image/jpeg', size: 0 }],
     createdAt: Date.now(),
     discountRules: [{ id: 'd1', type: 'percentage', value: 15, description: 'Season Launch' }],
     reviews: [
