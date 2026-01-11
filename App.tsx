@@ -145,7 +145,18 @@ const TrackingInjector = () => {
           fbq('track', 'PageView');
         `);
     }
-  }, [settings.googleAnalyticsId, settings.facebookPixelId]);
+
+    // TikTok Pixel
+    if (settings.tiktokPixelId) {
+      loadScript('tiktok-pixel', '', `
+        !function (w, d, t) {
+          w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
+          ttq.load('${settings.tiktokPixelId}');
+          ttq.page();
+        }(window, document, 'ttq');
+      `);
+    }
+  }, [settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId]);
 
   // Track Page Views on route change
   useEffect(() => {
@@ -158,20 +169,38 @@ const TrackingInjector = () => {
         if ((window as any).fbq && settings.facebookPixelId) {
             (window as any).fbq('track', 'PageView');
         }
+        if ((window as any).ttq && settings.tiktokPixelId) {
+            (window as any).ttq.page();
+        }
      }
-  }, [location, settings.googleAnalyticsId, settings.facebookPixelId]);
+  }, [location, settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId]);
 
   return null;
 };
 
-const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void }) => {
+const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string) => void }) => {
   const location = useLocation();
   const hasTrackedGeo = useRef(false);
   
+  const getTrafficSource = () => {
+    if (typeof document === 'undefined') return 'Direct';
+    const referrer = document.referrer.toLowerCase();
+    
+    if (referrer.includes('facebook') || referrer.includes('fb')) return 'Facebook';
+    if (referrer.includes('instagram')) return 'Instagram';
+    if (referrer.includes('tiktok')) return 'TikTok';
+    if (referrer.includes('google')) return 'Google Search';
+    if (referrer.includes('twitter') || referrer.includes('t.co') || referrer.includes('x.com')) return 'Twitter';
+    if (referrer.length > 0) return 'Referral';
+    
+    return 'Direct';
+  };
+
   useEffect(() => {
     // 1. Log View
     if (!location.pathname.startsWith('/admin')) {
-      logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname);
+      const source = getTrafficSource();
+      logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname, source);
     }
 
     // 2. Fetch Geo & Device Data
@@ -179,6 +208,8 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
         if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
         
         const stored = localStorage.getItem('site_visitor_locations');
+        const trafficSource = getTrafficSource();
+
         try {
             // Get Device Info
             const ua = navigator.userAgent;
@@ -214,6 +245,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
                 device: deviceType,
                 browser: browser,
                 os: os,
+                source: trafficSource,
                 timestamp: Date.now()
             };
 
@@ -445,13 +477,14 @@ const App: React.FC = () => {
     }
   };
 
-  const logEvent = useCallback(async (type: 'view' | 'click' | 'system', label: string) => {
+  const logEvent = useCallback(async (type: 'view' | 'click' | 'system', label: string, source: string = 'Direct') => {
     const newEvent = {
       id: Date.now().toString(),
       type,
       text: type === 'view' ? `Page View: ${label}` : label,
       time: new Date().toLocaleTimeString(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      source: source 
     };
 
     if (isSupabaseConfigured) {
