@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -11,7 +12,7 @@ import {
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
-  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle
+  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
@@ -521,7 +522,6 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
   useEffect(() => { 
     const baseText = `Check out the ${product.name} from ${settings.companyName}.`; 
     const price = `Price: R ${product.price}`; 
-    // Use Internal Link instead of Affiliate Link for social posts to track pixel
     const link = `${window.location.origin}/#/product/${product.id}`; 
     const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; 
     let generated = ''; 
@@ -547,11 +547,12 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
     try {
       const link = `${window.location.origin}/#/product/${product.id}`;
       // Crucial Fix: Append link to text because some platforms drop the 'url' param when sharing files
-      const combinedText = `${customText}\n\n${link}`;
-
+      // NOTE: Many mobile apps (WhatsApp, etc.) will IGNORE text if a file is shared via navigator.share.
+      // We still pass it, but UI should encourage copying text separately.
+      
       const shareData: any = {
         title: settings.companyName,
-        text: combinedText,
+        text: customText, // Try to pass full text
         url: link 
       };
 
@@ -576,7 +577,7 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
     }
   };
 
-  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> Share Bundle (Image + Link)</button><button onClick={handleDownloadImage} className="py-4 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 flex items-center justify-center gap-2"><Download size={16}/> Save Image</button><button onClick={handleCopy} className="py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2">{copied ? <Check size={16}/> : <Copy size={16}/>} Copy Text</button></div></div></div></div>);
+  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Image Bundle</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>);
 };
 
 const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => {
@@ -658,6 +659,48 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
     </div>
   );
 };
+
+const IntegrationGuide: React.FC = () => (
+  <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8">
+     <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+       <Lightbulb size={16}/> Integration Setup Guide
+     </h4>
+     <div className="space-y-4 text-xs text-slate-400">
+        <details className="group">
+          <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
+            <Mail size={14} /> EmailJS (Forms)
+          </summary>
+          <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
+            <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p>
+            <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p>
+            <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p>
+            <p>4. Go to Account > API Keys to copy your <strong>Public Key</strong>.</p>
+          </div>
+        </details>
+        
+        <details className="group">
+          <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
+            <BarChart size={14} /> Google Analytics 4
+          </summary>
+          <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
+            <p>1. Go to <a href="https://analytics.google.com" target="_blank" className="text-white underline">Google Analytics</a>.</p>
+            <p>2. Create a property. Go to Admin > Data Streams > Web.</p>
+            <p>3. Copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</p>
+          </div>
+        </details>
+
+        <details className="group">
+           <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
+            <Target size={14} /> Meta / TikTok Pixels
+          </summary>
+          <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
+            <p><strong>Meta (Facebook):</strong> Go to Events Manager > Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
+            <p><strong>TikTok:</strong> Go to Ads Manager > Assets > Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
+          </div>
+        </details>
+     </div>
+  </div>
+);
 
 
 // --- Main Admin Component ---
@@ -799,10 +842,15 @@ const Admin: React.FC = () => {
   };
   
   const handleSaveAdmin = async () => {
-    if (!adminData.email || !adminData.password) return;
+    if (!adminData.email) return;
     setCreatingAdmin(true);
     try {
-      const newAdmin = { ...adminData, id: editingId || Date.now().toString(), createdAt: adminData.createdAt || Date.now() };
+      const newAdmin = { 
+        ...adminData, 
+        id: editingId || Date.now().toString(), 
+        createdAt: adminData.createdAt || Date.now(),
+        // We do not save password here as it is handled by Supabase Auth
+      };
       await updateData('admin_users', newAdmin);
       setShowAdminForm(false);
       setEditingId(null);
@@ -884,7 +932,7 @@ const Admin: React.FC = () => {
   });
 
   const renderEnquiries = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Inbox</h2><p className="text-slate-400 text-sm">Manage incoming client communications.</p></div>
          <div className="flex gap-3 w-full md:w-auto">
@@ -951,7 +999,7 @@ const Admin: React.FC = () => {
     ].sort((a, b) => b.count - a.count);
 
     return (
-      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-full">
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
            <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Analytics</h2><p className="text-slate-400 text-sm">Real-time engagement tracking.</p></div>
            <div className="flex flex-wrap gap-8"><div className="text-right"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Impressions</span><span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span></div><div className="text-right border-l border-slate-800 pl-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Affiliate Conversions</span><span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span></div></div>
@@ -1008,7 +1056,7 @@ const Admin: React.FC = () => {
   };
 
   const renderCatalog = () => (
-    <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full">
+    <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       {showProductForm ? (
         <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
           <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
@@ -1051,7 +1099,7 @@ const Admin: React.FC = () => {
   );
 
   const renderHero = () => (
-     <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full">
+     <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <AdminTip title="Hero Visuals">
           The Hero Carousel is the first impression your visitors get. Use high-resolution images (16:9 ratio) or short, looping videos. Keep titles punchy and evocative to drive clicks.
         </AdminTip>
@@ -1083,7 +1131,7 @@ const Admin: React.FC = () => {
   );
 
   const renderCategories = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-full">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
        {showCategoryForm ? (
           <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-8">
              <AdminTip title="Pro Tip: Department Structure">
@@ -1115,15 +1163,23 @@ const Admin: React.FC = () => {
   );
 
   const renderTeam = () => (
-     <div className="space-y-8 max-w-5xl mx-auto text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-full">
+     <div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8"><div className="text-left"><h2 className="text-3xl font-serif text-white">Team Management</h2><p className="text-slate-400 text-sm mt-2">Sync with Supabase for secure multi-admin access.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
         {showAdminForm ? (
            <div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-12">
-              <AdminTip title="Pro Tip: Access Control">
-                 When adding new team members, carefully select their role. 'System Owners' have unrestricted access, while 'Standard Admins' are limited to the permissions you explicitly check below.
-              </AdminTip>
+              <div className="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl flex items-start gap-4">
+                 <div className="p-2 bg-blue-500/20 rounded-full text-blue-400"><Info size={20}/></div>
+                 <div>
+                    <h4 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">Important: Authentication vs. Authorization</h4>
+                    <p className="text-slate-400 text-xs leading-relaxed">
+                       This form sets the <strong>permissions</strong> for the user within the Admin Portal. 
+                       <br/><br/>
+                       To grant them login credentials, you must also <strong>Invite User</strong> via your <a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" className="text-white underline">Supabase Dashboard</a> using the same email address.
+                    </p>
+                 </div>
+              </div>
               <div className="grid md:grid-cols-2 gap-12">
-                 <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Personal Details</h3><SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} /><SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} /><SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" /><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Security Credentials</h3><SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} /><SettingField label="Password (Set New)" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" /></div>
+                 <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Personal Details</h3><SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} /><SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} /><SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" /><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Security Credentials</h3><SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} /></div>
                  <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Access Control</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">System Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Standard Administrator</option><option value="owner">System Owner (Root)</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Detailed Permissions</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Update Privileges' : 'Deploy Member'}</button></div>
@@ -1163,75 +1219,94 @@ const Admin: React.FC = () => {
   );
 
   const renderTraining = () => (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-6xl mx-auto">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2">
            <h2 className="text-3xl font-serif text-white">Marketing Academy</h2>
-           <p className="text-slate-400 text-sm">Pre-built strategies to scale your affiliate empire.</p>
+           <p className="text-slate-400 text-sm">Advanced strategies for {TRAINING_MODULES.length} major platforms.</p>
          </div>
          <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2">
-            <Video size={16}/> External Video Training
+            <Video size={16}/> Video Masterclass
          </a>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {TRAINING_MODULES.map((module) => {
           const isExpanded = expandedTraining === module.id;
           const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
-
+          
           return (
-            <div key={module.id} className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden transition-all duration-300">
+            <div 
+              key={module.id} 
+              className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}
+            >
               <button 
                 onClick={() => setExpandedTraining(isExpanded ? null : module.id)}
-                className="w-full p-6 md:p-8 flex items-center justify-between text-left hover:bg-slate-800/50 transition-colors"
+                className="w-full p-6 md:p-8 flex items-start text-left group h-full"
               >
-                <div className="flex items-center gap-6">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 ${
-                    module.platform === 'Pinterest' ? 'bg-red-600' : 
-                    module.platform === 'TikTok' ? 'bg-black border border-slate-700' :
-                    module.platform === 'Instagram' ? 'bg-pink-600' :
-                    module.platform === 'WhatsApp' ? 'bg-green-500' : 'bg-primary text-slate-900'
-                  }`}>
-                    <Icon size={28} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-1">{module.title}</h3>
-                    <p className="text-slate-500 text-sm">{module.description}</p>
-                  </div>
-                </div>
-                <div className={`p-2 rounded-full border border-slate-700 transition-transform duration-300 ${isExpanded ? 'rotate-180 bg-slate-800 text-white' : 'text-slate-500'}`}>
-                  <ChevronDown size={20} />
-                </div>
+                 <div className="flex items-start gap-4 md:gap-6 w-full">
+                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${
+                      module.platform === 'Pinterest' ? 'bg-red-600' : 
+                      module.platform === 'TikTok' ? 'bg-black border border-slate-700' :
+                      module.platform === 'Instagram' ? 'bg-pink-600' :
+                      module.platform === 'WhatsApp' ? 'bg-green-500' : 
+                      module.platform === 'SEO' ? 'bg-blue-600' :
+                      'bg-slate-800 text-slate-300'
+                    }`}>
+                      <Icon size={28} />
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <div className="flex justify-between items-start">
+                         <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>
+                         {!isExpanded && <ChevronDown size={20} className="text-slate-500 mt-1" />}
+                      </div>
+                      <p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>
+                      {!isExpanded && (
+                         <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                            View Module <ArrowRight size={12}/>
+                         </div>
+                      )}
+                    </div>
+                 </div>
               </button>
 
               {isExpanded && (
-                <div className="px-6 md:px-8 pb-8 pt-0 border-t border-slate-800/50">
-                  <div className="grid md:grid-cols-2 gap-8 mt-8">
-                    <div>
-                      <h4 className="text-[10px] font-black uppercase text-primary tracking-widest mb-4 flex items-center gap-2"><Target size={14}/> Key Strategies</h4>
-                      <ul className="space-y-3">
+                <div className="px-6 md:px-10 pb-10 pt-0 animate-in fade-in">
+                  <div className="w-full h-px bg-slate-800 mb-8"></div>
+                  <div className="grid md:grid-cols-2 gap-10">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3">
+                         <div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div>
+                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Winning Strategies</h4>
+                      </div>
+                      <ul className="space-y-4">
                         {module.strategies.map((strat, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-3 bg-slate-800/30 rounded-xl">
-                            <CheckCircle2 size={16} className="text-primary shrink-0 mt-0.5"/>
-                            <span>{strat}</span>
+                          <li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div>
+                            <span className="leading-relaxed">{strat}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-                    <div>
-                      <h4 className="text-[10px] font-black uppercase text-green-500 tracking-widest mb-4 flex items-center gap-2"><Rocket size={14}/> Action Items</h4>
-                      <ul className="space-y-3">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3">
+                         <div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div>
+                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Actions</h4>
+                      </div>
+                      <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
                         {module.actionItems.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-3 border border-green-500/10 bg-green-500/5 rounded-xl">
-                            <MousePointerClick size={16} className="text-green-500 shrink-0 mt-0.5"/>
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer">
+                            <div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div>
+                            <span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-                    <p className="text-xs text-slate-500 italic">"Consistency is the luxury of the disciplined."</p>
+                  <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end">
+                     <button onClick={() => setExpandedTraining(null)} className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">
+                        Close Module
+                     </button>
                   </div>
                 </div>
               )}
@@ -1245,7 +1320,7 @@ const Admin: React.FC = () => {
   const renderSystem = () => {
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     return (
-     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-full">
+     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
         <AdminTip title="System Health Monitoring">
           This dashboard provides a real-time pulse of your application. Use the 'Global Interaction Protocol' map to see exactly where your visitors are coming from. Check 'Connection Diagnostics' to ensure your Supabase database is syncing correctly.
         </AdminTip>
@@ -1258,7 +1333,7 @@ const Admin: React.FC = () => {
   };
 
   const renderGuide = () => (
-     <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-6xl mx-auto text-left w-full overflow-hidden">
+     <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
         <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
             <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
             <div className="max-w-3xl relative z-10">
@@ -1337,7 +1412,7 @@ const Admin: React.FC = () => {
   );
 
   const renderSiteEditor = () => (
-     <div className="space-y-6 w-full max-w-full">
+     <div className="space-y-6 w-full max-w-7xl mx-auto">
        <AdminTip title="Pro Tip: Visual Identity">
           This is your central design studio. Click on any tile to open the configuration drawer. Changes made here update the live site instantly for visitors.
        </AdminTip>
@@ -1361,7 +1436,7 @@ const Admin: React.FC = () => {
       {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
       {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
 
-      <header className="max-w-[1400px] mx-auto px-4 md:px-6 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 text-left w-full">
+      <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 text-left w-full">
         <div className="flex flex-col gap-6"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
         <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
           {/* Mobile Tabs Fix: Grid layout for better touch targets */}
@@ -1374,7 +1449,7 @@ const Admin: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto px-4 md:px-6 pb-20 w-full">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full">
         {activeTab === 'enquiries' && renderEnquiries()}
         {activeTab === 'analytics' && renderAnalytics()}
         {activeTab === 'catalog' && renderCatalog()}
@@ -1562,6 +1637,7 @@ const Admin: React.FC = () => {
 
                {activeEditorSection === 'integrations' && (
                   <>
+                     <IntegrationGuide />
                      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
                         <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4>
                         <div className="space-y-4">

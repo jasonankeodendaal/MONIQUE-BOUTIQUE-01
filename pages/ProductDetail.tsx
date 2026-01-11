@@ -61,12 +61,15 @@ const ProductDetail: React.FC = () => {
 
   const handleShare = async () => {
     logEvent('share', `Product: ${product?.name}`);
+    const text = `Check out ${product?.name} at ${settings.companyName}`;
+    const url = window.location.href;
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: product?.name,
-          text: `Check out ${product?.name} at ${settings.companyName}`,
-          url: window.location.href
+          text: text,
+          url: url
         });
       } catch (err) {
         console.log("Share skipped", err);
@@ -91,8 +94,9 @@ const ProductDetail: React.FC = () => {
   const socialShares = useMemo(() => {
      const url = window.location.href;
      const text = `Check out ${product?.name}`;
+     // Manually encode to ensure emojis and spacing work
      return [
-      { name: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]', text: 'text-white', url: `https://wa.me/?text=${encodeURIComponent(`${text}: ${url}`)}` },
+      { name: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]', text: 'text-white', url: `https://wa.me/?text=${encodeURIComponent(`${text} 💎 ${url}`)}` },
       { name: 'Facebook', icon: Facebook, color: 'bg-[#1877F2]', text: 'text-white', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
       { name: 'Twitter', icon: Twitter, color: 'bg-[#1DA1F2]', text: 'text-white', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
       { name: 'Email', icon: Mail, color: 'bg-slate-100', text: 'text-slate-900', url: `mailto:?subject=${encodeURIComponent(product?.name || '')}&body=${encodeURIComponent(`${text}: ${url}`)}` },

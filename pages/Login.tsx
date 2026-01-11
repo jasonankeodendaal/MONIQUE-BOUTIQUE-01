@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { LogIn, Mail, Lock, AlertCircle, Chrome, Terminal, Info } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { LogIn, Mail, Lock, AlertCircle, Info, Chrome } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
-  const { settings, isLocalMode } = useSettings();
+  const { isLocalMode } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,144 +33,137 @@ const Login: React.FC = () => {
       if (error) throw error;
       navigate('/admin');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      if (err.message === 'Invalid login credentials') {
+        setError('Incorrect email or password. Please verify your credentials.');
+      } else {
+        setError(err.message);
+      }
     } finally {
-      if (!isLocalMode) setLoading(false);
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    if (isLocalMode) {
-       // Simulation for Local Mode
-       navigate('/admin');
-       return;
-    }
-
+    if (isLocalMode) return;
+    setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { 
-          // Use origin to prevent HashRouter issues during callback
-          redirectTo: window.location.origin,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
+        options: {
+          redirectTo: `${window.location.origin}/#/admin`,
+        },
       });
       if (error) throw error;
     } catch (err: any) {
-      console.error("Auth Error:", err);
-      // Handle the specific 404 NOT_FOUND error from Supabase/GoTrue
-      if (err.message?.includes('NOT_FOUND') || err.message?.includes('404')) {
-        setError('Configuration Error: Google Login is disabled in Supabase or the Project URL is incorrect.');
-      } else {
-        setError(err.message || 'Google authentication failed');
-      }
+      setError(err.message);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-6 py-12 relative overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Ambience */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] translate-y-1/2"></div>
+      </div>
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-12 relative z-10 shadow-2xl">
         <div className="text-center mb-10">
-          <div className="w-16 h-16 md:w-20 md:h-20 bg-primary/20 rounded-3xl flex items-center justify-center text-primary mx-auto mb-6 shadow-2xl shadow-primary/20 border border-primary/20">
-            <Lock size={28} className="md:w-8 md:h-8" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 text-primary mb-6 shadow-lg">
+            <Lock size={32} />
           </div>
-          <h1 className="text-3xl md:text-4xl font-serif text-white mb-2 tracking-tight">Portal <span className="text-primary italic font-light">Access</span></h1>
-          <p className="text-slate-500 text-xs md:text-sm font-medium uppercase tracking-widest">Authorized Personnel Only</p>
+          <h1 className="text-3xl font-serif text-white mb-2">Concierge Access</h1>
+          <p className="text-slate-500 text-sm">Enter your credentials to access the curation portal.</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-6 md:p-10 rounded-[2.5rem] shadow-2xl">
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-2">
-              <AlertCircle size={16} />
-              {error}
-            </div>
-          )}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3">
+            <AlertCircle size={20} className="text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-red-400 text-xs leading-relaxed">{error}</p>
+          </div>
+        )}
 
-          {isLocalMode && (
-             <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-left space-y-2">
-                 <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-widest">
-                    <Info size={14} /> Simulation Mode
-                 </div>
-                 <p className="text-slate-400 text-[10px] leading-relaxed">
-                   Supabase is not configured. Authentication is simulated. Enter any details to proceed.
-                 </p>
-             </div>
-          )}
+        {isLocalMode && (
+           <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3">
+            <Info size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-left">
+              <p className="text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">Local Mode Active</p>
+              <p className="text-blue-300 text-xs leading-relaxed">System is running offline. Any email/password will grant simulated access.</p>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <button 
+            onClick={handleGoogleLogin}
+            disabled={loading || isLocalMode}
+            className="w-full py-4 bg-white text-slate-900 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+             <Chrome size={18} />
+             <span>Sign in with Google</span>
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-800"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-slate-900 px-2 text-slate-500">Or continue with email</span>
+            </div>
+          </div>
 
           <form onSubmit={handleEmailLogin} className="space-y-6">
             <div className="space-y-2 text-left">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Identity Mailbox</label>
+              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-3">Identity</label>
               <div className="relative">
-                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input 
-                  type="email"
+                  type="email" 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-14 pr-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all text-sm"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-600 text-sm"
                   placeholder="admin@kasicouture.com"
                 />
               </div>
             </div>
-
+            
             <div className="space-y-2 text-left">
-              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Access Key</label>
+              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-3">Passkey</label>
               <div className="relative">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                 <input 
-                  type="password"
+                  type="password" 
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-14 pr-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all text-sm"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-600 text-sm"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
             <button 
-              type="submit"
+              type="submit" 
               disabled={loading}
-              className="w-full py-5 bg-primary text-slate-900 font-black uppercase text-xs tracking-[0.2em] rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
+              className="w-full py-4 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:bg-white transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></div>
+                <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
               ) : (
                 <>
                   <LogIn size={18} />
-                  {isLocalMode ? 'Simulate Entry' : 'Authenticate'}
+                  <span>Authenticate</span>
                 </>
               )}
             </button>
           </form>
-
-          <div className="relative my-8 text-center">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-800"></div></div>
-            <span className="relative px-4 bg-slate-900 text-[9px] font-black text-slate-600 uppercase tracking-widest">Or Secure With</span>
-          </div>
-
-          <button 
-            onClick={handleGoogleLogin}
-            className="w-full py-4 bg-white text-slate-900 font-bold text-xs rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-all border border-slate-200"
-          >
-            <Chrome size={18} />
-            {isLocalMode ? 'Simulate Google Login' : 'Sign in with Google'}
-          </button>
         </div>
 
-        <button 
-          onClick={() => navigate('/')}
-          className="mt-8 w-full text-center text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors"
-        >
-          Return to Public Front
-        </button>
+        <div className="mt-8 pt-8 border-t border-slate-800 text-center">
+          <p className="text-slate-600 text-xs">Protected by enterprise-grade security protocols.</p>
+        </div>
       </div>
     </div>
   );

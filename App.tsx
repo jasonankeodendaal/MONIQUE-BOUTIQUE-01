@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -350,11 +349,21 @@ const App: React.FC = () => {
   useEffect(() => {
     const initAuth = async () => {
        if (isSupabaseConfigured) {
-         const { data: { session } } = await supabase.auth.getSession();
-         if (session) {
+         try {
+           const { data: { session }, error } = await supabase.auth.getSession();
+           
+           if (error && error.message.includes('Refresh Token')) {
+             console.log("Stale session detected. Clearing...");
+             await supabase.auth.signOut();
+             setUser(null);
+           } else if (session) {
              // Strict Logout on Refresh
              await supabase.auth.signOut();
              setUser(null);
+           }
+         } catch (e) {
+           console.error("Auth init error:", e);
+           setUser(null);
          }
        }
        setLoadingAuth(false);
@@ -509,17 +518,23 @@ const App: React.FC = () => {
   const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
     const newEvent = {
       id: Date.now().toString(),
-      type,
+      type: type || 'system',
       text: type === 'view' ? `Page View: ${label}` : label,
       time: new Date().toLocaleTimeString(),
       timestamp: Date.now(),
-      source: source 
+      source: source || 'Direct'
     };
 
     if (isSupabaseConfigured) {
-      supabase.from('traffic_logs').insert([newEvent]).then(({error}) => {
-         if (error) console.warn("Log insert failed", error);
-      });
+      // Robust error handling to prevent 400 Bad Request
+      try {
+        const { error } = await supabase.from('traffic_logs').insert([newEvent]);
+        if (error) {
+          console.warn("Log insert failed", error);
+        }
+      } catch (err) {
+        console.warn("Log exception", err);
+      }
     } else {
       const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
       localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));

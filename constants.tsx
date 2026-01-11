@@ -3,92 +3,264 @@ import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser,
 
 export const TRAINING_MODULES: TrainingModule[] = [
   {
-    id: 'pinterest-101',
-    title: 'Pinterest: The Visual Search Engine',
-    platform: 'Pinterest',
-    description: 'Pinterest is not just social media; it is a discovery engine. Fashion buyers use it to plan outfits. Pins have a lifespan of months, not minutes.',
-    icon: 'Pin',
-    strategies: [
-      'Create "Rich Pins" by enabling metadata on your site (Open Graph tags).',
-      'Design vertical images (2:3 aspect ratio) for maximum screen real estate.',
-      'Use keywords in board titles (e.g., "Summer Silk Dresses 2024") instead of cute names ("Vibes").'
-    ],
-    actionItems: [
-      'Create a Business Account on Pinterest.',
-      'Claim your website to enable analytics.',
-      'Create 5 boards based on your top Categories.',
-      'Pin 3-5 of your products daily mixed with lifestyle inspiration.'
-    ]
-  },
-  {
-    id: 'tiktok-viral',
-    title: 'TikTok: Fast Fashion & Virality',
-    platform: 'TikTok',
-    description: 'The home of "Hauls" and "Get Ready With Me" (GRWM). Authenticity wins here over polished production.',
-    icon: 'Video',
-    strategies: [
-      'Use trending audio sounds immediately.',
-      'The "3-Second Hook": Show the product or ask a question instantly.',
-      'Reply to comments with video responses to boost engagement.',
-      'Use #FashionTok, #OOTD, and #StyleHacks hashtags.'
-    ],
-    actionItems: [
-      'Film a "Pack an Order with Me" video.',
-      'Film a "3 Ways to Style This Item" video.',
-      'Post 1-3 times daily for momentum.'
-    ]
-  },
-  {
-    id: 'ig-reels',
-    title: 'Instagram: The Curated Feed',
+    id: 'instagram-mastery',
+    title: 'Instagram: The Aesthetic Storefront',
     platform: 'Instagram',
-    description: 'High-end visuals and Reels are key. Instagram is your digital storefront portfolio.',
+    description: 'The foundation of fashion affiliate marketing. High-fidelity visuals meet direct purchasing power.',
     icon: 'Instagram',
     strategies: [
-      'Use Reels for reach, Stories for engagement/sales.',
-      'Tag products directly if you have Instagram Shopping enabled.',
-      'Use "Link in Bio" tools (like your own bridge page!) to drive traffic.',
-      'Collaborate with micro-influencers using the "Collab" post feature.'
+      'Use "Stories" with link stickers for limited-time scarcity (FOMO).',
+      'Create "Highlights" for each product category (e.g., "Shoes", "Summer").',
+      'Utilize the "Collab" feature to tap into photographer or brand audiences.',
+      'Carousel Posts: Slide 1 (Hook), Slide 2 (Detail), Slide 3 (Lifestyle), Slide 4 (CTA).'
     ],
     actionItems: [
-      'Optimize your bio with a clear CTA (Call to Action).',
-      'Create a "New Arrivals" Story Highlight.',
-      'Post a Carousel of 5-10 images showing product details.'
+      'Switch to a Professional Account to access Insights.',
+      'Post 3 Stories daily (Morning, Noon, Night).',
+      'Dm "LINK" automation setup (using tools like ManyChat).'
     ]
   },
   {
-    id: 'whatsapp-comm',
-    title: 'WhatsApp: The VIP Inner Circle',
+    id: 'tiktok-growth',
+    title: 'TikTok: Virality Engine',
+    platform: 'TikTok',
+    description: 'Unfiltered, raw, and high-volume discovery. The fastest way to scale a new brand presence.',
+    icon: 'Video',
+    strategies: [
+      'The 3-Second Rule: Show the "After" result immediately.',
+      'Use trending audio but keep volume low (5-10%) under your voiceover.',
+      'Reply to successful comments with a video response.',
+      'Green Screen effect over the product page to prove price/value.'
+    ],
+    actionItems: [
+      'Post 3x daily for the first 30 days.',
+      'Use the search bar to find "Best [Product Category]" keywords.'
+    ]
+  },
+  {
+    id: 'pinterest-seo',
+    title: 'Pinterest: Visual Search SEO',
+    platform: 'Pinterest',
+    description: 'Long-term traffic. Pins live for months, unlike social posts that die in hours.',
+    icon: 'Pin',
+    strategies: [
+      'Enable "Rich Pins" to sync price and availability automatically.',
+      'Vertical imagery (2:3 aspect ratio) is non-negotiable.',
+      'Keywords in titles: "Boho Summer Dress" > "Cute Outfit".',
+      'Create "Idea Pins" (video format) for higher algorithmic reach.'
+    ],
+    actionItems: [
+      'Claim your website in Pinterest settings.',
+      'Create 10 boards with specific niche titles.',
+      'Pin 5 times a day (can be scheduled).'
+    ]
+  },
+  {
+    id: 'youtube-shorts',
+    title: 'YouTube Shorts: Evergreen Video',
+    platform: 'General',
+    description: 'Repurpose TikToks here. Google indexes these videos, meaning they appear in search results.',
+    icon: 'Youtube',
+    strategies: [
+      'Loop your videos: Make the end sentence flow into the start.',
+      'Pinned Comment: Put your affiliate link in the pinned comment, not description.',
+      'Use specific titles: "Zara vs H&M Try-on Haul".'
+    ],
+    actionItems: [
+      'Upload your top performing TikToks to Shorts.',
+      'Add a "Subscribe for Links" overlay.'
+    ]
+  },
+  {
+    id: 'linkedin-luxury',
+    title: 'LinkedIn: The Professional Buyer',
+    platform: 'General',
+    description: 'Underrated for high-ticket luxury items (suits, watches, work bags). High disposable income audience.',
+    icon: 'Linkedin',
+    strategies: [
+      'Write "Think Piece" articles about personal branding through fashion.',
+      'Focus on "Office Wear" and "Corporate Aesthetics".',
+      'Carousel PDFs work incredibly well on LinkedIn algorithms.'
+    ],
+    actionItems: [
+      'Post a "Work Outfit of the Week" breakdown.',
+      'Connect with industry professionals.'
+    ]
+  },
+  {
+    id: 'threads-conversations',
+    title: 'Threads: Text-Based Hype',
+    platform: 'General',
+    description: 'Casual, text-first engagement. Great for building a personality behind the curation.',
+    icon: 'AtSign',
+    strategies: [
+      'Post "Hot Takes" on fashion trends to spark debate.',
+      'Share direct links (Threads does not penalize external links heavily yet).',
+      'Re-share images without captions for "Mood Board" vibes.'
+    ],
+    actionItems: [
+      'Reply to 5 fashion influencers daily.',
+      'Post a "This or That" fashion poll.'
+    ]
+  },
+  {
+    id: 'email-marketing',
+    title: 'Email: The Owned Audience',
+    platform: 'General',
+    description: 'The highest ROI channel. You own this list; algorithms cannot take it away.',
+    icon: 'Mail',
+    strategies: [
+      'Welcome Sequence: Automatically send a "Top 10 Essentials" list on signup.',
+      'Abandoned Cart recovery (if using a direct store) or "Did you see this?" follow-ups.',
+      'Curated Sunday Newsletter: "5 Things I Loved This Week".'
+    ],
+    actionItems: [
+      'Add a signup form to your bridge page footer.',
+      'Offer a free "Style Guide PDF" in exchange for emails.'
+    ]
+  },
+  {
+    id: 'whatsapp-vip',
+    title: 'WhatsApp: Concierge Direct',
     platform: 'WhatsApp',
-    description: 'Direct access to your best customers. High conversion rates because it feels personal.',
+    description: 'Intimate, 1-on-1 selling. Perfect for closing high-ticket affiliate sales.',
     icon: 'MessageCircle',
     strategies: [
-      'Create a "Broadcast List" (not a group) to send updates individually.',
-      'Start a WhatsApp Channel for one-way updates on new drops.',
-      'Use WhatsApp Status for ephemeral daily deals.',
-      'Offer "WhatsApp Exclusive" coupon codes.'
+      'Status Updates: Post daily deals that vanish in 24h.',
+      'Broadcast Lists: Send "New Drop" alerts without a group chat feel.',
+      'Voice Notes: Send personalized styling advice via audio.'
     ],
     actionItems: [
-      'Add the WhatsApp button to your Contact page.',
-      'Create a welcome message for new contacts.',
-      'Send one broadcast per week (do not spam).'
+      'Add the WhatsApp floating button to your site.',
+      'Create a "VIP Access" broadcast label.'
     ]
   },
   {
-    id: 'seo-blog',
-    title: 'SEO & Blogging: Long-Term Traffic',
-    platform: 'SEO',
-    description: 'Ranking on Google brings free, passive traffic forever. Target specific questions buyers ask.',
-    icon: 'Globe',
+    id: 'telegram-community',
+    title: 'Telegram: The Drop Channel',
+    platform: 'General',
+    description: 'Instant notifications for sneaker drops or limited luxury releases.',
+    icon: 'Send',
     strategies: [
-      'Write titles like "Best Silk Dresses for Weddings in 2024".',
-      'Include alt text on all product images.',
-      'Focus on "Long Tail Keywords" (specific phrases).',
-      'Link internally between your products.'
+      'Create a "Channel" (One-way communication) to avoid spam.',
+      'Use bot integrations to auto-post when prices drop.',
+      'Share "Unlisted" deals exclusively to this group.'
     ],
     actionItems: [
-      'Rename product images from "IMG_123.jpg" to "black-silk-dress.jpg".',
-      'Write unique descriptions for every product (do not copy manufacturer text).'
+      'Create a "Kasi Couture Drops" channel.',
+      'Pin the invite link to your social bios.'
+    ]
+  },
+  {
+    id: 'blog-seo',
+    title: 'SEO Blogging: Passive Traffic',
+    platform: 'SEO',
+    description: 'Answer specific questions people type into Google.',
+    icon: 'Globe',
+    strategies: [
+      'Review Lists: "Top 10 Silk Dresses for Weddings 2024".',
+      'Comparison: "Gucci vs. Prada Loafers: Which is worth it?".',
+      'Use Long-Tail Keywords: Target phrases with 3+ words.'
+    ],
+    actionItems: [
+      'Write one 1000-word blog post per week.',
+      'Rename all product images with descriptive keywords.'
+    ]
+  },
+  {
+    id: 'twitter-x',
+    title: 'X (Twitter): Real-Time Trends',
+    platform: 'General',
+    description: 'Ride the wave of cultural moments (Met Gala, Awards Shows).',
+    icon: 'Twitter',
+    strategies: [
+      'Live tweet fashion events with links to "Get the Look".',
+      'Use threads to break down celebrity outfits.',
+      'Retweet and quote-tweet fashion news with your affiliate angle.'
+    ],
+    actionItems: [
+      'Create a list of fashion journalists to follow.',
+      'Schedule tweets during major red carpet events.'
+    ]
+  },
+  {
+    id: 'facebook-ads',
+    title: 'Meta Ads: Paid Scale',
+    platform: 'General',
+    description: 'Pay to play. Target specific demographics with laser precision.',
+    icon: 'Facebook',
+    strategies: [
+      'Retargeting: Show ads to people who visited your bridge page but didn\'t click.',
+      'Carousel Ads: Show 5 products in one scrollable unit.',
+      'Lookalike Audiences: Target people similar to your email list.'
+    ],
+    actionItems: [
+      'Install the Facebook Pixel (Meta Pixel) in Admin Settings.',
+      'Boost your best performing organic Instagram post.'
+    ]
+  },
+  {
+    id: 'snapchat-genz',
+    title: 'Snapchat: Gen Z Attention',
+    platform: 'General',
+    description: 'Raw, behind-the-scenes content for a younger demographic.',
+    icon: 'Ghost',
+    strategies: [
+      'Snap Map: Post public stories tagged to luxury shopping districts.',
+      'AR Filters: Use try-on filters if available.',
+      'Flash Sales: Codes that only last 10 seconds.'
+    ],
+    actionItems: [
+      'Create a Public Profile for the brand.',
+      'Post raw unboxing videos to Spotlight.'
+    ]
+  },
+  {
+    id: 'medium-authority',
+    title: 'Medium: Thought Leadership',
+    platform: 'General',
+    description: 'Republish your blog content here to leverage Medium\'s domain authority.',
+    icon: 'BookOpen',
+    strategies: [
+      'Import stories from your main blog (canonical links).',
+      'Write about the "Philosophy of Style".',
+      'Submit to fashion publications within Medium.'
+    ],
+    actionItems: [
+      'Create a Medium account.',
+      'Import your first blog post.'
+    ]
+  },
+  {
+    id: 'discord-community',
+    title: 'Discord: The Hypebeast Hub',
+    platform: 'General',
+    description: 'For streetwear and exclusive communities. High engagement.',
+    icon: 'Gamepad2',
+    strategies: [
+      'Create channels for #fit-pics and #deal-alerts.',
+      'Host live styling sessions in voice/video channels.',
+      'Role rewards for active community members.'
+    ],
+    actionItems: [
+      'Set up a basic server with rules.',
+      'Create an automated "New Arrival" feed.'
+    ]
+  },
+  {
+    id: 'sms-marketing',
+    title: 'SMS: 98% Open Rate',
+    platform: 'General',
+    description: 'The most intrusive but effective channel. Use sparingly.',
+    icon: 'Smartphone',
+    strategies: [
+      'Send text alerts only for major sales (Black Friday).',
+      'Personalized birthday discounts.',
+      'Order status updates (if managing fulfillment).'
+    ],
+    actionItems: [
+      'Collect phone numbers alongside emails.',
+      'Send a test campaign to yourself.'
     ]
   }
 ];
