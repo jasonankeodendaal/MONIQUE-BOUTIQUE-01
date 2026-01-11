@@ -1,5 +1,4 @@
 
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
 
 export const PERMISSION_TREE: PermissionNode[] = [
@@ -455,11 +454,13 @@ values ('media', 'media', true)
 on conflict (id) do nothing;
 
 -- 2. Allow the public to SEE the images
+drop policy if exists "Public Access" on storage.objects;
 create policy "Public Access" 
 on storage.objects for select 
 using ( bucket_id = 'media' );
 
 -- 3. Only allow YOU (the curator) to add or delete files
+drop policy if exists "Admin Control" on storage.objects;
 create policy "Admin Control" 
 on storage.objects for all 
 using ( auth.role() = 'authenticated' );`,
@@ -531,4 +532,3 @@ using ( auth.role() = 'authenticated' );`,
     illustrationId: 'growth'
   }
 ];
-
