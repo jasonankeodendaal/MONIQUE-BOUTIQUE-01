@@ -60,6 +60,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleShare = async () => {
+    logEvent('share', `Product: ${product?.name}`);
     if (navigator.share) {
       try {
         await navigator.share({

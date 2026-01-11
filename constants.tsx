@@ -1,6 +1,97 @@
 
+import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
-import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode } from './types';
+export const TRAINING_MODULES: TrainingModule[] = [
+  {
+    id: 'pinterest-101',
+    title: 'Pinterest: The Visual Search Engine',
+    platform: 'Pinterest',
+    description: 'Pinterest is not just social media; it is a discovery engine. Fashion buyers use it to plan outfits. Pins have a lifespan of months, not minutes.',
+    icon: 'Pin',
+    strategies: [
+      'Create "Rich Pins" by enabling metadata on your site (Open Graph tags).',
+      'Design vertical images (2:3 aspect ratio) for maximum screen real estate.',
+      'Use keywords in board titles (e.g., "Summer Silk Dresses 2024") instead of cute names ("Vibes").'
+    ],
+    actionItems: [
+      'Create a Business Account on Pinterest.',
+      'Claim your website to enable analytics.',
+      'Create 5 boards based on your top Categories.',
+      'Pin 3-5 of your products daily mixed with lifestyle inspiration.'
+    ]
+  },
+  {
+    id: 'tiktok-viral',
+    title: 'TikTok: Fast Fashion & Virality',
+    platform: 'TikTok',
+    description: 'The home of "Hauls" and "Get Ready With Me" (GRWM). Authenticity wins here over polished production.',
+    icon: 'Video',
+    strategies: [
+      'Use trending audio sounds immediately.',
+      'The "3-Second Hook": Show the product or ask a question instantly.',
+      'Reply to comments with video responses to boost engagement.',
+      'Use #FashionTok, #OOTD, and #StyleHacks hashtags.'
+    ],
+    actionItems: [
+      'Film a "Pack an Order with Me" video.',
+      'Film a "3 Ways to Style This Item" video.',
+      'Post 1-3 times daily for momentum.'
+    ]
+  },
+  {
+    id: 'ig-reels',
+    title: 'Instagram: The Curated Feed',
+    platform: 'Instagram',
+    description: 'High-end visuals and Reels are key. Instagram is your digital storefront portfolio.',
+    icon: 'Instagram',
+    strategies: [
+      'Use Reels for reach, Stories for engagement/sales.',
+      'Tag products directly if you have Instagram Shopping enabled.',
+      'Use "Link in Bio" tools (like your own bridge page!) to drive traffic.',
+      'Collaborate with micro-influencers using the "Collab" post feature.'
+    ],
+    actionItems: [
+      'Optimize your bio with a clear CTA (Call to Action).',
+      'Create a "New Arrivals" Story Highlight.',
+      'Post a Carousel of 5-10 images showing product details.'
+    ]
+  },
+  {
+    id: 'whatsapp-comm',
+    title: 'WhatsApp: The VIP Inner Circle',
+    platform: 'WhatsApp',
+    description: 'Direct access to your best customers. High conversion rates because it feels personal.',
+    icon: 'MessageCircle',
+    strategies: [
+      'Create a "Broadcast List" (not a group) to send updates individually.',
+      'Start a WhatsApp Channel for one-way updates on new drops.',
+      'Use WhatsApp Status for ephemeral daily deals.',
+      'Offer "WhatsApp Exclusive" coupon codes.'
+    ],
+    actionItems: [
+      'Add the WhatsApp button to your Contact page.',
+      'Create a welcome message for new contacts.',
+      'Send one broadcast per week (do not spam).'
+    ]
+  },
+  {
+    id: 'seo-blog',
+    title: 'SEO & Blogging: Long-Term Traffic',
+    platform: 'SEO',
+    description: 'Ranking on Google brings free, passive traffic forever. Target specific questions buyers ask.',
+    icon: 'Globe',
+    strategies: [
+      'Write titles like "Best Silk Dresses for Weddings in 2024".',
+      'Include alt text on all product images.',
+      'Focus on "Long Tail Keywords" (specific phrases).',
+      'Link internally between your products.'
+    ],
+    actionItems: [
+      'Rename product images from "IMG_123.jpg" to "black-silk-dress.jpg".',
+      'Write unique descriptions for every product (do not copy manufacturer text).'
+    ]
+  }
+];
 
 export const PERMISSION_TREE: PermissionNode[] = [
   {
@@ -476,17 +567,17 @@ create table if not exists settings (
   "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text, 
   "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text, 
   "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text, 
-  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text
+  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "pinterestTagId" text, "amazonAssociateId" text, "webhookUrl" text
 );
 
-create table if not exists products (id text primary key, name text, sku text, price numeric, "affiliateLink" text, "categoryId" text, "subCategoryId" text, description text, features jsonb, specifications jsonb, media jsonb, "discountRules" jsonb, reviews jsonb, "createdAt" bigint);
-create table if not exists categories (id text primary key, name text, icon text, image text, description text);
-create table if not exists subcategories (id text primary key, "categoryId" text, name text);
-create table if not exists hero_slides (id text primary key, image text, type text, title text, subtitle text, cta text);
+create table if not exists products (id text primary key, name text, sku text, price numeric, "affiliateLink" text, "categoryId" text, "subCategoryId" text, description text, features jsonb, specifications jsonb, media jsonb, "discountRules" jsonb, reviews jsonb, "createdAt" bigint, "createdBy" text);
+create table if not exists categories (id text primary key, name text, icon text, image text, description text, "createdBy" text);
+create table if not exists subcategories (id text primary key, "categoryId" text, name text, "createdBy" text);
+create table if not exists hero_slides (id text primary key, image text, type text, title text, subtitle text, cta text, "createdBy" text);
 create table if not exists enquiries (id text primary key, name text, email text, whatsapp text, subject text, message text, "createdAt" bigint, status text);
 create table if not exists admin_users (id text primary key, name text, email text, role text, permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text);
-create table if not exists product_stats ("productId" text primary key, views numeric, clicks numeric, "totalViewTime" numeric, "lastUpdated" bigint);
-create table if not exists traffic_logs (id text primary key, type text, text text, time text, timestamp bigint);
+create table if not exists product_stats ("productId" text primary key, views numeric, clicks numeric, shares numeric, "totalViewTime" numeric, "lastUpdated" bigint);
+create table if not exists traffic_logs (id text primary key, type text, text text, time text, timestamp bigint, source text);
 
 -- 3. ENABLE RLS
 alter table settings enable row level security;

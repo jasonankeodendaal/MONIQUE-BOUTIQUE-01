@@ -156,7 +156,21 @@ const TrackingInjector = () => {
         }(window, document, 'ttq');
       `);
     }
-  }, [settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId]);
+
+    // Pinterest Tag
+    if (settings.pinterestTagId) {
+      loadScript('pinterest-tag', '', `
+        !function(e){if(!window.pintrk){window.pintrk = function () {
+        window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var
+          n=window.pintrk;n.queue=[],n.version="3.0";var
+          t=document.createElement("script");t.async=!0,t.src=e;var
+          r=document.getElementsByTagName("script")[0];
+          r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+        pintrk('load', '${settings.pinterestTagId}');
+        pintrk('page');
+      `);
+    }
+  }, [settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId, settings.pinterestTagId]);
 
   // Track Page Views on route change
   useEffect(() => {
@@ -172,8 +186,11 @@ const TrackingInjector = () => {
         if ((window as any).ttq && settings.tiktokPixelId) {
             (window as any).ttq.page();
         }
+        if ((window as any).pintrk && settings.pinterestTagId) {
+            (window as any).pintrk('track', 'pagevisit');
+        }
      }
-  }, [location, settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId]);
+  }, [location, settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId, settings.pinterestTagId]);
 
   return null;
 };
@@ -189,6 +206,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
     if (referrer.includes('facebook') || referrer.includes('fb')) return 'Facebook';
     if (referrer.includes('instagram')) return 'Instagram';
     if (referrer.includes('tiktok')) return 'TikTok';
+    if (referrer.includes('pinterest')) return 'Pinterest';
     if (referrer.includes('google')) return 'Google Search';
     if (referrer.includes('twitter') || referrer.includes('t.co') || referrer.includes('x.com')) return 'Twitter';
     if (referrer.length > 0) return 'Referral';
@@ -289,6 +307,7 @@ const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => { // 5 mi
 };
 
 const App: React.FC = () => {
+  // IMPORTANT: State initialized with EMPTY first to check localStorage
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
   const [settingsId, setSettingsId] = useState<string>('global'); // Track the DB ID for settings
   
@@ -343,11 +362,23 @@ const App: React.FC = () => {
     initAuth();
   }, []);
 
+  // Helper to load or seed local data
+  const loadOrSeedLocal = <T,>(key: string, initial: T, setter: (val: T) => void) => {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+          setter(JSON.parse(stored));
+      } else {
+          setter(initial);
+          localStorage.setItem(key, JSON.stringify(initial));
+      }
+  };
+
   const refreshAllData = async () => {
     try {
       if (isSupabaseConfigured) {
         const remoteSettings = await fetchTableData('settings');
         if (!remoteSettings || remoteSettings.length === 0) {
+          // Sync existing initial/local state to cloud if empty
           await upsertData('settings', { ...settings, id: 'global' });
           setSettingsId('global');
           await syncLocalToCloud('products', products);
@@ -376,19 +407,15 @@ const App: React.FC = () => {
         if (st.length) setStats(st);
 
       } else {
-        // Local Mode Fallback
-        const localSettings = localStorage.getItem('site_settings');
-        if (localSettings) setSettings(JSON.parse(localSettings));
-        const localProds = localStorage.getItem('admin_products');
-        if (localProds) setProducts(JSON.parse(localProds));
-        const localCats = localStorage.getItem('admin_categories');
-        if (localCats) setCategories(JSON.parse(localCats));
-        const localSubs = localStorage.getItem('admin_subcategories');
-        if (localSubs) setSubCategories(JSON.parse(localSubs));
-        const localHero = localStorage.getItem('admin_hero');
-        if (localHero) setHeroSlides(JSON.parse(localHero));
-        const localEnq = localStorage.getItem('admin_enquiries');
-        if (localEnq) setEnquiries(JSON.parse(localEnq));
+        // Local Mode: Use loadOrSeed helper to ensure persistence survives refresh
+        loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
+        loadOrSeedLocal('admin_products', INITIAL_PRODUCTS, setProducts);
+        loadOrSeedLocal('admin_categories', INITIAL_CATEGORIES, setCategories);
+        loadOrSeedLocal('admin_subcategories', INITIAL_SUBCATEGORIES, setSubCategories);
+        loadOrSeedLocal('admin_hero', INITIAL_CAROUSEL, setHeroSlides);
+        loadOrSeedLocal('admin_enquiries', INITIAL_ENQUIRIES, setEnquiries);
+        loadOrSeedLocal('admin_users', INITIAL_ADMINS, setAdmins);
+        loadOrSeedLocal('admin_product_stats', [], setStats);
       }
       setSaveStatus('saved');
     } catch (e) {
@@ -450,6 +477,8 @@ const App: React.FC = () => {
   const deleteData = async (table: string, id: string) => {
     setSaveStatus('saving');
     const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
+    
+    // Optimistic Update
     switch(table) {
         case 'products': setProducts(deleteLocalState(products)); break;
         case 'categories': setCategories(deleteLocalState(categories)); break;
@@ -472,12 +501,12 @@ const App: React.FC = () => {
       return true;
     } catch (e) {
       setSaveStatus('error');
-      refreshAllData();
+      refreshAllData(); // Revert on failure
       return false;
     }
   };
 
-  const logEvent = useCallback(async (type: 'view' | 'click' | 'system', label: string, source: string = 'Direct') => {
+  const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
     const newEvent = {
       id: Date.now().toString(),
       type,
@@ -507,6 +536,7 @@ const App: React.FC = () => {
                 productId: product.id, 
                 views: 0, 
                 clicks: 0, 
+                shares: 0,
                 totalViewTime: 0, 
                 lastUpdated: Date.now() 
             };
@@ -514,6 +544,7 @@ const App: React.FC = () => {
                 ...currentStat,
                 views: currentStat.views + (type === 'view' ? 1 : 0),
                 clicks: currentStat.clicks + (type === 'click' ? 1 : 0),
+                shares: (currentStat.shares || 0) + (type === 'share' ? 1 : 0),
                 lastUpdated: Date.now()
             };
             setStats(prev => {

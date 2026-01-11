@@ -60,6 +60,7 @@ export interface ProductStats {
   productId: string;
   views: number;
   clicks: number;
+  shares: number; // Added shares
   totalViewTime: number; // in seconds
   lastUpdated: number;
 }
@@ -206,8 +207,9 @@ export interface SiteSettings {
   googleAnalyticsId?: string;
   facebookPixelId?: string;
   tiktokPixelId?: string;
+  pinterestTagId?: string; // New
   amazonAssociateId?: string;
-  webhookUrl?: string;
+  webhookUrl?: string; // Zapier/Make
 }
 
 export interface PermissionNode {
@@ -233,6 +235,16 @@ export interface AdminUser {
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
+export interface TrainingModule {
+  id: string;
+  title: string;
+  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General';
+  description: string;
+  strategies: string[];
+  actionItems: string[];
+  icon: string;
+}
+
 export interface SettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
@@ -254,5 +266,5 @@ export interface SettingsContextType {
   isLocalMode: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
-  logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
+  logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
 }
