@@ -2,9 +2,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { Category } from '../types';
-import { CustomIcons } from './CustomIcons';
 import { useSettings } from '../App';
+import { CustomIcons } from './CustomIcons';
 
 const CategoryGrid: React.FC = () => {
   const navigate = useNavigate();

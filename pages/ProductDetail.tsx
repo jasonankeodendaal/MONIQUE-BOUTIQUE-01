@@ -2,23 +2,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check } from 'lucide-react';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../constants';
 import { useSettings } from '../App';
-import { Product, ProductStats, Review } from '../types';
+import { Review, Product } from '../types';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { settings } = useSettings();
+  const { settings, products, categories, updateData, logEvent } = useSettings();
   
-  // Use state for products to allow local updates (for reviews)
-  const [allProducts, setAllProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('admin_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-  });
-
-  const product = allProducts.find((p: Product) => p.id === id);
-  const category = INITIAL_CATEGORIES.find(c => c.id === product?.categoryId);
+  const product = products.find((p: Product) => p.id === id);
+  const category = categories.find(c => c.id === product?.categoryId);
   
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -39,74 +32,31 @@ const ProductDetail: React.FC = () => {
     const timeout = setTimeout(() => setIsLoaded(true), 100);
     
     // Track View and Start Session Timer
-    if (id) {
-      const savedStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
-      const index = savedStats.findIndex((s: ProductStats) => s.productId === id);
-      if (index > -1) {
-        savedStats[index].views += 1;
-        savedStats[index].lastUpdated = Date.now();
-      } else {
-        savedStats.push({ productId: id, views: 1, clicks: 0, totalViewTime: 0, lastUpdated: Date.now() });
-      }
-      localStorage.setItem('admin_product_stats', JSON.stringify(savedStats));
-
-      // Start View Time Tracker
-      const startTime = Date.now();
-      const interval = setInterval(() => {
-        const currentStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
-        const idx = currentStats.findIndex((s: ProductStats) => s.productId === id);
-        if (idx > -1) {
-          currentStats[idx].totalViewTime = (currentStats[idx].totalViewTime || 0) + 1;
-          currentStats[idx].lastUpdated = Date.now();
-          localStorage.setItem('admin_product_stats', JSON.stringify(currentStats));
-        }
-      }, 1000);
-
-      return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
-      };
+    if (id && product) {
+        logEvent('view', `Product: ${product.name}`);
     }
 
     return () => clearTimeout(timeout);
-  }, [id]);
+  }, [id, product]);
 
-  const handleTrackClick = () => {
-    if (id) {
-      const savedStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
-      const index = savedStats.findIndex((s: ProductStats) => s.productId === id);
-      if (index > -1) {
-        savedStats[index].clicks += 1;
-        savedStats[index].lastUpdated = Date.now();
-        localStorage.setItem('admin_product_stats', JSON.stringify(savedStats));
-      }
-    }
-  };
-
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!product) return;
     setIsSubmittingReview(true);
     
-    setTimeout(() => {
-      const review: Review = {
+    const review: Review = {
         id: Date.now().toString(),
         userName: newReview.userName || 'Guest',
         rating: newReview.rating,
         comment: newReview.comment,
         createdAt: Date.now()
-      };
+    };
 
-      const updatedProducts = allProducts.map(p => 
-        p.id === id ? { ...p, reviews: [review, ...(p.reviews || [])] } : p
-      );
+    const updatedProduct = { ...product, reviews: [review, ...(product.reviews || [])] };
+    await updateData('products', updatedProduct);
       
-      setAllProducts(updatedProducts);
-      localStorage.setItem('admin_products', JSON.stringify(updatedProducts));
-      
-      setNewReview({ userName: '', comment: '', rating: 5 });
-      setIsSubmittingReview(false);
-    }, 800);
+    setNewReview({ userName: '', comment: '', rating: 5 });
+    setIsSubmittingReview(false);
   };
 
   const handleShare = async () => {
@@ -288,7 +238,7 @@ const ProductDetail: React.FC = () => {
                  href={product.affiliateLink} 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 onClick={handleTrackClick}
+                 onClick={() => logEvent('click', `Product: ${product.name}`)}
                  className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
                >
                  <span>Secure Acquisition</span>

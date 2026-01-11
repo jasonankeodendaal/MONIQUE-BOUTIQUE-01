@@ -24,42 +24,53 @@ export async function syncLocalToCloud(table: string, data: any[]) {
 }
 
 /**
- * Generic Upsert for Single or Multiple Items
- */
-export async function upsertData(table: string, data: any) {
-  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
-  
-  // Clean data: remove undefined fields to prevent DB errors
-  const clean = Array.isArray(data) 
-    ? data.map(item => JSON.parse(JSON.stringify(item))) 
-    : JSON.parse(JSON.stringify(data));
-
-  return await supabase.from(table).upsert(clean);
-}
-
-/**
- * Delete Item
- */
-export async function deleteData(table: string, id: string) {
-  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
-  return await supabase.from(table).delete().match({ id });
-}
-
-/**
  * Fetch all data for a specific table
  */
 export async function fetchTableData(table: string) {
   if (!isSupabaseConfigured) {
     // Return local storage fallback if no cloud is connected
     const local = localStorage.getItem(`admin_${table}`);
-    return local ? JSON.parse(local) : null;
+    // Map 'settings' table to 'site_settings' local key special case
+    if (table === 'settings') {
+        const s = localStorage.getItem('site_settings');
+        return s ? [JSON.parse(s)] : [];
+    }
+    return local ? JSON.parse(local) : [];
   }
   const { data, error } = await supabase.from(table).select('*');
   if (error) {
     console.error(`Fetch error for ${table}:`, error);
-    return null;
+    return [];
   }
-  return data;
+  return data || [];
+}
+
+/**
+ * Upsert data to Supabase (Insert or Update)
+ */
+export async function upsertData(table: string, item: any) {
+  if (!isSupabaseConfigured) return false;
+  // Remove any undefined fields to prevent Supabase errors if columns don't exist
+  const cleanItem = JSON.parse(JSON.stringify(item));
+  const { error } = await supabase.from(table).upsert(cleanItem);
+  if (error) {
+    console.error(`Upsert error for ${table}:`, error);
+    throw error;
+  }
+  return true;
+}
+
+/**
+ * Delete data from Supabase
+ */
+export async function deleteData(table: string, id: string) {
+  if (!isSupabaseConfigured) return false;
+  const { error } = await supabase.from(table).delete().eq('id', id);
+  if (error) {
+     console.error(`Delete error for ${table}:`, error);
+     throw error;
+  }
+  return true;
 }
 
 export async function uploadMedia(file: File, bucket = 'media') {

@@ -226,3 +226,29 @@ export interface AdminUser {
   phone?: string;
   address?: string;
 }
+
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+export interface SettingsContextType {
+  settings: SiteSettings;
+  updateSettings: (newSettings: Partial<SiteSettings>) => void;
+  // Global Data State
+  products: Product[];
+  categories: Category[];
+  subCategories: SubCategory[];
+  heroSlides: CarouselSlide[];
+  enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
+  admins: AdminUser[];
+  stats: ProductStats[];
+  // Actions
+  refreshAllData: () => Promise<void>;
+  updateData: (table: string, data: any) => Promise<boolean>;
+  deleteData: (table: string, id: string) => Promise<boolean>;
+  // System State
+  user: any;
+  loadingAuth: boolean;
+  isLocalMode: boolean;
+  saveStatus: SaveStatus;
+  setSaveStatus: (status: SaveStatus) => void;
+  logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
+}

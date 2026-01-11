@@ -6,37 +6,32 @@ import { Enquiry } from '../types';
 import { useNavigate } from 'react-router-dom';
 
 const Contact: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, updateData } = useSettings();
   const navigate = useNavigate();
   const [formState, setFormState] = useState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API delay
-    setTimeout(() => {
-      const newEnquiry: Enquiry = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...formState,
-        createdAt: Date.now(),
-        status: 'unread'
-      };
+    const newEnquiry: Enquiry = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...formState,
+      createdAt: Date.now(),
+      status: 'unread'
+    };
 
-      // Save to localStorage for Admin consumption
-      const existing = JSON.parse(localStorage.getItem('admin_enquiries') || '[]');
-      localStorage.setItem('admin_enquiries', JSON.stringify([newEnquiry, ...existing]));
+    // Save to Supabase
+    await updateData('enquiries', newEnquiry);
 
-      setIsSubmitting(false);
-      setSubmitted(true);
-      setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
-      
-      // Reset success message after 5 seconds
-      setTimeout(() => setSubmitted(false), 5000);
-    }, 1500);
+    setIsSubmitting(false);
+    setSubmitted(true);
+    setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
+    
+    setTimeout(() => setSubmitted(false), 5000);
   };
 
   const faqs = [

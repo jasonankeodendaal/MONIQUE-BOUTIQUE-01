@@ -10,29 +10,11 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud } from './lib/supabase';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus } from './types';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
+import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Check, Loader2, AlertTriangle } from 'lucide-react';
-
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
-
-interface SettingsContextType {
-  settings: SiteSettings;
-  products: Product[];
-  categories: Category[];
-  subCategories: SubCategory[];
-  heroSlides: CarouselSlide[];
-  updateSettings: (newSettings: Partial<SiteSettings>) => void;
-  refreshData: (type: 'products' | 'categories' | 'hero' | 'all') => Promise<void>;
-  user: User | null;
-  loadingAuth: boolean;
-  isLocalMode: boolean;
-  saveStatus: SaveStatus;
-  setSaveStatus: (status: SaveStatus) => void;
-  logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
-}
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
@@ -141,79 +123,82 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
-  
-  // Content State
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
   const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(INITIAL_CAROUSEL);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>(INITIAL_ENQUIRIES);
+  const [admins, setAdmins] = useState<AdminUser[]>(INITIAL_ADMINS);
+  const [stats, setStats] = useState<ProductStats[]>([]);
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
-  const refreshData = async (type: 'products' | 'categories' | 'hero' | 'all') => {
-    if (!isSupabaseConfigured) {
-      // Refresh from LocalStorage if not connected
-      if (type === 'all' || type === 'products') setProducts(JSON.parse(localStorage.getItem('admin_products') || JSON.stringify(INITIAL_PRODUCTS)));
-      if (type === 'all' || type === 'categories') setCategories(JSON.parse(localStorage.getItem('admin_categories') || JSON.stringify(INITIAL_CATEGORIES)));
-      if (type === 'all' || type === 'hero') setHeroSlides(JSON.parse(localStorage.getItem('admin_hero') || JSON.stringify(INITIAL_CAROUSEL)));
-      return;
-    }
-
-    try {
-      if (type === 'all' || type === 'products') {
-        const p = await fetchTableData('products');
-        if (p && p.length > 0) setProducts(p);
-      }
-      if (type === 'all' || type === 'categories') {
-        const c = await fetchTableData('categories');
-        const s = await fetchTableData('subcategories');
-        if (c && c.length > 0) setCategories(c);
-        if (s && s.length > 0) setSubCategories(s);
-      }
-      if (type === 'all' || type === 'hero') {
-        const h = await fetchTableData('hero_slides');
-        if (h && h.length > 0) setHeroSlides(h);
-      }
-    } catch (e) {
-      console.error("Error refreshing data", e);
-    }
-  };
-
-  const initData = async () => {
+  const refreshAllData = async () => {
     setSaveStatus('saving');
     try {
       if (isSupabaseConfigured) {
-        // Settings
+        // 1. Fetch Settings
         const remoteSettings = await fetchTableData('settings');
         if (!remoteSettings || remoteSettings.length === 0) {
-          console.log("Supabase empty. Migrating defaults...");
-          await supabase.from('settings').upsert([INITIAL_SETTINGS]);
-          await syncLocalToCloud('products', INITIAL_PRODUCTS);
-          await syncLocalToCloud('categories', INITIAL_CATEGORIES);
-          await syncLocalToCloud('subcategories', INITIAL_SUBCATEGORIES);
-          await syncLocalToCloud('hero_slides', INITIAL_CAROUSEL);
+          // Migration: Push local to cloud if cloud is empty
+          console.log("Supabase empty. Synchronizing local bridge config...");
+          await upsertData('settings', settings);
+          await syncLocalToCloud('products', products);
+          await syncLocalToCloud('categories', categories);
+          await syncLocalToCloud('subcategories', subCategories);
+          await syncLocalToCloud('hero_slides', heroSlides);
         } else {
           setSettings(remoteSettings[0] as SiteSettings);
         }
 
-        // Fetch Content
-        await refreshData('all');
+        // 2. Fetch Entities
+        const p = await fetchTableData('products');
+        if (p.length) setProducts(p);
+        
+        const c = await fetchTableData('categories');
+        if (c.length) setCategories(c);
+        
+        const sc = await fetchTableData('subcategories');
+        if (sc.length) setSubCategories(sc);
+
+        const hs = await fetchTableData('hero_slides');
+        if (hs.length) setHeroSlides(hs);
+
+        const enq = await fetchTableData('enquiries');
+        if (enq.length) setEnquiries(enq);
+
+        const adm = await fetchTableData('admin_users');
+        if (adm.length) setAdmins(adm);
+
+        const st = await fetchTableData('product_stats');
+        if (st.length) setStats(st);
+
       } else {
-        const local = localStorage.getItem('site_settings');
-        if (local) setSettings(JSON.parse(local));
-        refreshData('all');
+        // Local Mode Fallback
+        const localSettings = localStorage.getItem('site_settings');
+        if (localSettings) setSettings(JSON.parse(localSettings));
+        const localProds = localStorage.getItem('admin_products');
+        if (localProds) setProducts(JSON.parse(localProds));
+        const localCats = localStorage.getItem('admin_categories');
+        if (localCats) setCategories(JSON.parse(localCats));
+        const localSubs = localStorage.getItem('admin_subcategories');
+        if (localSubs) setSubCategories(JSON.parse(localSubs));
+        const localHero = localStorage.getItem('admin_hero');
+        if (localHero) setHeroSlides(JSON.parse(localHero));
+        const localEnq = localStorage.getItem('admin_enquiries');
+        if (localEnq) setEnquiries(JSON.parse(localEnq));
       }
       setSaveStatus('saved');
     } catch (e) {
-      console.error("Init failed", e);
+      console.error("Data sync failed", e);
       setSaveStatus('error');
     }
   };
 
   useEffect(() => {
-    initData();
+    refreshAllData();
     if (isSupabaseConfigured) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null);
@@ -234,18 +219,58 @@ const App: React.FC = () => {
     setSettings(updated);
     
     if (isSupabaseConfigured) {
-      const { error } = await supabase.from('settings').upsert([updated]);
-      if (error) setSaveStatus('error');
-      else setSaveStatus('saved');
+      await upsertData('settings', updated);
+      setSaveStatus('saved');
     } else {
       localStorage.setItem('site_settings', JSON.stringify(updated));
       setTimeout(() => setSaveStatus('saved'), 500);
     }
   };
 
+  const updateData = async (table: string, data: any) => {
+    setSaveStatus('saving');
+    try {
+      if (isSupabaseConfigured) {
+        await upsertData(table, data);
+      } else {
+        // Fallback for local simulation
+        const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        const updated = existing.some((i: any) => i.id === data.id) 
+           ? existing.map((i: any) => i.id === data.id ? data : i)
+           : [data, ...existing];
+        localStorage.setItem(key, JSON.stringify(updated));
+      }
+      await refreshAllData(); // Re-fetch to sync state
+      return true;
+    } catch (e) {
+      setSaveStatus('error');
+      return false;
+    }
+  };
+
+  const deleteData = async (table: string, id: string) => {
+    setSaveStatus('saving');
+    try {
+      if (isSupabaseConfigured) {
+        await deleteSupabaseData(table, id);
+      } else {
+        const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        const updated = existing.filter((i: any) => i.id !== id);
+        localStorage.setItem(key, JSON.stringify(updated));
+      }
+      await refreshAllData();
+      return true;
+    } catch (e) {
+      setSaveStatus('error');
+      return false;
+    }
+  };
+
   const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
     const newEvent = {
-      // id: Date.now().toString(), // Let DB handle ID
+      id: Date.now().toString(),
       type,
       text: type === 'view' ? `Page View: ${label}` : label,
       time: new Date().toLocaleTimeString(),
@@ -270,9 +295,11 @@ const App: React.FC = () => {
 
   return (
     <SettingsContext.Provider value={{ 
-      settings, products, categories, subCategories, heroSlides,
-      updateSettings, refreshData, user, loadingAuth, 
-      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent 
+      settings, updateSettings, 
+      products, categories, subCategories, heroSlides, enquiries, admins, stats,
+      refreshAllData, updateData, deleteData,
+      user, loadingAuth, 
+      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent
     }}>
       <Router>
         <ScrollToTop />

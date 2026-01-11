@@ -43,7 +43,7 @@ const Products: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredSubCategories = useMemo(() => {
+  const currentSubCategories = useMemo(() => {
     if (selectedCat === 'all') return [];
     return subCategories.filter((s: any) => s.categoryId === selectedCat);
   }, [selectedCat, subCategories]);
@@ -192,7 +192,7 @@ const Products: React.FC = () => {
               >
                 Show All
               </button>
-              {filteredSubCategories.map((sub: any) => (
+              {currentSubCategories.map((sub: any) => (
                 <button
                   key={sub.id}
                   onClick={() => setSelectedSub(sub.id)}

@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
+import { CarouselSlide } from '../types';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../App';
 
 const Hero: React.FC = () => {
-  const { settings, heroSlides: slides } = useSettings();
+  const { settings, heroSlides } = useSettings();
   
+  const slides = useMemo(() => heroSlides || [], [heroSlides]);
+
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
