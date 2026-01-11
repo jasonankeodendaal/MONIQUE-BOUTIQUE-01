@@ -14,7 +14,7 @@ import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, A
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 };
 
 const Footer: React.FC = () => {
-  const { settings, user } = useSettings();
+  const { settings, user, saveStatus } = useSettings();
   const location = useLocation();
   if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
 
@@ -78,9 +78,20 @@ const Footer: React.FC = () => {
         </div>
         <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>&copy; {new Date().getFullYear()} {settings.companyName}. {settings.footerCopyrightText}</p>
-          <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
-            Bridge Concierge Portal
-          </Link>
+          <div className="flex items-center gap-3">
+            <div 
+              className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' :
+                saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]' :
+                saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
+                'bg-slate-700'
+              }`} 
+              title={`System Status: ${saveStatus}`}
+            />
+            <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
+              Bridge Concierge Portal
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
@@ -91,24 +102,6 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return null;
-};
-
-const SaveStatusIndicator = ({ status }: { status: SaveStatus }) => {
-  if (status === 'idle') return null;
-  return (
-    <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl transition-all duration-300 ${
-      status === 'error' ? 'bg-red-500 text-white' : 'bg-slate-900 text-white border border-slate-800'
-    } animate-in slide-in-from-bottom-4`}>
-      {status === 'saving' && <Loader2 size={16} className="animate-spin text-primary" />}
-      {status === 'saved' && <Check size={16} className="text-green-500" />}
-      {status === 'error' && <AlertTriangle size={16} className="text-white" />}
-      <span className="text-[10px] font-black uppercase tracking-widest">
-        {status === 'saving' && 'Syncing Supabase...'}
-        {status === 'saved' && 'Cloud Sync Complete'}
-        {status === 'error' && 'Sync Failed'}
-      </span>
-    </div>
-  );
 };
 
 const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void }) => {
@@ -321,7 +314,6 @@ const App: React.FC = () => {
       <Router>
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
-        <SaveStatusIndicator status={saveStatus} />
         <style>{`
           .text-primary { color: var(--primary-color); }
           .bg-primary { background-color: var(--primary-color); }

@@ -448,11 +448,35 @@ git push -u origin main`,
     description: 'The Concept: To make the "Sync Failed" error disappear, your database needs to know what "Products" and "Settings" look like. Run this complete script to build the entire backend structure instantly.',
     code: `-- 1. STORAGE BUCKETS
 insert into storage.buckets (id, name, public) values ('media', 'media', true) on conflict (id) do nothing;
-create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
-create policy "Admin Control" on storage.objects for all using ( auth.role() = 'authenticated' );
 
 -- 2. CORE TABLES
-create table if not exists settings (id text primary key, "companyName" text, slogan text, "companyLogo" text, "companyLogoUrl" text, "primaryColor" text, "secondaryColor" text, "accentColor" text, "navHomeLabel" text, "navProductsLabel" text, "navAboutLabel" text, "navContactLabel" text, "navDashboardLabel" text, "contactEmail" text, "contactPhone" text, "whatsappNumber" text, address text, "socialLinks" jsonb, "footerDescription" text, "footerCopyrightText" text, "homeHeroBadge" text, "homeAboutTitle" text, "homeAboutDescription" text, "homeAboutImage" text, "homeAboutCta" text, "homeCategorySectionTitle" text, "homeCategorySectionSubtitle" text, "homeTrustSectionTitle" text, "homeTrustItem1Title" text, "homeTrustItem1Desc" text, "homeTrustItem1Icon" text, "homeTrustItem2Title" text, "homeTrustItem2Desc" text, "homeTrustItem2Icon" text, "homeTrustItem3Title" text, "homeTrustItem3Desc" text, "homeTrustItem3Icon" text, "productsHeroTitle" text, "productsHeroSubtitle" text, "productsHeroImage" text, "productsHeroImages" jsonb, "productsSearchPlaceholder" text, "aboutHeroTitle" text, "aboutHeroSubtitle" text, "aboutMainImage" text, "aboutEstablishedYear" text, "aboutFounderName" text, "aboutLocation" text, "aboutHistoryTitle" text, "aboutHistoryBody" text, "aboutMissionTitle" text, "aboutMissionBody" text, "aboutMissionIcon" text, "aboutCommunityTitle" text, "aboutCommunityBody" text, "aboutCommunityIcon" text, "aboutIntegrityTitle" text, "aboutIntegrityBody" text, "aboutIntegrityIcon" text, "aboutSignatureImage" text, "aboutGalleryImages" jsonb, "contactHeroTitle" text, "contactHeroSubtitle" text, "contactFormNameLabel" text, "contactFormEmailLabel" text, "contactFormSubjectLabel" text, "contactFormMessageLabel" text, "contactFormButtonText" text, "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text, "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text, "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text, "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text);
+create table if not exists settings (
+  id text primary key, 
+  "companyName" text, slogan text, "companyLogo" text, "companyLogoUrl" text, 
+  "primaryColor" text, "secondaryColor" text, "accentColor" text, 
+  "navHomeLabel" text, "navProductsLabel" text, "navAboutLabel" text, "navContactLabel" text, "navDashboardLabel" text, 
+  "contactEmail" text, "contactPhone" text, "whatsappNumber" text, address text, "socialLinks" jsonb, 
+  "footerDescription" text, "footerCopyrightText" text, 
+  "homeHeroBadge" text, "homeAboutTitle" text, "homeAboutDescription" text, "homeAboutImage" text, "homeAboutCta" text, 
+  "homeCategorySectionTitle" text, "homeCategorySectionSubtitle" text, 
+  "homeTrustSectionTitle" text, "homeTrustItem1Title" text, "homeTrustItem1Desc" text, "homeTrustItem1Icon" text, 
+  "homeTrustItem2Title" text, "homeTrustItem2Desc" text, "homeTrustItem2Icon" text, 
+  "homeTrustItem3Title" text, "homeTrustItem3Desc" text, "homeTrustItem3Icon" text, 
+  "productsHeroTitle" text, "productsHeroSubtitle" text, "productsHeroImage" text, "productsHeroImages" jsonb, "productsSearchPlaceholder" text, 
+  "aboutHeroTitle" text, "aboutHeroSubtitle" text, "aboutMainImage" text, 
+  "aboutEstablishedYear" text, "aboutFounderName" text, "aboutLocation" text, 
+  "aboutHistoryTitle" text, "aboutHistoryBody" text, 
+  "aboutMissionTitle" text, "aboutMissionBody" text, "aboutMissionIcon" text, 
+  "aboutCommunityTitle" text, "aboutCommunityBody" text, "aboutCommunityIcon" text, 
+  "aboutIntegrityTitle" text, "aboutIntegrityBody" text, "aboutIntegrityIcon" text, 
+  "aboutSignatureImage" text, "aboutGalleryImages" jsonb, 
+  "contactHeroTitle" text, "contactHeroSubtitle" text, 
+  "contactFormNameLabel" text, "contactFormEmailLabel" text, "contactFormSubjectLabel" text, "contactFormMessageLabel" text, "contactFormButtonText" text, 
+  "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text, 
+  "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text, 
+  "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text, 
+  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "amazonAssociateId" text, "webhookUrl" text
+);
 
 create table if not exists products (id text primary key, name text, sku text, price numeric, "affiliateLink" text, "categoryId" text, "subCategoryId" text, description text, features jsonb, specifications jsonb, media jsonb, "discountRules" jsonb, reviews jsonb, "createdAt" bigint);
 create table if not exists categories (id text primary key, name text, icon text, image text, description text);
@@ -475,24 +499,62 @@ alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
 -- 4. POLICIES (Public Read, Admin Write)
+-- Drop existing policies first to ensure idempotent execution
+drop policy if exists "Public Read Settings" on settings;
 create policy "Public Read Settings" on settings for select using (true);
+
+drop policy if exists "Public Read Products" on products;
 create policy "Public Read Products" on products for select using (true);
+
+drop policy if exists "Public Read Categories" on categories;
 create policy "Public Read Categories" on categories for select using (true);
+
+drop policy if exists "Public Read SubCategories" on subcategories;
 create policy "Public Read SubCategories" on subcategories for select using (true);
+
+drop policy if exists "Public Read Hero" on hero_slides;
 create policy "Public Read Hero" on hero_slides for select using (true);
+
+drop policy if exists "Public Read Stats" on product_stats;
 create policy "Public Read Stats" on product_stats for select using (true);
 
+-- Admin Write Policies
+drop policy if exists "Admin All" on settings;
 create policy "Admin All" on settings for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin Products" on products;
 create policy "Admin Products" on products for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin Categories" on categories;
 create policy "Admin Categories" on categories for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin SubCategories" on subcategories;
 create policy "Admin SubCategories" on subcategories for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin Hero" on hero_slides;
 create policy "Admin Hero" on hero_slides for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin Enquiries" on enquiries;
 create policy "Admin Enquiries" on enquiries for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin Users" on admin_users;
 create policy "Admin Users" on admin_users for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin Stats" on product_stats;
 create policy "Admin Stats" on product_stats for all using (auth.role() = 'authenticated');
 
+drop policy if exists "Public Insert Logs" on traffic_logs;
 create policy "Public Insert Logs" on traffic_logs for insert with check (true);
-create policy "Admin Select Logs" on traffic_logs for select using (auth.role() = 'authenticated');`,
+
+drop policy if exists "Admin Select Logs" on traffic_logs;
+create policy "Admin Select Logs" on traffic_logs for select using (auth.role() = 'authenticated');
+
+-- Storage Policies
+drop policy if exists "Public Access" on storage.objects;
+create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
+
+drop policy if exists "Admin Control" on storage.objects;
+create policy "Admin Control" on storage.objects for all using ( auth.role() = 'authenticated' );`,
     codeLabel: 'Complete Supabase Initialization Script (Run in SQL Editor)',
     tips: 'Why this matters: This script creates all the necessary tables (Products, Settings, etc.) so your app has a place to save data. Without this, you will see a "Sync Failed" error.',
     illustrationId: 'shield'
