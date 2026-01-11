@@ -5,11 +5,11 @@ import {
   Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
   Monitor, Smartphone, User, ShieldCheck,
   LayoutGrid, Globe, Mail, Phone, Palette, Hash, MessageCircle, MapPin, 
-  BookOpen, FileText, Share2, Tag, ArrowRight, Video, ImageIcon, ShoppingBag,
+  BookOpen, FileText, Share2, Tag, ArrowRight, Video, Image, ShoppingBag,
   LayoutPanelTop, Inbox, Calendar, MoreHorizontal, CheckCircle, Percent, LogOut,
   Rocket, Terminal, Copy, Check, Database, Github, Server, AlertTriangle, ExternalLink, RefreshCcw, Flame, Trash,
   Megaphone, Sparkles, Wand2, CopyCheck, Loader2, Users, Key, Lock, Briefcase, Download, UploadCloud, FileJson, Link as LinkIcon, Reply, Paperclip, Send, AlertOctagon,
-  ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Image, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
+  ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin
 } from 'lucide-react';
@@ -75,6 +75,8 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
     }
   };
 
+  const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video');
+
   return (
     <div className="space-y-2 text-left w-full">
        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{label}</label>
@@ -89,16 +91,20 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
             </div>
           ) : value ? (
             <>
-              <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" />
+              {isVideo ? (
+                 <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline />
+              ) : (
+                 <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" />
+              )}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold flex items-center gap-2">
-                   <Upload size={14}/> Replace Image
+                   <Upload size={14}/> Replace Media
                 </div>
               </div>
             </>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-               <ImageIcon size={32} className="mb-3 opacity-50" />
+               <Image size={32} className="mb-3 opacity-50" />
                <span className="text-[10px] font-black uppercase tracking-widest text-center px-4">Click to Upload</span>
             </div>
           )}
@@ -185,73 +191,6 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
     </div>
   );
 };
-
-// ... (Keep TrafficAreaChart, GuideIllustration, PermissionSelector, IconPicker, EmailReplyModal, AdGeneratorModal, CodeBlock as is) ...
-
-// ... (Keep FileUploader but redundant now that we have specific image uploaders, though FileUploader is used for Products which handles MediaFile objects, so keep it for Products only) ...
-const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const processFiles = (incomingFiles: FileList | null) => {
-    if (!incomingFiles) return;
-    Array.from(incomingFiles).forEach(file => {
-      // Direct upload logic for Products
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        let result = e.target?.result as string;
-        if (isSupabaseConfigured) {
-           try {
-             const publicUrl = await uploadMedia(file, 'media');
-             if (publicUrl) result = publicUrl;
-           } catch (err) { console.error("Upload failed", err); }
-        }
-        const newMedia: MediaFile = { 
-          id: Math.random().toString(36).substr(2, 9), 
-          url: result, 
-          name: file.name, 
-          type: file.type, 
-          size: file.size 
-        };
-        onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  return (
-    <div className="space-y-4 text-left w-full">
-      <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[160px]">
-        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-           <Upload className="text-slate-400 group-hover:text-white" size={20} />
-        </div>
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Click or Drag to Upload {label}</p>
-        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
-      </div>
-      
-      {files.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-bottom-2">
-          {files.map(f => (
-            <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
-              {f.type.startsWith('video') ? (
-                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
-              ) : (
-                 <img src={f.url} className="w-full h-full object-cover" alt="preview" />
-              )}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={14}/></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ... (TrafficAreaChart, GuideIllustration, PermissionSelector, IconPicker, EmailReplyModal, AdGeneratorModal, CodeBlock reused from existing context) ...
-// NOTE: I am omitting the re-definition of these unchanged components for brevity, but they should remain in the file. 
-// Assuming the user replaces the file content, I must ensure valid TSX.
-// To ensure the file is complete, I will restore the TrafficAreaChart etc below.
 
 const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   const [regions, setRegions] = useState<{ name: string; traffic: number; status: string }[]>([]);
@@ -350,6 +289,67 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
   const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   return (<div className="relative group mb-6 text-left">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner"><code>{code}</code></pre></div>);
 };
+
+// --- File Uploader ---
+const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const processFiles = (incomingFiles: FileList | null) => {
+    if (!incomingFiles) return;
+    Array.from(incomingFiles).forEach(file => {
+      // Direct upload logic for Products
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        let result = e.target?.result as string;
+        if (isSupabaseConfigured) {
+           try {
+             const publicUrl = await uploadMedia(file, 'media');
+             if (publicUrl) result = publicUrl;
+           } catch (err) { console.error("Upload failed", err); }
+        }
+        const newMedia: MediaFile = { 
+          id: Math.random().toString(36).substr(2, 9), 
+          url: result, 
+          name: file.name, 
+          type: file.type, 
+          size: file.size 
+        };
+        onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  return (
+    <div className="space-y-4 text-left w-full">
+      <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[160px]">
+        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+           <Upload className="text-slate-400 group-hover:text-white" size={20} />
+        </div>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Click or Drag to Upload {label}</p>
+        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
+      </div>
+      
+      {files.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 animate-in fade-in slide-in-from-bottom-2">
+          {files.map(f => (
+            <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
+              {f.type.startsWith('video') ? (
+                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
+              ) : (
+                 <img src={f.url} className="w-full h-full object-cover" alt="preview" />
+              )}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={14}/></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 // --- Main Admin Component ---
 
@@ -632,7 +632,7 @@ const Admin: React.FC = () => {
               <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight (e.g. '100% Silk')" value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
               <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Tag size={18} className="text-primary"/> Specifications</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Key (e.g. Material)" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="w-1/3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" /><input type="text" placeholder="Value (e.g. Silk)" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddSpec()} /><button onClick={handleAddSpec} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{Object.entries(productData.specifications || {}).map(([key, value]) => (<div key={key} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="flex flex-col"><span className="text-[10px] font-black uppercase text-slate-500">{key}</span><span className="text-sm text-slate-300">{value}</span></div><button onClick={() => handleRemoveSpec(key)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
           </div>
-          <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><ImageIcon size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
+          <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
           <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-4 items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
           <div className="flex gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
         </div>
@@ -664,7 +664,12 @@ const Admin: React.FC = () => {
               <div className="grid md:grid-cols-2 gap-6"><SettingField label="Title" value={heroData.title || ''} onChange={v => setHeroData({...heroData, title: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={heroData.type} onChange={e => setHeroData({...heroData, type: e.target.value as any})}><option value="image">Image</option><option value="video">Video</option></select></div></div>
               <SettingField label="Subtitle" value={heroData.subtitle || ''} onChange={v => setHeroData({...heroData, subtitle: v})} type="textarea" />
               <SettingField label="Button Label" value={heroData.cta || ''} onChange={v => setHeroData({...heroData, cta: v})} />
-              <SingleImageUploader label="Media File" value={heroData.image || ''} onChange={v => setHeroData({...heroData, image: v})} />
+              <SingleImageUploader 
+                label="Media File" 
+                value={heroData.image || ''} 
+                onChange={v => setHeroData({...heroData, image: v})} 
+                accept={heroData.type === 'video' ? "video/*" : "image/*"}
+              />
               <div className="flex gap-4"><button onClick={handleSaveHero} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Slide</button><button onClick={() => setShowHeroForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
            </div> 
         ) : ( 

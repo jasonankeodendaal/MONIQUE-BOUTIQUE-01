@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { Target, Users, Award, ArrowLeft, Star, Heart, Quote, ImageIcon } from 'lucide-react';
+import { Target, Users, Award, ArrowLeft, Star, Heart, Quote } from 'lucide-react';
 import { useSettings } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { CustomIcons } from '../components/CustomIcons';
