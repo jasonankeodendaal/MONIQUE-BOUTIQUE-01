@@ -127,7 +127,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   homeHeroBadge: 'Kasi Couture Exclusive',
   homeAboutTitle: 'Modern Heritage. Timeless Elegance.',
   homeAboutDescription: 'I founded Kasi Couture to bridge the gap between street-inspired authenticity and high-end luxury. Every piece featured here is a testament to the vibrant spirit of Johannesburg refined for the global stage.',
-  homeAboutImage: 'https://images.unsplash.com/photo-1539109136881-3be06109477e?auto=format&fit=crop&q=80&w=1200',
+  homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200', // FIXED URL
   homeAboutCta: 'Read My Story',
   homeCategorySectionTitle: 'Shop by Department',
   homeCategorySectionSubtitle: 'The Collection',

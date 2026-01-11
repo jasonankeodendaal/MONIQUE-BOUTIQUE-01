@@ -276,14 +276,23 @@ const App: React.FC = () => {
       time: new Date().toLocaleTimeString(),
       timestamp: Date.now()
     };
+
+    // Robust logging: Try Supabase, fail gracefully to local storage
     if (isSupabaseConfigured) {
-      // Improved error handling that satisfies TS PromiseLike<void> checks
       supabase.from('traffic_logs').insert([newEvent]).then(
         ({ error }) => {
-          if (error) console.warn("Analytics logging failed silently:", error.message);
+          if (error) {
+             console.warn("Analytics DB Error (Falling back to local):", error.message);
+             // Fallback to local on DB error
+             const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
+             localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
+          }
         },
-        (err: any) => {
-          console.warn("Analytics network error:", err);
+        (err) => {
+           console.warn("Analytics Network Error (Falling back to local):", err);
+           // Fallback to local on Network error
+           const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
+           localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
         }
       );
     } else {
