@@ -12,9 +12,9 @@ import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable, seedDatabase } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, subscribeToTable } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, LogOut } from 'lucide-react';
+import { Check, Loader2, AlertTriangle, CloudUpload, ShoppingBag, Database, WifiOff, LogOut, ShieldAlert } from 'lucide-react';
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'migrating';
 
@@ -39,6 +39,8 @@ interface SettingsContextType {
   setSaveStatus: React.Dispatch<React.SetStateAction<SaveStatus>>;
   logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
   refreshAllData: () => Promise<void>;
+  enableOfflineAdmin: () => void;
+  offlineAdmin: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -50,8 +52,10 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, loadingAuth } = useSettings();
+  const { user, loadingAuth, offlineAdmin } = useSettings();
   
+  if (offlineAdmin) return <>{children}</>;
+
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -66,7 +70,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 };
 
 const Footer: React.FC = () => {
-  const { settings, user } = useSettings();
+  const { settings, user, offlineAdmin } = useSettings();
   const location = useLocation();
   if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
 
@@ -108,7 +112,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>&copy; {new Date().getFullYear()} {settings.companyName}. {settings.footerCopyrightText}</p>
-          <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
+          <Link to={user || offlineAdmin ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
             Bridge Concierge Portal
           </Link>
         </div>
@@ -123,9 +127,19 @@ const ScrollToTop = () => {
   return null;
 };
 
-const SaveStatusIndicator = ({ status, isProvisioned }: { status: SaveStatus, isProvisioned: boolean }) => {
+const SaveStatusIndicator = ({ status, isProvisioned, offlineAdmin }: { status: SaveStatus, isProvisioned: boolean, offlineAdmin: boolean }) => {
   const location = useLocation();
-  if (status === 'idle' || !location.pathname.startsWith('/admin')) return null;
+  if (status === 'idle' && !offlineAdmin) return null;
+  if (!location.pathname.startsWith('/admin')) return null;
+
+  if (offlineAdmin) {
+    return (
+      <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl bg-orange-500 text-white animate-in slide-in-from-bottom-4">
+         <ShieldAlert size={16} />
+         <span className="text-[10px] font-black uppercase tracking-widest">Offline Mode</span>
+      </div>
+    );
+  }
 
   return (
     <div className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-full shadow-2xl transition-all duration-300 ${
@@ -156,7 +170,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 };
 
 const App: React.FC = () => {
-  // STRICT MODE: Initialize null to prevent local fallbacks.
   const [settings, setSettings] = useState<SiteSettings | null>(null); 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -170,34 +183,20 @@ const App: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isDatabaseProvisioned, setIsDatabaseProvisioned] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-
-  // --- SECURITY: LOGOUT ON REFRESH ---
-  useEffect(() => {
-    const enforceSecurityOnMount = async () => {
-      if (!isSupabaseConfigured) return;
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        // Optional: Keep session on refresh or force logout. For security apps, forced logout is safer.
-        // For general apps, keeping session is better UX. 
-        // Commenting out forced signout to allow persistence.
-        // await supabase.auth.signOut();
-        // setUser(null);
-      }
-    };
-    enforceSecurityOnMount();
-  }, []);
+  const [offlineAdmin, setOfflineAdmin] = useState(false);
 
   // --- SECURITY: 15 MINUTE INACTIVITY TIMER ---
   useEffect(() => {
-    if (!user) return;
+    if (!user && !offlineAdmin) return;
     const INACTIVITY_LIMIT = 15 * 60 * 1000;
     let timeoutId: any;
     const resetTimer = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(async () => {
         console.log("Security Protocol: Auto-logout due to inactivity.");
-        await supabase.auth.signOut();
+        if (user) await supabase.auth.signOut();
         setUser(null);
+        setOfflineAdmin(false);
         window.location.hash = '#/login';
       }, INACTIVITY_LIMIT);
     };
@@ -208,7 +207,7 @@ const App: React.FC = () => {
       clearTimeout(timeoutId);
       events.forEach(event => window.removeEventListener(event, resetTimer));
     };
-  }, [user]);
+  }, [user, offlineAdmin]);
 
   const refreshAllData = useCallback(async () => {
     if (!isSupabaseConfigured) {
@@ -224,7 +223,6 @@ const App: React.FC = () => {
     }
 
     try {
-      // Fetch strictly from DB. 
       const [
           settingsRes,
           productsRes,
@@ -241,18 +239,13 @@ const App: React.FC = () => {
           fetchTableData('enquiries')
       ]);
 
-      // ROBUST FALLBACK LOGIC
-      // If DB returns data, use it.
-      // If DB returns null/empty, use INITIAL constants (Bootstrapping Mode).
-      
       if (settingsRes && settingsRes.length > 0) {
           setSettings(settingsRes[0]);
           setIsDatabaseProvisioned(true);
-          console.log("[App] Cloud Data Synced.");
       } else {
           console.warn("[App] Database empty or unreachable. Bootstrapping with local defaults.");
           setSettings(INITIAL_SETTINGS);
-          setIsDatabaseProvisioned(false); // Flags that we need to seed
+          setIsDatabaseProvisioned(false);
       }
       
       setProducts((productsRes && productsRes.length > 0) ? productsRes : (isDatabaseProvisioned ? [] : INITIAL_PRODUCTS));
@@ -265,7 +258,7 @@ const App: React.FC = () => {
 
     } catch (e) {
       console.error("Data Sync Critical Failure:", e);
-      // Failsafe: Ensure app doesn't crash on network error
+      // Failsafe: Ensure app doesn't crash on network error, load local defaults
       setSettings(INITIAL_SETTINGS);
       setProducts(INITIAL_PRODUCTS);
       setCategories(INITIAL_CATEGORIES);
@@ -285,17 +278,22 @@ const App: React.FC = () => {
     }
 
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-         const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
-         if (adminProfile) {
-            setUserRole(adminProfile.role);
-         }
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          const { data: adminProfile } = await supabase.from('admin_users').select('role').eq('id', session.user.id).single();
+          if (adminProfile) {
+              setUserRole(adminProfile.role);
+          }
+        }
+      } catch (e) {
+        console.warn("Auth check failed, likely network issue:", e);
+      } finally {
+        setLoadingAuth(false);
+        await refreshAllData();
       }
-      setLoadingAuth(false);
-      await refreshAllData();
     };
 
     init();
@@ -343,6 +341,10 @@ const App: React.FC = () => {
   }, [refreshAllData]);
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
+    if (offlineAdmin) {
+       setSettings(prev => prev ? ({ ...prev, ...newSettings }) : null);
+       return;
+    }
     setSaveStatus('saving');
     // Optimistic update
     setSettings(prev => prev ? ({ ...prev, ...newSettings }) : null);
@@ -360,10 +362,16 @@ const App: React.FC = () => {
   };
 
   const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
+    if (offlineAdmin) return;
     const newEvent = { id: Date.now().toString(), type, text: type === 'view' ? `Page View: ${label}` : label, time: new Date().toLocaleTimeString(), timestamp: Date.now() };
     if (isSupabaseConfigured) {
       supabase.from('traffic_logs').insert([newEvent]);
     }
+  };
+
+  const enableOfflineAdmin = () => {
+    setOfflineAdmin(true);
+    setLoadingAuth(false);
   };
 
   useEffect(() => {
@@ -381,27 +389,6 @@ const App: React.FC = () => {
     }
   }, [settings]);
 
-  if (!isSupabaseConfigured) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-         <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6 border border-red-500/20">
-           <WifiOff size={40} />
-         </div>
-         <h1 className="text-3xl md:text-5xl font-serif text-white mb-4">Cloud Sync Required</h1>
-         <p className="text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
-           This application requires a secure Supabase connection. Local storage is disabled to ensure single-source data integrity.
-         </p>
-         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-lg w-full text-left">
-           <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Database size={16} className="text-primary"/> Configuration Missing</h3>
-           <code className="block bg-black p-4 rounded-lg text-green-400 font-mono text-xs mb-2">
-             VITE_SUPABASE_URL=...<br/>
-             VITE_SUPABASE_ANON_KEY=...
-           </code>
-         </div>
-      </div>
-    );
-  }
-
   // Block rendering until data is loaded
   if (!dataLoaded || !settings) {
       return (
@@ -416,12 +403,12 @@ const App: React.FC = () => {
   return (
     <SettingsContext.Provider value={{ 
       settings: settings!, updateSettings, products, setProducts, categories, setCategories, subCategories, setSubCategories, heroSlides, setHeroSlides, enquiries, setEnquiries,
-      user, userRole, loadingAuth, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData
+      user, userRole, loadingAuth, isDatabaseProvisioned, saveStatus, setSaveStatus, logEvent, refreshAllData, enableOfflineAdmin, offlineAdmin
     }}>
       <Router>
         <ScrollToTop />
         <TrafficTracker logEvent={logEvent} />
-        <SaveStatusIndicator status={saveStatus} isProvisioned={isDatabaseProvisioned} />
+        <SaveStatusIndicator status={saveStatus} isProvisioned={isDatabaseProvisioned} offlineAdmin={offlineAdmin} />
         <style>{`
           .text-primary { color: var(--primary-color); } 
           .bg-primary { background-color: var(--primary-color); } 

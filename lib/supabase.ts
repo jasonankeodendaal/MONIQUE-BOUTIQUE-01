@@ -4,27 +4,29 @@ import { createClient } from '@supabase/supabase-js';
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
 const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
-// Robust URL formatting: Remove whitespace and ensure https:// protocol
-let formattedUrl = rawUrl.trim();
+// Robust URL formatting: Remove quotes, whitespace, and trailing slashes
+// This fixes common Vercel/Env issues where values might be read as '"https://..."'
+let formattedUrl = rawUrl.replace(/["']/g, '').trim().replace(/\/$/, '');
+
 if (formattedUrl && !formattedUrl.startsWith('http')) {
   formattedUrl = `https://${formattedUrl}`;
 }
 
 const supabaseUrl = formattedUrl;
-const supabaseAnonKey = rawKey.trim();
+const supabaseAnonKey = rawKey.replace(/["']/g, '').trim();
 
 if (!supabaseUrl) {
   console.warn("%c[Supabase] URL not found.", "color: orange; font-weight: bold;");
 } else {
-  console.log("%c[Supabase] Configuration detected.", "color: green; font-weight: bold;");
+  console.log(`%c[Supabase] Configuration detected: ${supabaseUrl.substring(0, 15)}...`, "color: green; font-weight: bold;");
 }
 
 // Only consider configured if we have a valid-looking URL and Key
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl.includes('supabase.co') &&
-  supabaseUrl.startsWith('http')
+  supabaseUrl.startsWith('http') && 
+  supabaseAnonKey.length > 20
 );
 
 export const getSupabaseUrl = () => supabaseUrl;
@@ -36,6 +38,7 @@ export const supabase = createClient(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true
     }
   }
 );

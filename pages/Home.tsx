@@ -25,7 +25,10 @@ const Home: React.FC = () => {
     <main className="pt-0">
       <Hero />
       
-      <AboutSection />
+      {/* Bridge Page Focus: Story Section First */}
+      <div id="story">
+        <AboutSection />
+      </div>
 
       <SectionDivider />
 

@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { LogIn, Mail, Lock, AlertCircle, Chrome } from 'lucide-react';
+import { supabase, isSupabaseConfigured, getSupabaseUrl } from '../lib/supabase';
+import { LogIn, Mail, Lock, AlertCircle, Chrome, ShieldAlert, WifiOff } from 'lucide-react';
+import { useSettings } from '../App';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { enableOfflineAdmin } = useSettings();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,12 +49,8 @@ const Login: React.FC = () => {
             // Attempt to insert the profile
             const { error: createError } = await supabase.from('admin_users').insert(newProfile);
             
-            // Ignore 409 conflict (user already exists, possibly race condition with trigger)
             if (createError && createError.code !== '23505') { 
                  console.warn("Profile creation warning:", createError);
-                 if (!createError.message.includes("permission denied")) {
-                    // Log but proceed
-                 }
             }
         }
       }
@@ -60,7 +58,7 @@ const Login: React.FC = () => {
       navigate('/admin');
     } catch (err: any) {
       if (err.message === 'Failed to fetch') {
-        setError('Network Error: Unable to connect to Supabase. Please ensure your VITE_SUPABASE_URL is correct (starts with https://) and your network is active.');
+        setError(`Network Error: Cannot reach ${getSupabaseUrl()}. Ensure you are connected to the internet.`);
       } else {
         setError(err.message || 'Failed to sign in');
       }
@@ -92,6 +90,11 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleOfflineMode = () => {
+    enableOfflineAdmin();
+    navigate('/admin');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-6 py-12 relative overflow-hidden">
       {/* Background Decor */}
@@ -109,9 +112,21 @@ const Login: React.FC = () => {
 
         <div className="bg-slate-900 border border-slate-800 p-6 md:p-10 rounded-[2.5rem] shadow-2xl">
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold animate-in fade-in slide-in-from-top-2 text-left">
-              <AlertCircle size={16} className="flex-shrink-0" />
-              {error}
+            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-2">
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3 text-red-500 text-xs font-bold text-left">
+                <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+              
+              {/* Emergency Bypass Button */}
+              {error.includes("Network Error") && (
+                 <button 
+                   onClick={handleOfflineMode}
+                   className="w-full py-3 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                 >
+                    <ShieldAlert size={14} /> Enter Offline Mode
+                 </button>
+              )}
             </div>
           )}
 
@@ -188,4 +203,3 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-    

@@ -11,7 +11,7 @@ import {
   Megaphone, Sparkles, Wand2, CopyCheck, Loader2, Users, Key, Lock, Briefcase, Download, UploadCloud, FileJson, Link as LinkIcon, Reply, Paperclip, Send, AlertOctagon,
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Image, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
-  BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin, PieChart, ListOrdered, FileVideo, CloudUpload
+  BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin, PieChart, ListOrdered, FileVideo, CloudUpload, ShieldAlert
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_SETTINGS, PERMISSION_TREE, INITIAL_ADMINS, INITIAL_ENQUIRIES, GUIDE_STEPS, EMAIL_TEMPLATE_HTML } from '../constants';
@@ -230,7 +230,8 @@ const Admin: React.FC = () => {
     categories, setCategories,
     subCategories, setSubCategories,
     heroSlides, setHeroSlides,
-    enquiries, setEnquiries
+    enquiries, setEnquiries,
+    offlineAdmin, enableOfflineAdmin
   } = useSettings();
   
   const navigate = useNavigate();
@@ -314,9 +315,17 @@ const Admin: React.FC = () => {
     }
   }, [activeTab]);
 
-  const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
+  const handleLogout = async () => { 
+    if (isSupabaseConfigured && user) await supabase.auth.signOut(); 
+    if (offlineAdmin) window.location.reload(); // Hard refresh to clear state
+    navigate('/login'); 
+  };
   
   const performSave = async (localAction: () => void, tableName?: string, data?: any, deleteId?: string) => {
+    if (offlineAdmin) {
+        localAction();
+        return;
+    }
     setSaveStatus('saving');
     localAction();
     if (isSupabaseConfigured && tableName) {
@@ -387,6 +396,10 @@ const Admin: React.FC = () => {
   });
 
   const handleInitializeDB = async () => {
+     if (offlineAdmin) {
+        alert("You are in Offline Mode. Cannot write to cloud database.");
+        return;
+     }
      if (!confirm("This will overwrite any existing data in the cloud database with the default template. Continue?")) return;
      setIsSeeding(true);
      setSaveStatus('migrating');
@@ -412,13 +425,13 @@ const Admin: React.FC = () => {
   };
 
   const handleSaveProduct = () => {
-     if (!user) return;
+     // Allow offline saves (local state only)
      let newItem: Product;
      if (editingId) {
          const existing = products.find(p => p.id === editingId);
          newItem = { ...existing!, ...productData } as Product;
      } else {
-         newItem = { ...productData, id: Date.now().toString(), createdAt: Date.now(), createdBy: user.id } as Product;
+         newItem = { ...productData, id: Date.now().toString(), createdAt: Date.now(), createdBy: user?.id || 'offline' } as Product;
      }
      performSave(() => { if (editingId) setProducts(prev => prev.map(p => p.id === editingId ? newItem : p)); else setProducts(prev => [newItem, ...prev]); setShowProductForm(false); setEditingId(null); }, 'products', newItem);
   };
@@ -509,7 +522,22 @@ const Admin: React.FC = () => {
   const renderHero = () => (<div className="text-slate-500 p-12 text-center">Visual Editor: Use original code implementation</div>);
   const renderCategories = () => (<div className="text-slate-500 p-12 text-center">Category Manager: Use original code implementation</div>);
   const renderTeam = () => (<div className="text-slate-500 p-12 text-center">Team Manager: Use original code implementation</div>);
-  const renderGuide = () => (<div className="text-slate-500 p-12 text-center">Guide: Use original code implementation</div>);
+  const renderGuide = () => (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h2 className="text-2xl font-serif text-white mb-4">Deployment Guide</h2>
+            <div className="space-y-4">
+                {GUIDE_STEPS.map((step) => (
+                    <div key={step.id} className="p-4 bg-slate-800/50 rounded-xl border border-slate-800">
+                        <h3 className="text-white font-bold mb-2">{step.title}</h3>
+                        <p className="text-slate-400 text-sm mb-4">{step.description}</p>
+                        {step.code && <CodeBlock code={step.code} label={step.codeLabel} />}
+                    </div>
+                ))}
+            </div>
+         </div>
+      </div>
+  );
   
   const renderSiteEditor = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -585,7 +613,7 @@ const Admin: React.FC = () => {
     return (
      <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
         
-        {/* DATABASE SYNC STATUS - CRITICAL UPDATE */}
+        {/* DATABASE SYNC STATUS */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden">
            <div className="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
            <div className="relative z-10">
@@ -594,37 +622,43 @@ const Admin: React.FC = () => {
                     <h3 className="text-white font-bold text-xl md:text-2xl flex items-center gap-3"><Database size={20} className="text-primary"/> Data Synchronization</h3>
                     <p className="text-slate-400 text-xs md:text-sm mt-1.5 md:mt-2">Manage the connection between your bridge page and the cloud.</p>
                  </div>
-                 <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${isDatabaseProvisioned ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
-                    {isDatabaseProvisioned ? 'Fully Synced' : 'Action Required'}
+                 <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${isDatabaseProvisioned && !offlineAdmin ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
+                    {offlineAdmin ? 'Offline Mode' : (isDatabaseProvisioned ? 'Fully Synced' : 'Action Required')}
                  </div>
               </div>
 
-              {!isDatabaseProvisioned && (
+              {(!isDatabaseProvisioned || offlineAdmin) && (
                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 md:p-6 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-start gap-3">
                        <AlertTriangle size={24} className="text-yellow-500 mt-1 flex-shrink-0" />
                        <div className="space-y-1">
-                          <h4 className="text-white font-bold text-sm">Database Empty or Offline</h4>
+                          <h4 className="text-white font-bold text-sm">
+                             {offlineAdmin ? 'Connection Bypassed' : 'Database Empty or Offline'}
+                          </h4>
                           <p className="text-slate-400 text-xs leading-relaxed max-w-lg">
-                             The cloud database appears to be empty or has not been initialized. The site is currently running on a local fallback template. Push the local configuration to the cloud to enable permanent storage and public syncing.
+                             {offlineAdmin 
+                               ? 'You are in Offline Mode. Changes made here will NOT be saved to the cloud. Use this mode to copy your SQL scripts from the Guide tab.' 
+                               : 'The cloud database appears to be empty or has not been initialized. Push the local configuration to the cloud to enable permanent storage.'}
                           </p>
                        </div>
                     </div>
-                    <button 
-                       onClick={handleInitializeDB} 
-                       disabled={isSeeding}
-                       className="whitespace-nowrap px-6 py-3 bg-primary text-slate-900 font-bold uppercase text-[10px] tracking-widest rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
-                    >
-                       {isSeeding ? <Loader2 size={16} className="animate-spin"/> : <CloudUpload size={16} />}
-                       Push Local Data to Cloud
-                    </button>
+                    {!offlineAdmin && (
+                      <button 
+                        onClick={handleInitializeDB} 
+                        disabled={isSeeding}
+                        className="whitespace-nowrap px-6 py-3 bg-primary text-slate-900 font-bold uppercase text-[10px] tracking-widest rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
+                      >
+                        {isSeeding ? <Loader2 size={16} className="animate-spin"/> : <CloudUpload size={16} />}
+                        Push Local Data to Cloud
+                      </button>
+                    )}
                  </div>
               )}
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-6">
                  {[
                    { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' },
-                   { label: 'Supabase Sync', value: isDatabaseProvisioned ? 'Active' : 'Pending', icon: Database, color: isDatabaseProvisioned ? 'text-green-500' : 'text-yellow-500' },
+                   { label: 'Supabase Sync', value: offlineAdmin ? 'Offline' : (isDatabaseProvisioned ? 'Active' : 'Pending'), icon: Database, color: !offlineAdmin && isDatabaseProvisioned ? 'text-green-500' : 'text-yellow-500' },
                    { label: 'Storage Usage', value: '1.2 GB', icon: UploadCloud, color: 'text-blue-500' },
                    { label: 'Total Active Time', value: `${Math.floor(totalSessionTime / 60)}m`, icon: Timer, color: 'text-purple-500' }
                  ].map((item, i) => (
@@ -638,18 +672,6 @@ const Admin: React.FC = () => {
                  ))}
               </div>
            </div>
-        </div>
-
-        {/* Geographic Analytics */}
-        <div className="space-y-4 md:space-y-6">
-           <div className="flex justify-between items-end px-1">
-             <div className="space-y-1 md:space-y-2">
-                <h3 className="text-white font-bold text-lg md:text-xl flex items-center gap-3"><Map size={18} className="text-primary"/> Global Interaction Protocol</h3>
-                <p className="text-slate-500 text-[9px] md:text-xs uppercase tracking-widest font-black opacity-60">High-Precision Geographic Analytics</p>
-             </div>
-           </div>
-           
-           <TrafficAreaChart stats={stats} />
         </div>
 
         {/* Supabase Connection Diagnostics */}
@@ -666,8 +688,8 @@ const Admin: React.FC = () => {
                   <div className="bg-slate-800/50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-700/50">
                      <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1.5 md:mb-2">Connection Status</span>
                      <div className="flex items-center gap-2.5 md:gap-3">
-                        <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                        <span className={`text-base md:text-lg font-bold ${connectionHealth?.status === 'online' ? 'text-white' : 'text-red-400'}`}>{connectionHealth?.status === 'online' ? 'Operational' : 'Disconnected'}</span>
+                        <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${connectionHealth?.status === 'online' && !offlineAdmin ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                        <span className={`text-base md:text-lg font-bold ${connectionHealth?.status === 'online' && !offlineAdmin ? 'text-white' : 'text-red-400'}`}>{connectionHealth?.status === 'online' && !offlineAdmin ? 'Operational' : 'Disconnected'}</span>
                      </div>
                   </div>
                   <div className="bg-slate-800/50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-slate-700/50">
@@ -684,22 +706,14 @@ const Admin: React.FC = () => {
                    {url ? url.replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}
                 </div>
              </div>
-
-             <div className="w-full md:w-72 lg:w-80 space-y-4">
-                <div className="p-6 bg-slate-800 rounded-2xl md:rounded-3xl border border-slate-700 flex flex-col items-center text-center">
-                   <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 text-white ${connectionHealth?.status === 'online' ? 'bg-green-500' : 'bg-slate-600'}`}>
-                      {connectionHealth?.status === 'online' ? <Wifi size={24} className="md:w-8 md:h-8"/> : <WifiOff size={24} className="md:w-8 md:h-8"/>}
-                   </div>
-                   <h4 className="text-white font-bold text-sm md:text-base mb-1">{connectionHealth?.message || 'Checking...'}</h4>
-                   <p className="text-[10px] md:text-xs text-slate-400">Heartbeat: {new Date().toLocaleTimeString()}</p>
-                </div>
-                <div className="p-4 md:p-6 bg-slate-800 rounded-2xl md:rounded-3xl border border-slate-700 text-center">
-                   <span className="text-[9px] md:text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1.5 md:mb-2">Active Identity</span>
-                   <span className="text-xs md:text-sm font-bold text-white truncate w-full block">{user?.email || 'System'}</span>
-                   <span className="text-[8px] md:text-[9px] text-primary uppercase font-bold mt-1 block">{userRole || 'Root'} Identity</span>
-                </div>
-             </div>
            </div>
+        </div>
+
+        {/* Database Provisioning Script (Always Visible for Recovery) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <h3 className="text-white font-bold mb-4 flex items-center gap-2"><Terminal size={18} className="text-primary"/> Database Reset Script</h3>
+            <p className="text-slate-400 text-xs mb-4">If you are stuck in Offline Mode or need to reset your cloud database, copy this SQL and run it in the Supabase SQL Editor.</p>
+            <CodeBlock code={SUPABASE_SCHEMA} language="sql" label="Master SQL Setup Script" />
         </div>
      </div>
     );
@@ -717,7 +731,11 @@ const Admin: React.FC = () => {
         <div className="flex flex-col gap-3 md:gap-6">
           <div className="flex items-center gap-3 md:gap-4 flex-wrap">
             <h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1>
-            <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-primary/10 border border-primary/20 rounded-full text-[8px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em]">{user?.email?.split('@')[0] || 'ADMIN'}</div>
+            {offlineAdmin ? (
+               <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-orange-500/10 border border-orange-500/20 rounded-full text-[8px] md:text-[9px] font-black text-orange-500 uppercase tracking-[0.2em] animate-pulse">OFFLINE MODE</div>
+            ) : (
+               <div className="px-2.5 py-0.5 md:px-3 md:py-1 bg-primary/10 border border-primary/20 rounded-full text-[8px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em]">{user?.email?.split('@')[0] || 'ADMIN'}</div>
+            )}
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
