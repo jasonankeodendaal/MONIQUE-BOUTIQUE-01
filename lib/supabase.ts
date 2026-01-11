@@ -19,94 +19,140 @@ export const getSupabaseUrl = () => supabaseUrl;
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
-  supabaseAnonKey || 'placeholder'
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    }
+  }
 );
 
 // --- HELPER FUNCTIONS ---
 
 export const fetchTableData = async (table: string) => {
   if (!isSupabaseConfigured) return null;
-  const { data, error } = await supabase.from(table).select('*');
-  if (error) {
-    console.warn(`[Supabase] Error fetching ${table}. Using local fallback if available.`, error.message);
+  try {
+    const { data, error } = await supabase.from(table).select('*');
+    if (error) {
+      console.warn(`[Supabase] Error fetching ${table}:`, error.message);
+      // Don't throw, just return null to trigger fallback
+      return null;
+    }
+    return data;
+  } catch (err) {
+    // Catch network errors like "Failed to fetch"
+    console.error(`[Supabase] Network error fetching ${table}:`, err);
     return null;
   }
-  return data;
 };
 
 export const upsertData = async (table: string, data: any) => {
   if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
-  
-  // Clean data: remove undefined fields to avoid Supabase errors if column doesn't exist or isn't nullable
-  const cleanData = JSON.parse(JSON.stringify(data));
-  
-  return await supabase.from(table).upsert(cleanData);
+  try {
+    // Clean data: remove undefined fields
+    const cleanData = JSON.parse(JSON.stringify(data));
+    const result = await supabase.from(table).upsert(cleanData);
+    if (result.error) throw result.error;
+    return result;
+  } catch (err: any) {
+    console.error(`[Supabase] Error upserting to ${table}:`, err);
+    return { error: err };
+  }
 };
 
 export const deleteData = async (table: string, id: string) => {
   if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
-  return await supabase.from(table).delete().eq('id', id);
+  try {
+    const result = await supabase.from(table).delete().eq('id', id);
+    if (result.error) throw result.error;
+    return result;
+  } catch (err: any) {
+    console.error(`[Supabase] Error deleting from ${table}:`, err);
+    return { error: err };
+  }
 };
 
 export const uploadMedia = async (file: File) => {
   if (!isSupabaseConfigured) throw new Error("Storage not configured");
   
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}.${fileExt}`;
-  const filePath = `${fileName}`;
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from('media')
-    .upload(filePath, file);
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filePath, file);
 
-  if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-  const { data } = supabase.storage.from('media').getPublicUrl(filePath);
-  
-  return {
-    url: data.publicUrl,
-    name: file.name,
-    type: file.type,
-    size: file.size
-  };
+    const { data } = supabase.storage.from('media').getPublicUrl(filePath);
+    
+    return {
+      url: data.publicUrl,
+      name: file.name,
+      type: file.type,
+      size: file.size
+    };
+  } catch (err) {
+    console.error("[Supabase] Upload failed:", err);
+    throw err;
+  }
 };
 
 export const subscribeToTable = (table: string, callback: (payload: any) => void) => {
   if (!isSupabaseConfigured) return null;
-  return supabase
-    .channel(`${table}_changes`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: table }, callback)
-    .subscribe();
+  try {
+    return supabase
+      .channel(`${table}_changes`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: table }, callback)
+      .subscribe();
+  } catch (err) {
+    console.error(`[Supabase] Subscription failed for ${table}:`, err);
+    return null;
+  }
 };
 
 export const updateProductStats = async (productId: string, type: 'view' | 'click') => {
   if (!isSupabaseConfigured) return;
   
-  // Call RPC or manual upsert. For simplicity, we'll try to get then update, 
-  // but in production, an RPC function `increment_stat` is better for concurrency.
-  // Here we use a simple upsert flow.
-  const { data: current } = await supabase.from('product_stats').select('*').eq('productId', productId).single();
-  
-  const now = Date.now();
-  const stats = current || { productId, views: 0, clicks: 0, totalViewTime: 0, lastUpdated: now };
-  
-  if (type === 'view') stats.views += 1;
-  if (type === 'click') stats.clicks += 1;
-  stats.lastUpdated = now;
+  try {
+    const { data: current } = await supabase.from('product_stats').select('*').eq('productId', productId).single();
+    
+    const now = Date.now();
+    const stats = current || { productId, views: 0, clicks: 0, totalViewTime: 0, lastUpdated: now };
+    
+    if (type === 'view') stats.views = (stats.views || 0) + 1;
+    if (type === 'click') stats.clicks = (stats.clicks || 0) + 1;
+    stats.lastUpdated = now;
 
-  await supabase.from('product_stats').upsert(stats);
+    await supabase.from('product_stats').upsert(stats);
+  } catch (err) {
+    // Silent fail for stats
+    console.warn("[Supabase] Failed to update stats", err);
+  }
 };
 
 export const measureConnection = async () => {
    if (!isSupabaseConfigured) return { status: 'offline' as const, latency: 0, message: 'Not Configured' };
    const start = performance.now();
-   const { error } = await supabase.from('settings').select('id').limit(1);
-   const end = performance.now();
-   return {
-      status: error ? 'offline' as const : 'online' as const,
-      latency: Math.round(end - start),
-      message: error ? error.message : 'Connected'
-   };
+   try {
+     const { error } = await supabase.from('settings').select('id').limit(1);
+     const end = performance.now();
+     if (error) throw error;
+     return {
+        status: 'online' as const,
+        latency: Math.round(end - start),
+        message: 'Connected'
+     };
+   } catch (err: any) {
+     return {
+        status: 'offline' as const,
+        latency: 0,
+        message: err.message || 'Connection Failed'
+     };
+   }
 };
 
 // --- DATABASE SEEDING ---
@@ -180,9 +226,6 @@ DROP TABLE IF EXISTS subcategories CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS settings CASCADE;
-
--- 1. ENABLE EXTENSIONS (If needed)
--- create extension if not exists "uuid-ossp";
 
 -- 2. CREATE TABLES
 
@@ -280,40 +323,29 @@ alter table traffic_logs enable row level security;
 
 -- 4. CREATE POLICIES
 
--- Settings: Public Read, Admin Write
 create policy "Public Settings Read" on settings for select using (true);
 create policy "Admin Settings Write" on settings for all using (auth.role() = 'authenticated');
 
--- Products: Public Read, Admin Write
 create policy "Public Products Read" on products for select using (true);
 create policy "Admin Products Write" on products for all using (auth.role() = 'authenticated');
 
--- Categories: Public Read, Admin Write
 create policy "Public Categories Read" on categories for select using (true);
 create policy "Admin Categories Write" on categories for all using (auth.role() = 'authenticated');
 
--- Subcategories: Public Read, Admin Write
 create policy "Public Subcategories Read" on subcategories for select using (true);
 create policy "Admin Subcategories Write" on subcategories for all using (auth.role() = 'authenticated');
 
--- Slides: Public Read, Admin Write
 create policy "Public Slides Read" on carousel_slides for select using (true);
 create policy "Admin Slides Write" on carousel_slides for all using (auth.role() = 'authenticated');
 
--- Enquiries: Public Insert, Admin Read/Write
 create policy "Public Enquiries Insert" on enquiries for insert with check (true);
 create policy "Admin Enquiries All" on enquiries for all using (auth.role() = 'authenticated');
 
--- Admin Users: Authenticated Read/Write
--- Allows admins to see other admins and manage them.
 create policy "Admin Users Access" on admin_users for all using (auth.role() = 'authenticated');
 
--- Product Stats: Public Read/Write (for analytics increment)
--- In production, restrict Write to RPC functions, but for simplicity here we allow public update.
 create policy "Public Stats Read" on product_stats for select using (true);
 create policy "Public Stats Update" on product_stats for all using (true);
 
--- Traffic Logs: Public Insert, Admin Read
 create policy "Public Logs Insert" on traffic_logs for insert with check (true);
 create policy "Admin Logs Read" on traffic_logs for select using (auth.role() = 'authenticated');
 
