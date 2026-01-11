@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -116,6 +115,8 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
+  const [settingsId, setSettingsId] = useState<string>('global'); // Track the DB ID for settings
+  
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
@@ -137,13 +138,20 @@ const App: React.FC = () => {
         if (!remoteSettings || remoteSettings.length === 0) {
           // Migration: Push local to cloud if cloud is empty
           console.log("Supabase empty. Synchronizing local bridge config...");
-          await upsertData('settings', settings);
+          
+          // Fix: Ensure ID is present for settings singleton
+          await upsertData('settings', { ...settings, id: 'global' });
+          setSettingsId('global');
+          
           await syncLocalToCloud('products', products);
           await syncLocalToCloud('categories', categories);
           await syncLocalToCloud('subcategories', subCategories);
           await syncLocalToCloud('hero_slides', heroSlides);
         } else {
-          setSettings(remoteSettings[0] as SiteSettings);
+          // Use the ID from the database for future updates
+          const { id, ...rest } = remoteSettings[0];
+          setSettingsId(id);
+          setSettings(rest as SiteSettings);
         }
 
         // 2. Fetch Entities
@@ -212,7 +220,8 @@ const App: React.FC = () => {
     setSettings(updated);
     
     if (isSupabaseConfigured) {
-      await upsertData('settings', updated);
+      // Ensure we use the correct ID when updating
+      await upsertData('settings', { ...updated, id: settingsId });
       setSaveStatus('saved');
     } else {
       localStorage.setItem('site_settings', JSON.stringify(updated));
@@ -270,20 +279,17 @@ const App: React.FC = () => {
       timestamp: Date.now()
     };
 
-    // Robust logging: Try Supabase, fail gracefully to local storage
     if (isSupabaseConfigured) {
       supabase.from('traffic_logs').insert([newEvent]).then(
         ({ error }) => {
           if (error) {
              console.warn("Analytics DB Error (Falling back to local):", error.message);
-             // Fallback to local on DB error
              const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
              localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
           }
         },
         (err) => {
            console.warn("Analytics Network Error (Falling back to local):", err);
-           // Fallback to local on Network error
            const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
            localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
         }
