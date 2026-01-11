@@ -1,18 +1,12 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
-import { INITIAL_CAROUSEL } from '../constants';
-import { CarouselSlide } from '../types';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../App';
 
 const Hero: React.FC = () => {
-  const { settings } = useSettings();
-  const slides = useMemo<CarouselSlide[]>(() => {
-    const saved = localStorage.getItem('admin_hero');
-    return saved ? JSON.parse(saved) : INITIAL_CAROUSEL;
-  }, []);
-
+  const { settings, heroSlides: slides } = useSettings();
+  
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 

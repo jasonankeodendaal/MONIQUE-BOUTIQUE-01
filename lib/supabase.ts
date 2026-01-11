@@ -24,6 +24,28 @@ export async function syncLocalToCloud(table: string, data: any[]) {
 }
 
 /**
+ * Generic Upsert for Single or Multiple Items
+ */
+export async function upsertData(table: string, data: any) {
+  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
+  
+  // Clean data: remove undefined fields to prevent DB errors
+  const clean = Array.isArray(data) 
+    ? data.map(item => JSON.parse(JSON.stringify(item))) 
+    : JSON.parse(JSON.stringify(data));
+
+  return await supabase.from(table).upsert(clean);
+}
+
+/**
+ * Delete Item
+ */
+export async function deleteData(table: string, id: string) {
+  if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
+  return await supabase.from(table).delete().match({ id });
+}
+
+/**
  * Fetch all data for a specific table
  */
 export async function fetchTableData(table: string) {

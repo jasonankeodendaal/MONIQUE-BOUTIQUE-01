@@ -1,14 +1,12 @@
 
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Search, ExternalLink, ShoppingBag, CheckCircle, FileText, Video as VideoIcon, ChevronDown, Filter, ArrowUpDown, ArrowRight, ArrowLeft } from 'lucide-react';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES } from '../constants';
 import { useSettings } from '../App';
 import { Product } from '../types';
 
 const Products: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, products, categories, subCategories } = useSettings();
   const navigate = useNavigate();
   const query = new URLSearchParams(useLocation().search);
   const initialCat = query.get('category');
@@ -45,17 +43,10 @@ const Products: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const products = useMemo<Product[]>(() => {
-    const saved = localStorage.getItem('admin_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-  }, []);
-
-  const subCategories = useMemo(() => {
-    const savedSubs = localStorage.getItem('admin_subcategories');
-    const subs = savedSubs ? JSON.parse(savedSubs) : INITIAL_SUBCATEGORIES;
+  const filteredSubCategories = useMemo(() => {
     if (selectedCat === 'all') return [];
-    return subs.filter((s: any) => s.categoryId === selectedCat);
-  }, [selectedCat]);
+    return subCategories.filter((s: any) => s.categoryId === selectedCat);
+  }, [selectedCat, subCategories]);
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((p: Product) => {
@@ -174,7 +165,7 @@ const Products: React.FC = () => {
             >
               All
             </button>
-            {INITIAL_CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => { setSelectedCat(cat.id); setSelectedSub('all'); }}
@@ -201,7 +192,7 @@ const Products: React.FC = () => {
               >
                 Show All
               </button>
-              {subCategories.map((sub: any) => (
+              {filteredSubCategories.map((sub: any) => (
                 <button
                   key={sub.id}
                   onClick={() => setSelectedSub(sub.id)}
