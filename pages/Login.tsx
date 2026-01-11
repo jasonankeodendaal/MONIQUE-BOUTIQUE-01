@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { LogIn, Mail, Lock, AlertCircle, Chrome } from 'lucide-react';
 
 const Login: React.FC = () => {
@@ -15,6 +15,13 @@ const Login: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
+    // Pre-check for configuration before attempting network request
+    if (!isSupabaseConfigured) {
+       setError('System Error: Supabase is not configured. Please check your VITE_SUPABASE_URL environment variable.');
+       setLoading(false);
+       return;
+    }
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -43,9 +50,8 @@ const Login: React.FC = () => {
             // Ignore 409 conflict (user already exists, possibly race condition with trigger)
             if (createError && createError.code !== '23505') { 
                  console.warn("Profile creation warning:", createError);
-                 // Only show error if it's not a permission/conflict issue we can ignore
                  if (!createError.message.includes("permission denied")) {
-                    // Log but proceed, as login might still work if trigger handled it
+                    // Log but proceed
                  }
             }
         }
@@ -53,7 +59,11 @@ const Login: React.FC = () => {
 
       navigate('/admin');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      if (err.message === 'Failed to fetch') {
+        setError('Network Error: Unable to connect to Supabase. Please ensure your VITE_SUPABASE_URL is correct (starts with https://) and your network is active.');
+      } else {
+        setError(err.message || 'Failed to sign in');
+      }
     } finally {
       setLoading(false);
     }
@@ -178,3 +188,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+    

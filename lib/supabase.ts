@@ -4,7 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
 const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
-const supabaseUrl = rawUrl.trim();
+// Robust URL formatting: Remove whitespace and ensure https:// protocol
+let formattedUrl = rawUrl.trim();
+if (formattedUrl && !formattedUrl.startsWith('http')) {
+  formattedUrl = `https://${formattedUrl}`;
+}
+
+const supabaseUrl = formattedUrl;
 const supabaseAnonKey = rawKey.trim();
 
 if (!supabaseUrl) {
@@ -13,7 +19,13 @@ if (!supabaseUrl) {
   console.log("%c[Supabase] Configuration detected.", "color: green; font-weight: bold;");
 }
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
+// Only consider configured if we have a valid-looking URL and Key
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && 
+  supabaseAnonKey && 
+  supabaseUrl.includes('supabase.co') &&
+  supabaseUrl.startsWith('http')
+);
 
 export const getSupabaseUrl = () => supabaseUrl;
 
@@ -36,12 +48,10 @@ export const fetchTableData = async (table: string) => {
     const { data, error } = await supabase.from(table).select('*');
     if (error) {
       console.warn(`[Supabase] Error fetching ${table}:`, error.message);
-      // Don't throw, just return null to trigger fallback
       return null;
     }
     return data;
   } catch (err) {
-    // Catch network errors like "Failed to fetch"
     console.error(`[Supabase] Network error fetching ${table}:`, err);
     return null;
   }
@@ -50,7 +60,6 @@ export const fetchTableData = async (table: string) => {
 export const upsertData = async (table: string, data: any) => {
   if (!isSupabaseConfigured) return { error: { message: 'Supabase not configured' } };
   try {
-    // Clean data: remove undefined fields
     const cleanData = JSON.parse(JSON.stringify(data));
     const result = await supabase.from(table).upsert(cleanData);
     if (result.error) throw result.error;
@@ -116,20 +125,15 @@ export const subscribeToTable = (table: string, callback: (payload: any) => void
 
 export const updateProductStats = async (productId: string, type: 'view' | 'click') => {
   if (!isSupabaseConfigured) return;
-  
   try {
     const { data: current } = await supabase.from('product_stats').select('*').eq('productId', productId).single();
-    
     const now = Date.now();
     const stats = current || { productId, views: 0, clicks: 0, totalViewTime: 0, lastUpdated: now };
-    
     if (type === 'view') stats.views = (stats.views || 0) + 1;
     if (type === 'click') stats.clicks = (stats.clicks || 0) + 1;
     stats.lastUpdated = now;
-
     await supabase.from('product_stats').upsert(stats);
   } catch (err) {
-    // Silent fail for stats
     console.warn("[Supabase] Failed to update stats", err);
   }
 };
@@ -155,8 +159,6 @@ export const measureConnection = async () => {
    }
 };
 
-// --- DATABASE SEEDING ---
-
 export const seedDatabase = async (initialData: {
   settings: any;
   products: any[];
@@ -165,34 +167,24 @@ export const seedDatabase = async (initialData: {
   slides: any[];
 }) => {
   if (!isSupabaseConfigured) return { success: false, error: 'Not Configured' };
-
   console.log("Creating Seed Data in Supabase...");
-
   try {
-    // 1. Settings
     const settingsWithId = { ...initialData.settings, id: 'global_settings' };
     const { error: sErr } = await supabase.from('settings').upsert(settingsWithId);
     if (sErr) throw sErr;
 
-    // 2. Categories
     if (initialData.categories.length > 0) {
       const { error: cErr } = await supabase.from('categories').upsert(initialData.categories);
       if (cErr) throw cErr;
     }
-
-    // 3. SubCategories
     if (initialData.subCategories.length > 0) {
       const { error: scErr } = await supabase.from('subcategories').upsert(initialData.subCategories);
       if (scErr) throw scErr;
     }
-
-    // 4. Slides
     if (initialData.slides.length > 0) {
       const { error: hErr } = await supabase.from('carousel_slides').upsert(initialData.slides);
       if (hErr) throw hErr;
     }
-
-    // 5. Products
     if (initialData.products.length > 0) {
       const { error: pErr } = await supabase.from('products').upsert(initialData.products);
       if (pErr) throw pErr;
@@ -205,9 +197,6 @@ export const seedDatabase = async (initialData: {
     return { success: false, error: err.message };
   }
 };
-
-
-// --- SQL SCHEMA FOR ADMIN SQL EDITOR ---
 
 export const SUPABASE_SCHEMA = `
 -- #####################################################

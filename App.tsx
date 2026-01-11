@@ -61,7 +61,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
     </div>
   );
   
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" />;
   return <>{children}</>;
 };
 
@@ -441,7 +441,11 @@ const App: React.FC = () => {
               <Route path="/contact" element={<Contact />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                   <Admin />
+                </ProtectedRoute>
+              } />
               <Route path="/disclosure" element={<Legal />} />
               <Route path="/privacy" element={<Legal />} />
               <Route path="/terms" element={<Legal />} />

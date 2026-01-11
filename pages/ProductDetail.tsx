@@ -7,7 +7,7 @@ import { Product, ProductStats, Review } from '../types';
 import { upsertData, updateProductStats } from '../lib/supabase';
 
 const ProductDetail: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{id: string}>();
   const navigate = useNavigate();
   const { settings, products, categories, refreshAllData } = useSettings();
   
