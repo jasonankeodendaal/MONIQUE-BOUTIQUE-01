@@ -15,8 +15,7 @@ export const supabase = createClient(
 );
 
 /**
- * Sync Local to Cloud - Legacy support for migration only.
- * In a strict cloud env, this is rarely used after init.
+ * Sync Local to Cloud - Used for first-time setup migration
  */
 export async function syncLocalToCloud(table: string, data: any[]) {
   if (!isSupabaseConfigured || !data.length) return;
@@ -26,16 +25,19 @@ export async function syncLocalToCloud(table: string, data: any[]) {
 
 /**
  * Fetch all data for a specific table
- * STRICT MODE: Returns empty array if no Supabase connection.
  */
 export async function fetchTableData(table: string) {
   if (!isSupabaseConfigured) {
-    console.warn(`Supabase not configured. Cannot fetch ${table}.`);
-    return [];
+    // Return local storage fallback if no cloud is connected
+    const local = localStorage.getItem(`admin_${table}`);
+    // Map 'settings' table to 'site_settings' local key special case
+    if (table === 'settings') {
+        const s = localStorage.getItem('site_settings');
+        return s ? [JSON.parse(s)] : [];
+    }
+    return local ? JSON.parse(local) : [];
   }
-  
   const { data, error } = await supabase.from(table).select('*');
-  
   if (error) {
     console.error(`Fetch error for ${table}:`, error);
     return [];
@@ -47,11 +49,9 @@ export async function fetchTableData(table: string) {
  * Upsert data to Supabase (Insert or Update)
  */
 export async function upsertData(table: string, item: any) {
-  if (!isSupabaseConfigured) throw new Error("Database not connected");
-  
-  // Remove any undefined fields to prevent Supabase errors
+  if (!isSupabaseConfigured) return false;
+  // Remove any undefined fields to prevent Supabase errors if columns don't exist
   const cleanItem = JSON.parse(JSON.stringify(item));
-  
   const { error } = await supabase.from(table).upsert(cleanItem);
   if (error) {
     console.error(`Upsert error for ${table}:`, error);
@@ -64,8 +64,7 @@ export async function upsertData(table: string, item: any) {
  * Delete data from Supabase
  */
 export async function deleteData(table: string, id: string) {
-  if (!isSupabaseConfigured) throw new Error("Database not connected");
-  
+  if (!isSupabaseConfigured) return false;
   const { error } = await supabase.from(table).delete().eq('id', id);
   if (error) {
      console.error(`Delete error for ${table}:`, error);
@@ -75,7 +74,7 @@ export async function deleteData(table: string, id: string) {
 }
 
 export async function uploadMedia(file: File, bucket = 'media') {
-  if (!isSupabaseConfigured) throw new Error("Storage not connected");
+  if (!isSupabaseConfigured) return URL.createObjectURL(file);
 
   const fileExt = file.name.split('.').pop();
   const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;

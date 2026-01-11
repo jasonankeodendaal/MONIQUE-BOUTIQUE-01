@@ -11,8 +11,8 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus } from './types';
-import { INITIAL_SETTINGS } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData } from './lib/supabase';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
+import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -25,17 +25,12 @@ export const useSettings = () => {
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { user, loadingAuth, isLocalMode } = useSettings();
-  
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
     </div>
   );
-
-  // In strict cloud mode, we need a user. 
-  // If config is missing, we allow access to setup but data won't save.
-  if (!isSupabaseConfigured) return <>{children}</>; 
-  
+  if (isLocalMode) return <>{children}</>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
@@ -177,6 +172,7 @@ const TrackingInjector = () => {
     }
   }, [settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId, settings.pinterestTagId]);
 
+  // Track Page Views on route change
   useEffect(() => {
      if (typeof window !== 'undefined') {
         if ((window as any).gtag && settings.googleAnalyticsId) {
@@ -224,6 +220,65 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
       const source = getTrafficSource();
       logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname, source);
     }
+
+    // 2. Fetch Geo & Device Data
+    const fetchGeo = async () => {
+        if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
+        
+        const stored = localStorage.getItem('site_visitor_locations');
+        const trafficSource = getTrafficSource();
+
+        try {
+            // Get Device Info
+            const ua = navigator.userAgent;
+            let deviceType = "Desktop";
+            if (/Mobi|Android/i.test(ua)) deviceType = "Mobile";
+            if (/iPad|Tablet/i.test(ua)) deviceType = "Tablet";
+            
+            let browser = "Unknown";
+            if (ua.indexOf("Chrome") > -1) browser = "Chrome";
+            else if (ua.indexOf("Safari") > -1) browser = "Safari";
+            else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
+
+            let os = "Unknown OS";
+            if (ua.indexOf("Win") !== -1) os = "Windows";
+            if (ua.indexOf("Mac") !== -1) os = "MacOS";
+            if (ua.indexOf("Linux") !== -1) os = "Linux";
+            if (ua.indexOf("Android") !== -1) os = "Android";
+            if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            if (data.error) return; 
+
+            const visitData = {
+                ip: data.ip,
+                city: data.city,
+                region: data.region,
+                country: data.country_name,
+                code: data.country_code,
+                lat: data.latitude,
+                lon: data.longitude,
+                org: data.org,
+                device: deviceType,
+                browser: browser,
+                os: os,
+                source: trafficSource,
+                timestamp: Date.now()
+            };
+
+            const existing = JSON.parse(stored || '[]');
+            // Keep last 50 visits
+            const updated = [visitData, ...existing].slice(0, 50);
+            localStorage.setItem('site_visitor_locations', JSON.stringify(updated));
+            sessionStorage.setItem('geo_tracked', 'true');
+            hasTrackedGeo.current = true;
+        } catch (e) {
+            console.warn("Geo-tracking skipped/blocked");
+        }
+    };
+    
+    fetchGeo();
   }, [location.pathname]); 
   return null;
 };
@@ -252,15 +307,16 @@ const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => { // 5 mi
 };
 
 const App: React.FC = () => {
+  // IMPORTANT: State initialized with EMPTY first to check localStorage
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
-  const [settingsId, setSettingsId] = useState<string>('global');
+  const [settingsId, setSettingsId] = useState<string>('global'); // Track the DB ID for settings
   
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>([]);
-  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
-  const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
+  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(INITIAL_CAROUSEL);
+  const [enquiries, setEnquiries] = useState<Enquiry[]>(INITIAL_ENQUIRIES);
+  const [admins, setAdmins] = useState<AdminUser[]>(INITIAL_ADMINS);
   const [stats, setStats] = useState<ProductStats[]>([]);
 
   const [user, setUser] = useState<User | null>(null);
@@ -271,9 +327,11 @@ const App: React.FC = () => {
   const productsRef = useRef(products);
   const statsRef = useRef(stats);
 
+  // Keep refs synced
   useEffect(() => { productsRef.current = products; }, [products]);
   useEffect(() => { statsRef.current = stats; }, [stats]);
 
+  // Logout Function
   const performLogout = useCallback(async () => {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
@@ -281,25 +339,28 @@ const App: React.FC = () => {
     setUser(null);
   }, []);
 
+  // 1. Inactivity Timer (5 minutes)
   useInactivityTimer(() => {
     if (user && !window.location.hash.includes('login')) {
        performLogout();
     }
   });
 
+  // 2. Logout on Refresh / Initial Load Logic
   useEffect(() => {
     const initAuth = async () => {
        if (isSupabaseConfigured) {
          try {
            const { data: { session }, error } = await supabase.auth.getSession();
+           
            if (error && error.message.includes('Refresh Token')) {
+             console.log("Stale session detected. Clearing...");
              await supabase.auth.signOut();
              setUser(null);
            } else if (session) {
-             // We do NOT logout on refresh anymore in production apps usually, 
-             // but keeping strict security per user request pattern.
-             // However, for usability, we will allow session persistence.
-             setUser(session.user); 
+             // Strict Logout on Refresh
+             await supabase.auth.signOut();
+             setUser(null);
            }
          } catch (e) {
            console.error("Auth init error:", e);
@@ -311,43 +372,72 @@ const App: React.FC = () => {
     initAuth();
   }, []);
 
+  // Helper to load or seed local data
+  const loadOrSeedLocal = <T,>(key: string, initial: T, setter: (val: T) => void) => {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+          setter(JSON.parse(stored));
+      } else {
+          setter(initial);
+          localStorage.setItem(key, JSON.stringify(initial));
+      }
+  };
+
   const refreshAllData = async () => {
     try {
       if (isSupabaseConfigured) {
-        // Settings
         const remoteSettings = await fetchTableData('settings');
-        if (remoteSettings && remoteSettings.length > 0) {
+        if (!remoteSettings || remoteSettings.length === 0) {
+          // Sync existing initial/local state to cloud if empty
+          await upsertData('settings', { ...settings, id: 'global' });
+          setSettingsId('global');
+          await syncLocalToCloud('products', products);
+          await syncLocalToCloud('categories', categories);
+          await syncLocalToCloud('subcategories', subCategories);
+          await syncLocalToCloud('hero_slides', heroSlides);
+        } else {
           const { id, ...rest } = remoteSettings[0];
           setSettingsId(id);
           setSettings(rest as SiteSettings);
-        } else {
-           // If DB is connected but empty, we can use Initial, but we don't save to DB automatically 
-           // to prevent overwriting if multiple admins access. We just use default state.
-           console.log("No settings found in DB. Using defaults.");
         }
 
         const p = await fetchTableData('products');
-        setProducts(p);
+        if (p.length) setProducts(p);
         const c = await fetchTableData('categories');
-        setCategories(c);
+        if (c.length) setCategories(c);
         const sc = await fetchTableData('subcategories');
-        setSubCategories(sc);
+        if (sc.length) setSubCategories(sc);
         const hs = await fetchTableData('hero_slides');
-        setHeroSlides(hs);
+        if (hs.length) setHeroSlides(hs);
         const enq = await fetchTableData('enquiries');
-        setEnquiries(enq);
+        if (enq.length) setEnquiries(enq);
         const adm = await fetchTableData('admin_users');
-        setAdmins(adm);
+        if (adm.length) setAdmins(adm);
         const st = await fetchTableData('product_stats');
-        setStats(st);
-        
-        setSaveStatus('idle');
+        if (st.length) setStats(st);
+
       } else {
-         console.warn("Supabase not configured. App is in Read-Only / Demo mode with empty data.");
+        // Local Mode: Use loadOrSeed helper to ensure persistence survives refresh
+        loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
+        loadOrSeedLocal('admin_products', INITIAL_PRODUCTS, setProducts);
+        loadOrSeedLocal('admin_categories', INITIAL_CATEGORIES, setCategories);
+        loadOrSeedLocal('admin_subcategories', INITIAL_SUBCATEGORIES, setSubCategories);
+        loadOrSeedLocal('admin_hero', INITIAL_CAROUSEL, setHeroSlides);
+        loadOrSeedLocal('admin_enquiries', INITIAL_ENQUIRIES, setEnquiries);
+        loadOrSeedLocal('admin_users', INITIAL_ADMINS, setAdmins);
+        loadOrSeedLocal('admin_product_stats', [], setStats);
       }
+      setSaveStatus('saved');
     } catch (e) {
       console.error("Data sync failed", e);
-      setSaveStatus('error');
+      // Fallback to local on failure to prevent data loss appearance
+      if (!isSupabaseConfigured) {
+        setSaveStatus('error');
+      } else {
+         // Attempt local fallback just in case
+        loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
+        loadOrSeedLocal('admin_products', INITIAL_PRODUCTS, setProducts);
+      }
     }
   };
 
@@ -356,83 +446,88 @@ const App: React.FC = () => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
+    // Always save local first for immediate UI feel
+    localStorage.setItem('site_settings', JSON.stringify(updated));
+
     if (isSupabaseConfigured) {
       await upsertData('settings', { ...updated, id: settingsId });
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    } else {
-      setSaveStatus('error');
-    }
+    } 
+    setTimeout(() => setSaveStatus('saved'), 500);
   };
 
   const updateData = async (table: string, data: any) => {
     setSaveStatus('saving');
-    
-    // Optimistic UI Update
-    const updateState = (prev: any[]) => {
+    const updateLocalState = (prev: any[]) => {
        const exists = prev.some(item => item.id === data.id);
        if (exists) return prev.map(item => item.id === data.id ? data : item);
        return [data, ...prev];
     };
 
     switch(table) {
-        case 'products': setProducts(updateState(products)); break;
-        case 'categories': setCategories(updateState(categories)); break;
-        case 'subcategories': setSubCategories(updateState(subCategories)); break;
-        case 'hero_slides': setHeroSlides(updateState(heroSlides)); break;
-        case 'enquiries': setEnquiries(updateState(enquiries)); break;
-        case 'admin_users': setAdmins(updateState(admins)); break;
+        case 'products': setProducts(updateLocalState(products)); break;
+        case 'categories': setCategories(updateLocalState(categories)); break;
+        case 'subcategories': setSubCategories(updateLocalState(subCategories)); break;
+        case 'hero_slides': setHeroSlides(updateLocalState(heroSlides)); break;
+        case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
+        case 'admin_users': setAdmins(updateLocalState(admins)); break;
     }
+
+    // Always persist to local storage immediately
+    const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = existing.some((i: any) => i.id === data.id) 
+       ? existing.map((i: any) => i.id === data.id ? data : i)
+       : [data, ...existing];
+    localStorage.setItem(key, JSON.stringify(updated));
 
     try {
       if (isSupabaseConfigured) {
         await upsertData(table, data);
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
-        return true;
-      } else {
-        throw new Error("Supabase not configured");
       }
+      setSaveStatus('saved');
+      return true;
     } catch (e) {
       setSaveStatus('error');
-      // Revert optimistic update? For now we just show error.
       return false;
     }
   };
 
   const deleteData = async (table: string, id: string) => {
     setSaveStatus('saving');
-    const deleteState = (prev: any[]) => prev.filter(item => item.id !== id);
+    const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
     
     // Optimistic Update
     switch(table) {
-        case 'products': setProducts(deleteState(products)); break;
-        case 'categories': setCategories(deleteState(categories)); break;
-        case 'subcategories': setSubCategories(deleteState(subCategories)); break;
-        case 'hero_slides': setHeroSlides(deleteState(heroSlides)); break;
-        case 'enquiries': setEnquiries(deleteState(enquiries)); break;
-        case 'admin_users': setAdmins(deleteState(admins)); break;
+        case 'products': setProducts(deleteLocalState(products)); break;
+        case 'categories': setCategories(deleteLocalState(categories)); break;
+        case 'subcategories': setSubCategories(deleteLocalState(subCategories)); break;
+        case 'hero_slides': setHeroSlides(deleteLocalState(heroSlides)); break;
+        case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
+        case 'admin_users': setAdmins(deleteLocalState(admins)); break;
     }
+
+    // Update Local Storage immediately
+    const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = existing.filter((i: any) => i.id !== id);
+    localStorage.setItem(key, JSON.stringify(updated));
 
     try {
       if (isSupabaseConfigured) {
         await deleteSupabaseData(table, id);
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
-        return true;
-      } else {
-         throw new Error("Supabase not configured");
       }
+      setSaveStatus('saved');
+      return true;
     } catch (e) {
       setSaveStatus('error');
-      refreshAllData(); // Revert
+      refreshAllData(); // Revert on failure
       return false;
     }
   };
 
   const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
     const newEvent = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Date.now().toString(),
       type: type || 'system',
       text: type === 'view' ? `Page View: ${label}` : label,
       time: new Date().toLocaleTimeString(),
@@ -441,14 +536,20 @@ const App: React.FC = () => {
     };
 
     if (isSupabaseConfigured) {
+      // Robust error handling to prevent 400 Bad Request
       try {
-        await supabase.from('traffic_logs').insert([newEvent]);
+        const { error } = await supabase.from('traffic_logs').insert([newEvent]);
+        if (error) {
+          console.warn("Log insert failed", error);
+        }
       } catch (err) {
         console.warn("Log exception", err);
       }
+    } else {
+      const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
+      localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
     }
 
-    // Update Product Stats Aggregates
     if (label.startsWith('Product: ')) {
         const productName = label.replace('Product: ', '').trim();
         const currentProducts = productsRef.current;
@@ -471,14 +572,16 @@ const App: React.FC = () => {
                 shares: (currentStat.shares || 0) + (type === 'share' ? 1 : 0),
                 lastUpdated: Date.now()
             };
-            
             setStats(prev => {
                 const filtered = prev.filter(s => s.productId !== product.id);
                 return [...filtered, newStat];
             });
-
             if (isSupabaseConfigured) {
                 await upsertData('product_stats', newStat);
+            } else {
+                const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
+                const otherStats = localStats.filter((s: any) => s.productId !== product.id);
+                localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat]));
             }
         }
     }
@@ -501,6 +604,7 @@ const App: React.FC = () => {
     if (user && isSupabaseConfigured && admins.length > 0) {
       const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
       if (!existingAdmin) {
+        // Automatically add logged-in Auth user to Admin Table if missing
         const newAdmin: AdminUser = {
           id: user.id,
           email: user.email || '',
