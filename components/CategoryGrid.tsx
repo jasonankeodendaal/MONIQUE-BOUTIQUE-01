@@ -1,13 +1,18 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
+import { INITIAL_CATEGORIES } from '../constants';
+import { Category } from '../types';
 import { CustomIcons } from './CustomIcons';
-import { useSettings } from '../App';
 
 const CategoryGrid: React.FC = () => {
   const navigate = useNavigate();
-  const { categories } = useSettings();
+
+  const categories = useMemo<Category[]>(() => {
+    const saved = localStorage.getItem('admin_categories');
+    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+  }, []);
 
   const handleCategoryClick = (id: string) => {
     navigate(`/products?category=${id}`);

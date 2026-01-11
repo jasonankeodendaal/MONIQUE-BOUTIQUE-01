@@ -10,9 +10,9 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, CarouselSlide, SubCategory } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, seedDatabase, upsertData } from './lib/supabase';
+import { SiteSettings, Product, Category } from './types';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES } from './constants';
+import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { Check, Loader2, AlertTriangle } from 'lucide-react';
 
@@ -20,18 +20,14 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 interface SettingsContextType {
   settings: SiteSettings;
-  products: Product[];
-  categories: Category[];
-  subCategories: SubCategory[];
-  heroSlides: CarouselSlide[];
-  updateSettings: (newSettings: Partial<SiteSettings>) => Promise<void>;
-  refreshAllData: () => Promise<void>;
+  updateSettings: (newSettings: Partial<SiteSettings>) => void;
   user: User | null;
   loadingAuth: boolean;
   isLocalMode: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
   logEvent: (type: 'view' | 'click' | 'system', label: string) => void;
+  refreshAllData: () => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -140,48 +136,51 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string) => void })
 };
 
 const App: React.FC = () => {
-  // Global State
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
-  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(INITIAL_CAROUSEL);
-  
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   const refreshAllData = async () => {
-    if (isSupabaseConfigured) {
-      try {
-        // Attempt seed if empty (One-Way Migration)
-        await seedDatabase();
-
-        const [fetchedSettings, fetchedProducts, fetchedCategories, fetchedSubCats, fetchedHero] = await Promise.all([
-           fetchTableData('settings'),
-           fetchTableData('products'),
-           fetchTableData('categories'),
-           fetchTableData('subcategories'),
-           fetchTableData('hero_slides')
-        ]);
-
-        if (fetchedSettings && fetchedSettings.length > 0) setSettings(fetchedSettings[0]);
-        if (fetchedProducts) setProducts(fetchedProducts);
-        if (fetchedCategories) setCategories(fetchedCategories);
-        if (fetchedSubCats) setSubCategories(fetchedSubCats);
-        if (fetchedHero) setHeroSlides(fetchedHero);
-
-      } catch (e) {
-        console.error("Failed to load content from Supabase:", e);
+    setSaveStatus('saving');
+    try {
+      if (isSupabaseConfigured) {
+        const remoteSettings = await fetchTableData('settings');
+        
+        if (!remoteSettings || remoteSettings.length === 0) {
+          // First Time Setup: Migration
+          console.log("Supabase empty. Synchronizing local bridge config...");
+          const localSettings = JSON.parse(localStorage.getItem('site_settings') || JSON.stringify(INITIAL_SETTINGS));
+          const localProducts = JSON.parse(localStorage.getItem('admin_products') || JSON.stringify(INITIAL_PRODUCTS));
+          const localCategories = JSON.parse(localStorage.getItem('admin_categories') || JSON.stringify(INITIAL_CATEGORIES));
+          
+          await supabase.from('settings').upsert([localSettings]);
+          await syncLocalToCloud('products', localProducts);
+          await syncLocalToCloud('categories', localCategories);
+          
+          setSettings(localSettings);
+        } else {
+          setSettings(remoteSettings[0] as SiteSettings);
+          // Sync entities to cache
+          const products = await fetchTableData('products');
+          const categories = await fetchTableData('categories');
+          if (products) localStorage.setItem('admin_products', JSON.stringify(products));
+          if (categories) localStorage.setItem('admin_categories', JSON.stringify(categories));
+        }
+      } else {
+        // Local Only Fallback
+        const local = localStorage.getItem('site_settings');
+        if (local) setSettings(JSON.parse(local));
       }
-    } else {
-      console.warn("Supabase not configured. Using static constants.");
+      setSaveStatus('saved');
+    } catch (e) {
+      console.error("Data sync failed", e);
+      setSaveStatus('error');
     }
   };
 
   useEffect(() => {
     refreshAllData();
-
     if (isSupabaseConfigured) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null);
@@ -202,21 +201,29 @@ const App: React.FC = () => {
     setSettings(updated);
     
     if (isSupabaseConfigured) {
-      const { error } = await upsertData('settings', updated);
-      if (error) {
-        setSaveStatus('error');
-        console.error(error);
-      } else {
-        setSaveStatus('saved');
-      }
+      const { error } = await supabase.from('settings').upsert([updated]);
+      if (error) setSaveStatus('error');
+      else setSaveStatus('saved');
     } else {
+      localStorage.setItem('site_settings', JSON.stringify(updated));
       setTimeout(() => setSaveStatus('saved'), 500);
     }
   };
 
   const logEvent = (type: 'view' | 'click' | 'system', label: string) => {
-    // Analytics logging - can be expanded to Supabase table 'analytics'
-    // For now, keeping it lightweight
+    const newEvent = {
+      id: Date.now().toString(),
+      type,
+      text: type === 'view' ? `Page View: ${label}` : label,
+      time: new Date().toLocaleTimeString(),
+      timestamp: Date.now()
+    };
+    if (isSupabaseConfigured) {
+      supabase.from('traffic_logs').insert([newEvent]).then();
+    } else {
+      const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
+      localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
+    }
   };
 
   useEffect(() => {
@@ -230,10 +237,8 @@ const App: React.FC = () => {
 
   return (
     <SettingsContext.Provider value={{ 
-      settings, products, categories, subCategories, heroSlides,
-      updateSettings, refreshAllData, 
-      user, loadingAuth, 
-      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent
+      settings, updateSettings, user, loadingAuth, 
+      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, refreshAllData
     }}>
       <Router>
         <ScrollToTop />
