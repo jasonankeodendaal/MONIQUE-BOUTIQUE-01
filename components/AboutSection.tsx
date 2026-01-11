@@ -1,10 +1,13 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Quote } from 'lucide-react';
+import { ArrowRight, Sparkles, Quote, Play } from 'lucide-react';
 import { useSettings } from '../App';
 
 const AboutSection: React.FC = () => {
   const { settings } = useSettings();
+
+  const isVideo = settings.homeAboutImage?.toLowerCase().match(/\.(mp4|webm|mov)$/);
 
   return (
     <section className="py-20 md:py-32 bg-[#FDFCFB] overflow-hidden relative">
@@ -16,12 +19,24 @@ const AboutSection: React.FC = () => {
             <div className="relative z-10 group">
               <div className="hidden md:block absolute -inset-10 bg-primary/5 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
               
-              <div className="relative rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)]">
-                 <img 
-                    src={settings.homeAboutImage} 
-                    alt="Founder Story" 
-                    className="w-full h-auto aspect-[3/4] object-cover transform transition-transform duration-[1.5s] group-hover:scale-105"
-                 />
+              <div className="relative rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] md:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] aspect-[3/4]">
+                 {isVideo ? (
+                   <video 
+                      src={settings.homeAboutImage} 
+                      autoPlay 
+                      muted 
+                      loop 
+                      playsInline
+                      className="w-full h-full object-cover transform transition-transform duration-[1.5s] group-hover:scale-105"
+                   />
+                 ) : (
+                   <img 
+                      src={settings.homeAboutImage} 
+                      alt="Founder Story" 
+                      className="w-full h-full object-cover transform transition-transform duration-[1.5s] group-hover:scale-105"
+                   />
+                 )}
+                 
                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60"></div>
                  
                  {/* Signature/Name overlay for personal branding */}

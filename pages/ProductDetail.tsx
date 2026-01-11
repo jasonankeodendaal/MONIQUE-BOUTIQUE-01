@@ -1,8 +1,7 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Download, Instagram } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Download, Instagram, ShieldCheck, Award } from 'lucide-react';
 import { useSettings } from '../App';
 import { Product, ProductStats, Review } from '../types';
 import { upsertData, updateProductStats } from '../lib/supabase';
@@ -266,6 +265,24 @@ const ProductDetail: React.FC = () => {
                   ))}
                 </ul>
               )}
+            </div>
+
+            {/* Curator's Guarantee - Bridge Page Element */}
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                <div className="flex items-start gap-4">
+                   <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-primary shadow-sm flex-shrink-0">
+                      <ShieldCheck size={20} />
+                   </div>
+                   <div>
+                      <h4 className="font-serif text-slate-900 font-bold mb-1">Curator's Guarantee</h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                         Personally vetted by {settings.aboutFounderName || 'the curator'}. We only bridge you to retailers that meet our strict standards for authenticity and quality.
+                      </p>
+                      <Link to="/about" className="text-[10px] font-black uppercase tracking-widest text-primary mt-3 inline-flex items-center gap-1 hover:gap-2 transition-all">
+                         Read Our Philosophy <ArrowLeft size={10} className="rotate-180" />
+                      </Link>
+                   </div>
+                </div>
             </div>
 
             {/* Specifications Accordion */}
