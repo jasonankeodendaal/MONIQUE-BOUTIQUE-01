@@ -277,7 +277,10 @@ const App: React.FC = () => {
       timestamp: Date.now()
     };
     if (isSupabaseConfigured) {
-      supabase.from('traffic_logs').insert([newEvent]).then();
+      // Added error handling here to prevent unhandled promise rejection
+      supabase.from('traffic_logs').insert([newEvent]).then(({ error }) => {
+        if (error) console.warn("Analytics logging failed silently:", error.message);
+      }).catch(err => console.warn("Analytics network error:", err));
     } else {
       const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
       localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
