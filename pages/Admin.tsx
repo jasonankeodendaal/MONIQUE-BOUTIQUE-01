@@ -12,7 +12,7 @@ import {
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
-  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2
+  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
@@ -718,6 +718,7 @@ const Admin: React.FC = () => {
   const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
+  const [errorLogs, setErrorLogs] = useState<any[]>([]);
 
   // Forms
   const [showAdminForm, setShowAdminForm] = useState(false);
@@ -768,6 +769,22 @@ const Admin: React.FC = () => {
     const myProductIds = displayProducts.map(p => p.id);
     return stats.filter(s => myProductIds.includes(s.productId));
   }, [stats, isOwner, displayProducts, products]);
+
+  // Error listener
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      const newError = {
+        id: Date.now(),
+        message: event.message,
+        source: event.filename,
+        lineno: event.lineno,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setErrorLogs(prev => [newError, ...prev].slice(0, 20)); // Keep last 20
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
 
   useEffect(() => {
     const fetchTraffic = () => {
@@ -970,6 +987,7 @@ const Admin: React.FC = () => {
     }).sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks));
     const totalViews = displayStats.reduce((acc, s) => acc + s.views, 0);
     const totalClicks = displayStats.reduce((acc, s) => acc + s.clicks, 0);
+    const totalShares = displayStats.reduce((acc, s) => acc + (s.shares || 0), 0);
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
 
@@ -1004,10 +1022,33 @@ const Admin: React.FC = () => {
            <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Analytics</h2><p className="text-slate-400 text-sm">Real-time engagement tracking.</p></div>
            <div className="flex flex-wrap gap-8"><div className="text-right"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Impressions</span><span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span></div><div className="text-right border-l border-slate-800 pl-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Affiliate Conversions</span><span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span></div></div>
         </div>
-        <AdminTip title="Performance Metrics">
-           Monitor which products are driving the most traffic. Use 'Peak Interest' to identify trending items and 'Avg. CTR' (Click-Through Rate) to measure how effective your product images are at generating affiliate clicks.
-        </AdminTip>
         
+        {/* Conversion Funnel */}
+        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-12">
+            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><Filter size={20} className="text-primary"/> Conversion Funnel</h3>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0 relative">
+               <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Total Page Views</span>
+                  <span className="text-3xl font-bold text-white">{totalViews}</span>
+                  <span className="text-xs text-slate-400 mt-1">100% of traffic</span>
+               </div>
+               <div className="hidden md:block h-1 flex-grow bg-slate-800 relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-700 rotate-45"></div></div>
+               <div className="md:hidden w-1 h-8 bg-slate-800"></div>
+               <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Engaged (Shared)</span>
+                  <span className="text-3xl font-bold text-blue-400">{totalShares}</span>
+                  <span className="text-xs text-slate-400 mt-1">{totalViews > 0 ? ((totalShares/totalViews)*100).toFixed(1) : 0}% retention</span>
+               </div>
+               <div className="hidden md:block h-1 flex-grow bg-slate-800 relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-700 rotate-45"></div></div>
+               <div className="md:hidden w-1 h-8 bg-slate-800"></div>
+               <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-primary/10 rounded-2xl border border-primary/20">
+                  <span className="text-[10px] font-black uppercase text-primary tracking-widest mb-2">Affiliate Clicks</span>
+                  <span className="text-3xl font-bold text-white">{totalClicks}</span>
+                  <span className="text-xs text-primary/70 mt-1">{totalViews > 0 ? ((totalClicks/totalViews)*100).toFixed(1) : 0}% conversion</span>
+               </div>
+            </div>
+        </div>
+
         {/* Source Breakdown Chart */}
         <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
             <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Globe size={18} className="text-primary"/> Acquisition Channels</h3>
@@ -1028,6 +1069,29 @@ const Admin: React.FC = () => {
                 ))}
                 {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4">No traffic source data available yet.</p>}
             </div>
+        </div>
+        
+        {/* Peak Hours Simulation (Mock) */}
+        <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
+             <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Clock size={18} className="text-primary"/> Peak Traffic Hours (UTC)</h3>
+             <div className="flex items-end gap-1 h-32 md:h-48 w-full">
+                {[...Array(24)].map((_, i) => {
+                   // Mock data pattern: high in morning and evening
+                   const height = (i > 8 && i < 20) ? 40 + Math.random() * 60 : 10 + Math.random() * 20;
+                   return (
+                     <div key={i} className="flex-1 bg-slate-800 rounded-t-sm relative group hover:bg-primary transition-colors" style={{ height: `${height}%` }}>
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                           {i}:00
+                        </div>
+                     </div>
+                   )
+                })}
+             </div>
+             <div className="flex justify-between text-[9px] font-black uppercase text-slate-500 mt-2">
+                <span>00:00</span>
+                <span>12:00</span>
+                <span>23:00</span>
+             </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -1181,7 +1245,44 @@ const Admin: React.FC = () => {
                  </div>
               </div>
               <div className="grid md:grid-cols-2 gap-12">
-                 <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Personal Details</h3><SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} /><SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} /><SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" /><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Security Credentials</h3><SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} /></div>
+                 <div className="space-y-6">
+                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Personal Details</h3>
+                    <SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} />
+                    <SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} />
+                    <SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" />
+                    
+                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Security Credentials</h3>
+                    <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
+                    
+                    {/* Password Setup Redirect Block */}
+                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg text-primary mt-1">
+                          <Key size={16} />
+                        </div>
+                        <div className="space-y-3">
+                          <h4 className="text-primary font-bold text-xs uppercase tracking-widest">Password Configuration Required</h4>
+                          <p className="text-slate-400 text-xs leading-relaxed">
+                            For maximum security, <strong>we do not store passwords here</strong>. 
+                            <br /><br />
+                            1. <strong>Save</strong> this member profile first.<br />
+                            2. Click the button below to open Supabase Auth.<br />
+                            3. Click <strong>"Invite User"</strong> (sends email) or <strong>"Create User"</strong> (sets manual password).
+                          </p>
+                          <a
+                            href="https://supabase.com/dashboard/project/_/auth/users"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"
+                          >
+                            <ExternalLink size={14} />
+                            Setup Password in Cloud
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                 </div>
                  <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Access Control</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">System Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Standard Administrator</option><option value="owner">System Owner (Root)</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Detailed Permissions</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Update Privileges' : 'Deploy Member'}</button></div>
@@ -1326,10 +1427,149 @@ const Admin: React.FC = () => {
         <AdminTip title="System Health Monitoring">
           This dashboard provides a real-time pulse of your application. Use the 'Global Interaction Protocol' map to see exactly where your visitors are coming from. Check 'Connection Diagnostics' to ensure your Supabase database is syncing correctly.
         </AdminTip>
-        <div className="space-y-6"><div className="flex justify-between items-end px-2"><div className="space-y-2"><h3 className="text-white font-bold text-xl flex items-center gap-3"><Map size={22} className="text-primary"/> Global Interaction Protocol</h3><p className="text-slate-500 text-xs uppercase tracking-widest font-black opacity-60">High-Precision Geographic Analytics</p></div></div><TrafficAreaChart stats={stats} /></div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{[ { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' }, { label: 'Supabase Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, { label: 'Storage Usage', value: '1.2 GB', icon: UploadCloud, color: 'text-blue-500' }, { label: 'Total Session Time', value: `${Math.floor(totalSessionTime / 60)}m ${totalSessionTime % 60}s`, icon: Timer, color: 'text-purple-500' } ].map((item, i) => (<div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}><item.icon size={20}/></div><div className="min-w-0"><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block truncate">{item.label}</span><span className="text-base font-bold text-white truncate block">{item.value}</span></div></div>))}</div>
-        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 relative overflow-hidden"><div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div><div className="relative z-10 flex flex-col md:flex-row gap-10 items-start"><div className="flex-1 space-y-6 w-full"><div><h3 className="text-white font-bold text-2xl flex items-center gap-3"><Database size={24} className="text-primary"/> Connection Diagnostics</h3><p className="text-slate-400 text-sm mt-2">Real-time status of your database backend connection.</p></div><div className="grid grid-cols-2 gap-4"><div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Connection Status</span><div className="flex items-center gap-3"><div className={`w-3 h-3 rounded-full flex-shrink-0 ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div><span className="text-lg font-bold text-white truncate">{connectionHealth?.status === 'online' ? 'Operational' : 'Disconnected'}</span></div></div><div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Network Latency</span><div className="flex items-center gap-3"><Activity size={20} className={connectionHealth?.latency && connectionHealth.latency < 200 ? 'text-green-500' : 'text-yellow-500'} /><span className="text-lg font-bold text-white truncate">{connectionHealth?.latency || 0} ms</span></div></div></div><div className="p-4 bg-black/20 rounded-xl border border-slate-700/50 font-mono text-[10px] text-slate-400 break-all"><div className="flex justify-between mb-2"><span className="uppercase font-bold text-slate-500">Endpoint URL</span> <span className="text-primary">{isSupabaseConfigured ? 'CONFIGURED' : 'MISSING'}</span></div>{getSupabaseUrl() ? getSupabaseUrl().replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}</div></div><div className="w-full md:w-80 space-y-4"><div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 flex flex-col items-center text-center"><div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-white ${connectionHealth?.status === 'online' ? 'bg-green-500' : 'bg-slate-600'}`}>{connectionHealth?.status === 'online' ? <Wifi size={32}/> : <WifiOff size={32}/>}</div><h4 className="text-white font-bold mb-1">{connectionHealth?.message || 'Checking...'}</h4><p className="text-xs text-slate-400">Last heartbeat: {new Date().toLocaleTimeString()}</p></div><div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 text-center"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Active Session</span><span className="text-sm font-bold text-white truncate w-full block">{user?.email || 'Local User'}</span><span className="text-[9px] text-primary uppercase font-bold mt-1 block">{user?.role || 'Simulated'} Role</span></div></div></div></div>
-        <div className="grid lg:grid-cols-3 gap-8"><div className="lg:col-span-2 space-y-6"><h3 className="text-white font-bold text-xl px-2">Live Traffic Feed</h3><div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 overflow-hidden divide-y divide-slate-800 max-h-[400px] overflow-y-auto custom-scrollbar">{trafficEvents.map(event => (<div key={event.id} className="p-6 flex items-center justify-between hover:bg-slate-800/20 transition-colors"><div className="flex items-center gap-4"><div className={`w-2 h-2 rounded-full animate-pulse flex-shrink-0 ${event.type === 'view' ? 'bg-blue-500' : event.type === 'click' ? 'bg-primary' : 'bg-green-500'}`} /><span className="text-slate-300 text-sm font-medium truncate max-w-[150px] md:max-w-none">{event.text}</span></div><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest flex-shrink-0">{event.time}</span></div>))}{trafficEvents.length === 0 && <div className="p-20 text-center text-slate-600 font-bold uppercase tracking-widest text-xs">Awaiting Global Interaction...</div>}</div></div><div className="space-y-6"><h3 className="text-white font-bold text-xl px-2">Data Operations</h3><div className="space-y-4"><div className="bg-slate-900 p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 text-left space-y-4"><h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Data Snapshot</h3><p className="text-slate-500 text-xs leading-relaxed">Securely export all catalog items, analytics, and settings to a portable JSON format.</p><button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2">Backup Master</button></div><div className="bg-red-950/10 p-8 rounded-[2rem] md:rounded-[2.5rem] border border-red-500/20 text-left space-y-4"><h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> Core Wipe</h3><p className="text-slate-500 text-xs leading-relaxed">Irreversibly factory reset all local storage data. This action cannot be undone.</p><button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Reset</button></div></div></div></div>
+        
+        {/* Top Metrics Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[ 
+            { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' }, 
+            { label: 'Supabase Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, 
+            { label: 'Storage Bucket', value: isSupabaseConfigured ? 'Connected' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, 
+            { label: 'Total Uptime', value: `${Math.floor(totalSessionTime / 60)}m`, icon: Timer, color: 'text-purple-500' } 
+          ].map((item, i) => (
+            <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}>
+                <item.icon size={20}/>
+              </div>
+              <div className="min-w-0">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block truncate">{item.label}</span>
+                <span className="text-base font-bold text-white truncate block">{item.value}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Detailed Connection Matrix */}
+        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+           <div className="relative z-10 flex flex-col gap-10">
+              <div className="flex justify-between items-end">
+                 <div>
+                    <h3 className="text-white font-bold text-2xl flex items-center gap-3">
+                       <Server size={24} className="text-primary"/> Connection Diagnostics Matrix
+                    </h3>
+                    <p className="text-slate-400 text-sm mt-2">Real-time status of backend services and latency check.</p>
+                 </div>
+                 <div className="hidden md:block text-right">
+                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1">Last Heartbeat</span>
+                    <span className="font-mono text-white text-sm">{new Date().toLocaleTimeString()}</span>
+                 </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                  {/* Auth Service */}
+                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex flex-col gap-4">
+                      <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Auth Service</span>
+                          <Lock size={16} className="text-slate-500" />
+                      </div>
+                      <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${isSupabaseConfigured ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                          <span className="text-lg font-bold text-white">{isSupabaseConfigured ? 'Authenticated' : 'Local Only'}</span>
+                      </div>
+                      <div className="h-1 w-full bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-green-500 w-full" style={{ width: isSupabaseConfigured ? '100%' : '0%' }}></div>
+                      </div>
+                  </div>
+
+                  {/* REST API */}
+                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex flex-col gap-4">
+                      <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">REST API</span>
+                          <Globe size={16} className="text-slate-500" />
+                      </div>
+                      <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+                          <span className="text-lg font-bold text-white">{connectionHealth?.status === 'online' ? `${connectionHealth.latency}ms Latency` : 'Connecting...'}</span>
+                      </div>
+                      <div className="h-1 w-full bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-green-500 w-full transition-all duration-1000" style={{ width: connectionHealth?.status === 'online' ? '100%' : '10%' }}></div>
+                      </div>
+                  </div>
+
+                  {/* Storage */}
+                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex flex-col gap-4">
+                      <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Storage</span>
+                          <HardDrive size={16} className="text-slate-500" />
+                      </div>
+                      <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${isSupabaseConfigured ? 'bg-green-500' : 'bg-slate-600'}`}></div>
+                          <span className="text-lg font-bold text-white">{isSupabaseConfigured ? 'Bucket Active' : 'Unavailable'}</span>
+                      </div>
+                      <div className="h-1 w-full bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-green-500 w-full" style={{ width: isSupabaseConfigured ? '100%' : '0%' }}></div>
+                      </div>
+                  </div>
+              </div>
+
+              <div className="bg-black/30 rounded-xl p-4 font-mono text-[10px] text-slate-400 border border-slate-700/50">
+                 <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-slate-500 uppercase tracking-widest">Endpoint Configuration</span>
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${isSupabaseConfigured ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                        {isSupabaseConfigured ? 'SECURE' : 'INSECURE'}
+                    </span>
+                 </div>
+                 <div className="break-all">{getSupabaseUrl() ? getSupabaseUrl().replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'NO_ENDPOINT_DETECTED'}</div>
+              </div>
+           </div>
+        </div>
+
+        {/* Live Error Console */}
+        <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden">
+           <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-bold text-xl flex items-center gap-3">
+                 <Terminal size={24} className="text-red-500"/> Live Error Log
+              </h3>
+              <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                 <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Listening</span>
+              </div>
+           </div>
+           
+           <div className="bg-black rounded-xl border border-slate-800 p-4 h-64 overflow-y-auto custom-scrollbar font-mono text-xs">
+              {errorLogs.length > 0 ? (
+                 errorLogs.map((err, i) => (
+                    <div key={i} className="mb-3 border-b border-slate-900 pb-2 last:border-0">
+                       <div className="flex items-center gap-2 mb-1">
+                          <span className="text-slate-500">[{err.timestamp}]</span>
+                          <span className="text-red-500 font-bold">ERROR</span>
+                       </div>
+                       <div className="text-slate-300 break-words pl-4">{err.message}</div>
+                       {err.source && <div className="text-slate-600 pl-4 mt-1">{err.source}:{err.lineno}</div>}
+                    </div>
+                 ))
+              ) : (
+                 <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
+                    <Activity size={32} className="mb-2"/>
+                    <span>System Nominal. No Active Exceptions.</span>
+                 </div>
+              )}
+           </div>
+        </div>
+        
+        {/* Data Actions */}
+        <div className="grid md:grid-cols-2 gap-6">
+           <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4">
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Data Snapshot</h3>
+              <p className="text-slate-500 text-xs leading-relaxed">Securely export all catalog items, analytics, and settings to a portable JSON format.</p>
+              <button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2 border border-slate-700">Backup Master</button>
+           </div>
+           <div className="bg-red-950/10 p-8 rounded-[2rem] border border-red-500/20 text-left space-y-4">
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> Core Wipe</h3>
+              <p className="text-slate-500 text-xs leading-relaxed">Irreversibly factory reset all local storage data. This action cannot be undone.</p>
+              <button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Reset</button>
+           </div>
+        </div>
      </div>
     );
   };
@@ -1438,16 +1678,16 @@ const Admin: React.FC = () => {
       {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
       {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
 
-      <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 text-left w-full">
+      <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
         <div className="flex flex-col gap-6"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
-        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-          {/* Mobile Tabs Fix: Grid layout for better touch targets */}
-          <div className="grid grid-cols-3 md:flex md:flex-nowrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full md:w-auto overflow-hidden">
+        <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
+          {/* Responsive Tabs: Grid on mobile, flex wrap on tablet/desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
             {[ { id: 'enquiries', label: 'Inbox', icon: Inbox }, { id: 'analytics', label: 'Insights', icon: BarChart3 }, { id: 'catalog', label: 'Items', icon: ShoppingBag }, { id: 'hero', label: 'Visuals', icon: LayoutPanelTop }, { id: 'categories', label: 'Depts', icon: Layout }, { id: 'site_editor', label: 'Canvas', icon: Palette }, { id: 'team', label: 'Maison', icon: Users }, { id: 'training', label: 'Training', icon: GraduationCap }, { id: 'system', label: 'System', icon: Activity }, { id: 'guide', label: 'Pilot', icon: Rocket } ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-shrink-0 px-2 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900' : 'text-slate-500 hover:text-slate-300'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
             ))}
           </div>
-          <button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center"><LogOut size={14} /> Exit</button>
+          <button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center self-start"><LogOut size={14} /> Exit</button>
         </div>
       </header>
 

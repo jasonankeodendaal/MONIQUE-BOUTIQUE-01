@@ -9,15 +9,16 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'The foundation of fashion affiliate marketing. High-fidelity visuals meet direct purchasing power.',
     icon: 'Instagram',
     strategies: [
-      'Use "Stories" with link stickers for limited-time scarcity (FOMO).',
-      'Create "Highlights" for each product category (e.g., "Shoes", "Summer").',
-      'Utilize the "Collab" feature to tap into photographer or brand audiences.',
-      'Carousel Posts: Slide 1 (Hook), Slide 2 (Detail), Slide 3 (Lifestyle), Slide 4 (CTA).'
+      'Phase 1: Profile Optimization - Convert to Professional Account immediately to access Insights. Ensure your bio contains a single "Link-in-Bio" (like your bridge page URL).',
+      'Phase 2: The Content Mix - Follow the 4:1 rule. 4 Value posts (Inspiration, Tips, Lifestyle) for every 1 Hard Sell post.',
+      'Phase 3: Story Selling - Use "Stories" with link stickers for limited-time scarcity (FOMO). Post 3 Stories daily: Morning (Routine), Noon (Work/Style), Night (Unwind/Product).',
+      'Phase 4: Highlights Engineering - Create "Highlights" for each product category (e.g., "Shoes", "Summer", "Sale"). This turns your profile into a permanent catalog.'
     ],
     actionItems: [
-      'Switch to a Professional Account to access Insights.',
-      'Post 3 Stories daily (Morning, Noon, Night).',
-      'Dm "LINK" automation setup (using tools like ManyChat).'
+      'Switch to a Professional Account.',
+      'Create 5 "Highlight" covers using Canva that match your brand colors.',
+      'Post a "This or That" poll in Stories to boost engagement.',
+      'Setup DM Automation: Use a tool like ManyChat to auto-send links when people comment "LINK".'
     ]
   },
   {
@@ -27,14 +28,15 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Unfiltered, raw, and high-volume discovery. The fastest way to scale a new brand presence.',
     icon: 'Video',
     strategies: [
-      'The 3-Second Rule: Show the "After" result immediately.',
-      'Use trending audio but keep volume low (5-10%) under your voiceover.',
-      'Reply to successful comments with a video response.',
-      'Green Screen effect over the product page to prove price/value.'
+      'Phase 1: The Hook - The first 3 seconds are critical. Show the "After" result immediately before showing the process.',
+      'Phase 2: Audio Hacking - Use trending audio but keep volume low (5-10%) under your voiceover to ride the algorithm wave.',
+      'Phase 3: Community Management - Reply to successful comments with a video response. This creates a content loop.',
+      'Phase 4: The "Green Screen" Method - Use the Green Screen effect over the official product page to prove price/value and build trust.'
     ],
     actionItems: [
-      'Post 3x daily for the first 30 days.',
-      'Use the search bar to find "Best [Product Category]" keywords.'
+      'Post 3x daily for the first 30 days to train the algorithm.',
+      'Use the search bar to find "Best [Product Category]" and stitch the top videos.',
+      'Create a "Pinned Video" introducing yourself and your style philosophy.'
     ]
   },
   {
@@ -44,15 +46,16 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Long-term traffic. Pins live for months, unlike social posts that die in hours.',
     icon: 'Pin',
     strategies: [
-      'Enable "Rich Pins" to sync price and availability automatically.',
-      'Vertical imagery (2:3 aspect ratio) is non-negotiable.',
-      'Keywords in titles: "Boho Summer Dress" > "Cute Outfit".',
-      'Create "Idea Pins" (video format) for higher algorithmic reach.'
+      'Phase 1: Account Structure - Claim your website in Pinterest settings to get attribution. Enable "Rich Pins" to sync price and availability.',
+      'Phase 2: Creative Format - Vertical imagery (2:3 aspect ratio) is non-negotiable. Square images get lost in the feed.',
+      'Phase 3: Keyword Engineering - Don\'t use cute titles. Use search terms. "Boho Summer Dress" > "Cute Outfit".',
+      'Phase 4: Idea Pins - Create "Idea Pins" (video format) for higher algorithmic reach, even though they don\'t link directly (put link in profile).'
     ],
     actionItems: [
-      'Claim your website in Pinterest settings.',
-      'Create 10 boards with specific niche titles.',
-      'Pin 5 times a day (can be scheduled).'
+      'Claim your website domain in Pinterest settings.',
+      'Create 10 boards with specific niche titles (e.g., "Minimalist Workwear").',
+      'Pin 5 times a day using a scheduler like Tailwind.',
+      'Create a "Shop the Look" cover image for your blog posts.'
     ]
   },
   {
@@ -62,13 +65,14 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Repurpose TikToks here. Google indexes these videos, meaning they appear in search results.',
     icon: 'Youtube',
     strategies: [
-      'Loop your videos: Make the end sentence flow into the start.',
-      'Pinned Comment: Put your affiliate link in the pinned comment, not description.',
-      'Use specific titles: "Zara vs H&M Try-on Haul".'
+      'Phase 1: The Loop - Edit your videos so the end sentence flows perfectly into the start. High retention = Viral spread.',
+      'Phase 2: The Pinned Comment - Put your affiliate link in the Pinned Comment, not just the description. It has higher visibility.',
+      'Phase 3: Search Intent - Use specific titles like "Zara vs H&M Try-on Haul" rather than abstract titles.'
     ],
     actionItems: [
-      'Upload your top performing TikToks to Shorts.',
-      'Add a "Subscribe for Links" overlay.'
+      'Upload your top 5 performing TikToks to Shorts.',
+      'Add a "Subscribe for Links" text overlay to the last 3 seconds.',
+      'Create a playlist called "OOTD" for binge-watchers.'
     ]
   },
   {
@@ -78,13 +82,14 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Underrated for high-ticket luxury items (suits, watches, work bags). High disposable income audience.',
     icon: 'Linkedin',
     strategies: [
-      'Write "Think Piece" articles about personal branding through fashion.',
-      'Focus on "Office Wear" and "Corporate Aesthetics".',
-      'Carousel PDFs work incredibly well on LinkedIn algorithms.'
+      'Phase 1: Thought Leadership - Write "Think Piece" articles about personal branding through fashion.',
+      'Phase 2: Niche Targeting - Focus strictly on "Office Wear", "Corporate Aesthetics", and "Interview Outfits".',
+      'Phase 3: The PDF Carousel - Export your style guides as multi-page PDFs. LinkedIn displays these as swipeable slides.'
     ],
     actionItems: [
-      'Post a "Work Outfit of the Week" breakdown.',
-      'Connect with industry professionals.'
+      'Post a "Work Outfit of the Week" breakdown every Monday.',
+      'Connect with 20 industry professionals in your city daily.',
+      'Write an article: "Why dressing well increases your salary negotiation power."'
     ]
   },
   {
@@ -94,13 +99,14 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Casual, text-first engagement. Great for building a personality behind the curation.',
     icon: 'AtSign',
     strategies: [
-      'Post "Hot Takes" on fashion trends to spark debate.',
-      'Share direct links (Threads does not penalize external links heavily yet).',
-      'Re-share images without captions for "Mood Board" vibes.'
+      'Phase 1: The Hot Take - Post controversial (but safe) opinions on fashion trends to spark debate.',
+      'Phase 2: Direct Linking - Threads does not penalize external links as heavily as Twitter. Share direct product drops.',
+      'Phase 3: Mood Boarding - Re-share images without captions for pure "Mood Board" vibes.'
     ],
     actionItems: [
-      'Reply to 5 fashion influencers daily.',
-      'Post a "This or That" fashion poll.'
+      'Reply to 5 major fashion influencers daily to siphon their traffic.',
+      'Post a "This or That" fashion poll with two images.',
+      'Share a "Deal of the Hour" link.'
     ]
   },
   {
@@ -110,13 +116,14 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'The highest ROI channel. You own this list; algorithms cannot take it away.',
     icon: 'Mail',
     strategies: [
-      'Welcome Sequence: Automatically send a "Top 10 Essentials" list on signup.',
-      'Abandoned Cart recovery (if using a direct store) or "Did you see this?" follow-ups.',
-      'Curated Sunday Newsletter: "5 Things I Loved This Week".'
+      'Phase 1: The Lead Magnet - Offer a free "Style Guide PDF" or "Capsule Wardrobe Checklist" in exchange for emails.',
+      'Phase 2: The Welcome Flow - Automatically send a "Top 10 Essentials" list immediately upon signup.',
+      'Phase 3: The Sunday Edit - Send a curated newsletter every Sunday evening titled "5 Things I Loved This Week".'
     ],
     actionItems: [
-      'Add a signup form to your bridge page footer.',
-      'Offer a free "Style Guide PDF" in exchange for emails.'
+      'Add a signup form to your bridge page footer immediately.',
+      'Create a free Canva PDF guide "10 Wardrobe Essentials".',
+      'Set up an automated welcome email in your provider.'
     ]
   },
   {
@@ -126,141 +133,14 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Intimate, 1-on-1 selling. Perfect for closing high-ticket affiliate sales.',
     icon: 'MessageCircle',
     strategies: [
-      'Status Updates: Post daily deals that vanish in 24h.',
-      'Broadcast Lists: Send "New Drop" alerts without a group chat feel.',
-      'Voice Notes: Send personalized styling advice via audio.'
+      'Phase 1: The Status - Post daily deals on your WhatsApp Status. These vanish in 24h, creating urgency.',
+      'Phase 2: Broadcast Lists - Use "Broadcast Lists" (not Groups) to send "New Drop" alerts. It feels personal but scales.',
+      'Phase 3: Audio Styling - Send personalized styling advice via voice notes to build extreme trust.'
     ],
     actionItems: [
-      'Add the WhatsApp floating button to your site.',
-      'Create a "VIP Access" broadcast label.'
-    ]
-  },
-  {
-    id: 'telegram-community',
-    title: 'Telegram: The Drop Channel',
-    platform: 'General',
-    description: 'Instant notifications for sneaker drops or limited luxury releases.',
-    icon: 'Send',
-    strategies: [
-      'Create a "Channel" (One-way communication) to avoid spam.',
-      'Use bot integrations to auto-post when prices drop.',
-      'Share "Unlisted" deals exclusively to this group.'
-    ],
-    actionItems: [
-      'Create a "Kasi Couture Drops" channel.',
-      'Pin the invite link to your social bios.'
-    ]
-  },
-  {
-    id: 'blog-seo',
-    title: 'SEO Blogging: Passive Traffic',
-    platform: 'SEO',
-    description: 'Answer specific questions people type into Google.',
-    icon: 'Globe',
-    strategies: [
-      'Review Lists: "Top 10 Silk Dresses for Weddings 2024".',
-      'Comparison: "Gucci vs. Prada Loafers: Which is worth it?".',
-      'Use Long-Tail Keywords: Target phrases with 3+ words.'
-    ],
-    actionItems: [
-      'Write one 1000-word blog post per week.',
-      'Rename all product images with descriptive keywords.'
-    ]
-  },
-  {
-    id: 'twitter-x',
-    title: 'X (Twitter): Real-Time Trends',
-    platform: 'General',
-    description: 'Ride the wave of cultural moments (Met Gala, Awards Shows).',
-    icon: 'Twitter',
-    strategies: [
-      'Live tweet fashion events with links to "Get the Look".',
-      'Use threads to break down celebrity outfits.',
-      'Retweet and quote-tweet fashion news with your affiliate angle.'
-    ],
-    actionItems: [
-      'Create a list of fashion journalists to follow.',
-      'Schedule tweets during major red carpet events.'
-    ]
-  },
-  {
-    id: 'facebook-ads',
-    title: 'Meta Ads: Paid Scale',
-    platform: 'General',
-    description: 'Pay to play. Target specific demographics with laser precision.',
-    icon: 'Facebook',
-    strategies: [
-      'Retargeting: Show ads to people who visited your bridge page but didn\'t click.',
-      'Carousel Ads: Show 5 products in one scrollable unit.',
-      'Lookalike Audiences: Target people similar to your email list.'
-    ],
-    actionItems: [
-      'Install the Facebook Pixel (Meta Pixel) in Admin Settings.',
-      'Boost your best performing organic Instagram post.'
-    ]
-  },
-  {
-    id: 'snapchat-genz',
-    title: 'Snapchat: Gen Z Attention',
-    platform: 'General',
-    description: 'Raw, behind-the-scenes content for a younger demographic.',
-    icon: 'Ghost',
-    strategies: [
-      'Snap Map: Post public stories tagged to luxury shopping districts.',
-      'AR Filters: Use try-on filters if available.',
-      'Flash Sales: Codes that only last 10 seconds.'
-    ],
-    actionItems: [
-      'Create a Public Profile for the brand.',
-      'Post raw unboxing videos to Spotlight.'
-    ]
-  },
-  {
-    id: 'medium-authority',
-    title: 'Medium: Thought Leadership',
-    platform: 'General',
-    description: 'Republish your blog content here to leverage Medium\'s domain authority.',
-    icon: 'BookOpen',
-    strategies: [
-      'Import stories from your main blog (canonical links).',
-      'Write about the "Philosophy of Style".',
-      'Submit to fashion publications within Medium.'
-    ],
-    actionItems: [
-      'Create a Medium account.',
-      'Import your first blog post.'
-    ]
-  },
-  {
-    id: 'discord-community',
-    title: 'Discord: The Hypebeast Hub',
-    platform: 'General',
-    description: 'For streetwear and exclusive communities. High engagement.',
-    icon: 'Gamepad2',
-    strategies: [
-      'Create channels for #fit-pics and #deal-alerts.',
-      'Host live styling sessions in voice/video channels.',
-      'Role rewards for active community members.'
-    ],
-    actionItems: [
-      'Set up a basic server with rules.',
-      'Create an automated "New Arrival" feed.'
-    ]
-  },
-  {
-    id: 'sms-marketing',
-    title: 'SMS: 98% Open Rate',
-    platform: 'General',
-    description: 'The most intrusive but effective channel. Use sparingly.',
-    icon: 'Smartphone',
-    strategies: [
-      'Send text alerts only for major sales (Black Friday).',
-      'Personalized birthday discounts.',
-      'Order status updates (if managing fulfillment).'
-    ],
-    actionItems: [
-      'Collect phone numbers alongside emails.',
-      'Send a test campaign to yourself.'
+      'Add the WhatsApp floating button to your site settings.',
+      'Create a "VIP Access" broadcast label in WhatsApp Business.',
+      'Post your first "Status" update with a link.'
     ]
   }
 ];
@@ -391,7 +271,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   homeHeroBadge: 'Kasi Couture Exclusive',
   homeAboutTitle: 'Modern Heritage. Timeless Elegance.',
   homeAboutDescription: 'I founded Kasi Couture to bridge the gap between street-inspired authenticity and high-end luxury. Every piece featured here is a testament to the vibrant spirit of Johannesburg refined for the global stage.',
-  homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200', // FIXED URL
+  homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Read My Story',
   homeCategorySectionTitle: 'Shop by Department',
   homeCategorySectionSubtitle: 'The Collection',
