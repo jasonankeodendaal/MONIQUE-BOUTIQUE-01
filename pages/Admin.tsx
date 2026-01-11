@@ -192,48 +192,127 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
   );
 };
 
+interface GeoStat {
+  city: string;
+  region: string;
+  country: string;
+  count: number;
+  lastActive: number;
+}
+
 const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
-  const [regions, setRegions] = useState<{ name: string; traffic: number; status: string }[]>([]);
+  const [geoStats, setGeoStats] = useState<GeoStat[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
-  const aggregatedProductViews = useMemo(() => stats?.reduce((acc, s) => acc + s.views, 0) || 0, [stats]);
+  
   useEffect(() => {
-    const loadGeoData = () => {
+    const loadDetailedGeo = () => {
       const rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-      if (rawData.length === 0) { setRegions([]); setTotalTraffic(0); return; }
       setTotalTraffic(rawData.length);
-      const counts: Record<string, number> = {};
+
+      // Aggregate by City + Country
+      const agg: Record<string, GeoStat> = {};
+      
       rawData.forEach((entry: any) => {
-        const label = (entry.region && entry.code) ? `${entry.region}, ${entry.code}` : (entry.country || 'Unknown Location');
-        counts[label] = (counts[label] || 0) + 1;
+        const key = `${entry.city || 'Unknown'}, ${entry.country || 'Unknown'}`;
+        if (!agg[key]) {
+          agg[key] = {
+            city: entry.city || 'Unknown City',
+            region: entry.region || '',
+            country: entry.country || 'Global',
+            count: 0,
+            lastActive: 0
+          };
+        }
+        agg[key].count += 1;
+        agg[key].lastActive = Math.max(agg[key].lastActive, entry.timestamp || 0);
       });
-      const total = rawData.length;
-      const sortedRegions = Object.entries(counts).map(([name, count]) => {
-          const percentage = Math.round((count / total) * 100);
-          let status = percentage >= 50 ? 'Dominant' : percentage >= 30 ? 'Peak' : percentage >= 15 ? 'Rising' : percentage >= 5 ? 'Active' : 'Minimal';
-          return { name, traffic: percentage, status, count };
-        }).sort((a, b) => b.count - a.count).slice(0, 6);
-      setRegions(sortedRegions);
+
+      const sorted = Object.values(agg).sort((a, b) => b.count - a.count).slice(0, 8); // Top 8
+      setGeoStats(sorted);
     };
-    loadGeoData();
-    const interval = setInterval(loadGeoData, 5000);
+
+    loadDetailedGeo();
+    const interval = setInterval(loadDetailedGeo, 5000); // 5s Refresh
     return () => clearInterval(interval);
   }, []);
+
   return (
-    <div className="relative w-full min-h-[400px] bg-slate-900 rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group p-10">
+    <div className="relative w-full min-h-[500px] bg-slate-900 rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
       <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-      <div className="relative z-10 flex flex-col h-full">
-        <div className="flex justify-between items-start mb-12">
-          <div className="text-left"><div className="flex items-center gap-3 mb-1"><div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse shadow-[0_0_12px_rgba(var(--primary-rgb),0.8)]"></div><span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Geographic Distribution</span></div><h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Area <span className="text-primary">Traffic</span></h3></div>
-          <div className="text-right bg-white/5 border border-white/10 px-6 py-3 rounded-2xl"><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-0.5">Live Ingress</span><span className="text-xl font-bold text-white flex items-center gap-2"><Globe size={16} className="text-primary"/> 100% Real-Time</span></div>
-        </div>
-        <div className="space-y-8 flex-grow">
-          {regions.length > 0 ? regions.map((region, idx) => (
-            <div key={idx} className="space-y-3"><div className="flex justify-between items-end"><div className="flex items-center gap-4"><span className="text-slate-600 font-serif font-bold text-lg italic">0{idx + 1}</span><div><h4 className="text-white font-bold text-sm tracking-wide uppercase">{region.name}</h4><span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">{region.status}</span></div></div><div className="text-right"><span className="text-white font-black text-lg">{region.traffic}%</span></div></div><div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5"><div className="h-full bg-gradient-to-r from-primary/40 via-primary to-primary rounded-full transition-all duration-[2000ms] ease-out shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]" style={{ width: `${region.traffic}%`, transitionDelay: `${idx * 200}ms` }}/></div></div>
-          )) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center opacity-50"><Globe size={48} className="text-slate-600 mb-4" /><h4 className="text-white font-bold uppercase tracking-widest">Awaiting Signal</h4><p className="text-slate-500 text-xs mt-2 max-w-xs">Visit the public site to generate the first geographic traffic data points.</p></div>
-          )}
-        </div>
-        <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6"><div className="flex gap-10"><div className="text-left"><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Visitors</span><span className="text-2xl font-bold text-white">{totalTraffic.toLocaleString()}</span></div><div className="text-left border-l border-white/5 pl-10"><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Page Impressions</span><span className="text-2xl font-bold text-primary">{aggregatedProductViews.toLocaleString()}</span></div></div><div className="flex items-center gap-3 bg-primary/10 border border-primary/20 px-6 py-3 rounded-full"><Activity size={14} className="text-primary animate-pulse"/><span className="text-[10px] font-black text-primary uppercase tracking-widest">Sync Active</span></div></div>
+      
+      {/* Header */}
+      <div className="relative z-10 p-10 pb-4 border-b border-white/5 flex justify-between items-start">
+         <div>
+            <div className="flex items-center gap-3 mb-2">
+               <div className="relative w-3 h-3">
+                  <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                  <div className="relative w-3 h-3 bg-green-500 rounded-full"></div>
+               </div>
+               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-green-500">Live Traffic Feed</span>
+            </div>
+            <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">Global <span className="text-primary">Footprint</span></h3>
+         </div>
+         <div className="text-right">
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Hits</span>
+            <span className="text-3xl font-bold text-white font-mono">{totalTraffic.toLocaleString()}</span>
+         </div>
+      </div>
+
+      {/* List */}
+      <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-6">
+        {geoStats.length > 0 ? (
+          <div className="grid gap-3">
+             <div className="grid grid-cols-12 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                <div className="col-span-1">Rank</div>
+                <div className="col-span-6">Location</div>
+                <div className="col-span-3 text-right">Volume</div>
+                <div className="col-span-2 text-right">Status</div>
+             </div>
+             {geoStats.map((geo, idx) => {
+               // Calculate "Live" status if within last 5 mins
+               const isLive = (Date.now() - geo.lastActive) < 300000;
+               return (
+                  <div key={idx} className="grid grid-cols-12 items-center p-4 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800 transition-colors group/item">
+                     <div className="col-span-1">
+                        <span className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700">{idx + 1}</span>
+                     </div>
+                     <div className="col-span-6 pl-2">
+                        <div className="font-bold text-white text-sm flex items-center gap-2">
+                           <MapPin size={14} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity"/>
+                           {geo.city}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{geo.region ? `${geo.region}, ` : ''}{geo.country}</div>
+                     </div>
+                     <div className="col-span-3 text-right">
+                        <div className="text-white font-mono font-bold">{geo.count}</div>
+                        <div className="w-full bg-slate-900 h-1 rounded-full mt-2 overflow-hidden">
+                           <div className="bg-primary h-full" style={{ width: `${(geo.count / totalTraffic) * 100}%` }}></div>
+                        </div>
+                     </div>
+                     <div className="col-span-2 flex justify-end">
+                        {isLive ? (
+                           <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest border border-green-500/20">Active</span>
+                        ) : (
+                           <span className="text-[9px] text-slate-600 font-bold uppercase">Offline</span>
+                        )}
+                     </div>
+                  </div>
+               );
+             })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
+             <Globe size={48} className="text-slate-500 mb-4 animate-pulse" />
+             <h4 className="text-white font-bold uppercase tracking-widest">Awaiting Signal</h4>
+             <p className="text-slate-500 text-xs mt-2 max-w-xs">Traffic data populates as visitors access your bridge page.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Footer Details */}
+      <div className="p-6 bg-slate-950/50 border-t border-white/5 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-600">
+         <span>Data Source: IPAPI Network</span>
+         <span className="flex items-center gap-2"><div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div> Real-Time Sync</span>
       </div>
     </div>
   );
