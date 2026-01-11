@@ -12,7 +12,7 @@ import {
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
-  FileBox
+  FileBox, Lightbulb
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE } from '../constants';
@@ -23,16 +23,16 @@ import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 import { CustomIcons } from '../components/CustomIcons';
 
-const AdminHelpBox: React.FC<{ title: string; steps: string[] }> = ({ title, steps }) => (
-  <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl mb-8 flex gap-5 items-start text-left">
-    <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-      <span className="text-xl">💡</span>
+const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <div className="bg-yellow-500/5 border border-yellow-500/20 p-6 rounded-3xl mb-8 flex gap-5 items-start text-left animate-in fade-in slide-in-from-top-2">
+    <div className="w-10 h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-600 flex-shrink-0">
+      <Lightbulb size={20} />
     </div>
-    <div className="space-y-2">
-      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</h4>
-      <ul className="list-disc list-inside text-slate-500 text-xs font-medium space-y-1">
-        {steps.map((step, i) => <li key={i}>{step}</li>)}
-      </ul>
+    <div className="space-y-1">
+      <h4 className="text-[10px] font-black text-yellow-600 uppercase tracking-widest">{title}</h4>
+      <p className="text-slate-400 text-xs leading-relaxed font-medium">
+        {children}
+      </p>
     </div>
   </div>
 );
@@ -682,6 +682,10 @@ const Admin: React.FC = () => {
             <button onClick={exportEnquiries} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><FileSpreadsheet size={16}/> Export CSV</button>
          </div>
       </div>
+      <AdminTip title="Communication Hub">
+        This is your central command for client interactions. All inquiries from your contact form are routed here. 
+        Use the reply button to open a pre-filled email template, or archive messages to keep your inbox clean.
+      </AdminTip>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
          <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="flex gap-2">{['all', 'unread', 'read'].map(filter => (<button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
@@ -722,6 +726,9 @@ const Admin: React.FC = () => {
            <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Analytics</h2><p className="text-slate-400 text-sm">Real-time engagement tracking.</p></div>
            <div className="flex gap-8"><div className="text-right"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Impressions</span><span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span></div><div className="text-right border-l border-slate-800 pl-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Affiliate Conversions</span><span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span></div></div>
         </div>
+        <AdminTip title="Performance Metrics">
+           Monitor which products are driving the most traffic. Use 'Peak Interest' to identify trending items and 'Avg. CTR' (Click-Through Rate) to measure how effective your product images are at generating affiliate clicks.
+        </AdminTip>
         <div className="grid lg:grid-cols-2 gap-8">
            <div className="bg-slate-900 p-10 rounded-[2.5rem] border border-slate-800">
               <h3 className="text-white font-bold mb-10 flex items-center gap-3"><TrendingUp size={18} className="text-primary"/> Category Engagement</h3>
@@ -752,6 +759,9 @@ const Admin: React.FC = () => {
       {showProductForm ? (
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
           <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
+          <AdminTip title="Pro Tip: Listing Optimization">
+             To maximize conversion, upload at least 2 high-quality images. Use the 'Highlights' section to add bullet points for key selling features (e.g., "100% Silk", "Handmade").
+          </AdminTip>
           <div className="grid md:grid-cols-2 gap-8">
              <div className="space-y-6"><SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} /><SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} /><SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" /><SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} /></div>
              <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="textarea" /></div>
@@ -767,6 +777,9 @@ const Admin: React.FC = () => {
       ) : (
         <>
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Catalog</h2><p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p></div><button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3"><Plus size={18} /> Add Product</button></div>
+          <AdminTip title="Inventory Management">
+             Use the filters below to quickly find items by department or name. Click the 'Megaphone' icon on any product to generate instant social media captions and shareable bundles.
+          </AdminTip>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
              <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search by name..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
              <div className="relative min-w-[200px]"><Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><select value={productCatFilter} onChange={e => setProductCatFilter(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"><option value="all">All Departments</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} /></div>
@@ -786,7 +799,9 @@ const Admin: React.FC = () => {
 
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <AdminHelpBox title="Hero Carousel" steps={["Use high-res 16:9 images", "Videos auto-play muted", "Text overlays automatically adjust"]} />
+        <AdminTip title="Hero Visuals">
+          The Hero Carousel is the first impression your visitors get. Use high-resolution images (16:9 ratio) or short, looping videos. Keep titles punchy and evocative to drive clicks.
+        </AdminTip>
         {showHeroForm ? ( 
            <div className="bg-slate-900 p-8 rounded-[3rem] border border-slate-800 space-y-6">
               <div className="grid md:grid-cols-2 gap-6"><SettingField label="Title" value={heroData.title || ''} onChange={v => setHeroData({...heroData, title: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={heroData.type} onChange={e => setHeroData({...heroData, type: e.target.value as any})}><option value="image">Image</option><option value="video">Video</option></select></div></div>
@@ -818,6 +833,9 @@ const Admin: React.FC = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
        {showCategoryForm ? (
           <div className="bg-slate-900 p-8 rounded-[3rem] border border-slate-800 space-y-8">
+             <AdminTip title="Pro Tip: Department Structure">
+               Create broad main departments (e.g., 'Apparel', 'Accessories') and use sub-categories to organize items (e.g., 'Dresses', 'Handbags'). This dual-layer structure improves searchability.
+             </AdminTip>
              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
                 <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
@@ -825,15 +843,20 @@ const Admin: React.FC = () => {
              <div className="flex gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
           </div>
        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-             <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
-             {categories.map(c => (
-                <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
-                   <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl">{React.createElement((LucideIcons as any)[c.icon] || LucideIcons.Package, { size: 20 })}</div><h4 className="font-bold text-white text-lg">{c.name}</h4></div></div>
-                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div>
-                </div>
-             ))}
-          </div>
+          <>
+            <AdminTip title="Navigation Organization">
+              Departments are the primary way customers browse your site. Each department gets a dedicated tile on the home page. Use iconic imagery to represent each section.
+            </AdminTip>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+               <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
+               {categories.map(c => (
+                  <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
+                     <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl">{React.createElement((LucideIcons as any)[c.icon] || LucideIcons.Package, { size: 20 })}</div><h4 className="font-bold text-white text-lg">{c.name}</h4></div></div>
+                     <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div>
+                  </div>
+               ))}
+            </div>
+          </>
        )}
     </div>
   );
@@ -843,6 +866,9 @@ const Admin: React.FC = () => {
         <div className="flex justify-between items-end mb-8"><div className="text-left"><h2 className="text-3xl font-serif text-white">Team Management</h2><p className="text-slate-400 text-sm mt-2">Sync with Supabase for secure multi-admin access.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest"><Plus size={16}/> New Member</button></div>
         {showAdminForm ? (
            <div className="bg-slate-900 p-8 md:p-12 rounded-[3rem] border border-slate-800 space-y-12">
+              <AdminTip title="Pro Tip: Access Control">
+                 When adding new team members, carefully select their role. 'System Owners' have unrestricted access, while 'Standard Admins' are limited to the permissions you explicitly check below.
+              </AdminTip>
               <div className="grid md:grid-cols-2 gap-12">
                  <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Personal Details</h3><SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} /><SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} /><SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" /><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Security Credentials</h3><SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} /><SettingField label="Password" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" /></div>
                  <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Access Control</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">System Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Standard Administrator</option><option value="owner">System Owner (Root)</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Detailed Permissions</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
@@ -850,14 +876,19 @@ const Admin: React.FC = () => {
               <div className="flex justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Update Privileges' : 'Deploy Member'}</button></div>
            </div>
         ) : (
-           <div className="grid gap-6">
-             {admins.map(a => (
-               <div key={a.id} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group">
-                 <div className="flex items-center gap-8 w-full"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div><div className="space-y-2 flex-grow"><div className="flex items-center gap-3"><h4 className="text-white text-xl font-bold">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${a.role === 'owner' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400'}`}>{a.role}</span></div><div className="flex flex-wrap gap-x-6 gap-y-1 text-slate-500 text-sm"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div><div className="pt-2 flex flex-wrap gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Status:</span><span className="text-[10px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> Verified</span><span className="mx-2 text-slate-800">|</span><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.role === 'owner' ? 'Full System' : `${a.permissions.length} modules`}</span></div></div></div>
-                 <div className="flex gap-3 w-full md:w-auto"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all"><Trash2 size={20}/></button></div>
-               </div>
-             ))}
-           </div>
+           <>
+             <AdminTip title="Team Roles">
+                Manage your digital team here. Owners can see everything. Use permissions to restrict interns or staff to only specific areas like 'Inbox' or 'Inventory' to protect sensitive business data.
+             </AdminTip>
+             <div className="grid gap-6">
+               {admins.map(a => (
+                 <div key={a.id} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group">
+                   <div className="flex items-center gap-8 w-full"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div><div className="space-y-2 flex-grow"><div className="flex items-center gap-3"><h4 className="text-white text-xl font-bold">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${a.role === 'owner' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400'}`}>{a.role}</span></div><div className="flex flex-wrap gap-x-6 gap-y-1 text-slate-500 text-sm"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div><div className="pt-2 flex flex-wrap gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Status:</span><span className="text-[10px] font-bold text-green-500 uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"/> Verified</span><span className="mx-2 text-slate-800">|</span><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.role === 'owner' ? 'Full System' : `${a.permissions.length} modules`}</span></div></div></div>
+                   <div className="flex gap-3 w-full md:w-auto"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all"><Trash2 size={20}/></button></div>
+                 </div>
+               ))}
+             </div>
+           </>
         )}
      </div>
   );
@@ -866,6 +897,9 @@ const Admin: React.FC = () => {
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     return (
      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
+        <AdminTip title="System Health Monitoring">
+          This dashboard provides a real-time pulse of your application. Use the 'Global Interaction Protocol' map to see exactly where your visitors are coming from. Check 'Connection Diagnostics' to ensure your Supabase database is syncing correctly.
+        </AdminTip>
         <div className="space-y-6"><div className="flex justify-between items-end px-2"><div className="space-y-2"><h3 className="text-white font-bold text-xl flex items-center gap-3"><Map size={22} className="text-primary"/> Global Interaction Protocol</h3><p className="text-slate-500 text-xs uppercase tracking-widest font-black opacity-60">High-Precision Geographic Analytics</p></div></div><TrafficAreaChart stats={stats} /></div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{[ { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' }, { label: 'Supabase Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, { label: 'Storage Usage', value: '1.2 GB', icon: UploadCloud, color: 'text-blue-500' }, { label: 'Total Session Time', value: `${Math.floor(totalSessionTime / 60)}m ${totalSessionTime % 60}s`, icon: Timer, color: 'text-purple-500' } ].map((item, i) => (<div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color}`}><item.icon size={20}/></div><div><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">{item.label}</span><span className="text-base font-bold text-white">{item.value}</span></div></div>))}</div>
         <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-10 relative overflow-hidden"><div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div><div className="relative z-10 flex flex-col md:flex-row gap-10 items-start"><div className="flex-1 space-y-6"><div><h3 className="text-white font-bold text-2xl flex items-center gap-3"><Database size={24} className="text-primary"/> Connection Diagnostics</h3><p className="text-slate-400 text-sm mt-2">Real-time status of your database backend connection.</p></div><div className="grid grid-cols-2 gap-4"><div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Connection Status</span><div className="flex items-center gap-3"><div className={`w-3 h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div><span className="text-lg font-bold text-white">{connectionHealth?.status === 'online' ? 'Operational' : 'Disconnected'}</span></div></div><div className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700/50"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Network Latency</span><div className="flex items-center gap-3"><Activity size={20} className={connectionHealth?.latency && connectionHealth.latency < 200 ? 'text-green-500' : 'text-yellow-500'} /><span className="text-lg font-bold text-white">{connectionHealth?.latency || 0} ms</span></div></div></div><div className="p-4 bg-black/20 rounded-xl border border-slate-700/50 font-mono text-[10px] text-slate-400 break-all"><div className="flex justify-between mb-2"><span className="uppercase font-bold text-slate-500">Endpoint URL</span> <span className="text-primary">{isSupabaseConfigured ? 'CONFIGURED' : 'MISSING'}</span></div>{getSupabaseUrl() ? getSupabaseUrl().replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'No URL Configured'}</div></div><div className="w-full md:w-80 space-y-4"><div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 flex flex-col items-center text-center"><div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-white ${connectionHealth?.status === 'online' ? 'bg-green-500' : 'bg-slate-600'}`}>{connectionHealth?.status === 'online' ? <Wifi size={32}/> : <WifiOff size={32}/>}</div><h4 className="text-white font-bold mb-1">{connectionHealth?.message || 'Checking...'}</h4><p className="text-xs text-slate-400">Last heartbeat: {new Date().toLocaleTimeString()}</p></div><div className="p-6 bg-slate-800 rounded-3xl border border-slate-700 text-center"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-2">Active Session</span><span className="text-sm font-bold text-white truncate w-full block">{user?.email || 'Local User'}</span><span className="text-[9px] text-primary uppercase font-bold mt-1 block">{user?.role || 'Simulated'} Role</span></div></div></div></div>
@@ -883,12 +917,17 @@ const Admin: React.FC = () => {
   );
 
   const renderSiteEditor = () => (
-     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
-          <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-8 rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
-             <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div>
-          </button> 
-        ))}
+     <div className="space-y-6">
+       <AdminTip title="Pro Tip: Visual Identity">
+          This is your central design studio. Click on any tile to open the configuration drawer. Changes made here update the live site instantly for visitors.
+       </AdminTip>
+       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
+            <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-8 rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
+               <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div>
+            </button> 
+          ))}
+       </div>
      </div>
   );
 
@@ -927,6 +966,9 @@ const Admin: React.FC = () => {
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-8 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
             <div className="flex justify-between items-center mb-10 pb-6 border-b border-slate-800"><div><h3 className="text-3xl font-serif text-white uppercase">{activeEditorSection}</h3><p className="text-slate-500 text-xs mt-1">Global Site Configuration</p></div><button onClick={() => setEditorDrawerOpen(false)} className="p-3 bg-slate-900 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"><X size={24}/></button></div>
+            <AdminTip title="Pro Tip: Configuration">
+               Changes made in this panel are saved to the cloud but reflect on your site instantly. Ensure all text fields are checked for spelling before saving.
+            </AdminTip>
             <div className="space-y-10 pb-20">
                
                {activeEditorSection === 'brand' && (
@@ -1046,7 +1088,9 @@ const Admin: React.FC = () => {
 
                {activeEditorSection === 'integrations' && (
                   <div className="space-y-12">
-                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex justify-between items-center"><h4 className="text-white font-bold flex items-center gap-3"><Database size={20} className="text-primary"/> Backend Protocol</h4><div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSupabaseConfigured ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{isSupabaseConfigured ? 'Synchronized' : 'Offline'}</div></div><AdminHelpBox title="Supabase Cloud" steps={["Configure VITE_SUPABASE_URL in Vercel", "Configure VITE_SUPABASE_ANON_KEY", "Deployment required for sync"]} /></div>
+                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex justify-between items-center"><h4 className="text-white font-bold flex items-center gap-3"><Database size={20} className="text-primary"/> Backend Protocol</h4><div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSupabaseConfigured ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{isSupabaseConfigured ? 'Synchronized' : 'Offline'}</div></div><AdminTip title="Supabase Cloud">
+                         Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your Vercel/Netlify environment variables. This connects your dashboard to the persistent database.
+                     </AdminTip></div>
                      <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex items-center justify-between"><h4 className="text-white font-bold flex items-center gap-3"><Mail size={20} className="text-primary"/> Lead Routing (EmailJS)</h4><button onClick={() => setShowEmailTemplate(true)} className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:text-white"><FileCode size={14} /> Get Template</button></div><div className="space-y-4"><SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({emailJsServiceId: v})} placeholder="service_xxxxxx" /><SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({emailJsTemplateId: v})} placeholder="template_xxxxxx" /><SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({emailJsPublicKey: v})} placeholder="user_xxxxxxx" /></div></div>
                   </div>
                )}
