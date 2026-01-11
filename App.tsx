@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -99,6 +100,67 @@ const Footer: React.FC = () => {
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+};
+
+// --- Helper to inject external scripts ---
+const loadScript = (id: string, src: string, code?: string) => {
+  if (document.getElementById(id)) return;
+  const script = document.createElement('script');
+  script.id = id;
+  if (src) script.src = src;
+  script.async = true;
+  if (code) script.innerHTML = code;
+  document.head.appendChild(script);
+};
+
+const TrackingInjector = () => {
+  const { settings } = useSettings();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Google Analytics
+    if (settings.googleAnalyticsId) {
+       loadScript('ga-script-src', `https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}`);
+       loadScript('ga-script-code', '', `
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+         gtag('config', '${settings.googleAnalyticsId}');
+       `);
+    }
+    
+    // Facebook Pixel
+    if (settings.facebookPixelId) {
+        loadScript('fb-pixel', '', `
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '${settings.facebookPixelId}');
+          fbq('track', 'PageView');
+        `);
+    }
+  }, [settings.googleAnalyticsId, settings.facebookPixelId]);
+
+  // Track Page Views on route change
+  useEffect(() => {
+     if (typeof window !== 'undefined') {
+        if ((window as any).gtag && settings.googleAnalyticsId) {
+            (window as any).gtag('config', settings.googleAnalyticsId, {
+                page_path: location.pathname + location.search
+            });
+        }
+        if ((window as any).fbq && settings.facebookPixelId) {
+            (window as any).fbq('track', 'PageView');
+        }
+     }
+  }, [location, settings.googleAnalyticsId, settings.facebookPixelId]);
+
   return null;
 };
 
@@ -487,6 +549,7 @@ const App: React.FC = () => {
     }}>
       <Router>
         <ScrollToTop />
+        <TrackingInjector />
         <TrafficTracker logEvent={logEvent} />
         <style>{`
           .text-primary { color: var(--primary-color); }

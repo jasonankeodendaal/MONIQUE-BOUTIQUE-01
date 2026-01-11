@@ -429,7 +429,22 @@ const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ 
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => {
   const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState('');
-  useEffect(() => { const baseText = `Check out the ${product.name} from ${settings.companyName}.`; const price = `Price: R ${product.price}`; const link = `${product.affiliateLink}`; const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; let generated = ''; switch(platform.id) { case 'instagram': generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; break; default: generated = `${product.name} is now available.\n\n${product.description}\n\n${features}\n\nShop securely here: ${link}`; } setCustomText(generated); }, [platform, product, settings]);
+  useEffect(() => { 
+    const baseText = `Check out the ${product.name} from ${settings.companyName}.`; 
+    const price = `Price: R ${product.price}`; 
+    // Use Internal Link instead of Affiliate Link for social posts
+    const link = `${window.location.origin}/#/product/${product.id}`; 
+    const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; 
+    let generated = ''; 
+    switch(platform.id) { 
+        case 'instagram': 
+            generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; 
+            break; 
+        default: 
+            generated = `${product.name} is now available.\n\n${product.description}\n\n${features}\n\nShop securely here: ${link}`; 
+    } 
+    setCustomText(generated); 
+  }, [platform, product, settings]);
   const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const handleDownloadImage = async () => { if (!product.media?.[0]?.url) return; try { const response = await fetch(product.media[0].url); const blob = await response.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${product.name.replace(/\s/g, '_')}_social.jpg`; document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url); document.body.removeChild(a); } catch (err) { console.error("Download failed", err); } };
   
@@ -444,7 +459,8 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
       const shareData: any = {
         title: settings.companyName,
         text: customText,
-        url: product.affiliateLink
+        // Use Internal Link
+        url: `${window.location.origin}/#/product/${product.id}`
       };
 
       // Try to bundle image
@@ -1212,6 +1228,13 @@ const Admin: React.FC = () => {
                      <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex justify-between items-center"><h4 className="text-white font-bold flex items-center gap-3"><Database size={20} className="text-primary"/> Backend Protocol</h4><div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSupabaseConfigured ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{isSupabaseConfigured ? 'Synchronized' : 'Offline'}</div></div><AdminTip title="Supabase Cloud">
                          Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your Vercel/Netlify environment variables. This connects your dashboard to the persistent database.
                      </AdminTip></div>
+                     
+                     <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex items-center justify-between"><h4 className="text-white font-bold flex items-center gap-3"><ActivityIcon size={20} className="text-primary"/> Tracking & Analytics</h4></div><div className="space-y-4">
+                        <SettingField label="Google Analytics ID (G-XXXXXXXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({googleAnalyticsId: v})} placeholder="G-XXXXXXXXXX" />
+                        <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({facebookPixelId: v})} placeholder="123456789012345" />
+                        <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({tiktokPixelId: v})} placeholder="CXXXXXXXXXXXXX" />
+                     </div></div>
+
                      <div className="p-8 bg-slate-900 border border-slate-800 rounded-[2.5rem] space-y-6"><div className="flex items-center justify-between"><h4 className="text-white font-bold flex items-center gap-3"><Mail size={20} className="text-primary"/> Lead Routing (EmailJS)</h4><button onClick={() => setShowEmailTemplate(true)} className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:text-white"><FileCode size={14} /> Get Template</button></div><div className="space-y-4"><SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({emailJsServiceId: v})} placeholder="service_xxxxxx" /><SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({emailJsTemplateId: v})} placeholder="template_xxxxxx" /><SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({emailJsPublicKey: v})} placeholder="user_xxxxxxx" /></div></div>
                   </div>
                )}
