@@ -60,23 +60,50 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleShare = async () => {
-    logEvent('share', `Product: ${product?.name}`);
-    const text = `Check out ${product?.name} at ${settings.companyName}`;
-    const url = window.location.href;
+    if (!product) return;
+    logEvent('share', `Product: ${product.name}`);
 
+    // Compile Text Caption
+    const discount = product.discountRules?.[0];
+    const discountString = discount 
+      ? (discount.type === 'percentage' ? `${discount.value}% OFF` : `R${discount.value} OFF`) 
+      : '';
+    
+    const shareText = `${product.name}\n\n${product.description.substring(0, 150)}...\n\n${discountString ? `🔥 ${discountString}\n` : ''}Shop here: ${window.location.href}`;
+
+    // Try Native Share with File Bundle
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: product?.name,
-          text: text,
-          url: url
-        });
+        const shareData: ShareData = {
+          title: product.name,
+          text: shareText,
+          url: window.location.href
+        };
+
+        // Try to fetch image to bundle
+        const imgUrl = product.media?.[activeMediaIndex]?.url || product.media?.[0]?.url;
+        if (imgUrl) {
+          try {
+            const response = await fetch(imgUrl);
+            const blob = await response.blob();
+            const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+               shareData.files = [file];
+            }
+          } catch (e) {
+            console.warn("Could not fetch image for share bundle, sharing text only", e);
+          }
+        }
+
+        await navigator.share(shareData);
+        return;
       } catch (err) {
-        console.log("Share skipped", err);
+        console.log("Native share cancelled or failed", err);
       }
-    } else {
-      setIsShareOpen(true);
     }
+    
+    // Fallback to custom modal if native share fails or not supported
+    setIsShareOpen(true);
   };
 
   const handleCopyLink = () => {
