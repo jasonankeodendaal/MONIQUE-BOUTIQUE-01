@@ -728,6 +728,28 @@ const Admin: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const fetchTraffic = async () => {
+       try {
+         if (isSupabaseConfigured) {
+            // Fetch real data from Supabase if connected
+            const { data } = await supabase.from('traffic_logs').select('*').limit(2000);
+            if (data) setTrafficEvents(data);
+         } else {
+             // Fallback to local storage for demo/local mode
+             const rawLogs = localStorage.getItem('site_traffic_logs');
+             const logs = rawLogs ? JSON.parse(rawLogs) : [];
+             if (Array.isArray(logs)) setTrafficEvents(logs);
+         }
+       } catch (e) {
+         setTrafficEvents([]);
+       }
+    };
+    fetchTraffic();
+    const interval = setInterval(fetchTraffic, 5000);
+    return () => clearInterval(interval);
+  }, [isSupabaseConfigured]);
+
+  useEffect(() => {
     const fetchTraffic = () => {
        try {
          const rawLogs = localStorage.getItem('site_traffic_logs');
@@ -741,10 +763,13 @@ const Admin: React.FC = () => {
          setTrafficEvents([]);
        }
     };
-    fetchTraffic();
-    const interval = setInterval(fetchTraffic, 2000);
-    return () => clearInterval(interval);
-  }, []);
+    // Only run legacy local fetch if NOT supabase configured (handled above)
+    if (!isSupabaseConfigured) {
+        fetchTraffic();
+        const interval = setInterval(fetchTraffic, 2000);
+        return () => clearInterval(interval);
+    }
+  }, [isSupabaseConfigured]);
 
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
   const handleFactoryReset = async () => { if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { localStorage.clear(); window.location.reload(); } };
@@ -912,7 +937,7 @@ const Admin: React.FC = () => {
                ))}
             </div>
             <div className="mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
-               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Active Monitoring: Live Updates Every 2 Seconds</span>
+               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Active Monitoring: Live Updates Every 5 Seconds</span>
                <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Peak Traffic</span></div>
                   <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-800 rounded"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Average Load</span></div>
@@ -1267,8 +1292,6 @@ const Admin: React.FC = () => {
     );
   };
 
-  // ... (The rest of the Admin component, including renderGuide, renderSiteEditor, main return, etc., remains largely the same but utilizes these new render functions. I am returning the FULL file content here.)
-  
   const renderCatalog = () => (
     <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       {showProductForm ? (

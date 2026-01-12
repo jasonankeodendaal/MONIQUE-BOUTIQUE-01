@@ -2,6 +2,7 @@
 // Added React import to resolve namespace errors
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
+import { X } from 'lucide-react';
 import Header from './components/Header';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -42,68 +43,116 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 const Footer: React.FC = () => {
   const { settings, user, saveStatus, connectionHealth } = useSettings();
   const location = useLocation();
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
+
   if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
 
   return (
-    <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12 text-left">
-          <div className="col-span-2">
-            <div className="flex items-center space-x-3 mb-6">
-               {settings.companyLogoUrl ? (
-                <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-8 h-8 object-contain" />
-              ) : (
-                <div className="w-8 h-8 rounded flex items-center justify-center text-white font-bold bg-primary">
-                  {settings.companyLogo}
-                </div>
-              )}
-              <span className="text-white text-xl font-bold tracking-tighter">{settings.companyName}</span>
+    <>
+      <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12 text-left">
+            <div className="col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
+                 {settings.companyLogoUrl ? (
+                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-8 h-8 object-contain" />
+                ) : (
+                  <div className="w-8 h-8 rounded flex items-center justify-center text-white font-bold bg-primary">
+                    {settings.companyLogo}
+                  </div>
+                )}
+                <span className="text-white text-xl font-bold tracking-tighter">{settings.companyName}</span>
+              </div>
+              <p className="max-w-xs leading-relaxed text-sm mb-8 font-light">
+                {settings.footerDescription}
+              </p>
             </div>
-            <p className="max-w-xs leading-relaxed text-sm mb-8 font-light">
-              {settings.footerDescription}
-            </p>
+            <div>
+              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Navigation</h4>
+              <ul className="space-y-3 text-sm font-light">
+                <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
+                <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
+                <li><Link to="/about" className="hover:text-primary transition-colors">{settings.navAboutLabel}</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Policy</h4>
+              <ul className="space-y-3 text-sm font-light">
+                <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
+                <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Navigation</h4>
-            <ul className="space-y-3 text-sm font-light">
-              <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
-              <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
-              <li><Link to="/about" className="hover:text-primary transition-colors">{settings.navAboutLabel}</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Policy</h4>
-            <ul className="space-y-3 text-sm font-light">
-              <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
-              <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
-            </ul>
+          <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p>&copy; {new Date().getFullYear()} {settings.companyName}. {settings.footerCopyrightText}</p>
+            <div className="flex items-center gap-6">
+               <button 
+                  onClick={() => setShowCreatorModal(true)} 
+                  className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all group shadow-sm hover:shadow-md hover:border-primary/30"
+                  title="Site Creator"
+               >
+                  <span className="text-[9px] font-bold text-slate-400 group-hover:text-white transition-colors">Site by</span>
+                  <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-5 w-auto opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+               </button>
+               <div className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                  <span className="text-[9px] font-mono">{connectionHealth?.latency || 0}ms</span>
+               </div>
+               <div className="flex items-center gap-3">
+                <div 
+                  className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                    saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' :
+                    saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]' :
+                    saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
+                    'bg-slate-700'
+                  }`} 
+                  title={`System Status: ${saveStatus}`}
+                />
+                <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
+                  Bridge Concierge Portal
+                </Link>
+               </div>
+            </div>
           </div>
         </div>
-        <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p>&copy; {new Date().getFullYear()} {settings.companyName}. {settings.footerCopyrightText}</p>
-          <div className="flex items-center gap-6">
-             <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                <span className="text-[9px] font-mono">{connectionHealth?.latency || 0}ms</span>
-             </div>
-             <div className="flex items-center gap-3">
-              <div 
-                className={`w-2 h-2 rounded-full transition-all duration-500 ${
-                  saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' :
-                  saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]' :
-                  saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
-                  'bg-slate-700'
-                }`} 
-                title={`System Status: ${saveStatus}`}
-              />
-              <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
-                Bridge Concierge Portal
-              </Link>
-             </div>
-          </div>
+      </footer>
+
+      {showCreatorModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+           <div className="relative w-full max-w-md bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+              <div className="absolute inset-0">
+                 <img src="https://i.ibb.co/dsh2c2hp/unnamed.jpg" className="w-full h-full object-cover opacity-60" alt="Creator Background" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent"></div>
+              </div>
+              <button 
+                onClick={() => setShowCreatorModal(false)}
+                className="absolute top-4 right-4 z-20 p-2 bg-black/40 text-white rounded-full hover:bg-white hover:text-black transition-colors backdrop-blur-md"
+              >
+                <X size={20} />
+              </button>
+              <div className="relative z-10 p-10 text-center flex flex-col items-center">
+                 <div className="w-24 h-24 mb-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 p-4 flex items-center justify-center shadow-2xl">
+                    <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="w-full h-auto object-contain" />
+                 </div>
+                 <h2 className="text-3xl font-serif text-white mb-2 tracking-tight">JSTYP.me</h2>
+                 <p className="text-primary font-bold text-xs uppercase tracking-widest mb-6">Jason's solution to your problems, Yes me!</p>
+                 <p className="text-slate-300 text-sm leading-relaxed mb-10 max-w-xs font-light">
+                    Need a website, App or just a tool? <br/>Contact us today!
+                 </p>
+                 <a 
+                   href="https://wa.me/"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="flex items-center gap-3 px-8 py-4 bg-[#25D366] text-white rounded-2xl hover:brightness-110 transition-all shadow-xl shadow-[#25D366]/20 group"
+                 >
+                    <img src="https://i.ibb.co/Z1YHvjgT/image-removebg-preview-1.png" alt="WhatsApp" className="w-6 h-6 object-contain" />
+                    <span className="font-bold text-sm uppercase tracking-wider">Chat on WhatsApp</span>
+                 </a>
+              </div>
+           </div>
         </div>
-      </div>
-    </footer>
+      )}
+    </>
   );
 };
 
