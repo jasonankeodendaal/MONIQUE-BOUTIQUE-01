@@ -266,7 +266,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
     const utmSource = params.get('utm_source') || params.get('source') || params.get('ref');
     const referrer = document.referrer.toLowerCase();
     
-    // Priority 1: URL Parameters (Exact detection for WhatsApp/etc if linked properly)
+    // Priority 1: URL Parameters (Exact detection for specific campaigns/platforms)
     if (utmSource) {
       const cleanSource = utmSource.toLowerCase();
       if (cleanSource.includes('whatsapp')) return 'WhatsApp';
@@ -275,23 +275,41 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
       if (cleanSource.includes('instagram')) return 'Instagram';
       if (cleanSource.includes('facebook') || cleanSource.includes('fb')) return 'Facebook';
       if (cleanSource.includes('twitter') || cleanSource.includes('x')) return 'X (Twitter)';
-      // Capitalize first letter of unknown sources
+      if (cleanSource.includes('pinterest')) return 'Pinterest';
+      // Capitalize first letter of unknown sources for "new platform" detection
       return cleanSource.charAt(0).toUpperCase() + cleanSource.slice(1);
     }
 
-    // Priority 2: Referrer Header
-    if (referrer.includes('facebook') || referrer.includes('fb')) return 'Facebook';
-    if (referrer.includes('instagram')) return 'Instagram';
-    if (referrer.includes('tiktok')) return 'TikTok';
-    if (referrer.includes('pinterest')) return 'Pinterest';
-    if (referrer.includes('google')) return 'Google Search';
-    if (referrer.includes('twitter') || referrer.includes('t.co') || referrer.includes('x.com')) return 'X (Twitter)';
-    if (referrer.includes('linkedin')) return 'LinkedIn';
+    // Priority 2: Detailed Referrer Parsing
+    if (referrer.includes('facebook.com') || referrer.includes('fb.com')) return 'Facebook';
+    if (referrer.includes('instagram.com')) return 'Instagram';
+    if (referrer.includes('tiktok.com')) return 'TikTok';
+    if (referrer.includes('pinterest.com') || referrer.includes('pinterest.')) return 'Pinterest';
+    if (referrer.includes('google.') || referrer.includes('googleusercontent')) return 'Google Search';
+    if (referrer.includes('twitter.com') || referrer.includes('t.co') || referrer.includes('x.com')) return 'X (Twitter)';
+    if (referrer.includes('linkedin.com') || referrer.includes('lnkd.in')) return 'LinkedIn';
     if (referrer.includes('whatsapp') || referrer.includes('wa.me')) return 'WhatsApp';
     
+    // Handle Android App Links (e.g., android-app://com.linkedin.android)
+    if (referrer.startsWith('android-app://')) {
+        const parts = referrer.split('//');
+        if (parts[1]) {
+            const appId = parts[1].split('/')[0];
+            if (appId.includes('linkedin')) return 'LinkedIn';
+            if (appId.includes('facebook')) return 'Facebook';
+            if (appId.includes('twitter')) return 'X (Twitter)';
+            if (appId.includes('instagram')) return 'Instagram';
+            if (appId.includes('pinterest')) return 'Pinterest';
+            if (appId.includes('google')) return 'Google';
+            return appId; // Return App ID as source for new platforms
+        }
+    }
+    
+    // Handle standard websites (New Platform detection)
     if (referrer.length > 0) {
       try {
-        const url = new URL(referrer);
+        const url = new URL(document.referrer);
+        // Remove www and return hostname as the "New Platform"
         return url.hostname.replace('www.', '');
       } catch (e) {
         return 'Referral';
@@ -359,7 +377,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
             };
 
             const existing = JSON.parse(stored || '[]');
-            // Keep last 50 visits
+            // Keep last 50 visits locally, but logs go to DB
             const updated = [visitData, ...existing].slice(0, 50);
             localStorage.setItem('site_visitor_locations', JSON.stringify(updated));
             sessionStorage.setItem('geo_tracked', 'true');
@@ -522,7 +540,9 @@ const App: React.FC = () => {
              await supabase.auth.signOut();
              setUser(null);
            } else if (session) {
-             // RESTORE SESSION (Fixed: was signing out previously)
+             // Validate Session Email against Admin List
+             // Note: We do this check reactively in the admin sync as well, 
+             // but here we just restore the session object.
              setUser(session.user);
            }
          } catch (e) {
@@ -798,8 +818,45 @@ const App: React.FC = () => {
   useEffect(() => {
     refreshAllData();
     if (isSupabaseConfigured) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null);
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const currentUser = session?.user;
+        
+        // STRICT AUTHENTICATION LOGIC
+        if (currentUser) {
+           // 1. Fetch current admin list to check permissions
+           const currentAdmins = await fetchTableData('admin_users');
+           
+           // 2. Check if this user is in the admin list
+           const isRegisteredAdmin = currentAdmins.find((a: AdminUser) => a.email === currentUser.email);
+           
+           if (isRegisteredAdmin) {
+              // Valid admin found
+              setUser(currentUser);
+           } else if (currentAdmins.length === 0) {
+              // 3. FIRST LAUNCH SCENARIO: If no admins exist, the first user becomes the Owner
+              const newOwner: AdminUser = {
+                  id: currentUser.id,
+                  email: currentUser.email || '',
+                  name: currentUser.user_metadata?.name || 'System Owner',
+                  role: 'owner',
+                  permissions: ['*'],
+                  createdAt: Date.now(),
+                  lastActive: Date.now()
+              };
+              await upsertData('admin_users', newOwner);
+              setAdmins([newOwner]);
+              setUser(currentUser);
+           } else {
+              // 4. UNAUTHORIZED: User is logged in via Google but not in admin list
+              console.warn("Unauthorized access attempt:", currentUser.email);
+              await supabase.auth.signOut();
+              setUser(null);
+              alert("Access Denied: You are not a registered administrator for this bridge page.");
+              window.location.hash = '/login';
+           }
+        } else {
+           setUser(null);
+        }
       });
       return () => subscription.unsubscribe();
     } else {
@@ -807,23 +864,19 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Update lastActive timestamp when user interacts
   useEffect(() => {
     if (user && isSupabaseConfigured && admins.length > 0) {
       const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
-      if (!existingAdmin) {
-        const newAdmin: AdminUser = {
-          id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin',
-          role: 'admin',
-          permissions: [],
-          createdAt: Date.now(),
-          lastActive: Date.now()
-        };
-        updateData('admin_users', newAdmin);
+      if (existingAdmin) {
+         // Update local state first
+         const updatedAdmin = { ...existingAdmin, lastActive: Date.now() };
+         setAdmins(prev => prev.map(a => a.id === updatedAdmin.id ? updatedAdmin : a));
+         // Fire and forget update to DB to avoid lag
+         upsertData('admin_users', updatedAdmin);
       }
     }
-  }, [user, admins]);
+  }, [user]);
 
   useEffect(() => {
     const hexToRgb = (hex: string) => {
