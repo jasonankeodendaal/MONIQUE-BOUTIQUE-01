@@ -44,7 +44,7 @@ export async function fetchTableData(table: string) {
   const { data, error } = await supabase.from(table).select('*');
   if (error) {
     console.error(`Fetch error for ${table}:`, error);
-    return [];
+    return null;
   }
   return data || [];
 }

@@ -257,7 +257,6 @@ const TrackingInjector = () => {
 const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string) => void }) => {
   const location = useLocation();
   const hasTrackedGeo = useRef(false);
-  const sessionTracked = useRef(false);
   
   const getTrafficSource = () => {
     if (typeof document === 'undefined') return 'Direct';
@@ -266,7 +265,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
     const utmSource = params.get('utm_source') || params.get('source') || params.get('ref');
     const referrer = document.referrer.toLowerCase();
     
-    // Priority 1: URL Parameters (Exact detection for WhatsApp/etc if linked properly)
     if (utmSource) {
       const cleanSource = utmSource.toLowerCase();
       if (cleanSource.includes('whatsapp')) return 'WhatsApp';
@@ -275,11 +273,9 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
       if (cleanSource.includes('instagram')) return 'Instagram';
       if (cleanSource.includes('facebook') || cleanSource.includes('fb')) return 'Facebook';
       if (cleanSource.includes('twitter') || cleanSource.includes('x')) return 'X (Twitter)';
-      // Capitalize first letter of unknown sources
       return cleanSource.charAt(0).toUpperCase() + cleanSource.slice(1);
     }
 
-    // Priority 2: Referrer Header
     if (referrer.includes('facebook') || referrer.includes('fb')) return 'Facebook';
     if (referrer.includes('instagram')) return 'Instagram';
     if (referrer.includes('tiktok')) return 'TikTok';
@@ -302,17 +298,11 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
   };
 
   useEffect(() => {
-    // 1. Log View
     if (!location.pathname.startsWith('/admin')) {
       const source = getTrafficSource();
-      // Only log session view ONCE per session reload, or on route change if needed
-      // For general stats, logging every view is fine, but for Source stats, we want entry source
-      
-      // We pass the source to logEvent. logEvent handles saving.
       logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname, source);
     }
 
-    // 2. Fetch Geo & Device Data (Once per session)
     const fetchGeo = async () => {
         if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
         
@@ -320,7 +310,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
         const trafficSource = getTrafficSource();
 
         try {
-            // Get Device Info
             const ua = navigator.userAgent;
             let deviceType = "Desktop";
             if (/Mobi|Android/i.test(ua)) deviceType = "Mobile";
@@ -359,7 +348,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
             };
 
             const existing = JSON.parse(stored || '[]');
-            // Keep last 50 visits
             const updated = [visitData, ...existing].slice(0, 50);
             localStorage.setItem('site_visitor_locations', JSON.stringify(updated));
             sessionStorage.setItem('geo_tracked', 'true');
@@ -375,7 +363,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
 };
 
 // --- Inactivity Timer Hook ---
-const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => { // 5 minutes
+const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTimer = useCallback(() => {
@@ -389,7 +377,7 @@ const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => { // 5 mi
   useEffect(() => {
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
     events.forEach(event => window.addEventListener(event, resetTimer));
-    resetTimer(); // Init
+    resetTimer();
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       events.forEach(event => window.removeEventListener(event, resetTimer));
@@ -397,37 +385,43 @@ const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => { // 5 mi
   }, [resetTimer]);
 };
 
+// Helper for lazy state initialization
+const getLocalState = <T,>(key: string, fallback: T): T => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
+
 const App: React.FC = () => {
-  // IMPORTANT: State initialized with EMPTY first to check localStorage
-  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
-  const [settingsId, setSettingsId] = useState<string>('global'); // Track the DB ID for settings
+  // IMPORTANT: State initialized lazily from localStorage to ensure instant paint
+  const [settings, setSettings] = useState<SiteSettings>(() => getLocalState('site_settings', INITIAL_SETTINGS));
+  const [settingsId, setSettingsId] = useState<string>('global');
   
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>(INITIAL_SUBCATEGORIES);
-  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(INITIAL_CAROUSEL);
-  const [enquiries, setEnquiries] = useState<Enquiry[]>(INITIAL_ENQUIRIES);
-  const [admins, setAdmins] = useState<AdminUser[]>(INITIAL_ADMINS);
-  const [stats, setStats] = useState<ProductStats[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => getLocalState('admin_products', INITIAL_PRODUCTS));
+  const [categories, setCategories] = useState<Category[]>(() => getLocalState('admin_categories', INITIAL_CATEGORIES));
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(() => getLocalState('admin_subcategories', INITIAL_SUBCATEGORIES));
+  const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(() => getLocalState('admin_hero', INITIAL_CAROUSEL));
+  const [enquiries, setEnquiries] = useState<Enquiry[]>(() => getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
+  const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
+  const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   
-  // Monitoring State
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
   const [systemLogs, setSystemLogs] = useState<SystemLog[]>([]);
   const [storageStats, setStorageStats] = useState<StorageStats>({ dbSize: 0, mediaSize: 0, totalRecords: 0, mediaCount: 0 });
 
-  // Refs for stable access inside logEvent
   const productsRef = useRef(products);
   const statsRef = useRef(stats);
 
-  // Keep refs synced
   useEffect(() => { productsRef.current = products; }, [products]);
   useEffect(() => { statsRef.current = stats; }, [stats]);
 
-  // Logout Function
   const performLogout = useCallback(async () => {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
@@ -435,43 +429,32 @@ const App: React.FC = () => {
     setUser(null);
   }, []);
 
-  // 1. Inactivity Timer (5 minutes)
   useInactivityTimer(() => {
     if (user && !window.location.hash.includes('login')) {
        performLogout();
     }
   });
 
-  // Calculate Storage Breakdown
   const calculateStorage = useCallback(() => {
-      // 1. Calculate Database Size (Approx JSON String Length)
       const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats];
       const jsonString = JSON.stringify(dataSet);
       const dbBytes = new Blob([jsonString]).size;
-      
       const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length;
-
-      // 2. Calculate Media Size
       let mediaBytes = 0;
       let mediaCnt = 0;
 
-      // Scan Products
       products.forEach(p => {
          if (p.media) {
            p.media.forEach(m => {
-             mediaBytes += m.size || 0; // If size stored
-             // Fallback estimate if size missing (e.g. 500KB per image)
-             if (!m.size) mediaBytes += 500 * 1024;
+             mediaBytes += m.size || (500 * 1024);
              mediaCnt++;
            });
          }
       });
-      // Scan Hero
       heroSlides.forEach(h => {
-         mediaBytes += 1024 * 1024; // Estimate 1MB for hero
+         mediaBytes += 1024 * 1024;
          mediaCnt++;
       });
-      // Scan Categories
       categories.forEach(c => {
          if (c.image) {
             mediaBytes += 500 * 1024;
@@ -479,33 +462,22 @@ const App: React.FC = () => {
          }
       });
 
-      setStorageStats({
-        dbSize: dbBytes,
-        mediaSize: mediaBytes,
-        totalRecords: totalRecs,
-        mediaCount: mediaCnt
-      });
+      setStorageStats({ dbSize: dbBytes, mediaSize: mediaBytes, totalRecords: totalRecs, mediaCount: mediaCnt });
   }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats]);
 
   useEffect(() => {
     calculateStorage();
   }, [calculateStorage]);
 
-  // Global Latency Check - Runs every 10s to ensure footer is always accurate
   useEffect(() => {
      const checkConnection = async () => { 
         setConnectionHealth(await measureConnection()); 
      };
-     
-     // Initial check
      checkConnection();
-
-     // Periodic check
      const interval = setInterval(checkConnection, 10000);
      return () => clearInterval(interval);
   }, []);
 
-  // 2. Auth Listener Logic
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
@@ -519,22 +491,12 @@ const App: React.FC = () => {
 
     const setupAuth = async () => {
       try {
-         // Get Session
          const { data: { session }, error } = await supabase.auth.getSession();
-         
          if (error) {
-           console.warn("Session check:", error.message);
-           // Handle stale refresh token by clearing
-           if (error.message.includes('Refresh Token')) {
-              await supabase.auth.signOut();
-           }
+           if (error.message.includes('Refresh Token')) await supabase.auth.signOut();
          }
-         
-         if (mounted) {
-            setUser(session?.user ?? null);
-         }
+         if (mounted) setUser(session?.user ?? null);
 
-         // Subscribe to auth changes (this catches the OAuth redirect flow)
          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
            if (mounted) {
              setUser(session?.user ?? null);
@@ -542,51 +504,32 @@ const App: React.FC = () => {
            }
          });
          authSubscription = subscription;
-         
          if (mounted) setLoadingAuth(false);
       } catch (e) {
-         console.error("Auth setup error:", e);
          if (mounted) setLoadingAuth(false);
       }
     };
 
     setupAuth();
-
     return () => {
       mounted = false;
       if (authSubscription) authSubscription.unsubscribe();
     };
   }, []);
 
-  // Helper to load or seed local data
-  const loadOrSeedLocal = <T,>(key: string, initial: T, setter: (val: T) => void) => {
-      const stored = localStorage.getItem(key);
-      if (stored) {
-          setter(JSON.parse(stored));
-      } else {
-          setter(initial);
-          localStorage.setItem(key, JSON.stringify(initial));
-      }
-  };
-
   const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
     const newLog: SystemLog = {
       id: Math.random().toString(36).substr(2, 9),
       timestamp: Date.now(),
-      type,
-      target,
-      message,
-      sizeBytes,
-      status
+      type, target, message, sizeBytes, status
     };
-    setSystemLogs(prev => [newLog, ...prev].slice(0, 50)); // Keep last 50
+    setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
   };
 
   const refreshAllData = async () => {
     addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
     try {
       if (isSupabaseConfigured) {
-        // Use Promise.allSettled to ensure failure in one table doesn't hang the whole UI
         const results = await Promise.allSettled([
           fetchTableData('settings'),
           fetchTableData('products'),
@@ -600,37 +543,49 @@ const App: React.FC = () => {
 
         const [s, p, c, sc, hs, enq, adm, st] = results;
 
-        if (s.status === 'fulfilled' && s.value.length > 0) {
+        if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
           const { id, ...rest } = s.value[0];
           setSettingsId(id);
           setSettings(rest as SiteSettings);
-        } else if (s.status === 'fulfilled' && s.value.length === 0) {
-          // Sync existing initial/local state to cloud if empty
+          localStorage.setItem('site_settings', JSON.stringify(rest));
+        } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
           await upsertData('settings', { ...settings, id: 'global' });
           setSettingsId('global');
         }
 
-        if (p.status === 'fulfilled') setProducts(p.value);
-        if (c.status === 'fulfilled') setCategories(c.value);
-        if (sc.status === 'fulfilled') setSubCategories(sc.value);
-        if (hs.status === 'fulfilled') setHeroSlides(hs.value);
-        if (enq.status === 'fulfilled') setEnquiries(enq.value);
-        if (adm.status === 'fulfilled') setAdmins(adm.value);
-        if (st.status === 'fulfilled') setStats(st.value);
+        if (p.status === 'fulfilled' && p.value !== null) {
+            setProducts(p.value);
+            localStorage.setItem('admin_products', JSON.stringify(p.value));
+        }
+        if (c.status === 'fulfilled' && c.value !== null) {
+            setCategories(c.value);
+            localStorage.setItem('admin_categories', JSON.stringify(c.value));
+        }
+        if (sc.status === 'fulfilled' && sc.value !== null) {
+            setSubCategories(sc.value);
+            localStorage.setItem('admin_subcategories', JSON.stringify(sc.value));
+        }
+        if (hs.status === 'fulfilled' && hs.value !== null) {
+            setHeroSlides(hs.value);
+            localStorage.setItem('admin_hero', JSON.stringify(hs.value));
+        }
+        if (enq.status === 'fulfilled' && enq.value !== null) {
+            setEnquiries(enq.value);
+            localStorage.setItem('admin_enquiries', JSON.stringify(enq.value));
+        }
+        if (adm.status === 'fulfilled' && adm.value !== null) {
+            setAdmins(adm.value);
+            localStorage.setItem('admin_users', JSON.stringify(adm.value));
+        }
+        if (st.status === 'fulfilled' && st.value !== null) {
+            setStats(st.value);
+            localStorage.setItem('admin_product_stats', JSON.stringify(st.value));
+        }
 
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
-
       } else {
-        // Local Mode: Use loadOrSeed helper to ensure persistence survives refresh
-        loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
-        loadOrSeedLocal('admin_products', INITIAL_PRODUCTS, setProducts);
-        loadOrSeedLocal('admin_categories', INITIAL_CATEGORIES, setCategories);
-        loadOrSeedLocal('admin_subcategories', INITIAL_SUBCATEGORIES, setSubCategories);
-        loadOrSeedLocal('admin_hero', INITIAL_CAROUSEL, setHeroSlides);
-        loadOrSeedLocal('admin_enquiries', INITIAL_ENQUIRIES, setEnquiries);
-        loadOrSeedLocal('admin_users', INITIAL_ADMINS, setAdmins);
-        loadOrSeedLocal('admin_product_stats', [], setStats);
-        
+        // Local Mode: Data is primarily managed by state hooks initialized from local storage.
+        // We log the sync but rely on the state already being set.
         addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0);
       }
       setSaveStatus('saved');
@@ -646,21 +601,15 @@ const App: React.FC = () => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
-    // Always save local first for immediate UI feel
     localStorage.setItem('site_settings', JSON.stringify(updated));
-
-    const payloadSize = new Blob([JSON.stringify(updated)]).size;
 
     if (isSupabaseConfigured) {
       try {
         await upsertData('settings', { ...updated, id: settingsId });
-        addSystemLog('UPDATE', 'settings', 'Global settings updated', payloadSize);
+        addSystemLog('UPDATE', 'settings', 'Global settings updated', 0);
       } catch (e) { 
-        console.warn("Cloud settings sync failed");
-        addSystemLog('ERROR', 'settings', 'Cloud sync failed', payloadSize, 'failed');
+        addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed');
       }
-    } else {
-      addSystemLog('UPDATE', 'settings', 'Local settings updated', payloadSize);
     }
     setTimeout(() => setSaveStatus('saved'), 500);
   };
@@ -682,7 +631,6 @@ const App: React.FC = () => {
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
     }
 
-    // Always persist to local storage immediately
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.some((i: any) => i.id === data.id) 
@@ -690,20 +638,15 @@ const App: React.FC = () => {
        : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
 
-    const payloadSize = new Blob([JSON.stringify(data)]).size;
-
     try {
       if (isSupabaseConfigured) {
         await upsertData(table, data);
-        addSystemLog('UPDATE', table, `Upserted ID: ${data.id?.substring(0,8)}`, payloadSize);
-      } else {
-        addSystemLog('UPDATE', table, `Local Update ID: ${data.id?.substring(0,8)}`, payloadSize);
+        addSystemLog('UPDATE', table, `Upserted ID: ${data.id?.substring(0,8)}`, 0);
       }
       setSaveStatus('saved');
       return true;
     } catch (e) {
-      console.error(`Update failed for ${table}`, e);
-      addSystemLog('ERROR', table, `Update failed: ${data.id}`, payloadSize, 'failed');
+      addSystemLog('ERROR', table, `Update failed`, 0, 'failed');
       setSaveStatus('error');
       return false;
     }
@@ -713,7 +656,6 @@ const App: React.FC = () => {
     setSaveStatus('saving');
     const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
     
-    // Optimistic Update
     switch(table) {
         case 'products': setProducts(deleteLocalState(products)); break;
         case 'categories': setCategories(deleteLocalState(categories)); break;
@@ -723,7 +665,6 @@ const App: React.FC = () => {
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
     }
 
-    // Update Local Storage immediately
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.filter((i: any) => i.id !== id);
@@ -733,23 +674,18 @@ const App: React.FC = () => {
       if (isSupabaseConfigured) {
         await deleteSupabaseData(table, id);
         addSystemLog('DELETE', table, `Deleted ID: ${id.substring(0,8)}`, 0);
-      } else {
-        addSystemLog('DELETE', table, `Local Delete ID: ${id.substring(0,8)}`, 0);
       }
       setSaveStatus('saved');
       return true;
     } catch (e) {
       setSaveStatus('error');
-      addSystemLog('ERROR', table, `Delete failed: ${id}`, 0, 'failed');
-      refreshAllData(); // Revert on failure
+      refreshAllData();
       return false;
     }
   };
 
   const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
-    // Robust ID generation to avoid primary key conflicts
     const eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
     const newEvent = {
       id: eventId,
       type: type || 'system',
@@ -762,8 +698,7 @@ const App: React.FC = () => {
     if (isSupabaseConfigured) {
       try {
         const { error } = await supabase.from('traffic_logs').insert([newEvent]);
-        if (error) { console.warn("Traffic log skipped", error.message); }
-      } catch (err) { /* Silent fail for logs */ }
+      } catch (err) {}
     } else {
       const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
       localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
@@ -775,12 +710,7 @@ const App: React.FC = () => {
         
         if (product) {
             const currentStat = statsRef.current.find(s => s.productId === product.id) || { 
-                productId: product.id, 
-                views: 0, 
-                clicks: 0, 
-                shares: 0,
-                totalViewTime: 0, 
-                lastUpdated: Date.now() 
+                productId: product.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: Date.now() 
             };
             const newStat: ProductStats = {
                 ...currentStat,
@@ -790,23 +720,17 @@ const App: React.FC = () => {
                 lastUpdated: Date.now()
             };
             
-            // Sync local state
             setStats(prev => {
                 const filtered = prev.filter(s => s.productId !== product.id);
                 return [...filtered, newStat];
             });
 
-            // Persist
             if (isSupabaseConfigured) {
                 try {
-                  // Attempt clean upsert. If column missing, it might error, so we catch it.
                   await upsertData('product_stats', newStat);
-                } catch (e: any) { 
-                  if (e.message?.includes('shares')) {
-                    // Try without 'shares' if DB is old
-                    const { shares, ...legacyStat } = newStat as any;
-                    try { await upsertData('product_stats', legacyStat); } catch (e2) {}
-                  }
+                } catch (e: any) {
+                  const { shares, ...legacyStat } = newStat as any;
+                  try { await upsertData('product_stats', legacyStat); } catch (e2) {}
                 }
             } else {
                 const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
