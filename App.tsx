@@ -742,6 +742,30 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // GLOBAL ERROR LISTENER: Captures errors from anywhere in the app
+    const handleGlobalError = (event: ErrorEvent) => {
+      try {
+        logEvent('system', `[CRITICAL] Runtime Exception: ${event.message}`, event.filename || 'Script');
+      } catch (e) { console.error(e); }
+    };
+
+    const handleGlobalRejection = (event: PromiseRejectionEvent) => {
+      try {
+        const reason = event.reason instanceof Error ? event.reason.message : String(event.reason);
+        logEvent('system', `[CRITICAL] Async Failure: ${reason}`, 'Promise');
+      } catch (e) { console.error(e); }
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleGlobalRejection);
+
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleGlobalRejection);
+    };
+  }, [logEvent]);
+
+  useEffect(() => {
     if (user && isSupabaseConfigured && admins.length > 0) {
       const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
       if (!existingAdmin) {

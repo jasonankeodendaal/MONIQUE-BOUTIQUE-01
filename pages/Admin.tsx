@@ -63,6 +63,7 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   );
 };
 
+// ... (omitting helper components to save space, but keeping them in final file is implied. Re-including required ones for context)
 const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
   <div className="space-y-2 text-left w-full min-w-0">
     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
@@ -588,6 +589,7 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
   return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>);
 };
 
+// ... (Rest of existing uploader components: FileUploader)
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -706,7 +708,10 @@ const Admin: React.FC = () => {
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
   const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
-  const [errorLogs, setErrorLogs] = useState<any[]>([]);
+  
+  // Real-time error handling state
+  const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
+  const [minErrorTimestamp, setMinErrorTimestamp] = useState(0);
 
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminData, setAdminData] = useState<Partial<AdminUser>>({});
@@ -729,7 +734,6 @@ const Admin: React.FC = () => {
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
-  const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
 
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@kasicouture.com');
@@ -743,46 +747,11 @@ const Admin: React.FC = () => {
     return stats.filter(s => myProductIds.includes(s.productId));
   }, [stats, isOwner, displayProducts]);
 
-  // Enhanced Error Logging
-  useEffect(() => {
-    const handleRuntimeError = (event: ErrorEvent) => {
-      const newError = {
-        id: Date.now() + Math.random(),
-        type: 'RUNTIME_EXCEPTION',
-        message: event.message,
-        source: event.filename ? event.filename.split('/').pop() : 'Script',
-        lineno: event.lineno,
-        stack: event.error?.stack,
-        timestamp: new Date().toLocaleTimeString()
-      };
-      setErrorLogs(prev => [newError, ...prev].slice(0, 50));
-    };
-
-    const handlePromiseRejection = (event: PromiseRejectionEvent) => {
-      const newError = {
-        id: Date.now() + Math.random(),
-        type: 'PROMISE_REJECTION',
-        message: event.reason?.message || String(event.reason),
-        source: 'Async',
-        stack: event.reason?.stack,
-        timestamp: new Date().toLocaleTimeString()
-      };
-      setErrorLogs(prev => [newError, ...prev].slice(0, 50));
-    };
-
-    window.addEventListener('error', handleRuntimeError);
-    window.addEventListener('unhandledrejection', handlePromiseRejection);
-
-    return () => {
-      window.removeEventListener('error', handleRuntimeError);
-      window.removeEventListener('unhandledrejection', handlePromiseRejection);
-    };
-  }, []);
-
   const simulateSystemError = () => {
-    // Asynchronously throw to trigger rejection
+    // This throws an error that is caught by the global handler in App.tsx
+    // The handler writes to traffic_logs, which we then fetch below.
     setTimeout(() => {
-       throw new Error("Simulated Critical System Failure: Test Protocol Initiated");
+       throw new Error("Simulation: Database Handshake Timeout (504 Gateway)");
     }, 100);
   };
 
@@ -808,27 +777,25 @@ const Admin: React.FC = () => {
     return () => clearInterval(interval);
   }, [isSupabaseConfigured]);
 
-  useEffect(() => {
-    const fetchTraffic = () => {
-       try {
-         const rawLogs = localStorage.getItem('site_traffic_logs');
-         const logs = rawLogs ? JSON.parse(rawLogs) : [];
-         if (Array.isArray(logs)) {
-            setTrafficEvents(logs);
-         } else {
-            setTrafficEvents([]);
-         }
-       } catch (e) {
-         setTrafficEvents([]);
-       }
-    };
-    // Only run legacy local fetch if NOT supabase configured (handled above)
-    if (!isSupabaseConfigured) {
-        fetchTraffic();
-        const interval = setInterval(fetchTraffic, 2000);
-        return () => clearInterval(interval);
-    }
-  }, [isSupabaseConfigured]);
+  // Derived error logs from actual traffic events (persistent data)
+  const errorLogs = useMemo(() => {
+    return trafficEvents
+      .filter(e => 
+        e.timestamp > minErrorTimestamp &&
+        e.type === 'system' && 
+        (typeof e.text === 'string' && (e.text.includes('[CRITICAL]') || e.text.includes('Error') || e.text.includes('Exception')))
+      )
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .map(e => ({
+         id: e.id,
+         timestamp: e.time,
+         type: e.text.includes('Async') ? 'PROMISE_REJECTION' : 'RUNTIME_EXCEPTION',
+         source: e.source,
+         message: e.text.replace('[CRITICAL] ', ''),
+         stack: null // Stack not stored in simple log schema, simplified for view
+      }))
+      .slice(0, 50);
+  }, [trafficEvents, minErrorTimestamp]);
 
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
   const handleFactoryReset = async () => { if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { localStorage.clear(); window.location.reload(); } };
@@ -884,6 +851,7 @@ const Admin: React.FC = () => {
   );
 
   const renderAnalytics = () => {
+    // ... (This function remains unchanged, fetching traffic stats)
     // Safe parse visitorLogs
     let visitorLogs: any[] = [];
     try {
@@ -1334,19 +1302,19 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
-        {/* Real-time Exception Logs (Enhanced) */}
+        {/* Real-time Exception Logs (Persistent) */}
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold text-xl flex items-center gap-3">
                  <AlertTriangle size={24} className="text-red-500"/>
-                 Live Exception Trace
+                 Global Exception Trace
               </h3>
               <div className="flex gap-2">
                  <button onClick={simulateSystemError} className="px-3 py-1.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-colors">
-                    Simulate Error
+                    Trigger Failure
                  </button>
-                 <button onClick={() => setErrorLogs([])} className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-colors">
-                    Clear
+                 <button onClick={() => setMinErrorTimestamp(Date.now())} className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-colors">
+                    Clear View
                  </button>
               </div>
            </div>
@@ -1367,11 +1335,6 @@ const Admin: React.FC = () => {
                        <div className="text-slate-300 break-words pl-0 md:pl-4 font-bold">
                           {err.message}
                        </div>
-                       {err.stack && (
-                          <div className="mt-2 pl-4 text-[10px] text-slate-600 overflow-x-auto whitespace-pre">
-                             {err.stack.split('\n').slice(0, 3).join('\n')}...
-                          </div>
-                       )}
                     </div>
                  ))
               ) : (
@@ -1439,6 +1402,7 @@ const Admin: React.FC = () => {
     </div>
   );
 
+  // ... (Keeping renderHero, renderCategories, renderTeam, renderTraining, renderGuide, renderSiteEditor as originally provided)
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <AdminTip title="Hero Master Visuals">Set the tone for your bridge page with cinematic hero visuals. Videos increase dwell time by up to 40%.</AdminTip>
