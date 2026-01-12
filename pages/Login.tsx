@@ -1,17 +1,24 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { LogIn, Mail, Lock, AlertCircle, Info, Chrome, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
-  const { isLocalMode, settings } = useSettings();
+  const { isLocalMode, settings, user } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Redirect to Admin if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/admin');
+    }
+  }, [user, navigate]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +56,8 @@ const Login: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/#/admin`,
+          // Redirect to root, App.tsx auth listener handles navigation
+          redirectTo: window.location.origin, 
         },
       });
       if (error) throw error;
