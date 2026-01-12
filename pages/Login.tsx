@@ -58,6 +58,11 @@ const Login: React.FC = () => {
         options: {
           // Redirect to root, App.tsx auth listener handles navigation
           redirectTo: window.location.origin, 
+          // Force refresh token generation and consent prompt to fix "not detecting credentials" issues
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
         },
       });
       if (error) throw error;

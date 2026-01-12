@@ -312,7 +312,7 @@ const getPlatformStyles = (sourceName: string) => {
   if (lower.includes('twitter') || lower.includes('x (')) return { icon: Twitter, color: 'text-sky-500', bg: 'bg-sky-500', border: 'border-sky-500/20' };
   if (lower.includes('linkedin')) return { icon: Linkedin, color: 'text-blue-600', bg: 'bg-blue-600', border: 'border-blue-600/20' };
   
-  // Dynamic fallback for new platforms
+  // Dynamic fallback
   return { 
     icon: Globe, 
     color: 'text-white', 
@@ -757,8 +757,7 @@ const Admin: React.FC = () => {
        try {
          if (isSupabaseConfigured) {
             // Fetch real data from Supabase if connected
-            // Increased limit to show more historical context for new platforms
-            const { data } = await supabase.from('traffic_logs').select('*').limit(5000).order('timestamp', { ascending: false });
+            const { data } = await supabase.from('traffic_logs').select('*').limit(2000);
             if (data) setTrafficEvents(data);
          } else {
              // Fallback to local storage for demo/local mode
@@ -773,6 +772,28 @@ const Admin: React.FC = () => {
     fetchTraffic();
     const interval = setInterval(fetchTraffic, 5000);
     return () => clearInterval(interval);
+  }, [isSupabaseConfigured]);
+
+  useEffect(() => {
+    const fetchTraffic = () => {
+       try {
+         const rawLogs = localStorage.getItem('site_traffic_logs');
+         const logs = rawLogs ? JSON.parse(rawLogs) : [];
+         if (Array.isArray(logs)) {
+            setTrafficEvents(logs);
+         } else {
+            setTrafficEvents([]);
+         }
+       } catch (e) {
+         setTrafficEvents([]);
+       }
+    };
+    // Only run legacy local fetch if NOT supabase configured (handled above)
+    if (!isSupabaseConfigured) {
+        fetchTraffic();
+        const interval = setInterval(fetchTraffic, 2000);
+        return () => clearInterval(interval);
+    }
   }, [isSupabaseConfigured]);
 
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
