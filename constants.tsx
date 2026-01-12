@@ -1,16 +1,20 @@
 
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
-// EMAIL_TEMPLATE_HTML added to fix import error in Admin.tsx
+// EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
 export const EMAIL_TEMPLATE_HTML = `
   <!DOCTYPE html>
   <html>
     <head>
       <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .footer { font-size: 12px; color: #999; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; background-color: #f9f9f9; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 20px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #D4AF37; padding-bottom: 20px; }
+        .header img { max-height: 80px; margin-bottom: 10px; }
+        .header h1 { font-family: 'Playfair Display', serif; color: #1e293b; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
+        .content { color: #475569; font-size: 16px; }
+        .footer { font-size: 11px; color: #94a3b8; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+        .cta-button { display: inline-block; padding: 12px 24px; background-color: #D4AF37; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
       </style>
     </head>
     <body>
@@ -18,10 +22,14 @@ export const EMAIL_TEMPLATE_HTML = `
         <div class="header">
           <h1>{{company_name}}</h1>
         </div>
-        <p>Dear {{to_name}},</p>
-        <div>{{message}}</div>
+        <div class="content">
+          <p>Dear {{to_name}},</p>
+          <div>{{message}}</div>
+          <p>If you have further questions, feel free to visit our concierge portal.</p>
+          <a href="{{company_website}}" class="cta-button">Visit Our Collections</a>
+        </div>
         <div class="footer">
-          <p>&copy; {{year}} {{company_name}}</p>
+          <p>&copy; {{year}} {{company_name}} | Boutique Curation</p>
           <p>{{company_address}}</p>
         </div>
       </div>
@@ -31,266 +39,271 @@ export const EMAIL_TEMPLATE_HTML = `
 
 export const GUIDE_STEPS = [
   {
-    id: 'database',
-    title: 'Database & Schema Engine',
-    description: 'The foundation of your Maison. Execute this SQL script in your Supabase SQL Editor to create the necessary tables for products, inquiries, and site settings.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Navigate to the "SQL Editor" tab in your Supabase Dashboard.',
-      'Click "New Query" and paste the provided SQL block.',
-      'Click "Run" to initialize all 8 core tables.',
-      'Verify tables appear in the "Table Editor" sidebar.'
-    ],
-    code: `-- 1. Site Settings Table
-CREATE TABLE IF NOT EXISTS settings (
-  id TEXT PRIMARY KEY,
-  "companyName" TEXT,
-  slogan TEXT,
-  "companyLogo" TEXT,
-  "companyLogoUrl" TEXT,
-  "primaryColor" TEXT,
-  "secondaryColor" TEXT,
-  "accentColor" TEXT,
-  "navHomeLabel" TEXT,
-  "navProductsLabel" TEXT,
-  "navAboutLabel" TEXT,
-  "navContactLabel" TEXT,
-  "navDashboardLabel" TEXT,
-  "contactEmail" TEXT,
-  "contactPhone" TEXT,
-  "whatsappNumber" TEXT,
-  address TEXT,
-  "socialLinks" JSONB,
-  "footerDescription" TEXT,
-  "footerCopyrightText" TEXT,
-  "homeHeroBadge" TEXT,
-  "homeAboutTitle" TEXT,
-  "homeAboutDescription" TEXT,
-  "homeAboutImage" TEXT,
-  "homeAboutCta" TEXT,
-  "homeCategorySectionTitle" TEXT,
-  "homeCategorySectionSubtitle" TEXT,
-  "homeTrustSectionTitle" TEXT,
-  "homeTrustItem1Title" TEXT,
-  "homeTrustItem1Desc" TEXT,
-  "homeTrustItem1Icon" TEXT,
-  "homeTrustItem2Title" TEXT,
-  "homeTrustItem2Desc" TEXT,
-  "homeTrustItem2Icon" TEXT,
-  "homeTrustItem3Title" TEXT,
-  "homeTrustItem3Desc" TEXT,
-  "homeTrustItem3Icon" TEXT,
-  "productsHeroTitle" TEXT,
-  "productsHeroSubtitle" TEXT,
-  "productsHeroImage" TEXT,
-  "productsHeroImages" TEXT[],
-  "productsSearchPlaceholder" TEXT,
-  "aboutHeroTitle" TEXT,
-  "aboutHeroSubtitle" TEXT,
-  "aboutMainImage" TEXT,
-  "aboutEstablishedYear" TEXT,
-  "aboutFounderName" TEXT,
-  "aboutLocation" TEXT,
-  "aboutHistoryTitle" TEXT,
-  "aboutHistoryBody" TEXT,
-  "aboutMissionTitle" TEXT,
-  "aboutMissionBody" TEXT,
-  "aboutMissionIcon" TEXT,
-  "aboutCommunityTitle" TEXT,
-  "aboutCommunityBody" TEXT,
-  "aboutCommunityIcon" TEXT,
-  "aboutIntegrityTitle" TEXT,
-  "aboutIntegrityBody" TEXT,
-  "aboutIntegrityIcon" TEXT,
-  "aboutSignatureImage" TEXT,
-  "aboutGalleryImages" TEXT[],
-  "contactHeroTitle" TEXT,
-  "contactHeroSubtitle" TEXT,
-  "contactFormNameLabel" TEXT,
-  "contactFormEmailLabel" TEXT,
-  "contactFormSubjectLabel" TEXT,
-  "contactFormMessageLabel" TEXT,
-  "contactFormButtonText" TEXT,
-  "contactInfoTitle" TEXT,
-  "contactAddressLabel" TEXT,
-  "contactHoursLabel" TEXT,
-  "contactHoursWeekdays" TEXT,
-  "contactHoursWeekends" TEXT,
-  "disclosureTitle" TEXT,
-  "disclosureContent" TEXT,
-  "privacyTitle" TEXT,
-  "privacyContent" TEXT,
-  "termsTitle" TEXT,
-  "termsContent" TEXT,
-  "emailJsServiceId" TEXT,
-  "emailJsTemplateId" TEXT,
-  "emailJsPublicKey" TEXT,
-  "googleAnalyticsId" TEXT,
-  "facebookPixelId" TEXT,
-  "tiktokPixelId" TEXT,
-  "amazonAssociateId" TEXT,
-  "webhookUrl" TEXT,
-  "pinterestTagId" TEXT
-);
-
--- 2. Products Table
-CREATE TABLE IF NOT EXISTS products (
-  id TEXT PRIMARY KEY,
-  name TEXT,
-  sku TEXT,
-  price NUMERIC,
-  "affiliateLink" TEXT,
-  "categoryId" TEXT,
-  "subCategoryId" TEXT,
-  description TEXT,
-  features TEXT[],
-  specifications JSONB,
-  media JSONB,
-  "discountRules" JSONB,
-  reviews JSONB,
-  "createdAt" BIGINT,
-  "createdBy" TEXT
-);
-
--- 3. Categories Table
-CREATE TABLE IF NOT EXISTS categories (
-  id TEXT PRIMARY KEY,
-  name TEXT,
-  icon TEXT,
-  image TEXT,
-  description TEXT,
-  "createdBy" TEXT
-);
-
--- 4. Subcategories Table
-CREATE TABLE IF NOT EXISTS subcategories (
-  id TEXT PRIMARY KEY,
-  "categoryId" TEXT,
-  name TEXT,
-  "createdBy" TEXT
-);
-
--- 5. Hero Slides Table
-CREATE TABLE IF NOT EXISTS hero_slides (
-  id TEXT PRIMARY KEY,
-  image TEXT,
-  type TEXT,
-  title TEXT,
-  subtitle TEXT,
-  cta TEXT,
-  "createdBy" TEXT
-);
-
--- 6. Enquiries Table
-CREATE TABLE IF NOT EXISTS enquiries (
-  id TEXT PRIMARY KEY,
-  name TEXT,
-  email TEXT,
-  whatsapp TEXT,
-  subject TEXT,
-  message TEXT,
-  "createdAt" BIGINT,
-  status TEXT
-);
-
--- 7. Admin Users Table
-CREATE TABLE IF NOT EXISTS admin_users (
-  id TEXT PRIMARY KEY,
-  name TEXT,
-  email TEXT,
-  role TEXT,
-  permissions TEXT[],
-  "createdAt" BIGINT,
-  "lastActive" BIGINT,
-  "profileImage" TEXT,
-  phone TEXT,
-  address TEXT
-);
-
--- 8. Traffic Logs Table
-CREATE TABLE IF NOT EXISTS traffic_logs (
-  id TEXT PRIMARY KEY,
-  type TEXT,
-  text TEXT,
-  time TEXT,
-  timestamp BIGINT,
-  source TEXT
-);
-
--- 9. Product Stats Table
-CREATE TABLE IF NOT EXISTS product_stats (
-  "productId" TEXT PRIMARY KEY,
-  views INTEGER DEFAULT 0,
-  clicks INTEGER DEFAULT 0,
-  shares INTEGER DEFAULT 0,
-  "totalViewTime" NUMERIC DEFAULT 0,
-  "lastUpdated" BIGINT
-);`,
-    codeLabel: 'Initial Schema (PostgreSQL)'
-  },
-  {
-    id: 'environment',
-    title: 'Cloud Synchronization',
-    description: 'Connect your local curation engine to your global Supabase project for real-time inventory management.',
+    id: 'supabase-init',
+    title: '1. Supabase Infrastructure',
+    description: 'Establish your cloud nerve center. Create a free account at Supabase.com and initialize a new project named "Affiliate Bridge".',
     illustrationId: 'rocket',
     subSteps: [
-      'Go to Supabase Project Settings > API.',
-      'Copy the Project URL and Anon Key.',
-      'Create a .env file in your project root.',
-      'The app will automatically detect these and switch to Cloud Mode.'
-    ],
-    code: 'VITE_SUPABASE_URL=https://your-project-id.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-key-here',
-    codeLabel: '.env Configuration'
-  },
-  {
-    id: 'storage',
-    title: 'Asset Vault (Storage)',
-    description: 'Enable high-speed image and video hosting for your product galleries.',
-    illustrationId: 'forge',
-    subSteps: [
-      'In Supabase, go to the "Storage" tab.',
-      'Create a new bucket named exactly "media".',
-      'Set the bucket to "Public" (crucial for affiliate links).',
-      'Test by uploading a logo in the Identity settings.'
-    ],
-    code: 'Bucket Name: media\nVisibility: Public\nAllowed MIME Types: image/*, video/*',
-    codeLabel: 'Storage Parameters'
-  },
-  {
-    id: 'emailjs',
-    title: 'Concierge Automation (EmailJS)',
-    description: 'Configure your automatic reply system so you can respond to inquiries directly from the Maison Portal.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Sign up at emailjs.com.',
-      'Add a Service (like Gmail or Outlook).',
-      'Create a Template. Copy the IDs into the Integrations tab.',
-      'Ensure template variables match: {{to_name}}, {{message}}, {{subject}}.'
-    ],
-    code: 'Variables Required:\n{{to_name}} - Recipient Name\n{{message}} - Your reply body\n{{subject}} - Email subject\n{{company_name}} - Your brand',
-    codeLabel: 'EmailJS Template Config'
-  },
-  {
-    id: 'tracking',
-    title: 'Intelligence & Pixels',
-    description: 'Install tracking sensors to monitor visitor behavior across Facebook, TikTok, and Pinterest.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Get your Measurement ID from Google Analytics G-XXXXXX.',
-      'Get your Pixel IDs from Meta, TikTok, and Pinterest dashboards.',
-      'Paste them into the Canvas > Integrations section.',
-      'Check the Analytics tab to see live hits appearing.'
+      'Sign in to Supabase.com.',
+      'Click "New Project" and select a region (e.g., Cape Town or London).',
+      'Choose a secure Database Password and save it.',
+      'Wait for the database to provision (approx. 2 minutes).'
     ]
   },
   {
-    id: 'deployment',
-    title: 'Production Deployment',
-    description: 'Deploy your bridge page to a production environment for global access.',
+    id: 'database',
+    title: '2. Database Schema (SQL Engine)',
+    description: 'Execute the master architecture script. This version is idempotent (run-safe) and includes security policies for permissions.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Navigate to the "SQL Editor" tab in Supabase.',
+      'Click "New Query" and paste the comprehensive SQL block below.',
+      'Click "Run". It handles tables, RLS enablement, and basic access policies.',
+      'Verify tables exist in the "Table Editor".'
+    ],
+    code: `-- MASTER ARCHITECTURE SCRIPT v3.0 (Idempotent)
+
+-- 1. EXTENSIONS
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 2. TABLES
+CREATE TABLE IF NOT EXISTS settings (
+  id TEXT PRIMARY KEY DEFAULT 'global',
+  "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
+  "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
+  "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT,
+  "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT,
+  "socialLinks" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT,
+  "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
+  "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeTrustSectionTitle" TEXT,
+  "homeTrustItem1Title" TEXT, "homeTrustItem1Desc" TEXT, "homeTrustItem1Icon" TEXT,
+  "homeTrustItem2Title" TEXT, "homeTrustItem2Desc" TEXT, "homeTrustItem2Icon" TEXT,
+  "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT,
+  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" TEXT[],
+  "productsSearchPlaceholder" TEXT, "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT,
+  "aboutEstablishedYear" TEXT, "aboutFounderName" TEXT, "aboutLocation" TEXT,
+  "aboutHistoryTitle" TEXT, "aboutHistoryBody" TEXT, "aboutMissionTitle" TEXT, "aboutMissionBody" TEXT, "aboutMissionIcon" TEXT,
+  "aboutCommunityTitle" TEXT, "aboutCommunityBody" TEXT, "aboutCommunityIcon" TEXT,
+  "aboutIntegrityTitle" TEXT, "aboutIntegrityBody" TEXT, "aboutIntegrityIcon" TEXT,
+  "aboutSignatureImage" TEXT, "aboutGalleryImages" TEXT[],
+  "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT,
+  "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
+  "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
+  "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
+  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
+  "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS products (
+  id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT,
+  "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB,
+  media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
+CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
+CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
+CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
+
+-- 3. PERMISSIONS (ROW LEVEL SECURITY)
+-- Enable RLS on all tables
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
+
+-- 4. POLICIES (Simplified for Anon access during migration)
+-- For production, replace 'true' with proper auth checks e.g. (auth.uid() IS NOT NULL)
+-- Public Read Access
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read categories') THEN CREATE POLICY "Public Read categories" ON categories FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read subcategories') THEN CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read hero_slides') THEN CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert enquiries') THEN CREATE POLICY "Public Insert enquiries" ON enquiries FOR INSERT WITH CHECK (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert traffic_logs') THEN CREATE POLICY "Public Insert traffic_logs" ON traffic_logs FOR INSERT WITH CHECK (true); END IF;
+END $$;
+
+-- Admin Full Access (Allowing all for now via Anon Key, adjust per security needs)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon') THEN 
+        CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon categories" ON categories FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon subcategories" ON subcategories FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon hero_slides" ON hero_slides FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon admin_users" ON admin_users FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon traffic_logs" ON traffic_logs FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon product_stats" ON product_stats FOR ALL USING (true);
+    END IF;
+END $$;`,
+    codeLabel: 'Full System SQL Script'
+  },
+  {
+    id: 'storage',
+    title: '3. Asset Vault (Storage)',
+    description: 'Setup high-speed CDN hosting for your product images and videos.',
     illustrationId: 'rocket',
     subSteps: [
-      'Connect your GitHub repository to Vercel or Netlify.',
-      'Add the .env variables to the "Environment Variables" section in their dashboard.',
-      'Click Deploy. Your high-conversion bridge page is live!'
+      'Go to the "Storage" tab in Supabase.',
+      'Create a new bucket named "media".',
+      'Set bucket visibility to "Public" (Required for bridge display).',
+      'In "Policies", allow all operations (SELECT, INSERT, UPDATE) for Public access.'
+    ]
+  },
+  {
+    id: 'auth',
+    title: '4. Authentication (Security)',
+    description: 'Configure your staff access and login protocols.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to "Authentication" > "Settings".',
+      'Disable "Confirm Email" if you want instant staff onboarding.',
+      'Add "http://localhost:3000" to Redirect URLs for local testing.',
+      'Add your production Vercel URL once deployed.'
+    ]
+  },
+  {
+    id: 'environment',
+    title: '5. Local Infrastructure (.env)',
+    description: 'Link your local development engine to your Supabase cloud project.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Copy "Project URL" and "Anon Key" from Settings > API.',
+      'Create a file named ".env" in your project root.',
+      'Paste the variables exactly as shown below.'
+    ],
+    code: 'VITE_SUPABASE_URL=https://your-project.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-key-here',
+    codeLabel: '.env Variables'
+  },
+  {
+    id: 'github',
+    title: '6. Version Control (GitHub)',
+    description: 'Secure your codebase and enable continuous deployment (CI/CD).',
+    illustrationId: 'forge',
+    subSteps: [
+      'Create a new repository on GitHub (Private recommended).',
+      'Run "git init" in your local project folder.',
+      'Run "git remote add origin [your-repo-url]".',
+      'Push your code: "git add .", "git commit", "git push".'
+    ]
+  },
+  {
+    id: 'emailjs-account',
+    title: '7. EmailJS: Service Protocol',
+    description: 'Configure the automated mail server to handle client inquiries.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Create an account at EmailJS.com.',
+      'Go to "Email Services" and add your Gmail or Outlook.',
+      'Note the "Service ID" for your settings.'
+    ]
+  },
+  {
+    id: 'emailjs-template',
+    title: '8. EmailJS: Template Engineering',
+    description: 'Design the professional reply template your clients will receive.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to "Email Templates" > "Create New".',
+      'Map these variables: {{to_name}}, {{message}}, {{subject}}, {{company_name}}.',
+      'Paste the HTML code below into the "Code" editor of the template.',
+      'Note the "Template ID" and "Public Key".'
+    ],
+    code: EMAIL_TEMPLATE_HTML,
+    codeLabel: 'EmailJS HTML Template'
+  },
+  {
+    id: 'google-analytics',
+    title: '9. Marketing: Google Analytics (G4)',
+    description: 'Install tracking sensors to monitor global traffic origins.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Create a property in Google Analytics.',
+      'Go to Admin > Data Streams > Web.',
+      'Copy the "Measurement ID" (starts with G-).',
+      'Paste into Portal > Canvas > Integrations.'
+    ]
+  },
+  {
+    id: 'meta-pixel',
+    title: '10. Marketing: Meta Pixel (Facebook)',
+    description: 'Enable conversion tracking for Facebook and Instagram ads.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to Meta Events Manager.',
+      'Create a new "Web" Data Source (Pixel).',
+      'Copy the numeric "Dataset ID".',
+      'Paste into the Integrations tab.'
+    ]
+  },
+  {
+    id: 'tiktok-pixel',
+    title: '11. Marketing: TikTok Monitoring',
+    description: 'Track viral trends and referral performance from TikTok.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Go to TikTok Ads Manager > Assets > Events.',
+      'Create a "Web Event" and select "Manual Setup".',
+      'Copy the "Pixel ID".',
+      'Paste into the Integrations tab.'
+    ]
+  },
+  {
+    id: 'pinterest-tag',
+    title: '12. Marketing: Pinterest Tag',
+    description: 'Capture aesthetic shoppers from the Pinterest ecosystem.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to Pinterest Business Hub > Ads > Conversions.',
+      'Create a "Pinterest Tag".',
+      'Copy the "Unique Tag ID".',
+      'Paste into the Integrations tab.'
+    ]
+  },
+  {
+    id: 'vercel-deploy',
+    title: '13. Deployment: Vercel Production',
+    description: 'Launch your bridge page to the global web with high-performance hosting.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Sign in to Vercel.com.',
+      'Click "Add New" > "Project".',
+      'Import your GitHub repository created in Step 6.',
+      'Wait for the "Configure Project" screen.'
+    ]
+  },
+  {
+    id: 'vercel-env',
+    title: '14. Deployment: Cloud Injectors',
+    description: 'Securely inject your API keys into the production environment.',
+    illustrationId: 'forge',
+    subSteps: [
+      'In Vercel "Environment Variables", add "VITE_SUPABASE_URL".',
+      'Add "VITE_SUPABASE_ANON_KEY".',
+      'Click "Deploy". Your site is now live at a .vercel.app domain.'
+    ]
+  },
+  {
+    id: 'final-polish',
+    title: '15. Final Polish: Custom Domain',
+    description: 'Complete your brand identity with a custom .com or .co.za domain.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Purchase a domain (GoDaddy, Namecheap, etc.).',
+      'In Vercel, go to Settings > Domains.',
+      'Add your domain and update the DNS records as instructed.',
+      'Test your bridge page on your new custom URL!'
     ]
   }
 ];
@@ -453,7 +466,7 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 
 export const INITIAL_SETTINGS: SiteSettings = {
   companyName: 'Kasi Couture',
-  slogan: 'Personal Luxury Wardrobe',
+  slogan: 'Curated by the Founder',
   companyLogo: 'KC',
   companyLogoUrl: 'https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png',
   primaryColor: '#D4AF37',
@@ -474,61 +487,61 @@ export const INITIAL_SETTINGS: SiteSettings = {
     { id: '2', name: 'Twitter', url: 'https://twitter.com/kasicouture', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3256/3256013.png' }
   ],
 
-  footerDescription: "The digital bridge to South African luxury. Curating elite fashion and lifestyle affiliate picks for the discerning modern closet.",
-  footerCopyrightText: "All rights reserved. Made with love in South Africa.",
+  footerDescription: "The digital bridge to modern luxury. Curating elite fashion and lifestyle affiliate picks for the discerning modern closet.",
+  footerCopyrightText: "All rights reserved. Made with love.",
 
   // Home
-  homeHeroBadge: 'Kasi Couture Exclusive',
-  homeAboutTitle: 'Modern Heritage. Timeless Elegance.',
-  homeAboutDescription: 'I founded Kasi Couture to bridge the gap between street-inspired authenticity and high-end luxury. Every piece featured here is a testament to the vibrant spirit of Johannesburg refined for the global stage.',
+  homeHeroBadge: 'Founder\'s Selection',
+  homeAboutTitle: 'My Journey in the Silhouette.',
+  homeAboutDescription: 'I founded this platform to bridge the gap between pure aesthetics and high-performance lifestyle. Every piece featured here is a testament to my personal quest for quality—refined, tested, and curated for you.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Read My Story',
+  homeAboutCta: 'Explore My Story',
   homeCategorySectionTitle: 'Shop by Department',
   homeCategorySectionSubtitle: 'The Collection',
   homeTrustSectionTitle: 'The Standard',
-  homeTrustItem1Title: 'Verified Luxury',
+  homeTrustItem1Title: 'Verified Quality',
   homeTrustItem1Desc: 'Every product link is personally tested and leads to a secure, verified retailer.',
   homeTrustItem1Icon: 'ShieldCheck',
-  homeTrustItem2Title: 'Curated Taste',
-  homeTrustItem2Desc: 'No algorithms. Only human-selected pieces that embody the Kasi Couture aesthetic.',
+  homeTrustItem2Title: 'Human Curation',
+  homeTrustItem2Desc: 'No algorithms. Only human-selected pieces that embody the founder\'s aesthetic.',
   homeTrustItem2Icon: 'Sparkles',
-  homeTrustItem3Title: 'Global Reach',
-  homeTrustItem3Desc: 'Sourcing the best of South African design and international luxury couture.',
+  homeTrustItem3Title: 'Global Vision',
+  homeTrustItem3Desc: 'Sourcing the best of local design and international luxury couture.',
   homeTrustItem3Icon: 'Globe',
 
   // Products
-  productsHeroTitle: 'Boutique Explorer',
-  productsHeroSubtitle: 'Refine your selection by department, category, or trend.',
+  productsHeroTitle: 'The Boutique Explorer',
+  productsHeroSubtitle: 'Refine your selection by department, category, or founder favorites.',
   productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Search collections...',
+  productsSearchPlaceholder: 'Search my collections...',
 
   // About
-  aboutHeroTitle: 'The Story of the Silhouette.',
-  aboutHeroSubtitle: 'Kasi Couture is my personal curation platform, dedicated to finding the most exquisite garments and accessories across the continent.',
+  aboutHeroTitle: 'The Story of the Curator.',
+  aboutHeroSubtitle: 'Kasi Couture is my personal curation platform, dedicated to finding the most exquisite garments and accessories.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Kasi Couture',
+  aboutFounderName: 'The Founder',
   aboutLocation: 'South Africa',
 
-  aboutHistoryTitle: 'A Passion for Craft',
-  aboutHistoryBody: 'What began as a style blog in the heart of Soweto has evolved into a premier luxury bridge page. Our mission is to highlight the intricate craftsmanship of local and international designers.',
+  aboutHistoryTitle: 'A Passion for Curation',
+  aboutHistoryBody: 'What began as a style blog has evolved into a premier luxury bridge page. My mission is to highlight the intricate craftsmanship of designers I truly believe in.\n\nI believe that fashion is the most immediate form of self-expression. By curating only the pieces that meet my rigorous standards for fabric, fit, and flair, I hope to simplify your journey toward an effortless wardrobe.',
   
-  aboutMissionTitle: 'Elite Curation',
-  aboutMissionBody: 'To provide a seamless, aesthetically pleasing interface for fashion enthusiasts to discover premium affiliate products.',
+  aboutMissionTitle: 'Elite Standards',
+  aboutMissionBody: 'To provide a seamless interface for fashion enthusiasts to discover premium affiliate products.',
   aboutMissionIcon: 'Target',
 
-  aboutCommunityTitle: 'The Inner Circle',
+  aboutCommunityTitle: 'Style Circle',
   aboutCommunityBody: 'Join a global community of style icons who value quality over quantity.',
   aboutCommunityIcon: 'Users',
   
-  aboutIntegrityTitle: 'Transparency First',
-  aboutIntegrityBody: 'As an affiliate bridge page, we receive a small commission on purchases made through our links, allowing us to keep curating the best for you without bias.',
+  aboutIntegrityTitle: 'Transparency',
+  aboutIntegrityBody: 'As an affiliate bridge page, I receive a small commission on purchases made through my links, allowing me to keep curating the best for you.',
   aboutIntegrityIcon: 'Award',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
@@ -548,7 +561,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   contactFormButtonText: 'Transmit Inquiry',
   
   // New Contact Editable Fields
-  contactInfoTitle: 'Global HQ',
+  contactInfoTitle: 'Headquarters',
   contactAddressLabel: 'Address',
   contactHoursLabel: 'Operating Hours',
   contactHoursWeekdays: 'Mon - Fri: 09:00 - 18:00 (SAST)',
@@ -556,11 +569,11 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
   // Legal
   disclosureTitle: 'Affiliate Disclosure',
-  disclosureContent: `### Affiliate Disclosure\n\nTransparency is our foundation. Kasi Couture is a professional curation site. Most product links are affiliate links. If you click and buy, we may receive a commission at no extra cost to you.`,
+  disclosureContent: `### Affiliate Disclosure\n\nTransparency is our foundation. This platform is a professional curation site. Most product links are affiliate links. If you click and buy, we may receive a commission at no extra cost to you.`,
   privacyTitle: 'Privacy Policy',
   privacyContent: `### Privacy Policy\n\nWe value your data privacy. We only collect information necessary for newsletter signups and direct inquiries.`,
   termsTitle: 'Terms of Service',
-  termsContent: `### Terms of Service\n\nKasi Couture is a bridge page. We do not process payments or ship goods directly. All sales are handled by third-party retailers.`,
+  termsContent: `### Terms of Service\n\nThis is a bridge page. We do not process payments or ship goods directly. All sales are handled by third-party retailers.`,
 
   // Integrations
   emailJsServiceId: '',
@@ -579,24 +592,24 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Autumn Silk Series',
-    subtitle: 'Flowing silhouettes designed for the golden hour in the city.',
-    cta: 'View Series'
+    title: 'The Silk Series',
+    subtitle: 'Flowing silhouettes designed for the golden hour.',
+    cta: 'View Collection'
   },
   {
     id: '2',
     image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'The Tailored Man',
-    subtitle: 'Bespoke-inspired cuts that redefine urban professional attire.',
+    title: 'Tailored Precision',
+    subtitle: 'Bespoke-inspired cuts for the modern professional.',
     cta: 'Explore Suiting'
   },
   {
     id: '3',
     image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Velvet Nights',
-    subtitle: 'Evening wear that captures the essence of luxury after dark.',
+    title: 'Evening Elegance',
+    subtitle: 'Pieces that capture the essence of luxury after dark.',
     cta: 'Shop Evening'
   }
 ];
@@ -624,21 +637,17 @@ export const INITIAL_PRODUCTS: Product[] = [
     affiliateLink: 'https://example.com/midnight-silk',
     categoryId: 'cat1',
     subCategoryId: 'sub1',
-    description: 'A luxurious 100% silk wrap dress that transitions perfectly from brunch to ballroom. The Midnight Silk Wrap features a flattering crossover neckline, adjustable waist tie, and a flowing skirt that moves with you.',
+    description: 'A luxurious 100% silk wrap dress that transitions perfectly from day to night. Personally selected for its incredible drape and timeless silhouette.',
     features: [
-      '100% Premium Mulberry Silk (22 Momme)',
+      '100% Premium Mulberry Silk',
       'Hand-finished french seams',
-      'Adjustable wrap closure for custom fit',
-      'Hypoallergenic and temperature regulating',
-      'Hidden side pockets'
+      'Adjustable wrap closure',
+      'Temperature regulating'
     ],
     specifications: {
       'Material': '100% Mulberry Silk',
-      'Lining': 'Partially Lined',
-      'Origin': 'Made in Italy',
       'Care': 'Dry Clean Only',
-      'Length': 'Midi (120cm from shoulder)',
-      'Fit': 'True to Size, Relaxed Fit'
+      'Fit': 'True to Size'
     },
     media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800', name: 'Silk Dress', type: 'image/jpeg', size: 0 }],
     createdAt: Date.now(),
@@ -648,7 +657,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         id: 'r1',
         userName: 'Amahle Z.',
         rating: 5,
-        comment: 'Absolutely stunning quality. The silk feels divine against the skin and the fit is perfection.',
+        comment: 'Absolutely stunning quality. The silk feels divine.',
         createdAt: Date.now() - 10000000
       }
     ]
