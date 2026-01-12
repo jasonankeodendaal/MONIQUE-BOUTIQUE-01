@@ -1,4 +1,3 @@
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 export const TRAINING_MODULES: TrainingModule[] = [
@@ -468,17 +467,8 @@ export const EMAIL_TEMPLATE_HTML = `<!DOCTYPE html>
   .product-info { padding: 15px; }
   .product-name { font-size: 14px; font-weight: bold; color: #1e293b; margin: 0 0 5px; height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .product-price { font-size: 14px; color: #D4AF37; font-weight: bold; margin-bottom: 10px; display: block; }
-  .product-link { font-size: 12px; color: #64748b; text-decoration: none; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+  .product-grid a { text-decoration: none; }
   .footer { background-color: #1e293b; padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 12px; }
-  .social-icons { margin-bottom: 20px; }
-  .social-icon { display: inline-block; width: 32px; height: 32px; margin: 0 5px; }
-  .footer p { margin: 5px 0; }
-  .footer a { color: #D4AF37; text-decoration: none; }
-  
-  @media only screen and (max-width: 480px) {
-    .product-cell { display: block; width: 100%; padding: 10px 0; }
-    .product-img { height: 220px; }
-  }
 </style>
 </head>
 <body>
@@ -491,29 +481,12 @@ export const EMAIL_TEMPLATE_HTML = `<!DOCTYPE html>
           <h1 class="logo-text">{{company_name}}</h1>
         {{/if}}
       </div>
-      
       <div class="body-content">
         <p>Dear {{to_name}},</p>
-        <p>Thank you for connecting with <strong>{{company_name}}</strong> regarding <strong>{{subject}}</strong>.</p>
-        
-        <div class="message-box">
-          {{{message}}}
-        </div>
-        
-        <p>If you require further assistance, please reply directly to this email.</p>
-        
-        <div style="text-align: center; margin-top: 30px;">
-          <a href="{{company_website}}" class="btn">Access Portal</a>
-        </div>
-
-        {{{products_html}}}
+        <div class="message-box">{{{message}}}</div>
       </div>
-
       <div class="footer">
-        {{{socials_html}}}
         <p>&copy; {{year}} {{company_name}}. All rights reserved.</p>
-        <p>{{company_address}}</p>
-        <p><a href="{{company_website}}">Visit Website</a></p>
       </div>
     </div>
   </div>
@@ -631,6 +604,23 @@ create table if not exists admin_users (id text primary key, name text, email te
 create table if not exists product_stats ("productId" text primary key, views numeric, clicks numeric, shares numeric, "totalViewTime" numeric, "lastUpdated" bigint);
 create table if not exists traffic_logs (id text primary key, type text, text text, time text, timestamp bigint, source text);
 
+-- MIGRATION: Ensure 'createdBy' exists on all relevant tables to prevent 400 Bad Request
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='createdBy') THEN 
+    ALTER TABLE categories ADD COLUMN "createdBy" text; 
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='hero_slides' AND column_name='createdBy') THEN 
+    ALTER TABLE hero_slides ADD COLUMN "createdBy" text; 
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='createdBy') THEN 
+    ALTER TABLE products ADD COLUMN "createdBy" text; 
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subcategories' AND column_name='createdBy') THEN 
+    ALTER TABLE subcategories ADD COLUMN "createdBy" text; 
+  END IF;
+END $$;
+
 -- 3. ENABLE RLS
 alter table settings enable row level security;
 alter table products enable row level security;
@@ -643,64 +633,48 @@ alter table product_stats enable row level security;
 alter table traffic_logs enable row level security;
 
 -- 4. POLICIES (Public Read, Admin Write)
--- Drop existing policies first to ensure idempotent execution
 drop policy if exists "Public Read Settings" on settings;
 create policy "Public Read Settings" on settings for select using (true);
-
 drop policy if exists "Public Read Products" on products;
 create policy "Public Read Products" on products for select using (true);
-
 drop policy if exists "Public Read Categories" on categories;
 create policy "Public Read Categories" on categories for select using (true);
-
 drop policy if exists "Public Read SubCategories" on subcategories;
 create policy "Public Read SubCategories" on subcategories for select using (true);
-
 drop policy if exists "Public Read Hero" on hero_slides;
 create policy "Public Read Hero" on hero_slides for select using (true);
-
 drop policy if exists "Public Read Stats" on product_stats;
 create policy "Public Read Stats" on product_stats for select using (true);
 
 -- Admin Write Policies
 drop policy if exists "Admin All" on settings;
 create policy "Admin All" on settings for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Admin Products" on products;
 create policy "Admin Products" on products for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Admin Categories" on categories;
 create policy "Admin Categories" on categories for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Admin SubCategories" on subcategories;
 create policy "Admin SubCategories" on subcategories for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Admin Hero" on hero_slides;
 create policy "Admin Hero" on hero_slides for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Admin Enquiries" on enquiries;
 create policy "Admin Enquiries" on enquiries for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Admin Users" on admin_users;
 create policy "Admin Users" on admin_users for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Admin Stats" on product_stats;
 create policy "Admin Stats" on product_stats for all using (auth.role() = 'authenticated');
-
 drop policy if exists "Public Insert Logs" on traffic_logs;
 create policy "Public Insert Logs" on traffic_logs for insert with check (true);
-
 drop policy if exists "Admin Select Logs" on traffic_logs;
 create policy "Admin Select Logs" on traffic_logs for select using (auth.role() = 'authenticated');
 
 -- Storage Policies
 drop policy if exists "Public Access" on storage.objects;
 create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
-
 drop policy if exists "Admin Control" on storage.objects;
 create policy "Admin Control" on storage.objects for all using ( auth.role() = 'authenticated' );`,
     codeLabel: 'Complete Supabase Initialization Script (Run in SQL Editor)',
-    tips: 'Why this matters: This script creates all the necessary tables (Products, Settings, etc.) so your app has a place to save data. Without this, you will see a "Sync Failed" error.',
+    tips: 'Why this matters: This script creates all the necessary tables (Products, Settings, etc.) so your app has a place to save data. If you already have tables, running this will update them (like adding the missing "createdBy" columns).',
     illustrationId: 'shield'
   },
   {

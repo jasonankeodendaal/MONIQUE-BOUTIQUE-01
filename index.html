@@ -80,18 +80,15 @@
 </head>
   <body class="bg-[#FDFCFB] text-slate-900 custom-scrollbar">
     <div id="root"></div>
-    <!-- The entry point for Vite -->
     <script type="module" src="/index.tsx"></script>
     <script>
+      // Clean Service Worker registration to avoid 404s and CSP issues
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-              console.log('SW registration failed: ', registrationError);
-            });
+          const swPath = window.location.hostname === 'localhost' ? '/sw.js' : './sw.js';
+          navigator.serviceWorker.register(swPath)
+            .then(reg => console.log('SW active:', reg.scope))
+            .catch(err => console.debug('Offline mode limited:', err.message));
         });
       }
     </script>

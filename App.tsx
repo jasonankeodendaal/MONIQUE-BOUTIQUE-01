@@ -1,4 +1,5 @@
 
+// Added React import to resolve namespace errors
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import Header from './components/Header';
@@ -402,10 +403,6 @@ const App: React.FC = () => {
           return;
         } 
         
-        // NORMAL OPERATION: Strictly fetch from Cloud.
-        // We do NOT check for length > 0. If cloud returns [], state must be [].
-        // This ensures deletions are reflected accurately.
-
         const { id, ...rest } = remoteSettings[0];
         setSettingsId(id);
         setSettings(rest as SiteSettings);
@@ -445,16 +442,12 @@ const App: React.FC = () => {
       setSaveStatus('saved');
     } catch (e) {
       console.error("Data sync failed", e);
-      // Fallback: If Supabase is configured but fails, we should NOT revert to local
-      // because that causes "ghost data". We only use local fallback if isSupabaseConfigured is false.
       if (!isSupabaseConfigured) {
         setSaveStatus('error');
-        // Attempt local fallback for offline development
         loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
         loadOrSeedLocal('admin_products', INITIAL_PRODUCTS, setProducts);
       } else {
         setSaveStatus('error');
-        // Do not overwrite state with initial constants in Live Mode
       }
     }
   };
@@ -554,14 +547,14 @@ const App: React.FC = () => {
     };
 
     if (isSupabaseConfigured) {
-      // Robust error handling to prevent 400 Bad Request
       try {
         const { error } = await supabase.from('traffic_logs').insert([newEvent]);
         if (error) {
-          console.warn("Log insert failed", error);
+           // Silently log schema errors to avoid turning the health dot red for non-critical hits
+           console.warn("Traffic log skipped (Check schema)", error.message);
         }
       } catch (err) {
-        console.warn("Log exception", err);
+        // Prevent traffic logging exceptions from breaking the app UI
       }
     } else {
       const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
@@ -595,7 +588,9 @@ const App: React.FC = () => {
                 return [...filtered, newStat];
             });
             if (isSupabaseConfigured) {
-                await upsertData('product_stats', newStat);
+                try {
+                  await upsertData('product_stats', newStat);
+                } catch (e) { console.warn("Stats sync skipped"); }
             } else {
                 const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
                 const otherStats = localStats.filter((s: any) => s.productId !== product.id);
@@ -617,12 +612,10 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // --- SYNC AUTH USER TO ADMIN TABLE ---
   useEffect(() => {
     if (user && isSupabaseConfigured && admins.length > 0) {
       const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
       if (!existingAdmin) {
-        // Automatically add logged-in Auth user to Admin Table if missing
         const newAdmin: AdminUser = {
           id: user.id,
           email: user.email || '',

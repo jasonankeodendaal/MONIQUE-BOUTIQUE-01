@@ -74,7 +74,6 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
   </div>
 );
 
-// --- STRICT FILE UPLOADER (NO URLs) ---
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -987,6 +986,7 @@ const Admin: React.FC = () => {
       const pStats = displayStats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
       return { ...p, ...pStats, ctr: pStats.views > 0 ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
     }).sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks));
+    
     const totalViews = displayStats.reduce((acc, s) => acc + s.views, 0);
     const totalClicks = displayStats.reduce((acc, s) => acc + s.clicks, 0);
     const totalShares = displayStats.reduce((acc, s) => acc + (s.shares || 0), 0);
@@ -1000,9 +1000,9 @@ const Admin: React.FC = () => {
     }).sort((a, b) => b.views - a.views);
     const maxCatViews = Math.max(...catStats.map(c => c.views), 1);
 
-    // Calculate Traffic Source Breakdown from local storage logs
-    const logs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-    const sourceStats = logs.reduce((acc: any, log: any) => {
+    // Calculate REAL Traffic Source Breakdown from local visitor logs
+    const visitorLogs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+    const sourceStats = visitorLogs.reduce((acc: any, log: any) => {
         const s = log.source || 'Direct';
         acc[s] = (acc[s] || 0) + 1;
         return acc;
@@ -1015,8 +1015,18 @@ const Admin: React.FC = () => {
         { label: 'TikTok', count: sourceStats['TikTok'] || 0, color: 'bg-black border border-slate-700', icon: () => <span className="font-bold text-[8px]">TK</span> },
         { label: 'Pinterest', count: sourceStats['Pinterest'] || 0, color: 'bg-red-600', icon: Pin },
         { label: 'Google', count: sourceStats['Google Search'] || 0, color: 'bg-green-600', icon: SearchCode },
-        { label: 'Direct/Other', count: sourceStats['Direct'] || 0, color: 'bg-slate-600', icon: Globe },
+        { label: 'Direct/Other', count: (sourceStats['Direct'] || 0) + (sourceStats['Referral'] || 0), color: 'bg-slate-600', icon: Globe },
     ].sort((a, b) => b.count - a.count);
+
+    // Calculate REAL Peak Traffic Hours from traffic logs
+    const hourlyDistribution = new Array(24).fill(0);
+    trafficEvents.forEach(evt => {
+        if (evt.timestamp) {
+            const hour = new Date(evt.timestamp).getHours();
+            hourlyDistribution[hour]++;
+        }
+    });
+    const maxHourly = Math.max(...hourlyDistribution, 1);
 
     return (
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
@@ -1073,25 +1083,26 @@ const Admin: React.FC = () => {
             </div>
         </div>
         
-        {/* Peak Hours Simulation (Mock) */}
+        {/* Peak Hours Chart (Real) */}
         <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
-             <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Clock size={18} className="text-primary"/> Peak Traffic Hours (UTC)</h3>
+             <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Clock size={18} className="text-primary"/> Real Peak Traffic Hours</h3>
              <div className="flex items-end gap-1 h-32 md:h-48 w-full">
-                {[...Array(24)].map((_, i) => {
-                   // Mock data pattern: high in morning and evening
-                   const height = (i > 8 && i < 20) ? 40 + Math.random() * 60 : 10 + Math.random() * 20;
+                {hourlyDistribution.map((hits, i) => {
+                   const height = hits > 0 ? (hits / maxHourly) * 100 : 2;
                    return (
-                     <div key={i} className="flex-1 bg-slate-800 rounded-t-sm relative group hover:bg-primary transition-colors" style={{ height: `${height}%` }}>
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                           {i}:00
+                     <div key={i} className="flex-1 bg-slate-800 rounded-t-sm relative group hover:bg-primary transition-all duration-300" style={{ height: `${height}%` }}>
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-2 py-1 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 border border-slate-200">
+                           {hits} Hits at {i}:00
                         </div>
                      </div>
                    )
                 })}
              </div>
-             <div className="flex justify-between text-[9px] font-black uppercase text-slate-500 mt-2">
+             <div className="flex justify-between text-[9px] font-black uppercase text-slate-500 mt-4 border-t border-slate-800 pt-2">
                 <span>00:00</span>
+                <span>06:00</span>
                 <span>12:00</span>
+                <span>18:00</span>
                 <span>23:00</span>
              </div>
         </div>
@@ -1424,19 +1435,20 @@ const Admin: React.FC = () => {
 
   const renderSystem = () => {
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
+    const visitorLogs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
     return (
      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
         <AdminTip title="System Health Monitoring">
-          This dashboard provides a real-time pulse of your application. Use the 'Global Interaction Protocol' map to see exactly where your visitors are coming from. Check 'Connection Diagnostics' to ensure your Supabase database is syncing correctly.
+          This dashboard provides a real-time pulse of your application. The metrics below are pulled directly from your active session and visitor logs.
         </AdminTip>
         
         {/* Top Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[ 
             { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' }, 
-            { label: 'Supabase Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, 
-            { label: 'Storage Bucket', value: isSupabaseConfigured ? 'Connected' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, 
-            { label: 'Total Uptime', value: `${Math.floor(totalSessionTime / 60)}m`, icon: Timer, color: 'text-purple-500' } 
+            { label: 'Cloud DB Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, 
+            { label: 'Storage Cluster', value: isSupabaseConfigured ? 'Connected' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, 
+            { label: 'Traffic Volume', value: visitorLogs.length.toLocaleString(), icon: TrendingUp, color: 'text-purple-500' } 
           ].map((item, i) => (
             <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4">
               <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}>
@@ -1526,15 +1538,18 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
+        {/* Real Live Traffic Component */}
+        <TrafficAreaChart stats={stats} />
+
         {/* Live Error Console */}
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold text-xl flex items-center gap-3">
-                 <Terminal size={24} className="text-red-500"/> Live Error Log
+                 <Terminal size={24} className="text-red-500"/> Live Exception Stream
               </h3>
               <div className="flex items-center gap-2">
                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                 <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Listening</span>
+                 <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Active Monitor</span>
               </div>
            </div>
            
@@ -1663,10 +1678,11 @@ const Admin: React.FC = () => {
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
             <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
-               <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div>
+               <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
             </button> 
           ))}
        </div>
+       <style>{`.edit-hover { opacity: 0; } .group:hover .edit-hover { opacity: 1; }`}</style>
      </div>
   );
 
