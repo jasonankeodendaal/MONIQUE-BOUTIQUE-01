@@ -1,4 +1,3 @@
-
 export interface Category {
   id: string;
   name: string;
@@ -238,7 +237,7 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 export interface TrainingModule {
   id: string;
   title: string;
-  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General';
+  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General' | 'Facebook';
   description: string;
   strategies: string[];
   actionItems: string[];

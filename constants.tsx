@@ -1,4 +1,5 @@
 
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
@@ -311,7 +312,7 @@ END $$;`,
 export const TRAINING_MODULES: TrainingModule[] = [
   {
     id: 'shein-mastery',
-    title: 'Shein Affiliate Blueprint: Zero to First Commission',
+    title: '1. Shein Affiliate Blueprint: Zero to First Commission',
     platform: 'General',
     description: 'The definitive guide to launching your affiliate career with Shein. Learn the exact technical workflow to extract high-converting product data and populate your bridge page.',
     icon: 'ShoppingBag',
@@ -330,7 +331,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
   },
   {
     id: 'founder-growth',
-    title: 'Founder Brand: The Niche Authority',
+    title: '2. Founder Brand: The Niche Authority',
     platform: 'General',
     description: 'Transforming from a simple link-sharer to a cult-followed authority. People don\'t buy products; they buy your taste and your lifestyle.',
     icon: 'User',
@@ -349,7 +350,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
   },
   {
     id: 'instagram-mastery',
-    title: 'Instagram: High-Conversion Storefront',
+    title: '3. Instagram: High-Conversion Storefront',
     platform: 'Instagram',
     description: 'The premier destination for visual fashion. We focus on "Story-Selling" and "Aesthetic Cohesion" to drive traffic to your bridge links.',
     icon: 'Instagram',
@@ -364,6 +365,329 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Create 5 "Highlight" categories: "Shop My Style", "Reviews", "Sale Alerts", "FAQ", "Daily Picks".',
       'Post 3 Stories daily following the "Problem-Solution-Link" framework.',
       'Setup DM automation for your top 3 performing affiliate pieces.'
+    ]
+  },
+  {
+    id: 'tiktok-virality',
+    title: '4. TikTok Virality: The Hook, Body, & CTA',
+    platform: 'TikTok',
+    description: 'Mastering the short-form video algorithm to generate massive organic traffic for your bridge page.',
+    icon: 'Video',
+    strategies: [
+      'The 3-Second Rule: You must arrest attention immediately. Use visual disruptions (e.g., dropping a bag on a table) or controversial statements ("Stop buying expensive silk").',
+      'Trend Surfing: Use the TikTok Creative Center to find trending audio. Apply the audio to your niche (e.g., a trending dance song used as background for a "Get Ready With Me" speed-run).',
+      'Comment Section Mining: Reply to questions with video responses. This creates a "thread" that the algorithm loves and builds community trust.',
+      'The "Link in Bio" CTA: Never assume people know where to go. End every video with a clear visual pointing to your profile picture and saying "Shop the Curation in Bio".'
+    ],
+    actionItems: [
+      'Create a "pinned" video explaining exactly how to shop your bridge page.',
+      'Post 3 times a day for 2 weeks to test different "Hooks" (Visual vs Audio vs Text).',
+      'Engage with 10 other creators in your niche daily to warm up your account.',
+      'Use the "Green Screen" effect to show the product page directly behind you while reviewing.'
+    ]
+  },
+  {
+    id: 'pinterest-seo',
+    title: '5. Pinterest SEO: The Silent Traffic Engine',
+    platform: 'Pinterest',
+    description: 'Unlike social media, Pinterest is a search engine. Learn to position your pins to capture high-intent shoppers searching for specific styles.',
+    icon: 'Pin',
+    strategies: [
+      'Keyword Rich Pins: Don\'t name a board "Cute". Name it "Summer Wedding Guest Dresses 2024". Use the Pinterest search bar to find auto-complete phrases—these are what people are actually searching for.',
+      'Vertical Verticality: Images must be 1000x1500px (2:3 ratio). These take up more screen real estate on mobile, increasing click-through rates.',
+      'Idea Pins for Reach, Static Pins for Clicks: Use Idea Pins (video/slideshow) to grow your account followers, but use standard Static Pins to drive direct link clicks to your bridge page.',
+      'The "Fresh Pin" Strategy: Pinterest hates reposts. Take 5 different photos of the same dress (front, back, detail, flatlay, lifestyle) and pin them on different days.'
+    ],
+    actionItems: [
+      'Convert your personal account to a Business Account to access Analytics.',
+      'Claim your website (bridge page) in settings to get the "Verified Website" checkmark.',
+      'Create 10 Boards based on specific occasions (e.g., "Date Night", "Office Chic").',
+      'Schedule 5 pins per day using the native scheduler or Tailwind.'
+    ]
+  },
+  {
+    id: 'whatsapp-concierge',
+    title: '6. WhatsApp Concierge: High-Touch Sales',
+    platform: 'WhatsApp',
+    description: 'Closing the sale through direct, personal conversation. This is the "Luxury" differentiator of your bridge page.',
+    icon: 'MessageCircle',
+    strategies: [
+      'Status Updates as Catalogs: Post your new bridge page arrivals to your WhatsApp Status. The urgency (24h expiry) drives immediate clicks from your warmest leads (friends/family/clients).',
+      'Broadcast Lists, Not Groups: Use Broadcast Lists to send updates. It looks like a personal 1-on-1 message to the receiver, whereas Groups feel spammy and intrusive.',
+      'Quick Replies: Set up "Business Tools" in WhatsApp Business. Have pre-saved replies for "How do I size this?" or "Shipping times?" that link back to your bridge page FAQ.',
+      'The "Saved Contact" Loop: Offer a small incentive (e.g., "Get my Fall Style Guide PDF") if they save your number. You need them to save your number to see your Status updates.'
+    ],
+    actionItems: [
+      'Switch to WhatsApp Business App.',
+      'Create a "Catalog" in WhatsApp that links individual items to your Bridge Page product URLs.',
+      'Set an "Away Message" that directs people to the Bridge Page when you are sleeping.',
+      'Add a "Chat with Stylist" floating button to your Bridge Page (we have this feature!).'
+    ]
+  },
+  {
+    id: 'seo-bridge',
+    title: '7. SEO for Bridges: Google Ranking',
+    platform: 'SEO',
+    description: 'Optimizing your bridge page metadata so specific product reviews rank on Google Search.',
+    icon: 'Search',
+    strategies: [
+      'Long-Tail Keywords: You won\'t rank for "Red Dress". You WILL rank for "Shein Burgundy Silk Wrap Dress Review South Africa". Be specific in your product titles.',
+      'Meta Descriptions: Write custom descriptions for every product on your bridge page. Include the fabric, the occasion, and the fit.',
+      'The Blog Hybrid: Use the "Description" field in your product admin to write mini-blog posts (300+ words). Google loves text-heavy pages.',
+      'Image Alt Text: Always rename your uploaded images from "IMG_001.jpg" to "emerald-green-satin-dress-evening-wear.jpg" before uploading.'
+    ],
+    actionItems: [
+      'Update the "Site Slogan" in Admin Settings to include your main keywords.',
+      'Rename all product titles to be descriptive (Color + Material + Style + Occasion).',
+      'Write a 300-word "Founder\'s Note" in the About section using your niche keywords.',
+      'Test your page speed using Google PageSpeed Insights.'
+    ]
+  },
+  {
+    id: 'email-marketing',
+    title: '8. Email Marketing: Owning Your Audience',
+    platform: 'General',
+    description: 'Social algorithms change; email lists do not. Building a newsletter is your insurance policy.',
+    icon: 'Mail',
+    strategies: [
+      'The Lead Magnet: Offer a free "Capsule Wardrobe Checklist" PDF in exchange for their email. Put this sign-up form on your Contact page.',
+      'The "Friday Drop": Send one email every Friday at 11 AM with your "Top 5 Picks of the Week". Consistency creates anticipation.',
+      'Segmentation: Tag subscribers based on what they click (e.g., "Interested in Shoes" vs "Interested in Dresses"). Send relevant content to each group.',
+      'Subject Line Science: Use curiosity gaps (e.g., "The one dress you need...") rather than boring labels (e.g., "Newsletter #4").'
+    ],
+    actionItems: [
+      'Sign up for a free Mailchimp or ConvertKit account.',
+      'Create a simple "Welcome Sequence" (3 emails) that introduces your brand story.',
+      'Add a "Join the Inner Circle" link to your Instagram Bio.',
+      'Send your first "Curator\'s Edit" email to your test list.'
+    ]
+  },
+  {
+    id: 'reels-production',
+    title: '9. Reels Production: Studio Quality on Mobile',
+    platform: 'Instagram',
+    description: 'How to shoot, edit, and export high-quality fashion video content using just your smartphone.',
+    icon: 'Film',
+    strategies: [
+      'Lighting 101: Always face the window. Natural light is better than any ring light. If shooting at night, use a softbox to avoid harsh shadows.',
+      'The 4k Export Setting: In Instagram settings, ensure "Upload at Highest Quality" is toggled ON. Record in 4k/60fps on your phone for smooth slow-motion.',
+      'Audio Synchronization: Edit to the beat. Cuts should happen exactly on the drum kick or snare hit of the song. This feels satisfying to watch.',
+      'Angles & Movement: Don\'t just stand there. Move the camera towards the fabric, pan up the silhouette, or walk towards the lens.'
+    ],
+    actionItems: [
+      'Buy a simple tripod with a bluetooth remote shutter.',
+      'Download CapCut for advanced editing features not found in Instagram.',
+      'Create a folder of "Trending Audio" links to use later.',
+      'Batch film 5 outfits in one Sunday afternoon session.'
+    ]
+  },
+  {
+    id: 'community-building',
+    title: '10. Community Building: The "Tribe" Model',
+    platform: 'General',
+    description: 'Moving from "Followers" to "True Fans". A community defends you, promotes you, and buys everything you recommend.',
+    icon: 'Users',
+    strategies: [
+      'Naming Your Tribe: Give your followers a collective name (e.g., "The Chic Squad", "Luxury Hackers"). This creates a sense of belonging.',
+      'UGC Incentives: Encourage followers to tag you when they buy your recommendations. Repost EVERY single tag to your Stories. This is social proof.',
+      'The "Ask Me Anything" (AMA): Host a weekly Q&A on Stories. Answer fashion dilemmas. It positions you as the expert helper, not just a salesperson.',
+      'Vulnerability: Share your fashion fails, not just the wins. "I bought this and it looked terrible" builds more trust than 100 perfect reviews.'
+    ],
+    actionItems: [
+      'Create a "Client Love" highlight on Instagram for reposts.',
+      'Reply to every single comment on your posts with a question to keep the conversation going.',
+      'Host a "Style Audit" giveaway where you critique one follower\'s wardrobe.',
+      'Start a "Sunday Chat" routine on Stories.'
+    ]
+  },
+  {
+    id: 'facebook-groups',
+    title: '11. Facebook Groups: Niche Domination',
+    platform: 'Facebook',
+    description: 'Leveraging existing communities to drive highly targeted traffic.',
+    icon: 'Facebook',
+    strategies: [
+      'The Helper Method: Join groups like "Wedding Guest Outfits" or "Workwear Style". Do NOT spam links. Answer questions with photos, then say "I have a list of similar items on my profile if you need it".',
+      'Marketplace Arbitrage: List items on FB Marketplace (if you own the sample). When they message, say "It\'s sold, but here is the link to buy it new".',
+      'Create Your Own Group: "Affordable Luxury Finds SA". You control the pinned post. You control the rules. You own the traffic.',
+      'Live Shopping Events: Go live in your group showing the physical products. The raw, unedited nature of Lives converts very well.'
+    ],
+    actionItems: [
+      'Join 5 active fashion/shopping groups in your region.',
+      'Spend 1 week just commenting and liking (no links) to build reputation.',
+      'Create a "Style Guide" PDF to offer as a value-add in groups.',
+      'Set up your own niche Facebook Group.'
+    ]
+  },
+  {
+    id: 'influencer-outreach',
+    title: '12. Influencer Outreach: Micro-Collaps',
+    platform: 'General',
+    description: 'Partnering with other micro-influencers to cross-pollinate audiences.',
+    icon: 'Star',
+    strategies: [
+      'The "Style Swap": Find a creator with a similar size. You style an outfit for them, they style one for you. You both tag each other.',
+      'Guest Curation: Invite a guest to curate a "Collection" on your bridge page. "The Sarah Edit". They will promote it heavily because their name is on it.',
+      'Joint Lives: Go live together on Instagram (Split Screen). You instantly double your reach by tapping into their follower notification list.',
+      'Affiliate for Affiliates: If you have a product, offer them a cut. Since you are doing dropshipping/affiliate, this is harder, so focus on content swaps.'
+    ],
+    actionItems: [
+      'Identify 5 creators with 1k-10k followers who share your aesthetic.',
+      'Send a genuine DM complimenting a specific piece of their content.',
+      'Propose a "Style Challenge" collaboration (e.g., "1 Dress, 2 Ways").',
+      'Create a "Guest Curator" graphic template.'
+    ]
+  },
+  {
+    id: 'content-batching',
+    title: '13. Content Batching: Workflow Efficiency',
+    platform: 'General',
+    description: 'How to produce 1 month of content in 2 days. Stop the daily burnout cycle.',
+    icon: 'Layers',
+    strategies: [
+      'The "Content Pillars" System: Rotate between 4 themes: Education, Inspiration, Personal, Promotional. Plan this on a calendar.',
+      'Shoot Day Protocol: Hair and makeup once. Bring 10 outfits. Shoot all videos first (while energy is high), then photos. Change location slightly for variety.',
+      'Template Library: Save your best performing caption structures and Canva layouts. Reuse them. Don\'t reinvent the wheel every post.',
+      'Scheduling Tools: Use Meta Business Suite (free) to schedule posts for the week. Never post manually in real-time unless it\'s a Story.'
+    ],
+    actionItems: [
+      'Create a content calendar spreadsheet.',
+      'Dedicate every Sunday to planning and filming.',
+      'Create 5 "Caption Templates" (e.g., The Story Opener, The Question Opener).',
+      'Schedule next week\'s posts this Friday.'
+    ]
+  },
+  {
+    id: 'copywriting-magic',
+    title: '14. Copywriting Magic: Words that Sell',
+    platform: 'General',
+    description: 'Writing product descriptions and captions that trigger emotional buying decisions.',
+    icon: 'PenTool',
+    strategies: [
+      'Features vs Benefits: Don\'t say "Elastic waistband" (Feature). Say "Eat pasta comfortably without unbuttoning" (Benefit).',
+      'Sensory Language: Use words like "Buttery soft", "Structured", "Flowing", "Crisp". Make them feel the fabric through the screen.',
+      'Scarcity & Urgency: "Low Stock Alert" or "Selling out fast". FOMO (Fear Of Missing Out) is a powerful motivator.',
+      'The "Imagine This" Technique: "Imagine walking into the boardroom wearing this..." Transport them to the future where they own the item.'
+    ],
+    actionItems: [
+      'Rewrite your top 5 product descriptions using Sensory Language.',
+      'Audit your Instagram captions: Are they benefits-focused?',
+      'Create a "Power Word" list (e.g., Exclusive, Limited, Essential) to keep on your desk.',
+      'A/B test two different headlines on your next two posts.'
+    ]
+  },
+  {
+    id: 'analytics-deep-dive',
+    title: '15. Analytics Deep Dive: Data-Driven Growth',
+    platform: 'General',
+    description: 'Reading the numbers to understand what your audience actually wants (vs what you think they want).',
+    icon: 'BarChart3',
+    strategies: [
+      'CTR (Click Through Rate): If impressions are high but clicks are low, your creative (photo/video) is good, but your CTA or Product Offer is weak.',
+      'Bounce Rate: If they click the link but leave immediately, your bridge page load speed is slow or the expectation set in the video didn\'t match the landing page.',
+      'Time of Day Analysis: Post when your audience is active. Check Insights > Audience > Most Active Times.',
+      'The 80/20 Rule: 20% of your products will bring 80% of your revenue. Identify the winners and double down on creating content for them.'
+    ],
+    actionItems: [
+      'Check your Bridge Page Admin Dashboard weekly.',
+      'Identify your top 3 clicked products.',
+      'Identify your top 3 posts by "Saves" (Saves = high intent).',
+      'Kill the bottom 20% of products that get no clicks to keep the site fresh.'
+    ]
+  },
+  {
+    id: 'paid-ads-basics',
+    title: '16. Paid Ads Basics: Boosting Posts',
+    platform: 'General',
+    description: 'Introduction to putting money behind your best organic content to scale reach.',
+    icon: 'DollarSign',
+    strategies: [
+      'The "Organic First" Rule: Only boost posts that have already performed well organically. If your followers liked it, strangers might too.',
+      'Targeting: Start with "Broad" targeting (Just Age + Gender + Location). Let the algorithm find your people.',
+      'Budgeting: Start with $5 (R100) per day for 3 days. If it generates clicks cheaper than your benchmark, keep it running.',
+      'The "Profile Visit" Objective: Often cheaper than "Website Clicks". Drive them to your profile, where they will see your Link in Bio.'
+    ],
+    actionItems: [
+      'Connect your Instagram to a Facebook Ad Account.',
+      'Identify your best performing Reel of the month.',
+      'Boost it for 3 days with a small budget targeting "Women 25-45 Interested in Shopping".',
+      'Analyze the cost-per-click.'
+    ]
+  },
+  {
+    id: 'seasonal-campaigns',
+    title: '17. Seasonal Campaigns: Calendar Sync',
+    platform: 'General',
+    description: 'Planning your curation around global retail moments (Black Friday, Christmas, Valentine\'s).',
+    icon: 'Calendar',
+    strategies: [
+      'The 6-Week Ramp Up: Start creating content for Christmas in early November. People browse early but buy late.',
+      'Gift Guides: "Gifts for Him", "Gifts for Her", "Stocking Fillers". These perform exceptionally well in Q4.',
+      'Event Dressing: "Wedding Guest Season" (Sept-Dec), "Matric Dance", "Summer Vacation". Curate specific collections for these.',
+      'Clearance Cycles: When seasons change, do a "Last Chance" edit to capture bargain hunters.'
+    ],
+    actionItems: [
+      'Mark all major holidays on your calendar.',
+      'Plan 3 "Gift Guide" collections for the next major holiday.',
+      'Source "Winter Coats" in Feb/March (end of season sales) or "Summer Dresses" in August (pre-season).',
+      'Create a "Holiday Party" lookbook.'
+    ]
+  },
+  {
+    id: 'legal-compliance',
+    title: '18. Legal & Compliance: Safe Scaling',
+    platform: 'General',
+    description: 'Staying on the right side of the law and platform terms of service.',
+    icon: 'Shield',
+    strategies: [
+      'FTC/ASA Disclosure: You MUST disclose "Ad" or "Affiliate Link" clearly. Hiding it can get you banned.',
+      'Image Rights: Do not steal images from other influencers. Use the official brand product photos or take your own.',
+      'Platform Terms: Read the Shein Affiliate Terms. Some brands don\'t allow you to bid on their brand name keywords in Google Ads.',
+      'Data Privacy: If you collect emails, you need a Privacy Policy (included in this bridge page!).'
+    ],
+    actionItems: [
+      'Review your bio to ensure "Affiliate" or "Curator" is visible.',
+      'Double check your Bridge Page footer for the Privacy Policy link.',
+      'Ensure every sponsored Story includes #ad.',
+      'Audit your image sources.'
+    ]
+  },
+  {
+    id: 'customer-service',
+    title: '19. Customer Service: The Human Touch',
+    platform: 'General',
+    description: 'Handling questions and complaints even though you don\'t ship the product.',
+    icon: 'Heart',
+    strategies: [
+      'The "Middleman" Script: "I don\'t ship the items, but I can help you find the tracking page on Shein\'s website." Be helpful, not dismissive.',
+      'Sizing Advice: This is the #1 question. Be honest. "This runs small, size up." Your honesty reduces returns and increases trust.',
+      'Handling Broken Links: If a user tells you a link is dead, thank them profusely and fix it immediately.',
+      'Response Time: Reply to DMs within 24 hours. Momentum is key in sales.'
+    ],
+    actionItems: [
+      'Create a "Saved Reply" for "Where is my order?".',
+      'Create a "Saved Reply" for "How long is shipping?".',
+      'Add a sizing guide to your Highlights.',
+      'Set aside 15 mins every morning for community management.'
+    ]
+  },
+  {
+    id: 'scaling-automation',
+    title: '20. Scaling & Automation: The CEO Mindset',
+    platform: 'General',
+    description: 'Moving from a solopreneur to a business owner. Hiring help and using software.',
+    icon: 'Zap',
+    strategies: [
+      'Virtual Assistants (VA): Hire a VA to create your Deep Links and upload products to the Bridge Page. Your time is better spent on Content Creation.',
+      'Repurposing Software: Use tools like Repurpose.io to automatically post your TikToks to YouTube Shorts and Pinterest.',
+      'Affiliate Networks: Expand beyond Shein. Apply to LTK (RewardStyle) or Amazon Associates once you have traffic.',
+      'Diversification: Don\'t rely on one social platform. If Instagram deletes your account, you need your Email List and Website.'
+    ],
+    actionItems: [
+      'Document your "Product Upload Process" (SOP) so you can teach it to someone else.',
+      'Look into Repurpose.io free trial.',
+      'Apply to one other affiliate network this month.',
+      'Schedule a monthly "CEO Date" to review finances and strategy.'
     ]
   }
 ];

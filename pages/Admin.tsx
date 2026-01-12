@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -12,7 +13,7 @@ import {
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
-  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle
+  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
@@ -311,10 +312,11 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
     const loadDetailedGeo = () => {
       let rawData = [];
       try {
-        const parsed = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-        if (Array.isArray(parsed)) rawData = parsed;
+        rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+        if (!Array.isArray(rawData)) rawData = [];
       } catch (e) {
-        console.warn("Failed to parse visitor locations", e);
+        console.warn("Failed to parse geo stats", e);
+        rawData = [];
       }
       
       setTotalTraffic(rawData.length);
@@ -323,6 +325,8 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
       let dev = { mobile: 0, desktop: 0, tablet: 0 };
       
       rawData.forEach((entry: any) => {
+        if (!entry) return;
+        
         const city = entry.city || 'Unknown City';
         const region = entry.region || '';
         const country = entry.country || 'Global';
@@ -363,7 +367,7 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   }, []);
 
   const getSourceIcon = (source: string) => {
-    const s = source.toLowerCase();
+    const s = (source || '').toLowerCase();
     if (s.includes('facebook')) return <Facebook size={12} className="text-blue-500" />;
     if (s.includes('instagram')) return <Instagram size={12} className="text-pink-500" />;
     if (s.includes('tiktok')) return <span className="font-black text-[8px] bg-black text-white px-1 rounded">TK</span>;
@@ -739,10 +743,15 @@ const Admin: React.FC = () => {
   useEffect(() => {
     const fetchTraffic = () => {
        try {
-           const logs = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-           setTrafficEvents(Array.isArray(logs) ? logs : []);
+         const rawLogs = localStorage.getItem('site_traffic_logs');
+         const logs = rawLogs ? JSON.parse(rawLogs) : [];
+         if (Array.isArray(logs)) {
+            setTrafficEvents(logs);
+         } else {
+            setTrafficEvents([]);
+         }
        } catch (e) {
-           setTrafficEvents([]);
+         setTrafficEvents([]);
        }
     };
     fetchTraffic();
@@ -813,6 +822,16 @@ const Admin: React.FC = () => {
   );
 
   const renderAnalytics = () => {
+    // Safe parse visitorLogs
+    let visitorLogs: any[] = [];
+    try {
+      const rawLogs = localStorage.getItem('site_visitor_locations');
+      visitorLogs = rawLogs ? JSON.parse(rawLogs) : [];
+      if (!Array.isArray(visitorLogs)) visitorLogs = [];
+    } catch (e) {
+      visitorLogs = [];
+    }
+    
     const sortedProducts = [...displayProducts].map(p => {
       const pStats = displayStats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
       const reviewCount = p.reviews?.length || 0;
@@ -843,19 +862,15 @@ const Admin: React.FC = () => {
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
 
-    let visitorLogs: any[] = [];
-    try {
-        const parsed = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-        if (Array.isArray(parsed)) visitorLogs = parsed;
-    } catch(e) {}
-    
     const totalUniqueVisitors = visitorLogs.length;
 
     const hourlyDistribution = new Array(24).fill(0);
-    (Array.isArray(trafficEvents) ? trafficEvents : []).forEach(evt => {
+    trafficEvents.forEach(evt => {
         if (evt.timestamp) {
             const hour = new Date(evt.timestamp).getHours();
-            hourlyDistribution[hour]++;
+            if (hour >= 0 && hour < 24) {
+               hourlyDistribution[hour]++;
+            }
         }
     });
     const maxHourly = Math.max(...hourlyDistribution, 1);
@@ -871,7 +886,7 @@ const Admin: React.FC = () => {
         { label: 'Facebook', count: sourceStats['Facebook'] || 0, color: 'bg-blue-600', icon: Facebook },
         { label: 'Instagram', count: sourceStats['Instagram'] || 0, color: 'bg-pink-600', icon: Instagram },
         { label: 'TikTok', count: sourceStats['TikTok'] || 0, color: 'bg-black border border-slate-700', icon: () => <span className="font-bold text-[8px]">TK</span> },
-        { label: 'Pinterest', count: sourceStats['Pinterest'] || 0, color: 'bg-red-600', icon: () => <span className="font-bold text-[8px]">PIN</span> },
+        { label: 'Pinterest', count: sourceStats['Pinterest'] || 0, color: 'bg-red-600', icon: Pin },
         { label: 'Google', count: sourceStats['Google Search'] || 0, color: 'bg-green-600', icon: SearchCode },
         { label: 'Direct/Other', count: (sourceStats['Direct'] || 0) + (sourceStats['Referral'] || 0), color: 'bg-slate-600', icon: Globe },
     ].sort((a, b) => b.count - a.count);
@@ -1260,17 +1275,17 @@ const Admin: React.FC = () => {
   );
 
   const renderSystem = () => {
-    let visitorLogs: any[] = [];
+    let totalUniqueVisitors = 0;
     try {
-        const raw = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-        if (Array.isArray(raw)) visitorLogs = raw;
-    } catch (e) {}
-    
+      const logs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+      if(Array.isArray(logs)) totalUniqueVisitors = logs.length;
+    } catch(e) {}
+
     return (
      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
         <AdminTip title="Core Infrastructure Monitoring">Your bridge page is linked to a high-performance Supabase backend. All read/write operations are synchronized in real-time.</AdminTip>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[ { label: 'Cloud Uptime', value: '100%', icon: Activity, color: 'text-green-500' }, { label: 'Supabase DB', value: isSupabaseConfigured ? 'Synchronized' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, { label: 'Data Registry', value: isSupabaseConfigured ? 'Cloud' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, { label: 'Total Traffic', value: visitorLogs.length.toLocaleString(), icon: TrendingUp, color: 'text-purple-500' } ].map((item, i) => (
+          {[ { label: 'Cloud Uptime', value: '100%', icon: Activity, color: 'text-green-500' }, { label: 'Supabase DB', value: isSupabaseConfigured ? 'Synchronized' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, { label: 'Data Registry', value: isSupabaseConfigured ? 'Cloud' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, { label: 'Total Traffic', value: totalUniqueVisitors.toLocaleString(), icon: TrendingUp, color: 'text-purple-500' } ].map((item, i) => (
             <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4 text-left"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}><item.icon size={20}/></div><div className="min-w-0"><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block truncate">{item.label}</span><span className="text-base font-bold text-white truncate block">{item.value}</span></div></div>
           ))}
         </div>
