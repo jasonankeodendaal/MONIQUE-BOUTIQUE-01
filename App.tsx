@@ -387,6 +387,8 @@ const App: React.FC = () => {
     try {
       if (isSupabaseConfigured) {
         const remoteSettings = await fetchTableData('settings');
+        
+        // MIGRATION LOGIC (Only runs if settings are completely empty in DB)
         if (!remoteSettings || remoteSettings.length === 0) {
           // Sync existing initial/local state to cloud if empty
           await upsertData('settings', { ...settings, id: 'global' });
@@ -395,26 +397,39 @@ const App: React.FC = () => {
           await syncLocalToCloud('categories', categories);
           await syncLocalToCloud('subcategories', subCategories);
           await syncLocalToCloud('hero_slides', heroSlides);
-        } else {
-          const { id, ...rest } = remoteSettings[0];
-          setSettingsId(id);
-          setSettings(rest as SiteSettings);
-        }
+          
+          // After a fresh migration, current state matches cloud, no need to re-fetch
+          return;
+        } 
+        
+        // NORMAL OPERATION: Strictly fetch from Cloud.
+        // We do NOT check for length > 0. If cloud returns [], state must be [].
+        // This ensures deletions are reflected accurately.
+
+        const { id, ...rest } = remoteSettings[0];
+        setSettingsId(id);
+        setSettings(rest as SiteSettings);
 
         const p = await fetchTableData('products');
-        if (p.length) setProducts(p);
+        setProducts(p);
+
         const c = await fetchTableData('categories');
-        if (c.length) setCategories(c);
+        setCategories(c);
+
         const sc = await fetchTableData('subcategories');
-        if (sc.length) setSubCategories(sc);
+        setSubCategories(sc);
+
         const hs = await fetchTableData('hero_slides');
-        if (hs.length) setHeroSlides(hs);
+        setHeroSlides(hs);
+
         const enq = await fetchTableData('enquiries');
-        if (enq.length) setEnquiries(enq);
+        setEnquiries(enq);
+
         const adm = await fetchTableData('admin_users');
-        if (adm.length) setAdmins(adm);
+        setAdmins(adm);
+
         const st = await fetchTableData('product_stats');
-        if (st.length) setStats(st);
+        setStats(st);
 
       } else {
         // Local Mode: Use loadOrSeed helper to ensure persistence survives refresh
@@ -430,13 +445,16 @@ const App: React.FC = () => {
       setSaveStatus('saved');
     } catch (e) {
       console.error("Data sync failed", e);
-      // Fallback to local on failure to prevent data loss appearance
+      // Fallback: If Supabase is configured but fails, we should NOT revert to local
+      // because that causes "ghost data". We only use local fallback if isSupabaseConfigured is false.
       if (!isSupabaseConfigured) {
         setSaveStatus('error');
-      } else {
-         // Attempt local fallback just in case
+        // Attempt local fallback for offline development
         loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
         loadOrSeedLocal('admin_products', INITIAL_PRODUCTS, setProducts);
+      } else {
+        setSaveStatus('error');
+        // Do not overwrite state with initial constants in Live Mode
       }
     }
   };
