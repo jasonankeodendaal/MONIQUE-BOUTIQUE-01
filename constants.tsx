@@ -1,6 +1,83 @@
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
+// EMAIL_TEMPLATE_HTML added to fix import error in Admin.tsx
+export const EMAIL_TEMPLATE_HTML = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .footer { font-size: 12px; color: #999; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>{{company_name}}</h1>
+        </div>
+        <p>Dear {{to_name}},</p>
+        <div>{{message}}</div>
+        <div class="footer">
+          <p>&copy; {{year}} {{company_name}}</p>
+          <p>{{company_address}}</p>
+        </div>
+      </div>
+    </body>
+  </html>
+`;
+
+// GUIDE_STEPS added to fix import error in Admin.tsx
+export const GUIDE_STEPS = [
+  {
+    id: 'forge',
+    title: 'Cloud Synchronization',
+    description: 'Connect your local curation engine to a global Supabase backend for real-time inventory management and user tracking.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Create a free Supabase project at supabase.com',
+      'Go to Project Settings > API and copy the Project URL and Anon Key',
+      'Create a .env file in your root directory',
+      'Restart your development server to sync'
+    ],
+    code: 'VITE_SUPABASE_URL=your_project_url\nVITE_SUPABASE_ANON_KEY=your_anon_key',
+    codeLabel: '.env Configuration'
+  },
+  {
+    id: 'deployment',
+    title: 'Production Deployment',
+    description: 'Deploy your bridge page to a production environment for global access.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Connect your repository to Vercel or Netlify',
+      'Configure environment variables in the provider dashboard',
+      'Trigger a production build'
+    ]
+  }
+];
+
 export const TRAINING_MODULES: TrainingModule[] = [
+  {
+    id: 'founder-growth',
+    title: 'Founder Brand: The Niche Authority',
+    platform: 'General',
+    description: 'Transforming from a curator to a cult-followed authority. People buy from people they trust.',
+    icon: 'User',
+    strategies: [
+      'Phase 1: The Origin Story - Define your "Why". Why fashion? Why luxury? Share your early struggles with style to humanize the brand.',
+      'Phase 2: Visual Consistency - Choose a signature look or accessory that appears in 80% of your content. This becomes your visual "logo".',
+      'Phase 3: The Knowledge Pillar - Every 10 posts, share a deep-dive "Educational" piece (e.g., "The History of the Hermès Stitch").',
+      'Phase 4: Vulnerability - Share the "Uncurated" moments. A messy studio or a failed outfit makes the curated moments feel more attainable.'
+    ],
+    actionItems: [
+      'Write a 500-word personal manifesto about your style philosophy.',
+      'Record a 60-second "Introduction" video for your profile pin.',
+      'Identify 3 brand colors that reflect your personality, not just the market.',
+      'Schedule a weekly "Coffee & Curation" live stream to answer style questions.'
+    ]
+  },
   {
     id: 'instagram-mastery',
     title: 'Instagram: The Aesthetic Storefront',
@@ -8,16 +85,15 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'The foundation of fashion affiliate marketing. High-fidelity visuals meet direct purchasing power.',
     icon: 'Instagram',
     strategies: [
-      'Phase 1: Profile Optimization - Convert to Professional Account immediately to access Insights. Ensure your bio contains a single "Link-in-Bio" (like your bridge page URL).',
-      'Phase 2: The Content Mix - Follow the 4:1 rule. 4 Value posts (Inspiration, Tips, Lifestyle) for every 1 Hard Sell post.',
-      'Phase 3: Story Selling - Use "Stories" with link stickers for limited-time scarcity (FOMO). Post 3 Stories daily: Morning (Routine), Noon (Work/Style), Night (Unwind/Product).',
-      'Phase 4: Highlights Engineering - Create "Highlights" for each product category (e.g., "Shoes", "Summer", "Sale"). This turns your profile into a permanent catalog.'
+      'Phase 1: Profile Optimization - Convert to Professional Account immediately to access Insights. Use a SEO-optimized handle.',
+      'Phase 2: The Content Mix - Follow the 4:1 rule. 4 Value posts (Inspiration, Tips) for every 1 Hard Sell post.',
+      'Phase 3: Story Selling - Use "Stories" with link stickers. Post 3 Stories daily: Morning (Routine), Noon (Curation), Night (Review).',
+      'Phase 4: Reels Virality - Use the "Transition" method. Show the box, then the unboxed item, then the styled look in sync with beat drops.'
     ],
     actionItems: [
-      'Switch to a Professional Account.',
-      'Create 5 "Highlight" covers using Canva that match your brand colors.',
-      'Post a "This or That" poll in Stories to boost engagement.',
-      'Setup DM Automation: Use a tool like ManyChat to auto-send links when people comment "LINK".'
+      'Create 5 "Highlight" covers that match your primary brand color.',
+      'Post a "This or That" poll in Stories to boost algorithmic engagement.',
+      'Setup DM Automation: Use ManyChat to auto-send links when people comment "LINK".'
     ]
   },
   {
@@ -27,15 +103,15 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Unfiltered, raw, and high-volume discovery. The fastest way to scale a new brand presence.',
     icon: 'Video',
     strategies: [
-      'Phase 1: The Hook - The first 3 seconds are critical. Show the "After" result immediately before showing the process.',
-      'Phase 2: Audio Hacking - Use trending audio but keep volume low (5-10%) under your voiceover to ride the algorithm wave.',
-      'Phase 3: Community Management - Reply to successful comments with a video response. This creates a content loop.',
-      'Phase 4: The "Green Screen" Method - Use the Green Screen effect over the official product page to prove price/value and build trust.'
+      'Phase 1: The 3-Second Hook - Show the "After" result immediately before showing the process.',
+      'Phase 2: Audio Hacking - Use trending audio at 5% volume under your voiceover to ride the algorithm.',
+      'Phase 3: Community Management - Reply to successful comments with a video response to create a content loop.',
+      'Phase 4: ASMR Unboxing - Focus on high-quality sound of tissue paper and boxes to trigger sensory engagement.'
     ],
     actionItems: [
-      'Post 3x daily for the first 30 days to train the algorithm.',
-      'Use the search bar to find "Best [Product Category]" and stitch the top videos.',
-      'Create a "Pinned Video" introducing yourself and your style philosophy.'
+      'Post 3x daily for the first 30 days to "train" your niche algorithm.',
+      'Use the search bar to find "Best Luxury Finds" and stitch the top-performing videos.',
+      'Create a pinned video explaining your bridge page and why you curate specific items.'
     ]
   },
   {
@@ -45,101 +121,287 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'Long-term traffic. Pins live for months, unlike social posts that die in hours.',
     icon: 'Pin',
     strategies: [
-      'Phase 1: Account Structure - Claim your website in Pinterest settings to get attribution. Enable "Rich Pins" to sync price and availability.',
-      'Phase 2: Creative Format - Vertical imagery (2:3 aspect ratio) is non-negotiable. Square images get lost in the feed.',
-      'Phase 3: Keyword Engineering - Don\'t use cute titles. Use search terms. "Boho Summer Dress" > "Cute Outfit".',
-      'Phase 4: Idea Pins - Create "Idea Pins" (video format) for higher algorithmic reach, even though they don\'t link directly (put link in profile).'
+      'Phase 1: Account Structure - Claim your website in settings to get attribution. Enable "Rich Pins".',
+      'Phase 2: Creative Format - 2:3 Vertical aspect ratio is mandatory. Use text overlays on images.',
+      'Phase 3: Keyword Engineering - Use search terms in titles. "Minimalist Fall Wardrobe" > "My Picks".',
+      'Phase 4: Board Curation - Create 10 niche boards (e.g., "Gold Jewelry Inspo") and pin 5-10 items daily.'
     ],
     actionItems: [
-      'Claim your website domain in Pinterest settings.',
-      'Create 10 boards with specific niche titles (e.g., "Minimalist Workwear").',
-      'Pin 5 times a day using a scheduler like Tailwind.',
-      'Create a "Shop the Look" cover image for your blog posts.'
+      'Claim your domain in Pinterest settings.',
+      'Create a "Shop My Style" board as your primary showcase.',
+      'Design 10 Pin templates in Canva that feature your logo and primary color.'
     ]
   },
   {
     id: 'youtube-shorts',
     title: 'YouTube Shorts: Evergreen Video',
     platform: 'General',
-    description: 'Repurpose TikToks here. Google indexes these videos, meaning they appear in search results.',
+    description: 'Repurpose TikToks here. Google indexes these videos, appearing in search results.',
     icon: 'Youtube',
     strategies: [
-      'Phase 1: The Loop - Edit your videos so the end sentence flows perfectly into the start. High retention = Viral spread.',
-      'Phase 2: The Pinned Comment - Put your affiliate link in the Pinned Comment, not just the description. It has higher visibility.',
-      'Phase 3: Search Intent - Use specific titles like "Zara vs H&M Try-on Haul" rather than abstract titles.'
+      'Phase 1: The Loop - Edit your videos so the end flows perfectly into the start for high retention.',
+      'Phase 2: The Pinned Comment - Put your affiliate link in the Pinned Comment, not just the description.',
+      'Phase 3: Keyword Titles - Use specific titles like "Zara vs H&M Try-on Haul" for search intent.'
     ],
     actionItems: [
-      'Upload your top 5 performing TikToks to Shorts.',
-      'Add a "Subscribe for Links" text overlay to the last 3 seconds.',
-      'Create a playlist called "OOTD" for binge-watchers.'
+      'Upload 10 previous TikToks to Shorts with unique titles.',
+      'Add a "Subscribe for Links" call-to-action in the last 3 seconds.',
+      'Create a playlist called "Luxury Essentials" for binge-watching.'
+    ]
+  },
+  {
+    id: 'reddit-authority',
+    title: 'Reddit: Community Trust',
+    platform: 'General',
+    description: 'The most skeptical but high-converting audience if you provide genuine value.',
+    icon: 'MessageSquare',
+    strategies: [
+      'Phase 1: Native Engagement - Don\'t post links. Join r/fashion, r/luxury, r/streetwear and comment 20x daily.',
+      'Phase 2: The "Hero" Post - Write a massive guide (e.g., "The only 5 bags you need for 2024") without links.',
+      'Phase 3: Profile Link - Put your bridge page URL in your Reddit bio. People will check your profile if you are helpful.'
+    ],
+    actionItems: [
+      'Join 10 niche subreddits related to your fashion style.',
+      'Upvote and comment on 5 threads daily providing specific styling advice.',
+      'Share a "No-Link" gallery of your personal wardrobe to build karma.'
+    ]
+  },
+  {
+    id: 'lemon8-curation',
+    title: 'Lemon8: Aesthetic Guides',
+    platform: 'General',
+    description: 'A mix of Instagram and Pinterest. Heavily focused on "How-To" and "Review" carousels.',
+    icon: 'Sparkles',
+    strategies: [
+      'Phase 1: Carousel Guides - Create "X Steps to Style Y" posts. 7 images is the sweet spot.',
+      'Phase 2: The "Price Tag" Edit - Use the Lemon8 built-in tags to show prices on clothing items.',
+      'Phase 3: Niche Tagging - Use #OOTD, #FashionInspo, and #LuxuryFinds consistently.'
+    ],
+    actionItems: [
+      'Post a "What\'s in my bag" flat-lay photo.',
+      'Create a "Dupes vs Originals" comparison guide.',
+      'Follow 50 creators in the "Lifestyle" and "Fashion" categories.'
+    ]
+  },
+  {
+    id: 'substack-newsletter',
+    title: 'Substack: The Long-form Edit',
+    platform: 'General',
+    description: 'Build a recurring, dedicated readership. Best for high-ticket affiliate products.',
+    icon: 'Mail',
+    strategies: [
+      'Phase 1: The Weekly Digest - Send a Friday email: "5 Things I Loved This Week".',
+      'Phase 2: Deep Dives - Write 1,000 words on the "Art of the Capsule Wardrobe".',
+      'Phase 3: Exclusive Drops - Share items that are almost sold out to your subscribers first.'
+    ],
+    actionItems: [
+      'Set up a free Substack and import your current email contacts.',
+      'Write your first "Welcome" post explaining your curation criteria.',
+      'Add a "Newsletter" link to your bridge page menu.'
+    ]
+  },
+  {
+    id: 'ltk-integration',
+    title: 'LTK: The Influencer Engine',
+    platform: 'General',
+    description: 'The industry standard for fashion affiliates. Syncs directly with your shoppable photos.',
+    icon: 'ShoppingBag',
+    strategies: [
+      'Phase 1: Application - Apply for LTK Creator status. Show high-quality, high-engagement Instagram content.',
+      'Phase 2: Mirror Selfies - Simple, clear mirror selfies are the highest-converting content on LTK.',
+      'Phase 3: Widget Sync - Embed your LTK feed onto your bridge page (using Custom HTML in Portal).'
+    ],
+    actionItems: [
+      'Upload 10 high-quality "Outfits of the Day" to your LTK profile.',
+      'Cross-promote your LTK link in your Instagram bio.',
+      'Tag every single item in your photos, including "similar" items for sold-out pieces.'
+    ]
+  },
+  {
+    id: 'snapchat-shows',
+    title: 'Snapchat: Behind the Scenes',
+    platform: 'General',
+    description: 'High urgency, high loyalty. Use for flash sales and limited time deals.',
+    icon: 'Ghost',
+    strategies: [
+      'Phase 1: The Public Profile - Create a Public Profile to appear in the "Spotlight" feed.',
+      'Phase 2: Raw Reality - Film your shopping trips. No filters, just real-time curation.',
+      'Phase 3: Snap Maps - Tag luxury locations (e.g., Melrose Arch) to appear to local high-net-worth users.'
+    ],
+    actionItems: [
+      'Post a "10-Second Review" of a new product to Spotlight.',
+      'Add your WhatsApp link to your Snapchat Bio.',
+      'Run a "Deal of the Day" series that expires in 24 hours.'
+    ]
+  },
+  {
+    id: 'quora-questions',
+    title: 'Quora: Solving Style Problems',
+    platform: 'General',
+    description: 'Evergreen traffic from Google. Answers you write today can drive traffic for years.',
+    icon: 'HelpCircle',
+    strategies: [
+      'Phase 1: Niche Searching - Search for "What should I wear to X?" or "Best shoes for Y?".',
+      'Phase 2: Expert Answering - Write 300+ word answers with high-quality images.',
+      'Phase 3: Profile Funneling - Put "Founder of Kasi Couture" in your bio with a link.'
+    ],
+    actionItems: [
+      'Answer 2 questions daily in the "Fashion Trends" and "Personal Styling" spaces.',
+      'Create a "Space" (Quora version of a group) for your brand.',
+      'Request to answer top questions from luxury brand followers.'
+    ]
+  },
+  {
+    id: 'medium-blogging',
+    title: 'Medium: SEO Authority',
+    platform: 'General',
+    description: 'Rank for high-competition keywords. Use Medium\'s domain authority to your advantage.',
+    icon: 'FileText',
+    strategies: [
+      'Phase 1: Trend Jacking - Write about "The Rise of [New Trend]" as it happens.',
+      'Phase 2: Listicles - "10 Accessories That Will Triple Your Outfit Value".',
+      'Phase 3: Internal Linking - Link back to your bridge page product categories within the text.'
+    ],
+    actionItems: [
+      'Repurpose your Substack articles for Medium.',
+      'Submit your stories to large publications like "The Startup" or "Fashion Forward".',
+      'Add a call-to-action at the end of every post.'
+    ]
+  },
+  {
+    id: 'discord-community',
+    title: 'Discord: The VIP Lounge',
+    platform: 'General',
+    description: 'Create an exclusive "Inner Circle" for your top customers and fans.',
+    icon: 'Gamepad2',
+    strategies: [
+      'Phase 1: The Walled Garden - Invite only your most active Instagram commenters.',
+      'Phase 2: "Ask Me Anything" - Host weekly voice chats about upcoming fashion trends.',
+      'Phase 3: Early Access - Post new curation links in Discord 1 hour before the public site.'
+    ],
+    actionItems: [
+      'Set up channels for "Style-Advice", "New-Drops", and "Inspo".',
+      'Create a "Role" for verified buyers to build prestige.',
+      'Use a bot to auto-post your TikToks/Instagrams to a dedicated channel.'
+    ]
+  },
+  {
+    id: 'telegram-alerts',
+    title: 'Telegram: Flash Alerts',
+    platform: 'General',
+    description: 'Zero algorithm interference. 100% reach to your subscribers.',
+    icon: 'Send',
+    strategies: [
+      'Phase 1: The Signal - Send short "Price Drop Alert" messages with a direct link.',
+      'Phase 2: The Poll - Ask "Should I curate more of X or Y?" to get instant feedback.',
+      'Phase 3: Large File Sharing - Share high-res lookbooks as PDFs that don\'t lose quality.'
+    ],
+    actionItems: [
+      'Start a Public Channel called "[Brand] Elite Alerts".',
+      'Post a "Welcome" video explaining how the channel works.',
+      'Add the Telegram link to your bridge page contact section.'
+    ]
+  },
+  {
+    id: 'facebook-groups',
+    title: 'Facebook: The Community Lead',
+    platform: 'General',
+    description: 'Leveraging existing communities. Don\'t build your own yet; join others.',
+    icon: 'Facebook',
+    strategies: [
+      'Phase 1: Identifying Groups - Join "Bridal South Africa" or "Corporate Chic" groups.',
+      'Phase 2: The "Giving" Strategy - Answer 10 questions for every 1 link you post.',
+      'Phase 3: DM Strategy - If someone asks for a recommendation, send a polite DM with your link.'
+    ],
+    actionItems: [
+      'Find 5 active Facebook groups with over 50k members in your niche.',
+      'Set up a "Facebook Page" to run "Boosted Posts" for your best curated items.',
+      'Share one "Value Post" daily to these groups.'
+    ]
+  },
+  {
+    id: 'twitter-hype',
+    title: 'Twitter (X): Real-time Critique',
+    platform: 'General',
+    description: 'Fast-paced fashion critique. Great for "Red Carpet" events and award shows.',
+    icon: 'Twitter',
+    strategies: [
+      'Phase 1: Live Tweeting - Review outfits during events like the MET Gala or SA Fashion Week.',
+      'Phase 2: Threads - Create "Outfit Breakdown" threads showing how to recreate the look.',
+      'Phase 3: The "Hot Take" - Post controversial opinions on brand rebrands to spark debate.'
+    ],
+    actionItems: [
+      'Follow 50 fashion journalists and editors.',
+      'Use #FashionTwitter and #StyleThreads in every post.',
+      'Set up a "List" of your competitors to track their announcements.'
+    ]
+  },
+  {
+    id: 'twitch-styling',
+    title: 'Twitch: Live Styling Sessions',
+    platform: 'General',
+    description: 'Interactive long-form content. Build extreme loyalty through real-time chat.',
+    icon: 'Activity',
+    strategies: [
+      'Phase 1: The "Get Ready With Me" (GRWM) - Live stream your morning styling routine.',
+      'Phase 2: The Closet Audit - Critique your followers\' outfits in real-time (with their permission).',
+      'Phase 3: Shop-along - Browse online stores live and discuss why you would or wouldn\'t buy items.'
+    ],
+    actionItems: [
+      'Schedule a 2-hour "Style Sunday" stream every week.',
+      'Set up "Nightbot" to auto-post your affiliate links every 15 minutes.',
+      'Create a "Goal" on screen for "New Outfits Curated".'
     ]
   },
   {
     id: 'linkedin-luxury',
     title: 'LinkedIn: The Professional Buyer',
     platform: 'General',
-    description: 'Underrated for high-ticket luxury items (suits, watches, work bags). High disposable income audience.',
+    description: 'High-income audience. Focus on "Power Dressing" and "Corporate Luxury".',
     icon: 'Linkedin',
     strategies: [
-      'Phase 1: Thought Leadership - Write "Think Piece" articles about personal branding through fashion.',
-      'Phase 2: Niche Targeting - Focus strictly on "Office Wear", "Corporate Aesthetics", and "Interview Outfits".',
-      'Phase 3: The PDF Carousel - Export your style guides as multi-page PDFs. LinkedIn displays these as swipeable slides.'
+      'Phase 1: Thought Leadership - Write about "How dressing well impacts your confidence".',
+      'Phase 2: The PDF Carousel - Create multi-page "Workwear Capsule" guides.',
+      'Phase 3: Engagement - Comment on "Promotion" posts with specific outfit congratulations.'
     ],
     actionItems: [
-      'Post a "Work Outfit of the Week" breakdown every Monday.',
-      'Connect with 20 industry professionals in your city daily.',
-      'Write an article: "Why dressing well increases your salary negotiation power."'
+      'Post a "Monday Motivation" outfit every week.',
+      'Connect with 20 Luxury Brand Managers daily.',
+      'Update your LinkedIn Headline to include "Fashion Curator".'
     ]
   },
   {
-    id: 'threads-conversations',
-    title: 'Threads: Text-Based Hype',
+    id: 'sms-marketing',
+    title: 'SMS: The Direct Hit',
     platform: 'General',
-    description: 'Casual, text-first engagement. Great for building a personality behind the curation.',
-    icon: 'AtSign',
+    description: '98% open rates. Use for the most exclusive "Sold Out" risk items.',
+    icon: 'Phone',
     strategies: [
-      'Phase 1: The Hot Take - Post controversial (but safe) opinions on fashion trends to spark debate.',
-      'Phase 2: Direct Linking - Threads does not penalize external links as heavily as Twitter. Share direct product drops.',
-      'Phase 3: Mood Boarding - Re-share images without captions for pure "Mood Board" vibes.'
+      'Phase 1: Consent - Never send without permission. Use a "Text for VIP Access" popup.',
+      'Phase 2: Scarcity - "Only 2 left! Click to grab it: [Link]".',
+      'Phase 3: Personalization - Use the customer\'s name in the text.'
     ],
     actionItems: [
-      'Reply to 5 major fashion influencers daily to siphon their traffic.',
-      'Post a "This or That" fashion poll with two images.',
-      'Share a "Deal of the Hour" link.'
-    ]
-  },
-  {
-    id: 'email-marketing',
-    title: 'Email: The Owned Audience',
-    platform: 'General',
-    description: 'The highest ROI channel. You own this list; algorithms cannot take it away.',
-    icon: 'Mail',
-    strategies: [
-      'Phase 1: The Lead Magnet - Offer a free "Style Guide PDF" or "Capsule Wardrobe Checklist" in exchange for emails.',
-      'Phase 2: The Welcome Flow - Automatically send a "Top 10 Essentials" list immediately upon signup.',
-      'Phase 3: The Sunday Edit - Send a curated newsletter every Sunday evening titled "5 Things I Loved This Week".'
-    ],
-    actionItems: [
-      'Add a signup form to your bridge page footer immediately.',
-      'Create a free Canva PDF guide "10 Wardrobe Essentials".',
-      'Set up an automated welcome email in your provider.'
+      'Set up a simple SMS list using a tool like Twilio or Klaviyo.',
+      'Offer a "VIP Only" deal for people who join the SMS list.',
+      'Send your first "Style Alert" to your top 10 clients.'
     ]
   },
   {
     id: 'whatsapp-vip',
-    title: 'WhatsApp: Concierge Direct',
+    title: 'WhatsApp: Personal Concierge',
     platform: 'WhatsApp',
-    description: 'Intimate, 1-on-1 selling. Perfect for closing high-ticket affiliate sales.',
+    description: 'Intimate, 1-on-1 selling. Perfect for high-ticket items.',
     icon: 'MessageCircle',
     strategies: [
-      'Phase 1: The Status - Post daily deals on your WhatsApp Status. These vanish in 24h, creating urgency.',
-      'Phase 2: Broadcast Lists - Use "Broadcast Lists" (not Groups) to send "New Drop" alerts. It feels personal but scales.',
-      'Phase 3: Audio Styling - Send personalized styling advice via voice notes to build extreme trust.'
+      'Phase 1: Status Selling - Post new drops to your WhatsApp Status daily.',
+      'Phase 2: Broadcast Lists - Send personalized "I thought of you" messages to VIPs.',
+      'Phase 3: Voice Note Styling - Send 30-second audio tips on how to wear a specific piece.'
     ],
     actionItems: [
-      'Add the WhatsApp floating button to your site settings.',
-      'Create a "VIP Access" broadcast label in WhatsApp Business.',
-      'Post your first "Status" update with a link.'
+      'Create a WhatsApp Business account.',
+      'Add the WhatsApp button to your site settings.',
+      'Post your first "Status" update showing a "Behind the Scenes" of your curation.'
     ]
   }
 ];
@@ -440,304 +702,5 @@ export const INITIAL_PRODUCTS: Product[] = [
         createdAt: Date.now() - 10000000
       }
     ]
-  }
-];
-
-export const EMAIL_TEMPLATE_HTML = `<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 0; }
-  .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f5; padding-bottom: 60px; }
-  .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 16px; color: #334155; line-height: 1.6; }
-  .header { background-color: #1e293b; padding: 40px 20px; text-align: center; }
-  .logo-img { max-height: 60px; width: auto; display: block; margin: 0 auto; }
-  .logo-text { font-size: 24px; font-weight: bold; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; font-family: serif; }
-  .body-content { padding: 40px 30px; }
-  .message-box { background-color: #f8fafc; border-left: 4px solid #D4AF37; padding: 20px; margin: 25px 0; border-radius: 4px; font-size: 15px; color: #475569; }
-  .btn { display: inline-block; padding: 12px 30px; background-color: #D4AF37; color: #1e293b; text-decoration: none; font-weight: bold; border-radius: 4px; margin-top: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
-  .products-title { text-align: center; margin: 40px 0 20px; font-family: serif; font-size: 22px; color: #1e293b; position: relative; }
-  .products-title span { background: #fff; padding: 0 15px; position: relative; z-index: 1; }
-  .products-title:after { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid #e2e8f0; z-index: 0; }
-  .product-grid { width: 100%; border-collapse: collapse; }
-  .product-cell { width: 50%; padding: 10px; vertical-align: top; }
-  .product-card { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff; text-align: left; }
-  .product-img { width: 100%; height: 180px; object-fit: cover; background-color: #f1f5f9; display: block; }
-  .product-info { padding: 15px; }
-  .product-name { font-size: 14px; font-weight: bold; color: #1e293b; margin: 0 0 5px; height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .product-price { font-size: 14px; color: #D4AF37; font-weight: bold; margin-bottom: 10px; display: block; }
-  .product-grid a { text-decoration: none; }
-  .footer { background-color: #1e293b; padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 12px; }
-</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="main">
-      <div class="header">
-        {{#if company_logo_url}}
-          <img src="{{company_logo_url}}" alt="{{company_name}}" class="logo-img" />
-        {{else}}
-          <h1 class="logo-text">{{company_name}}</h1>
-        {{/if}}
-      </div>
-      <div class="body-content">
-        <p>Dear {{to_name}},</p>
-        <div class="message-box">{{{message}}}</div>
-      </div>
-      <div class="footer">
-        <p>&copy; {{year}} {{company_name}}. All rights reserved.</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>`;
-
-export interface GuideStep {
-  id: string;
-  title: string;
-  description: string;
-  code?: string;
-  codeLabel?: string;
-  subSteps?: string[];
-  tips?: string;
-  illustrationId?: string;
-}
-
-export const GUIDE_STEPS: GuideStep[] = [
-  {
-    id: 'prep_env',
-    title: '1. Calibrating the Studio Engine',
-    description: 'The Concept: Your website is powered by a set of tools called a "Development Environment." Think of this as the heavy machinery in a fashion house—you need the right engines to turn your creative vision into a functioning digital storefront.',
-    subSteps: [
-      'Node.js (The Engine): Download the "LTS" version from nodejs.org. This is the electricity that runs your code locally.',
-      'Git (The Archivist): Install Git from git-scm.com. It tracks every single change you make, like an automated backup system.',
-      'VS Code (The Sketchpad): This is your main workspace. Install it and add the "Prettier" extension to keep your code looking "Luxury Ready."',
-      'Terminal (The Command Center): You’ll use your computer’s Terminal or Command Prompt to talk directly to your website engine.'
-    ],
-    tips: 'Pro Tip: When installing Node.js, always choose the "LTS" (Long Term Support) version. It is the most stable and reliable for professional business applications.',
-    illustrationId: 'forge'
-  },
-  {
-    id: 'git_init',
-    title: '2. Creating Your Local Vault',
-    description: 'The Concept: "Version Control" is like having a time machine for your website. If you make a mistake, you can simply "roll back" to a previous version. We start by initializing a local database to store your project’s history.',
-    code: `# Open your terminal in the project folder and run:
-git init
-git add .
-git commit -m "Grand Opening: Initial Infrastructure Deployed"
-git branch -M main`,
-    codeLabel: 'Version Control Commands',
-    subSteps: [
-      'git init: Tells your computer to start tracking changes in this folder.',
-      'git add .: Stages all your current files (logos, styles, logic) to be saved.',
-      'git commit: Saves a "snapshot" of your site. This is your first official milestone.',
-      'git branch -M main: Sets your main production path to global standards.'
-    ],
-    illustrationId: 'vault'
-  },
-  {
-    id: 'github_sync',
-    title: '3. Connecting to the Global Cloud',
-    description: 'The Concept: GitHub is a "Cloud Vault" for your code. By syncing your local work to GitHub, you protect it from computer failure and allow other cloud services (like your hosting provider) to see and build your website automatically.',
-    code: `# Replace [USERNAME] and [REPO_NAME] with your own details:
-git remote add origin https://github.com/[USERNAME]/[REPO_NAME].git
-git push -u origin main`,
-    codeLabel: 'Cloud Synchronization Handshake',
-    tips: 'Critical Security: In your GitHub repository settings, ensure the project is set to "PRIVATE." You don’t want strangers seeing your admin passwords or affiliate strategy.',
-    illustrationId: 'satellite'
-  },
-  {
-    id: 'supabase_infra',
-    title: '4. Supabase: The Brain of the Maison',
-    description: 'The Concept: Every store needs a memory. Supabase is your "Backend"—a database that stores your product descriptions, admin accounts, and customer inquiries. It works even when your computer is turned off.',
-    subSteps: [
-      'Sign Up: Go to supabase.com and create a free account.',
-      'Project Creation: Click "New Project." Name it something like "Kasi-Couture-DB."',
-      'The API Keys: In the "Project Settings -> API" tab, copy your "Project URL" and "anon public key." You will need these for Step 9.',
-      'Region Selection: Choose a database server location closest to your target audience (e.g., Cape Town or London) for maximum speed.'
-    ],
-    illustrationId: 'database'
-  },
-  {
-    id: 'supabase_sql',
-    title: '5. Setting the Foundations (SQL)',
-    description: 'The Concept: To make the "Sync Failed" error disappear, your database needs to know what "Products" and "Settings" look like. Run this complete script to build the entire backend structure instantly.',
-    code: `-- 1. STORAGE BUCKETS
-insert into storage.buckets (id, name, public) values ('media', 'media', true) on conflict (id) do nothing;
-
--- 2. CORE TABLES
-create table if not exists settings (
-  id text primary key, 
-  "companyName" text, slogan text, "companyLogo" text, "companyLogoUrl" text, 
-  "primaryColor" text, "secondaryColor" text, "accentColor" text, 
-  "navHomeLabel" text, "navProductsLabel" text, "navAboutLabel" text, "navContactLabel" text, "navDashboardLabel" text, 
-  "contactEmail" text, "contactPhone" text, "whatsappNumber" text, address text, "socialLinks" jsonb, 
-  "footerDescription" text, "footerCopyrightText" text, 
-  "homeHeroBadge" text, "homeAboutTitle" text, "homeAboutDescription" text, "homeAboutImage" text, "homeAboutCta" text, 
-  "homeCategorySectionTitle" text, "homeCategorySectionSubtitle" text, 
-  "homeTrustSectionTitle" text, "homeTrustItem1Title" text, "homeTrustItem1Desc" text, "homeTrustItem1Icon" text, 
-  "homeTrustItem2Title" text, "homeTrustItem2Desc" text, "homeTrustItem2Icon" text, 
-  "homeTrustItem3Title" text, "homeTrustItem3Desc" text, "homeTrustItem3Icon" text, 
-  "productsHeroTitle" text, "productsHeroSubtitle" text, "productsHeroImage" text, "productsHeroImages" jsonb, "productsSearchPlaceholder" text, 
-  "aboutHeroTitle" text, "aboutHeroSubtitle" text, "aboutMainImage" text, 
-  "aboutEstablishedYear" text, "aboutFounderName" text, "aboutLocation" text, 
-  "aboutHistoryTitle" text, "aboutHistoryBody" text, 
-  "aboutMissionTitle" text, "aboutMissionBody" text, "aboutMissionIcon" text, 
-  "aboutCommunityTitle" text, "aboutCommunityBody" text, "aboutCommunityIcon" text, 
-  "aboutIntegrityTitle" text, "aboutIntegrityBody" text, "aboutIntegrityIcon" text, 
-  "aboutSignatureImage" text, "aboutGalleryImages" jsonb, 
-  "contactHeroTitle" text, "contactHeroSubtitle" text, 
-  "contactFormNameLabel" text, "contactFormEmailLabel" text, "contactFormSubjectLabel" text, "contactFormMessageLabel" text, "contactFormButtonText" text, 
-  "contactInfoTitle" text, "contactAddressLabel" text, "contactHoursLabel" text, "contactHoursWeekdays" text, "contactHoursWeekends" text, 
-  "disclosureTitle" text, "disclosureContent" text, "privacyTitle" text, "privacyContent" text, "termsTitle" text, "termsContent" text, 
-  "emailJsServiceId" text, "emailJsTemplateId" text, "emailJsPublicKey" text, 
-  "googleAnalyticsId" text, "facebookPixelId" text, "tiktokPixelId" text, "pinterestTagId" text, "amazonAssociateId" text, "webhookUrl" text
-);
-
-create table if not exists products (id text primary key, name text, sku text, price numeric, "affiliateLink" text, "categoryId" text, "subCategoryId" text, description text, features jsonb, specifications jsonb, media jsonb, "discountRules" jsonb, reviews jsonb, "createdAt" bigint, "createdBy" text);
-create table if not exists categories (id text primary key, name text, icon text, image text, description text, "createdBy" text);
-create table if not exists subcategories (id text primary key, "categoryId" text, name text, "createdBy" text);
-create table if not exists hero_slides (id text primary key, image text, type text, title text, subtitle text, cta text, "createdBy" text);
-create table if not exists enquiries (id text primary key, name text, email text, whatsapp text, subject text, message text, "createdAt" bigint, status text);
-create table if not exists admin_users (id text primary key, name text, email text, role text, permissions jsonb, password text, "createdAt" bigint, "lastActive" bigint, "profileImage" text, phone text, address text);
-create table if not exists product_stats ("productId" text primary key, views numeric, clicks numeric, shares numeric, "totalViewTime" numeric, "lastUpdated" bigint);
-create table if not exists traffic_logs (id text primary key, type text, text text, time text, timestamp bigint, source text);
-
--- MIGRATION: Ensure 'createdBy' exists on all relevant tables to prevent 400 Bad Request
-DO $$ 
-BEGIN 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='createdBy') THEN 
-    ALTER TABLE categories ADD COLUMN "createdBy" text; 
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='hero_slides' AND column_name='createdBy') THEN 
-    ALTER TABLE hero_slides ADD COLUMN "createdBy" text; 
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='createdBy') THEN 
-    ALTER TABLE products ADD COLUMN "createdBy" text; 
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subcategories' AND column_name='createdBy') THEN 
-    ALTER TABLE subcategories ADD COLUMN "createdBy" text; 
-  END IF;
-END $$;
-
--- 3. ENABLE RLS
-alter table settings enable row level security;
-alter table products enable row level security;
-alter table categories enable row level security;
-alter table subcategories enable row level security;
-alter table hero_slides enable row level security;
-alter table enquiries enable row level security;
-alter table admin_users enable row level security;
-alter table product_stats enable row level security;
-alter table traffic_logs enable row level security;
-
--- 4. POLICIES (Public Read, Admin Write)
-drop policy if exists "Public Read Settings" on settings;
-create policy "Public Read Settings" on settings for select using (true);
-drop policy if exists "Public Read Products" on products;
-create policy "Public Read Products" on products for select using (true);
-drop policy if exists "Public Read Categories" on categories;
-create policy "Public Read Categories" on categories for select using (true);
-drop policy if exists "Public Read SubCategories" on subcategories;
-create policy "Public Read SubCategories" on subcategories for select using (true);
-drop policy if exists "Public Read Hero" on hero_slides;
-create policy "Public Read Hero" on hero_slides for select using (true);
-drop policy if exists "Public Read Stats" on product_stats;
-create policy "Public Read Stats" on product_stats for select using (true);
-
--- Admin Write Policies
-drop policy if exists "Admin All" on settings;
-create policy "Admin All" on settings for all using (auth.role() = 'authenticated');
-drop policy if exists "Admin Products" on products;
-create policy "Admin Products" on products for all using (auth.role() = 'authenticated');
-drop policy if exists "Admin Categories" on categories;
-create policy "Admin Categories" on categories for all using (auth.role() = 'authenticated');
-drop policy if exists "Admin SubCategories" on subcategories;
-create policy "Admin SubCategories" on subcategories for all using (auth.role() = 'authenticated');
-drop policy if exists "Admin Hero" on hero_slides;
-create policy "Admin Hero" on hero_slides for all using (auth.role() = 'authenticated');
-drop policy if exists "Admin Enquiries" on enquiries;
-create policy "Admin Enquiries" on enquiries for all using (auth.role() = 'authenticated');
-drop policy if exists "Admin Users" on admin_users;
-create policy "Admin Users" on admin_users for all using (auth.role() = 'authenticated');
-drop policy if exists "Admin Stats" on product_stats;
-create policy "Admin Stats" on product_stats for all using (auth.role() = 'authenticated');
-drop policy if exists "Public Insert Logs" on traffic_logs;
-create policy "Public Insert Logs" on traffic_logs for insert with check (true);
-drop policy if exists "Admin Select Logs" on traffic_logs;
-create policy "Admin Select Logs" on traffic_logs for select using (auth.role() = 'authenticated');
-
--- Storage Policies
-drop policy if exists "Public Access" on storage.objects;
-create policy "Public Access" on storage.objects for select using ( bucket_id = 'media' );
-drop policy if exists "Admin Control" on storage.objects;
-create policy "Admin Control" on storage.objects for all using ( auth.role() = 'authenticated' );`,
-    codeLabel: 'Complete Supabase Initialization Script (Run in SQL Editor)',
-    tips: 'Why this matters: This script creates all the necessary tables (Products, Settings, etc.) so your app has a place to save data. If you already have tables, running this will update them (like adding the missing "createdBy" columns).',
-    illustrationId: 'shield'
-  },
-  {
-    id: 'google_auth',
-    title: '6. Security & Identity Management',
-    description: 'The Concept: Instead of remembering a new password, we’ll set up Google Login. This uses enterprise-grade security (OAuth 2.0) to ensure that only you can access the Admin Portal of your website.',
-    subSteps: [
-      'Google Cloud: Visit the Google Cloud Console and create a new project.',
-      'Credentials: Create an "OAuth 2.0 Client ID."',
-      'The Callback: Add your Supabase project URL to the "Authorized Redirect URIs" list.',
-      'Activation: Paste your Client ID and Secret into the Supabase "Authentication -> Providers" section.'
-    ],
-    illustrationId: 'identity'
-  },
-  {
-    id: 'emailjs_config',
-    title: '7. EmailJS: The Digital Concierge',
-    description: 'The Concept: You need to know when customers want to talk to you. EmailJS acts as a bridge that takes messages from your website contact form and sends them directly to your personal email inbox without needing a complex mail server.',
-    subSteps: [
-      'Setup: Create a free account at emailjs.com.',
-      'Link Inbox: Connect your Gmail or Outlook account.',
-      'Design: Create an "Email Template" with variables like {{name}} and {{message}}.',
-      'Integration: Copy your Public Key and Template ID into the "Canvas" tab in your Admin Portal.'
-    ],
-    code: EMAIL_TEMPLATE_HTML,
-    codeLabel: 'Recommended Responsive HTML Template (Copy/Paste)',
-    illustrationId: 'mail'
-  },
-  {
-    id: 'vercel_deployment',
-    title: '8. Vercel: Going Live to the World',
-    description: 'The Concept: Vercel is your "Internet Landlord." It takes your code from GitHub and hosts it on high-speed servers globally. It also handles "Environment Variables"—the secret keys that connect your site to Supabase.',
-    subSteps: [
-      'Import: Login to Vercel and import your GitHub repository.',
-      'Environment Variables (CRITICAL): Under "Settings," add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.',
-      'Values: Paste the keys you copied from Supabase back in Step 4.',
-      'Deploy: Click "Deploy." Vercel will build your site and give you a public URL (e.g., my-curation-site.vercel.app).'
-    ],
-    illustrationId: 'beacon'
-  },
-  {
-    id: 'domain_setup',
-    title: '9. The Brand Stamp: Custom Domains',
-    description: 'The Concept: A free URL is great for testing, but a professional brand needs a custom address (e.g., www.kasicouture.com). This is the final step in establishing your digital authority.',
-    subSteps: [
-      'Purchase: Buy a domain from a registrar like Namecheap or Google Domains.',
-      'Connect: In Vercel, go to "Settings -> Domains" and add your new address.',
-      'DNS Update: Copy the "A Record" or "CNAME" from Vercel to your domain registrar settings.',
-      'Wait: It takes about 30 minutes for the internet to update (propagate) your new address.'
-    ],
-    tips: 'SEO Fact: Websites with custom .com or .luxury domains rank significantly higher in Google search results than free subdomains.',
-    illustrationId: 'globe'
-  },
-  {
-    id: 'tracking_pixel',
-    title: '10. The Insight Engine: Analytics',
-    description: 'The Concept: To make money, you need to know what your customers like. By adding a "Pixel" (like Google Analytics or Facebook Pixel), you can see which products are getting the most attention and refine your curation.',
-    subSteps: [
-      'Measurement: Create a Google Analytics 4 property.',
-      'Tracking ID: Get your "G-XXXXXXXX" ID.',
-      'Admin Portal: Go to your Maison Portal -> Canvas -> Integrations and paste the ID.',
-      'Observe: Open your live site and watch the "Insights" tab in your admin dashboard to see traffic in real-time.'
-    ],
-    illustrationId: 'growth'
   }
 ];

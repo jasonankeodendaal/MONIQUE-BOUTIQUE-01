@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -51,7 +50,7 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20">
+    <div className="fixed bottom-24 right-6 z-[100] bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20">
       <div className="p-2 bg-white/20 rounded-full">
         <CheckCircle2 size={24} className="text-white" />
       </div>
@@ -710,7 +709,7 @@ const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats,
-    updateData, deleteData
+    updateData, deleteData, refreshAllData
   } = useSettings();
   
   const navigate = useNavigate();
@@ -755,7 +754,6 @@ const Admin: React.FC = () => {
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
 
   // RBAC LOGIC (Role Based Access Control)
-  // Owner sees all. Admins only see what they created or have no createdBy field (legacy items).
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@kasicouture.com');
   const userId = user?.id;
@@ -764,7 +762,6 @@ const Admin: React.FC = () => {
   const displayCategories = useMemo(() => isOwner ? categories : categories.filter(c => !c.createdBy || c.createdBy === userId), [categories, isOwner, userId]);
   const displayHeroSlides = useMemo(() => isOwner ? heroSlides : heroSlides.filter(s => !s.createdBy || s.createdBy === userId), [heroSlides, isOwner, userId]);
   
-  // Stats filtered by visible products
   const displayStats = useMemo(() => {
     if (isOwner) return stats;
     const myProductIds = displayProducts.map(p => p.id);
@@ -798,7 +795,7 @@ const Admin: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'system') {
+    if (activeTab === 'system' || activeTab === 'analytics') {
        const check = async () => {
           const health = await measureConnection();
           setConnectionHealth(health);
@@ -832,9 +829,11 @@ const Admin: React.FC = () => {
         createdAt: productData.createdAt || Date.now(),
         createdBy: productData.createdBy || user?.id // Assign ownership
     };
-    await updateData('products', newProduct);
-    setShowProductForm(false);
-    setEditingId(null);
+    const ok = await updateData('products', newProduct);
+    if (ok) {
+        setShowProductForm(false);
+        setEditingId(null);
+    }
   };
 
   const handleSaveCategory = async () => {
@@ -843,9 +842,11 @@ const Admin: React.FC = () => {
         id: editingId || Date.now().toString(),
         createdBy: catData.createdBy || user?.id // Assign ownership
     };
-    await updateData('categories', newCat);
-    setShowCategoryForm(false);
-    setEditingId(null);
+    const ok = await updateData('categories', newCat);
+    if (ok) {
+        setShowCategoryForm(false);
+        setEditingId(null);
+    }
   };
 
   const handleSaveHero = async () => {
@@ -854,9 +855,11 @@ const Admin: React.FC = () => {
         id: editingId || Date.now().toString(),
         createdBy: heroData.createdBy || user?.id // Assign ownership
     };
-    await updateData('hero_slides', newSlide);
-    setShowHeroForm(false);
-    setEditingId(null);
+    const ok = await updateData('hero_slides', newSlide);
+    if (ok) {
+        setShowHeroForm(false);
+        setEditingId(null);
+    }
   };
   
   const handleSaveAdmin = async () => {
@@ -867,11 +870,12 @@ const Admin: React.FC = () => {
         ...adminData, 
         id: editingId || Date.now().toString(), 
         createdAt: adminData.createdAt || Date.now(),
-        // We do not save password here as it is handled by Supabase Auth
       };
-      await updateData('admin_users', newAdmin);
-      setShowAdminForm(false);
-      setEditingId(null);
+      const ok = await updateData('admin_users', newAdmin);
+      if (ok) {
+          setShowAdminForm(false);
+          setEditingId(null);
+      }
     } catch (err: any) {
       alert(`Error saving member: ${err.message}`);
     } finally {
@@ -1031,85 +1035,112 @@ const Admin: React.FC = () => {
     return (
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-           <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Analytics</h2><p className="text-slate-400 text-sm">Real-time engagement tracking.</p></div>
-           <div className="flex flex-wrap gap-8"><div className="text-right"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Impressions</span><span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span></div><div className="text-right border-l border-slate-800 pl-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Affiliate Conversions</span><span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span></div></div>
+           <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Insights</h2><p className="text-slate-400 text-sm">Comprehensive performance auditing.</p></div>
+           <div className="flex flex-wrap gap-8"><div className="text-right"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Lifetime Views</span><span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span></div><div className="text-right border-l border-slate-800 pl-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Click Throughs</span><span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span></div></div>
         </div>
         
         {/* Conversion Funnel */}
         <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-12">
-            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><Filter size={20} className="text-primary"/> Conversion Funnel</h3>
+            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><Filter size={20} className="text-primary"/> Engagement Funnel</h3>
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0 relative">
                <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Total Page Views</span>
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Total Impressions</span>
                   <span className="text-3xl font-bold text-white">{totalViews}</span>
-                  <span className="text-xs text-slate-400 mt-1">100% of traffic</span>
+                  <span className="text-xs text-slate-400 mt-1">100% Top Funnel</span>
                </div>
                <div className="hidden md:block h-1 flex-grow bg-slate-800 relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-700 rotate-45"></div></div>
                <div className="md:hidden w-1 h-8 bg-slate-800"></div>
                <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Engaged (Shared)</span>
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Social Shares</span>
                   <span className="text-3xl font-bold text-blue-400">{totalShares}</span>
-                  <span className="text-xs text-slate-400 mt-1">{totalViews > 0 ? ((totalShares/totalViews)*100).toFixed(1) : 0}% retention</span>
+                  <span className="text-xs text-slate-400 mt-1">{totalViews > 0 ? ((totalShares/totalViews)*100).toFixed(1) : 0}% Engagement</span>
                </div>
                <div className="hidden md:block h-1 flex-grow bg-slate-800 relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-700 rotate-45"></div></div>
                <div className="md:hidden w-1 h-8 bg-slate-800"></div>
                <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-primary/10 rounded-2xl border border-primary/20">
-                  <span className="text-[10px] font-black uppercase text-primary tracking-widest mb-2">Affiliate Clicks</span>
+                  <span className="text-[10px] font-black uppercase text-primary tracking-widest mb-2">Affiliate Leads</span>
                   <span className="text-3xl font-bold text-white">{totalClicks}</span>
-                  <span className="text-xs text-primary/70 mt-1">{totalViews > 0 ? ((totalClicks/totalViews)*100).toFixed(1) : 0}% conversion</span>
+                  <span className="text-xs text-primary/70 mt-1">{totalViews > 0 ? ((totalClicks/totalViews)*100).toFixed(1) : 0}% CTR</span>
                </div>
             </div>
         </div>
 
         {/* Source Breakdown Chart */}
         <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
-            <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Globe size={18} className="text-primary"/> Acquisition Channels</h3>
-            <div className="flex flex-col gap-4">
+            <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Globe size={18} className="text-primary"/> Detailed Traffic Origins</h3>
+            <div className="flex flex-col gap-6">
                 {sourceData.map((s, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white shrink-0"><s.icon size={14}/></div>
+                    <div key={i} className="flex items-center gap-6">
+                        <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-white shrink-0 border border-slate-700 shadow-xl"><s.icon size={20}/></div>
                         <div className="flex-grow">
-                            <div className="flex justify-between mb-1">
-                                <span className="text-xs text-white font-bold">{s.label}</span>
-                                <span className="text-[10px] text-slate-400 font-mono">{s.count} visits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
+                            <div className="flex justify-between mb-2">
+                                <span className="text-sm text-white font-bold">{s.label}</span>
+                                <span className="text-xs text-slate-400 font-mono">{s.count} unique hits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
                             </div>
-                            <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                                <div className={`h-full ${s.color} transition-all duration-1000`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
+                            <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+                                <div className={`h-full ${s.color} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
                             </div>
                         </div>
                     </div>
                 ))}
-                {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4">No traffic source data available yet.</p>}
+                {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4 italic">Aggregating source metrics...</p>}
             </div>
         </div>
         
-        {/* Peak Hours Chart (Real) */}
-        <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
-             <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Clock size={18} className="text-primary"/> Real Peak Traffic Hours</h3>
-             <div className="flex items-end gap-1 h-32 md:h-48 w-full">
-                {hourlyDistribution.map((hits, i) => {
-                   const height = hits > 0 ? (hits / maxHourly) * 100 : 2;
-                   return (
-                     <div key={i} className="flex-1 bg-slate-800 rounded-t-sm relative group hover:bg-primary transition-all duration-300" style={{ height: `${height}%` }}>
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-2 py-1 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 border border-slate-200">
-                           {hits} Hits at {i}:00
+        {/* Collection Performing Products - Grid View */}
+        <div className="space-y-8">
+            <div className="flex justify-between items-end px-2">
+               <div>
+                  <h3 className="text-white font-bold text-2xl flex items-center gap-3">
+                     <TrendingUp size={24} className="text-primary"/> Collection Performance
+                  </h3>
+                  <p className="text-slate-500 text-xs mt-1">Ranking by total interaction volume.</p>
+               </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+               {sortedProducts.slice(0, 12).map((p, i) => (
+                  <div key={i} className="bg-slate-900 rounded-[2rem] border border-slate-800 p-6 flex flex-col gap-6 group hover:border-primary/40 transition-all shadow-xl">
+                     <div className="flex items-start gap-4">
+                        <div className="relative w-20 h-20 shrink-0">
+                           <img src={p.media?.[0]?.url} className="w-full h-full object-cover rounded-2xl border border-slate-800 shadow-lg" />
+                           <div className="absolute -top-2 -left-2 w-8 h-8 bg-slate-800 border border-slate-700 text-primary rounded-xl flex items-center justify-center text-xs font-black shadow-2xl">
+                              #{i+1}
+                           </div>
+                        </div>
+                        <div className="min-w-0">
+                           <h4 className="text-white font-bold truncate group-hover:text-primary transition-colors">{p.name}</h4>
+                           <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{categories.find(c => c.id === p.categoryId)?.name}</span>
+                           <div className="mt-2 text-primary font-mono font-bold text-sm">R {p.price}</div>
                         </div>
                      </div>
-                   )
-                })}
-             </div>
-             <div className="flex justify-between text-[9px] font-black uppercase text-slate-500 mt-4 border-t border-slate-800 pt-2">
-                <span>00:00</span>
-                <span>06:00</span>
-                <span>12:00</span>
-                <span>18:00</span>
-                <span>23:00</span>
-             </div>
+                     
+                     <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800/50">
+                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Impressions</span>
+                           <span className="text-white font-bold">{p.views.toLocaleString()}</span>
+                        </div>
+                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">CTR</span>
+                           <span className="text-primary font-bold">{p.ctr}%</span>
+                        </div>
+                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Clicks</span>
+                           <span className="text-white font-bold">{p.clicks.toLocaleString()}</span>
+                        </div>
+                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Social Rank</span>
+                           <span className="text-blue-400 font-bold">{((p as any).shares || 0).toLocaleString()}</span>
+                        </div>
+                     </div>
+                  </div>
+               ))}
+            </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
            <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
-              <h3 className="text-white font-bold mb-10 flex items-center gap-3"><TrendingUp size={18} className="text-primary"/> Category Engagement</h3>
+              <h3 className="text-white font-bold mb-10 flex items-center gap-3"><LayoutPanelTop size={18} className="text-primary"/> Department Interest</h3>
               <div className="space-y-6">
                  {catStats.map((c, i) => (
                    <div key={i} className="space-y-2"><div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400"><span>{c.name}</span><span>{c.views} views</span></div><div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full transition-all duration-1000 ease-out" style={{ width: `${(c.views / maxCatViews) * 100}%` }} /></div></div>
@@ -1117,17 +1148,9 @@ const Admin: React.FC = () => {
               </div>
            </div>
            <div className="grid grid-cols-2 gap-6">
-              {[ { label: 'Avg. CTR', value: totalViews > 0 ? `${((totalClicks / totalViews) * 100).toFixed(1)}%` : '0%', icon: MousePointer2, color: 'text-primary' }, { label: 'Peak Interest', value: sortedProducts[0]?.name || 'N/A', icon: Star, color: 'text-yellow-500' }, { label: 'Avg. Engagement', value: `${avgSessionTime}s`, icon: Timer, color: 'text-blue-500' }, { label: 'Hot Dept.', value: catStats[0]?.name || 'N/A', icon: LayoutGrid, color: 'text-purple-500' } ].map((m, i) => (
-                <div key={i} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 flex flex-col justify-between"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${m.color}`}><m.icon size={20}/></div><div className="mt-6"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">{m.label}</span><span className="text-lg font-bold text-white truncate block">{m.value}</span></div></div>
+              {[ { label: 'Avg. CTR', value: totalViews > 0 ? `${((totalClicks / totalViews) * 100).toFixed(1)}%` : '0%', icon: MousePointer2, color: 'text-primary' }, { label: 'Peak Interest', value: sortedProducts[0]?.name || 'N/A', icon: Star, color: 'text-yellow-500' }, { label: 'Retention', value: `${avgSessionTime}s`, icon: Timer, color: 'text-blue-500' }, { label: 'Hot Dept.', value: catStats[0]?.name || 'N/A', icon: LayoutGrid, color: 'text-purple-500' } ].map((m, i) => (
+                <div key={i} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 flex flex-col justify-between hover:border-white/10 transition-colors"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${m.color}`}><m.icon size={20}/></div><div className="mt-6"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">{m.label}</span><span className="text-lg font-bold text-white truncate block">{m.value}</span></div></div>
               ))}
-           </div>
-        </div>
-        <div className="space-y-6 w-full max-w-full">
-           <h3 className="text-white font-bold text-xl px-2">Top Performing Products</h3>
-           <div className="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 overflow-hidden w-full">
-             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[600px]"><thead><tr className="bg-slate-800/50"><th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Collection Piece</th><th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</th><th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Impressions</th><th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Clicks</th><th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Shares</th><th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">CTR</th></tr></thead><tbody className="divide-y divide-slate-800">{sortedProducts.slice(0, 10).map((p, i) => (<tr key={i} className="hover:bg-slate-800/30 transition-colors"><td className="p-6"><div className="flex items-center gap-4"><img src={p.media?.[0]?.url} className="w-10 h-10 rounded-lg object-cover bg-slate-800" /><span className="text-white font-bold text-sm line-clamp-1 max-w-[150px]">{p.name}</span></div></td><td className="p-6"><span className="text-slate-500 text-xs">{categories.find(c => c.id === p.categoryId)?.name}</span></td><td className="p-6 text-slate-300 font-medium text-center">{p.views.toLocaleString()}</td><td className="p-6 text-primary font-bold text-center">{p.clicks.toLocaleString()}</td><td className="p-6 text-slate-300 font-medium text-center">{(p as any).shares || 0}</td><td className="p-6 text-center"><span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black">{p.ctr}%</span></td></tr>))}</tbody></table>
-             </div>
            </div>
         </div>
       </div>
@@ -1139,8 +1162,8 @@ const Admin: React.FC = () => {
       {showProductForm ? (
         <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
           <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
-          <AdminTip title="Pro Tip: Listing Optimization">
-             To maximize conversion, upload at least 2 high-quality images. Use the 'Highlights' section to add bullet points for key selling features (e.g., "100% Silk", "Handmade").
+          <AdminTip title="Inventory Deployment">
+             Optimize your listing with detailed specifications and high-res media. The 'Highlights' section powers the shoppable bridge features.
           </AdminTip>
           <div className="grid md:grid-cols-2 gap-8">
              <div className="space-y-6"><SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} /><SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} /><SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" /><SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} /></div>
@@ -1158,7 +1181,7 @@ const Admin: React.FC = () => {
         <>
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Catalog</h2><p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p></div><button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> Add Product</button></div>
           <AdminTip title="Inventory Management">
-             Use the filters below to quickly find items by department or name. Click the 'Megaphone' icon on any product to generate instant social media captions and shareable bundles.
+             Filter by department or keyword. Use the megaphone icon to generate shareable social assets instantly.
           </AdminTip>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
              <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search by name..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
@@ -1179,8 +1202,8 @@ const Admin: React.FC = () => {
 
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
-        <AdminTip title="Hero Visuals">
-          The Hero Carousel is the first impression your visitors get. Use high-resolution images (16:9 ratio) or short, looping videos. Keep titles punchy and evocative to drive clicks.
+        <AdminTip title="Hero Master Visuals">
+          Set the tone for your bridge page with cinematic hero visuals. Videos increase dwell time by up to 40%.
         </AdminTip>
         {showHeroForm ? ( 
            <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-6">
@@ -1188,7 +1211,7 @@ const Admin: React.FC = () => {
               <SettingField label="Subtitle" value={heroData.subtitle || ''} onChange={v => setHeroData({...heroData, subtitle: v})} type="textarea" />
               <SettingField label="Button Label" value={heroData.cta || ''} onChange={v => setHeroData({...heroData, cta: v})} />
               <SingleImageUploader 
-                label="Media File" 
+                label="Media Asset" 
                 value={heroData.image || ''} 
                 onChange={v => setHeroData({...heroData, image: v})} 
                 accept={heroData.type === 'video' ? "video/*" : "image/*"}
@@ -1197,7 +1220,7 @@ const Admin: React.FC = () => {
            </div> 
         ) : ( 
            <div className="grid md:grid-cols-2 gap-6">
-              <button onClick={() => { setHeroData({ title: '', subtitle: '', cta: 'Explore', image: '', type: 'image' }); setShowHeroForm(true); setEditingId(null); }} className="w-full p-8 border-2 border-dashed border-slate-800 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-primary min-h-[250px]"><Plus size={48} /><span className="font-black uppercase tracking-widest text-xs">New Slide</span></button>
+              <button onClick={() => { setHeroData({ title: '', subtitle: '', cta: 'Explore', image: '', type: 'image' }); setShowHeroForm(true); setEditingId(null); }} className="w-full p-8 border-2 border-dashed border-slate-800 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-primary min-h-[250px]"><Plus size={48} /><span className="font-black uppercase tracking-widest text-xs">New Hero Slide</span></button>
               {displayHeroSlides.map(s => (
                  <div key={s.id} className="relative aspect-video rounded-[2rem] md:rounded-[3rem] overflow-hidden group border border-slate-800">
                     {s.type === 'video' ? <video src={s.image} className="w-full h-full object-cover" muted /> : <img src={s.image} className="w-full h-full object-cover" />}
@@ -1213,8 +1236,8 @@ const Admin: React.FC = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
        {showCategoryForm ? (
           <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-8">
-             <AdminTip title="Pro Tip: Department Structure">
-               Create broad main departments (e.g., 'Apparel', 'Accessories') and use sub-categories to organize items (e.g., 'Dresses', 'Handbags'). This dual-layer structure improves searchability.
+             <AdminTip title="Department Structuring">
+               Define your niches. Departments categorize your curations into logical shopping flows for the end user.
              </AdminTip>
              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
@@ -1224,8 +1247,8 @@ const Admin: React.FC = () => {
           </div>
        ) : (
           <>
-            <AdminTip title="Navigation Organization">
-              Departments are the primary way customers browse your site. Each department gets a dedicated tile on the home page. Use iconic imagery to represent each section.
+            <AdminTip title="Collections Navigation">
+              Each department acts as a portal. Use high-fashion imagery to attract attention to specific collections.
             </AdminTip>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
@@ -1243,67 +1266,35 @@ const Admin: React.FC = () => {
 
   const renderTeam = () => (
      <div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8"><div className="text-left"><h2 className="text-3xl font-serif text-white">Team Management</h2><p className="text-slate-400 text-sm mt-2">Sync with Supabase for secure multi-admin access.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison Staffing</h2><p className="text-slate-400 text-sm mt-2">Roles and permissions for collaborative curation.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
         {showAdminForm ? (
            <div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-12">
               <div className="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl flex items-start gap-4">
                  <div className="p-2 bg-blue-500/20 rounded-full text-blue-400"><Info size={20}/></div>
                  <div>
-                    <h4 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">Important: Authentication vs. Authorization</h4>
-                    <p className="text-slate-400 text-xs leading-relaxed">
-                       This form sets the <strong>permissions</strong> for the user within the Admin Portal. 
-                       <br/><br/>
-                       To grant them login credentials, you must also <strong>Invite User</strong> via your <a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" className="text-white underline">Supabase Dashboard</a> using the same email address.
-                    </p>
+                    <h4 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">Identity Sync</h4>
+                    <p className="text-slate-400 text-xs leading-relaxed"> Ensure the email matches the Supabase Auth identity exactly. </p>
                  </div>
               </div>
               <div className="grid md:grid-cols-2 gap-12">
                  <div className="space-y-6">
-                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Personal Details</h3>
+                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Profile</h3>
                     <SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} />
                     <SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} />
                     <SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" />
                     
-                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Security Credentials</h3>
+                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
-                    
-                    {/* Password Setup Redirect Block */}
-                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary mt-1">
-                          <Key size={16} />
-                        </div>
-                        <div className="space-y-3">
-                          <h4 className="text-primary font-bold text-xs uppercase tracking-widest">Password Configuration Required</h4>
-                          <p className="text-slate-400 text-xs leading-relaxed">
-                            For maximum security, <strong>we do not store passwords here</strong>. 
-                            <br /><br />
-                            1. <strong>Save</strong> this member profile first.<br />
-                            2. Click the button below to open Supabase Auth.<br />
-                            3. Click <strong>"Invite User"</strong> (sends email) or <strong>"Create User"</strong> (sets manual password).
-                          </p>
-                          <a
-                            href="https://supabase.com/dashboard/project/_/auth/users"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"
-                          >
-                            <ExternalLink size={14} />
-                            Setup Password in Cloud
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-
+                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed"> Manage passkeys via the Supabase cloud dashboard. </p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
                  </div>
-                 <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Access Control</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">System Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Standard Administrator</option><option value="owner">System Owner (Root)</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Detailed Permissions</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
+                 <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
               </div>
-              <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Update Privileges' : 'Deploy Member'}</button></div>
+              <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
            </div>
         ) : (
            <>
-             <AdminTip title="Team Roles">
-                Manage your digital team here. Owners can see everything. Supabase Authenticated users automatically appear here.
+             <AdminTip title="Role Management">
+                Manage your staff here. Only Owners can delete other members or factory reset the system.
              </AdminTip>
              <div className="grid gap-6">
                {admins.map(a => {
@@ -1338,11 +1329,11 @@ const Admin: React.FC = () => {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2">
-           <h2 className="text-3xl font-serif text-white">Marketing Academy</h2>
-           <p className="text-slate-400 text-sm">Advanced strategies for {TRAINING_MODULES.length} major platforms.</p>
+           <h2 className="text-3xl font-serif text-white">Academy</h2>
+           <p className="text-slate-400 text-sm">Curation marketing mastery across {TRAINING_MODULES.length} channels.</p>
          </div>
          <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2">
-            <Video size={16}/> Video Masterclass
+            <Video size={16}/> Mastering the Algorithm
          </a>
       </div>
 
@@ -1379,7 +1370,7 @@ const Admin: React.FC = () => {
                       <p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>
                       {!isExpanded && (
                          <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                            View Module <ArrowRight size={12}/>
+                            View Training <ArrowRight size={12}/>
                          </div>
                       )}
                     </div>
@@ -1393,7 +1384,7 @@ const Admin: React.FC = () => {
                     <div className="space-y-6">
                       <div className="flex items-center gap-3">
                          <div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div>
-                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Winning Strategies</h4>
+                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4>
                       </div>
                       <ul className="space-y-4">
                         {module.strategies.map((strat, idx) => (
@@ -1407,7 +1398,7 @@ const Admin: React.FC = () => {
                     <div className="space-y-6">
                       <div className="flex items-center gap-3">
                          <div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div>
-                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Actions</h4>
+                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4>
                       </div>
                       <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
                         {module.actionItems.map((item, idx) => (
@@ -1421,7 +1412,7 @@ const Admin: React.FC = () => {
                   </div>
                   <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end">
                      <button onClick={() => setExpandedTraining(null)} className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">
-                        Close Module
+                        Complete Session
                      </button>
                   </div>
                 </div>
@@ -1438,17 +1429,17 @@ const Admin: React.FC = () => {
     const visitorLogs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
     return (
      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
-        <AdminTip title="System Health Monitoring">
-          This dashboard provides a real-time pulse of your application. The metrics below are pulled directly from your active session and visitor logs.
+        <AdminTip title="Core Infrastructure Monitoring">
+          Your bridge page is linked to a high-performance Supabase backend. All read/write operations are synchronized in real-time.
         </AdminTip>
         
-        {/* Top Metrics Grid */}
+        {/* Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[ 
-            { label: 'System Uptime', value: '99.9%', icon: Activity, color: 'text-green-500' }, 
-            { label: 'Cloud DB Sync', value: isSupabaseConfigured ? 'Active' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, 
-            { label: 'Storage Cluster', value: isSupabaseConfigured ? 'Connected' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, 
-            { label: 'Traffic Volume', value: visitorLogs.length.toLocaleString(), icon: TrendingUp, color: 'text-purple-500' } 
+            { label: 'Cloud Uptime', value: '100%', icon: Activity, color: 'text-green-500' }, 
+            { label: 'Supabase DB', value: isSupabaseConfigured ? 'Synchronized' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, 
+            { label: 'Data Registry', value: isSupabaseConfigured ? 'Cloud' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, 
+            { label: 'Total Traffic', value: visitorLogs.length.toLocaleString(), icon: TrendingUp, color: 'text-purple-500' } 
           ].map((item, i) => (
             <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4">
               <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}>
@@ -1462,94 +1453,17 @@ const Admin: React.FC = () => {
           ))}
         </div>
 
-        {/* Detailed Connection Matrix */}
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
-           <div className="relative z-10 flex flex-col gap-10">
-              <div className="flex justify-between items-end">
-                 <div>
-                    <h3 className="text-white font-bold text-2xl flex items-center gap-3">
-                       <Server size={24} className="text-primary"/> Connection Diagnostics Matrix
-                    </h3>
-                    <p className="text-slate-400 text-sm mt-2">Real-time status of backend services and latency check.</p>
-                 </div>
-                 <div className="hidden md:block text-right">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block mb-1">Last Heartbeat</span>
-                    <span className="font-mono text-white text-sm">{new Date().toLocaleTimeString()}</span>
-                 </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                  {/* Auth Service */}
-                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex flex-col gap-4">
-                      <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Auth Service</span>
-                          <Lock size={16} className="text-slate-500" />
-                      </div>
-                      <div className="flex items-center gap-3">
-                          <div className={`w-3 h-3 rounded-full ${isSupabaseConfigured ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                          <span className="text-lg font-bold text-white">{isSupabaseConfigured ? 'Authenticated' : 'Local Only'}</span>
-                      </div>
-                      <div className="h-1 w-full bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-green-500 w-full" style={{ width: isSupabaseConfigured ? '100%' : '0%' }}></div>
-                      </div>
-                  </div>
-
-                  {/* REST API */}
-                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex flex-col gap-4">
-                      <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">REST API</span>
-                          <Globe size={16} className="text-slate-500" />
-                      </div>
-                      <div className="flex items-center gap-3">
-                          <div className={`w-3 h-3 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-                          <span className="text-lg font-bold text-white">{connectionHealth?.status === 'online' ? `${connectionHealth.latency}ms Latency` : 'Connecting...'}</span>
-                      </div>
-                      <div className="h-1 w-full bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-green-500 w-full transition-all duration-1000" style={{ width: connectionHealth?.status === 'online' ? '100%' : '10%' }}></div>
-                      </div>
-                  </div>
-
-                  {/* Storage */}
-                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 flex flex-col gap-4">
-                      <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Storage</span>
-                          <HardDrive size={16} className="text-slate-500" />
-                      </div>
-                      <div className="flex items-center gap-3">
-                          <div className={`w-3 h-3 rounded-full ${isSupabaseConfigured ? 'bg-green-500' : 'bg-slate-600'}`}></div>
-                          <span className="text-lg font-bold text-white">{isSupabaseConfigured ? 'Bucket Active' : 'Unavailable'}</span>
-                      </div>
-                      <div className="h-1 w-full bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-green-500 w-full" style={{ width: isSupabaseConfigured ? '100%' : '0%' }}></div>
-                      </div>
-                  </div>
-              </div>
-
-              <div className="bg-black/30 rounded-xl p-4 font-mono text-[10px] text-slate-400 border border-slate-700/50">
-                 <div className="flex justify-between items-center mb-2">
-                    <span className="font-bold text-slate-500 uppercase tracking-widest">Endpoint Configuration</span>
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${isSupabaseConfigured ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
-                        {isSupabaseConfigured ? 'SECURE' : 'INSECURE'}
-                    </span>
-                 </div>
-                 <div className="break-all">{getSupabaseUrl() ? getSupabaseUrl().replace(/^(https:\/\/)([^.]+)(.+)$/, '$1****$3') : 'NO_ENDPOINT_DETECTED'}</div>
-              </div>
-           </div>
-        </div>
-
         {/* Real Live Traffic Component */}
         <TrafficAreaChart stats={stats} />
 
-        {/* Live Error Console */}
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold text-xl flex items-center gap-3">
-                 <Terminal size={24} className="text-red-500"/> Live Exception Stream
+                 <Terminal size={24} className="text-red-500"/> Real-time Exception Logs
               </h3>
               <div className="flex items-center gap-2">
                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                 <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Active Monitor</span>
+                 <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Active Watch</span>
               </div>
            </div>
            
@@ -1568,23 +1482,23 @@ const Admin: React.FC = () => {
               ) : (
                  <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
                     <Activity size={32} className="mb-2"/>
-                    <span>System Nominal. No Active Exceptions.</span>
+                    <span>System Nominal. No exceptions recorded.</span>
                  </div>
               )}
            </div>
         </div>
         
-        {/* Data Actions */}
+        {/* Data Snapshots */}
         <div className="grid md:grid-cols-2 gap-6">
            <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4">
-              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Data Snapshot</h3>
-              <p className="text-slate-500 text-xs leading-relaxed">Securely export all catalog items, analytics, and settings to a portable JSON format.</p>
-              <button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2 border border-slate-700">Backup Master</button>
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Catalog Export</h3>
+              <p className="text-slate-500 text-xs leading-relaxed">Save a complete snapshot of all products, settings, and analytical data to JSON.</p>
+              <button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2 border border-slate-700">Download Data</button>
            </div>
            <div className="bg-red-950/10 p-8 rounded-[2rem] border border-red-500/20 text-left space-y-4">
-              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> Core Wipe</h3>
-              <p className="text-slate-500 text-xs leading-relaxed">Irreversibly factory reset all local storage data. This action cannot be undone.</p>
-              <button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Reset</button>
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> System Purge</h3>
+              <p className="text-slate-500 text-xs leading-relaxed">Immediately factory reset all local storage data. Supabase cloud data is preserved unless manually wiped.</p>
+              <button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Purge</button>
            </div>
         </div>
      </div>
@@ -1597,13 +1511,13 @@ const Admin: React.FC = () => {
             <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
             <div className="max-w-3xl relative z-10">
                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30">
-                    <Zap size={14}/> Implementation Protocol
+                    <Zap size={14}/> Launch Protocol
                 </div>
                 <h2 className="text-3xl sm:text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none break-words">
-                    The <span className="text-primary italic font-light lowercase">Architecture</span> of Success
+                    Architecture <span className="text-primary italic font-light lowercase">Blueprint</span>
                 </h2>
                 <p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed max-w-full">
-                    Your comprehensive blueprint for deploying a high-performance luxury affiliate portal from source to global production.
+                    Complete the following milestones to transition from local prototype to a fully-synced global luxury bridge page.
                 </p>
             </div>
         </div>
@@ -1612,7 +1526,7 @@ const Admin: React.FC = () => {
             {GUIDE_STEPS.map((step, idx) => (
                 <div key={step.id} className="relative flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-20">
                     
-                    {/* Number Column - Flex on mobile, Col on desktop */}
+                    {/* Number Column */}
                     <div className="md:col-span-1 flex flex-row md:flex-col items-center gap-4 md:gap-0">
                         <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl sticky md:top-32 static shrink-0">
                             {idx + 1}
@@ -1638,42 +1552,22 @@ const Admin: React.FC = () => {
                             </div>
                         )}
                         {step.code && (<CodeBlock code={step.code} label={step.codeLabel} />)}
-                        {step.tips && (
-                            <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-6 md:p-8 flex items-start gap-6 text-primary/80 text-sm md:text-base leading-relaxed">
-                                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 text-primary"><Info size={24}/></div>
-                                <p className="break-words w-full">{step.tips}</p>
-                            </div>
-                        )}
                     </div>
 
-                    {/* Illustration Column - Sticky on desktop, flow on mobile */}
+                    {/* Illustration Column */}
                     <div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0">
                         <GuideIllustration id={step.illustrationId} />
-                        <div className="mt-8 p-6 bg-slate-900/30 rounded-2xl border border-slate-800 border-dashed text-center">
-                            <span className="text-[10px] font-black uppercase text-slate-600 tracking-widest">Setup Phase Completion</span>
-                            <div className="w-full h-1 bg-slate-800 rounded-full mt-4 overflow-hidden">
-                                <div className="h-full bg-primary" style={{ width: `${((idx + 1) / GUIDE_STEPS.length) * 100}%` }} />
-                            </div>
-                        </div>
                     </div>
                 </div>
             ))}
-        </div>
-
-        <div className="bg-slate-900 p-8 md:p-16 rounded-[2.5rem] md:rounded-[4rem] text-center border border-slate-800 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
-            <Rocket className="mx-auto text-primary mb-8" size={64} />
-            <h3 className="text-3xl md:text-4xl font-serif text-white mb-6">Mission Critical: Complete</h3>
-            <p className="text-slate-500 max-w-xl mx-auto text-base md:text-lg font-light mb-12">Your infrastructure is now primed for global luxury commerce. Begin curating your first collection to initiate the growth phase.</p>
-            <button onClick={() => setActiveTab('catalog')} className="px-10 md:px-12 py-5 md:py-6 bg-primary text-slate-900 font-black uppercase text-[10px] md:text-xs tracking-[0.3em] rounded-full hover:bg-white transition-all shadow-2xl w-full md:w-auto">Initialize Catalog</button>
         </div>
      </div>
   );
 
   const renderSiteEditor = () => (
      <div className="space-y-6 w-full max-w-7xl mx-auto">
-       <AdminTip title="Pro Tip: Visual Identity">
-          This is your central design studio. Click on any tile to open the configuration drawer. Changes made here update the live site instantly for visitors.
+       <AdminTip title="Canvas Editor">
+          Control your site's visual identity. Publishing changes here will synchronize with Supabase and update for all visitors.
        </AdminTip>
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
@@ -1687,10 +1581,9 @@ const Admin: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-20 w-full overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
       <style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style>
       
-      {/* Toast Notification for Save Confirmation */}
       <SaveIndicator status={saveStatus} />
 
       {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
@@ -1699,7 +1592,6 @@ const Admin: React.FC = () => {
       <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
         <div className="flex flex-col gap-6"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
         <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
-          {/* Responsive Tabs: Grid on mobile, flex wrap on tablet/desktop */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
             {[ { id: 'enquiries', label: 'Inbox', icon: Inbox }, { id: 'analytics', label: 'Insights', icon: BarChart3 }, { id: 'catalog', label: 'Items', icon: ShoppingBag }, { id: 'hero', label: 'Visuals', icon: LayoutPanelTop }, { id: 'categories', label: 'Depts', icon: Layout }, { id: 'site_editor', label: 'Canvas', icon: Palette }, { id: 'team', label: 'Maison', icon: Users }, { id: 'training', label: 'Training', icon: GraduationCap }, { id: 'system', label: 'System', icon: Activity }, { id: 'guide', label: 'Pilot', icon: Rocket } ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
@@ -1907,19 +1799,12 @@ const Admin: React.FC = () => {
                         </div>
                      </div>
                      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Pixels</h4>
+                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4>
                         <div className="space-y-4">
                            <SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
                            <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
                            <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
                            <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
-                        </div>
-                     </div>
-                     <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><LinkIcon size={16} /> Affiliate & Webhooks</h4>
-                        <div className="space-y-4">
-                           <SettingField label="Amazon Associate ID" value={tempSettings.amazonAssociateId || ''} onChange={v => updateTempSettings({ amazonAssociateId: v })} />
-                           <SettingField label="Global Webhook URL" value={tempSettings.webhookUrl || ''} onChange={v => updateTempSettings({ webhookUrl: v })} />
                         </div>
                      </div>
                   </>
@@ -1934,6 +1819,36 @@ const Admin: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Connection Status Footer */}
+      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/80 backdrop-blur-md border-t border-white/5 py-4 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-widest">
+           <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                 <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-green-500' : 'bg-slate-600'}`}></div>
+                 <span className="text-slate-500">Supabase: <span className={isSupabaseConfigured ? 'text-green-500' : 'text-slate-400'}>{isSupabaseConfigured ? 'Synced' : 'Local'}</span></span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <div className={`w-2 h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                 <span className="text-slate-500">Latency: <span className="text-white">{connectionHealth?.latency || 0}ms</span></span>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-6">
+              <span className="text-slate-600">Session ID: <span className="text-white font-mono">{userId?.substring(0, 8) || 'LOCAL'}</span></span>
+              <button onClick={() => refreshAllData()} className="flex items-center gap-2 text-primary hover:text-white transition-colors">
+                 <RefreshCcw size={12} className={saveStatus === 'saving' ? 'animate-spin' : ''} />
+                 Force Resync
+              </button>
+           </div>
+           
+           <div className="flex items-center gap-2">
+              <span className="text-slate-600">Maison Portal v2.5.4</span>
+              <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
+              <span className="text-slate-500">100% Secure Handshake</span>
+           </div>
+        </div>
+      </footer>
     </div>
   );
 };
