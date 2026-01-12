@@ -60,297 +60,319 @@ export const GUIDE_STEPS = [
 
 export const TRAINING_MODULES: TrainingModule[] = [
   {
+    id: 'shein-mastery',
+    title: 'Shein Affiliate Blueprint: Zero to First Commission',
+    platform: 'General',
+    description: 'The definitive guide to launching your affiliate career with Shein. Learn the exact technical workflow to extract high-converting product data and populate your bridge page.',
+    icon: 'ShoppingBag',
+    strategies: [
+      'The Portal Protocol: Register at shein.com/affiliate-program. Pro-Tip: If denied, apply through Awin or CJ Affiliate networks which often have higher approval rates for new bridge pages.',
+      'Deep-Link Engineering: Never link to the Shein homepage. Use the "Custom Link" tool in the Shein Publisher dashboard. Paste the specific product URL to generate a "Deep Link" that tracks your unique ID for that exact item.',
+      'Media Harvesting: Use the "Image Asset" tab in the dashboard to download professional studio shots. Supplement this with "User Review Photos" (with permission/attribution) to show the "Real Life" look, which increases conversion by 35%.',
+      'SKU Management: Always copy the "Product ID" or "SKU" into your Bridge Page Admin. This allows you to quickly find the item again when checking for "Out of Stock" status—a critical weekly maintenance task.'
+    ],
+    actionItems: [
+      'Apply to the Shein Publisher Portal and wait for the verification email (usually 24-48 hours).',
+      'Identify 10 "Best Sellers" in the "New In" category that match your brand aesthetic.',
+      'Generate 10 Deep Links and save them in a spreadsheet with the Product IDs.',
+      'Add your first "Shein Trend" category to this website and upload your first 5 curated pieces.'
+    ]
+  },
+  {
     id: 'founder-growth',
     title: 'Founder Brand: The Niche Authority',
     platform: 'General',
-    description: 'Transforming from a curator to a cult-followed authority. People buy from people they trust.',
+    description: 'Transforming from a simple link-sharer to a cult-followed authority. People don\'t buy products; they buy your taste and your lifestyle.',
     icon: 'User',
     strategies: [
-      'Phase 1: The Origin Story - Define your "Why". Why fashion? Why luxury? Share your early struggles with style to humanize the brand.',
-      'Phase 2: Visual Consistency - Choose a signature look or accessory that appears in 80% of your content. This becomes your visual "logo".',
-      'Phase 3: The Knowledge Pillar - Every 10 posts, share a deep-dive "Educational" piece (e.g., "The History of the Hermès Stitch").',
-      'Phase 4: Vulnerability - Share the "Uncurated" moments. A messy studio or a failed outfit makes the curated moments feel more attainable.'
+      'Phase 1: The Origin Story & "The Why" - Define your specific fashion struggle (e.g., "Finding luxury quality on a budget"). This relatable conflict builds instant trust with your audience.',
+      'Phase 2: Visual Semiotics - Choose a signature color palette and a recurring visual element (like a specific mirror or a specific plant in your shots). This becomes your "Visual Logo".',
+      'Phase 3: The Educational Pillar - Move from "Look at this" to "Why this works". Explain color theory, fabric quality (Mulberry Silk vs Satin), and silhouette balance to prove your expertise.',
+      'Phase 4: Radical Transparency - Share your affiliate disclosure as a point of pride. Explain that commissions allow you to keep the curation high-quality and unbiased.'
     ],
     actionItems: [
-      'Write a 500-word personal manifesto about your style philosophy.',
-      'Record a 60-second "Introduction" video for your profile pin.',
-      'Identify 3 brand colors that reflect your personality, not just the market.',
-      'Schedule a weekly "Coffee & Curation" live stream to answer style questions.'
+      'Write a 500-word "Manifesto" about your style rules and pin it as a highlight.',
+      'Record a high-energy 60-second "Intro" video explaining your mission as a curator.',
+      'Audit your last 10 posts: Ensure at least 3 provide pure education with no sales pitch.',
+      'Create a "Behind the Curation" series showing how you pick items for the bridge page.'
     ]
   },
   {
     id: 'instagram-mastery',
-    title: 'Instagram: The Aesthetic Storefront',
+    title: 'Instagram: High-Conversion Storefront',
     platform: 'Instagram',
-    description: 'The foundation of fashion affiliate marketing. High-fidelity visuals meet direct purchasing power.',
+    description: 'The premier destination for visual fashion. We focus on "Story-Selling" and "Aesthetic Cohesion" to drive traffic to your bridge links.',
     icon: 'Instagram',
     strategies: [
-      'Phase 1: Profile Optimization - Convert to Professional Account immediately to access Insights. Use a SEO-optimized handle.',
-      'Phase 2: The Content Mix - Follow the 4:1 rule. 4 Value posts (Inspiration, Tips) for every 1 Hard Sell post.',
-      'Phase 3: Story Selling - Use "Stories" with link stickers. Post 3 Stories daily: Morning (Routine), Noon (Curation), Night (Review).',
-      'Phase 4: Reels Virality - Use the "Transition" method. Show the box, then the unboxed item, then the styled look in sync with beat drops.'
+      'The Grid Matrix: Alternate between Outfit-of-the-day (OOTD), Flat-lays, and Aesthetic Inspo (Moodboards). This creates a "lookbook" feel rather than a catalog.',
+      'Story-Selling Funnel: Use the "3-Part Story Method". Part 1: Problem (e.g., "Nothing to wear for dinner"). Part 2: Solution (The Shein Dress). Part 3: The Link (Direct CTA to bridge page).',
+      'DM Automation: Use tools like ManyChat. When a user comments "WANT", automatically send them the direct product link from your bridge page via DM. This boosts engagement 10x.',
+      'Reels Algorithm Hacking: Use "Transition Loops". Edit your video so the last frame matches the first. The high replay rate signals the algorithm to push your content to the Explore page.'
     ],
     actionItems: [
-      'Create 5 "Highlight" covers that match your primary brand color.',
-      'Post a "This or That" poll in Stories to boost algorithmic engagement.',
-      'Setup DM Automation: Use ManyChat to auto-send links when people comment "LINK".'
+      'Optimize your Bio: Use keywords like "Curated Fashion" and link your Bridge Page URL.',
+      'Create 5 "Highlight" categories: "Shop My Style", "Reviews", "Sale Alerts", "FAQ", "Daily Picks".',
+      'Post 3 Stories daily following the "Problem-Solution-Link" framework.',
+      'Setup DM automation for your top 3 performing affiliate pieces.'
     ]
   },
   {
     id: 'tiktok-growth',
-    title: 'TikTok: Virality Engine',
+    title: 'TikTok: The Virality Engine',
     platform: 'TikTok',
-    description: 'Unfiltered, raw, and high-volume discovery. The fastest way to scale a new brand presence.',
+    description: 'High-volume, raw content designed for rapid scaling. TikTok is where you build massive awareness in days, not months.',
     icon: 'Video',
     strategies: [
-      'Phase 1: The 3-Second Hook - Show the "After" result immediately before showing the process.',
-      'Phase 2: Audio Hacking - Use trending audio at 5% volume under your voiceover to ride the algorithm.',
-      'Phase 3: Community Management - Reply to successful comments with a video response to create a content loop.',
-      'Phase 4: ASMR Unboxing - Focus on high-quality sound of tissue paper and boxes to trigger sensory engagement.'
+      'The 3-Second Hook Rule: You have 3 seconds to stop the scroll. Show the "After" (the styled look) first, then the "Before" (the package or unstyled item).',
+      'ASMR Unboxing: Focus on the sounds of the Shein packaging, the fabric rustle, and the shoe clicks. Sensory content has a 40% higher completion rate.',
+      'SEO Tagging: TikTok is a search engine. Use captions like "Affordable Fall Outfits 2024" rather than "My new clothes". Use 3-5 hyper-specific hashtags.',
+      'The "Stitch" Strategy: Find trending fashion critiques or "How to style" videos. Stitch them with your own curation to leverage existing viral momentum.'
     ],
     actionItems: [
-      'Post 3x daily for the first 30 days to "train" your niche algorithm.',
-      'Use the search bar to find "Best Luxury Finds" and stitch the top-performing videos.',
-      'Create a pinned video explaining your bridge page and why you curate specific items.'
+      'Post 3x daily for 21 days to find your "Viral Niche".',
+      'Create a pinned video explaining exactly how to use your Bridge Page link.',
+      'Reply to every comment with a video response to double your engagement metrics.',
+      'Use the "Search Bar" to find trending "Shein Hauls" and recreate the top-performing styles.'
     ]
   },
   {
     id: 'pinterest-seo',
     title: 'Pinterest: Visual Search SEO',
     platform: 'Pinterest',
-    description: 'Long-term traffic. Pins live for months, unlike social posts that die in hours.',
+    description: 'Pinterest is a long-term traffic play. Unlike Instagram, Pins have a lifespan of 6-12 months, driving passive traffic while you sleep.',
     icon: 'Pin',
     strategies: [
-      'Phase 1: Account Structure - Claim your website in settings to get attribution. Enable "Rich Pins".',
-      'Phase 2: Creative Format - 2:3 Vertical aspect ratio is mandatory. Use text overlays on images.',
-      'Phase 3: Keyword Engineering - Use search terms in titles. "Minimalist Fall Wardrobe" > "My Picks".',
-      'Phase 4: Board Curation - Create 10 niche boards (e.g., "Gold Jewelry Inspo") and pin 5-10 items daily.'
+      'The 2:3 Vertical Standard: All images must be vertical. Use Canva to add "Clean Typography" overlays explaining what the pin is (e.g., "5 Minimalist Work Outfits").',
+      'Board Architecture: Create boards for specific "Vibes" (e.g., "Old Money Aesthetic", "Streetwear Staples"). Pin 10-20 high-quality images per board.',
+      'Idea Pins for Retention: Use Pinterest Idea Pins (like Stories) to show multi-page styling guides. These are currently favored by the algorithm.',
+      'Keyword Rich Descriptions: Treat your Pin descriptions like a blog post. Use keywords that people actually search for in the Pinterest search bar.'
     ],
     actionItems: [
-      'Claim your domain in Pinterest settings.',
-      'Create a "Shop My Style" board as your primary showcase.',
-      'Design 10 Pin templates in Canva that feature your logo and primary color.'
+      'Claim your Bridge Page domain in Pinterest settings for "Rich Pins" (automatic price updates).',
+      'Create 10 niche boards and pin 5 items to each today.',
+      'Design 10 templates in Canva that feature your brand logo and colors.',
+      'Schedule 5 pins per day using a tool like Tailwind to maintain consistency.'
     ]
   },
   {
     id: 'youtube-shorts',
     title: 'YouTube Shorts: Evergreen Video',
     platform: 'General',
-    description: 'Repurpose TikToks here. Google indexes these videos, appearing in search results.',
+    description: 'Repurpose your TikToks and Reels here. YouTube Shorts are indexed by Google Search, giving you evergreen visibility.',
     icon: 'Youtube',
     strategies: [
-      'Phase 1: The Loop - Edit your videos so the end flows perfectly into the start for high retention.',
-      'Phase 2: The Pinned Comment - Put your affiliate link in the Pinned Comment, not just the description.',
-      'Phase 3: Keyword Titles - Use specific titles like "Zara vs H&M Try-on Haul" for search intent.'
+      'Looping Content: Edit for the "Infinite Loop". If the video never feels like it ends, retention stays at 100%+, which triggers the "Shorts Shelf".',
+      'The Pinned Comment Funnel: YouTube descriptions are often ignored on mobile. Always put your Bridge Page link in the "Pinned Comment" for easy access.',
+      'Search-Optimized Titles: Use titles like "SHEIN Summer Dress Haul under $30" to capture search intent from Google.'
     ],
     actionItems: [
-      'Upload 10 previous TikToks to Shorts with unique titles.',
-      'Add a "Subscribe for Links" call-to-action in the last 3 seconds.',
-      'Create a playlist called "Luxury Essentials" for binge-watching.'
+      'Upload your top 10 best-performing TikToks to YouTube Shorts.',
+      'Add a custom "End Screen" graphic to your long-form videos if you have any.',
+      'Check "YouTube Analytics" weekly to see which search terms are leading people to your curation.'
     ]
   },
   {
     id: 'reddit-authority',
     title: 'Reddit: Community Trust',
     platform: 'General',
-    description: 'The most skeptical but high-converting audience if you provide genuine value.',
+    description: 'The most skeptical but high-converting audience. Focus on being a "Helpful Expert" rather than a "Salesperson".',
     icon: 'MessageSquare',
     strategies: [
-      'Phase 1: Native Engagement - Don\'t post links. Join r/fashion, r/luxury, r/streetwear and comment 20x daily.',
-      'Phase 2: The "Hero" Post - Write a massive guide (e.g., "The only 5 bags you need for 2024") without links.',
-      'Phase 3: Profile Link - Put your bridge page URL in your Reddit bio. People will check your profile if you are helpful.'
+      'The "No-Link" First Rule: Spend 2 weeks purely answering questions in r/fashion and r/luxury without posting links. Build "Karma" and trust.',
+      'The Deep Dive Guide: Write massive text-based guides (e.g., "How to spot quality in fast fashion"). At the end, mention your site as a personal resource.',
+      'Subreddit Research: Monitor r/shein and r/affiliate to see what common problems people have, then solve them on your Bridge Page.'
     ],
     actionItems: [
-      'Join 10 niche subreddits related to your fashion style.',
-      'Upvote and comment on 5 threads daily providing specific styling advice.',
-      'Share a "No-Link" gallery of your personal wardrobe to build karma.'
+      'Join 10 niche fashion subreddits and contribute 3 helpful comments daily.',
+      'Create a "Hero Post" guide with no links to build your account authority.',
+      'Update your Reddit Bio to include a subtle link to your Bridge Page.'
     ]
   },
   {
     id: 'lemon8-curation',
     title: 'Lemon8: Aesthetic Guides',
     platform: 'General',
-    description: 'A mix of Instagram and Pinterest. Heavily focused on "How-To" and "Review" carousels.',
+    description: 'A hybrid of Instagram and Pinterest. Focus on high-aesthetic "Magazine Style" carousels.',
     icon: 'Sparkles',
     strategies: [
-      'Phase 1: Carousel Guides - Create "X Steps to Style Y" posts. 7 images is the sweet spot.',
-      'Phase 2: The "Price Tag" Edit - Use the Lemon8 built-in tags to show prices on clothing items.',
-      'Phase 3: Niche Tagging - Use #OOTD, #FashionInspo, and #LuxuryFinds consistently.'
+      'The Magazine Layout: Use Lemon8 built-in templates. Add arrows, price tags, and text callouts directly onto your photos.',
+      'Honest Reviews: Lemon8 users value "Realness". Post "What I ordered vs What I got" to build massive credibility.',
+      'Hyper-Niche Tagging: Use the maximum number of relevant tags for every post to appear in the "For You" feed.'
     ],
     actionItems: [
-      'Post a "What\'s in my bag" flat-lay photo.',
-      'Create a "Dupes vs Originals" comparison guide.',
-      'Follow 50 creators in the "Lifestyle" and "Fashion" categories.'
+      'Post your first "What\'s in my bag" or "Outfit Breakdown" carousel.',
+      'Follow 50 creators in the "Lifestyle" and "Fashion" categories.',
+      'Engage with 10 trending posts daily to signal your activity to the algorithm.'
     ]
   },
   {
     id: 'substack-newsletter',
     title: 'Substack: The Long-form Edit',
     platform: 'General',
-    description: 'Build a recurring, dedicated readership. Best for high-ticket affiliate products.',
+    description: 'Build a recurring, dedicated readership. This is where you sell high-ticket items and build deep brand loyalty.',
     icon: 'Mail',
     strategies: [
-      'Phase 1: The Weekly Digest - Send a Friday email: "5 Things I Loved This Week".',
-      'Phase 2: Deep Dives - Write 1,000 words on the "Art of the Capsule Wardrobe".',
-      'Phase 3: Exclusive Drops - Share items that are almost sold out to your subscribers first.'
+      'The Friday Curation: Send a weekly email titled "The Weekly Edit: 5 Things I\'m Loving". This creates a predictable habit for your readers.',
+      'Exclusive Insight: Share "Early Access" links or items that are almost sold out to make your subscribers feel like VIPs.',
+      'Direct Reader Interaction: Use the "Threads" feature to ask your readers what they want you to curate next.'
     ],
     actionItems: [
-      'Set up a free Substack and import your current email contacts.',
-      'Write your first "Welcome" post explaining your curation criteria.',
-      'Add a "Newsletter" link to your bridge page menu.'
+      'Setup your Substack and import any existing email contacts.',
+      'Write a "Welcome" post explaining what your newsletter offers.',
+      'Set a goal to gain your first 50 subscribers by cross-promoting on Instagram.'
     ]
   },
   {
     id: 'ltk-integration',
-    title: 'LTK: The Influencer Engine',
+    title: 'LTK: Influencer Industry Standard',
     platform: 'General',
-    description: 'The industry standard for fashion affiliates. Syncs directly with your shoppable photos.',
+    description: 'The "Gold Standard" for fashion affiliates. Syncs your shoppable photos with a global audience of shoppers.',
     icon: 'ShoppingBag',
     strategies: [
-      'Phase 1: Application - Apply for LTK Creator status. Show high-quality, high-engagement Instagram content.',
-      'Phase 2: Mirror Selfies - Simple, clear mirror selfies are the highest-converting content on LTK.',
-      'Phase 3: Widget Sync - Embed your LTK feed onto your bridge page (using Custom HTML in Portal).'
+      'The Mirror Selfie Goldmine: Simple, unedited mirror selfies are the highest-converting images on LTK. Don\'t overproduce.',
+      'Tagging Similar Items: If an item is sold out, tag 3-5 "Similar Picks". This ensures you don\'t lose a commission if the primary item is unavailable.',
+      'The "LTK Exclusive" Badge: Tell your Instagram followers that specific links are "Only on my LTK" to drive traffic to your profile there.'
     ],
     actionItems: [
-      'Upload 10 high-quality "Outfits of the Day" to your LTK profile.',
-      'Cross-promote your LTK link in your Instagram bio.',
-      'Tag every single item in your photos, including "similar" items for sold-out pieces.'
+      'Apply for LTK Creator status if you have over 1k followers on Instagram.',
+      'Upload 10 high-quality OOTDs with at least 5 tags per photo.',
+      'Add your LTK profile link to your Bridge Page "Social Links" section.'
     ]
   },
   {
     id: 'snapchat-shows',
     title: 'Snapchat: Behind the Scenes',
     platform: 'General',
-    description: 'High urgency, high loyalty. Use for flash sales and limited time deals.',
+    description: 'Urgency and intimacy. Use Snapchat for "Flash Sales" and "Real-time" shopping trips.',
     icon: 'Ghost',
     strategies: [
-      'Phase 1: The Public Profile - Create a Public Profile to appear in the "Spotlight" feed.',
-      'Phase 2: Raw Reality - Film your shopping trips. No filters, just real-time curation.',
-      'Phase 3: Snap Maps - Tag luxury locations (e.g., Melrose Arch) to appear to local high-net-worth users.'
+      'The 24-Hour Timer: Post links that you claim will "Expire" or are "Limited Time Only" to trigger FOMO (Fear of Missing Out).',
+      'Shopping With Me: Take your phone into stores or film yourself browsing Shein live. Talk through your thought process.',
+      'Snap Map Tags: Tag popular luxury locations to appear to high-net-worth individuals browsing the map.'
     ],
     actionItems: [
-      'Post a "10-Second Review" of a new product to Spotlight.',
-      'Add your WhatsApp link to your Snapchat Bio.',
-      'Run a "Deal of the Day" series that expires in 24 hours.'
+      'Create a Snapchat Public Profile for "Spotlight" access.',
+      'Post 5 "Spotlight" videos of your best unboxings.',
+      'Add your WhatsApp number to your Snapchat bio for direct consulting inquiries.'
     ]
   },
   {
     id: 'quora-questions',
-    title: 'Quora: Solving Style Problems',
+    title: 'Quora: Problem Solving',
     platform: 'General',
-    description: 'Evergreen traffic from Google. Answers you write today can drive traffic for years.',
+    description: 'Evergreen traffic from people actively looking for answers. Solve their style problems and they will follow your links.',
     icon: 'HelpCircle',
     strategies: [
-      'Phase 1: Niche Searching - Search for "What should I wear to X?" or "Best shoes for Y?".',
-      'Phase 2: Expert Answering - Write 300+ word answers with high-quality images.',
-      'Phase 3: Profile Funneling - Put "Founder of Kasi Couture" in your bio with a link.'
+      'The "Value-First" Answer: Write 500+ words answering a specific style question. Include your Bridge Page link only at the end as "Further Reading".',
+      'Authority Building: Follow topics like "Fashion Trends", "Shein Reviews", and "Personal Styling". Answer 1-2 questions daily.',
+      'The "Best Of" Listicles: Answer questions like "What are the best summer dresses?" with a curated list from your site.'
     ],
     actionItems: [
-      'Answer 2 questions daily in the "Fashion Trends" and "Personal Styling" spaces.',
-      'Create a "Space" (Quora version of a group) for your brand.',
-      'Request to answer top questions from luxury brand followers.'
+      'Search for "Shein Reviews" on Quora and answer the top 3 questions.',
+      'Setup a Quora "Space" for your brand to aggregate your answers.',
+      'Optimize your Quora profile with your Bridge Page URL.'
     ]
   },
   {
     id: 'medium-blogging',
     title: 'Medium: SEO Authority',
     platform: 'General',
-    description: 'Rank for high-competition keywords. Use Medium\'s domain authority to your advantage.',
+    description: 'Leverage Medium\'s massive domain authority to rank for high-competition keywords on Google.',
     icon: 'FileText',
     strategies: [
-      'Phase 1: Trend Jacking - Write about "The Rise of [New Trend]" as it happens.',
-      'Phase 2: Listicles - "10 Accessories That Will Triple Your Outfit Value".',
-      'Phase 3: Internal Linking - Link back to your bridge page product categories within the text.'
+      'The "Ultimate Guide" Format: Write 1,500+ word articles like "The Ultimate Guide to Shein Wedding Guest Dresses".',
+      'Internal Linking: Link to your different Bridge Page categories within the text of your Medium articles.',
+      'Publication Submission: Submit your fashion articles to large publications like "The Startup" to reach their thousands of followers.'
     ],
     actionItems: [
       'Repurpose your Substack articles for Medium.',
-      'Submit your stories to large publications like "The Startup" or "Fashion Forward".',
-      'Add a call-to-action at the end of every post.'
+      'Include 3-5 high-quality images per article with affiliate captions.',
+      'Add a "Call to Action" at the end of every post pointing to your Bridge Page.'
     ]
   },
   {
     id: 'discord-community',
     title: 'Discord: The VIP Lounge',
     platform: 'General',
-    description: 'Create an exclusive "Inner Circle" for your top customers and fans.',
+    description: 'Create a walled garden for your most loyal fans. High engagement and high repeat-click rates.',
     icon: 'Gamepad2',
     strategies: [
-      'Phase 1: The Walled Garden - Invite only your most active Instagram commenters.',
-      'Phase 2: "Ask Me Anything" - Host weekly voice chats about upcoming fashion trends.',
-      'Phase 3: Early Access - Post new curation links in Discord 1 hour before the public site.'
+      'The "Exclusive Drop" Channel: Create a channel where you post new finds 1 hour before social media.',
+      'Live Styling Calls: Host voice chats where you help members style their own outfits in real-time.',
+      'Automated Alerts: Use bots to notify your Discord members whenever you add a new product to this website.'
     ],
     actionItems: [
-      'Set up channels for "Style-Advice", "New-Drops", and "Inspo".',
-      'Create a "Role" for verified buyers to build prestige.',
-      'Use a bot to auto-post your TikToks/Instagrams to a dedicated channel.'
+      'Setup your Discord server with channels for "Style-Advice" and "New-Drops".',
+      'Invite your top 10 most active Instagram commenters to join the "VIP Lounge".',
+      'Create "Roles" for members based on their level of interaction.'
     ]
   },
   {
     id: 'telegram-alerts',
     title: 'Telegram: Flash Alerts',
     platform: 'General',
-    description: 'Zero algorithm interference. 100% reach to your subscribers.',
+    description: 'Direct, algorithm-free communication. 100% of your subscribers will see your messages.',
     icon: 'Send',
     strategies: [
-      'Phase 1: The Signal - Send short "Price Drop Alert" messages with a direct link.',
-      'Phase 2: The Poll - Ask "Should I curate more of X or Y?" to get instant feedback.',
-      'Phase 3: Large File Sharing - Share high-res lookbooks as PDFs that don\'t lose quality.'
+      'The "Price Drop" Bot: Send short, punchy messages: "🚨 PRICE DROP: The Midnight Silk is now $15! [Link]".',
+      'Polls for Curation: Ask your audience: "Should I curate more bags or shoes this week?". Engagement builds loyalty.',
+      'Broadcast-Only Channel: Keep it clean. Only post high-value links and 1 high-quality photo.'
     ],
     actionItems: [
-      'Start a Public Channel called "[Brand] Elite Alerts".',
-      'Post a "Welcome" video explaining how the channel works.',
-      'Add the Telegram link to your bridge page contact section.'
+      'Start a Public Telegram Channel.',
+      'Post a "Pinned Message" explaining how to turn on notifications for your alerts.',
+      'Add the Telegram link to your Bridge Page footer.'
     ]
   },
   {
     id: 'facebook-groups',
-    title: 'Facebook: The Community Lead',
+    title: 'Facebook: Community Lead',
     platform: 'General',
-    description: 'Leveraging existing communities. Don\'t build your own yet; join others.',
+    description: 'Leverage massive existing communities. Don\'t build your own yet; join others and be the helpful expert.',
     icon: 'Facebook',
     strategies: [
-      'Phase 1: Identifying Groups - Join "Bridal South Africa" or "Corporate Chic" groups.',
-      'Phase 2: The "Giving" Strategy - Answer 10 questions for every 1 link you post.',
-      'Phase 3: DM Strategy - If someone asks for a recommendation, send a polite DM with your link.'
+      'The "Style Consultant" Persona: Join groups like "Shein Addicts" and "Fashion over 30". Answer 10 posts daily with genuine advice.',
+      'Native Uploads: Don\'t just share links. Upload your photos directly to Facebook, and put the link in the first comment.',
+      'DM-to-Sale: If someone asks "Where is that from?", send them a polite DM with your Bridge Page link.'
     ],
     actionItems: [
-      'Find 5 active Facebook groups with over 50k members in your niche.',
-      'Set up a "Facebook Page" to run "Boosted Posts" for your best curated items.',
-      'Share one "Value Post" daily to these groups.'
+      'Join 5 active Facebook groups related to your fashion niche.',
+      'Post one "Value-Only" outfit inspiration daily to these groups.',
+      'Setup a Facebook Page to run $5/day "Boosted Posts" for your best-performing items.'
     ]
   },
   {
     id: 'twitter-hype',
     title: 'Twitter (X): Real-time Critique',
     platform: 'General',
-    description: 'Fast-paced fashion critique. Great for "Red Carpet" events and award shows.',
+    description: 'Fast-paced fashion critique. Great for "Newsjacking" trending fashion events.',
     icon: 'Twitter',
     strategies: [
-      'Phase 1: Live Tweeting - Review outfits during events like the MET Gala or SA Fashion Week.',
-      'Phase 2: Threads - Create "Outfit Breakdown" threads showing how to recreate the look.',
-      'Phase 3: The "Hot Take" - Post controversial opinions on brand rebrands to spark debate.'
+      'Live-Tweeting Events: Tweet your thoughts during the Met Gala or Fashion Week. Use trending hashtags to get discovered.',
+      'Thread Curation: Create a thread: "1/10 The best Shein dupes I found this week. 🧵". People love scrolling through threads.',
+      'Engagement with Brands: Tag the brands you curation. Sometimes they retweet, giving you massive free exposure.'
     ],
     actionItems: [
-      'Follow 50 fashion journalists and editors.',
+      'Follow 50 major fashion editors and journalists.',
       'Use #FashionTwitter and #StyleThreads in every post.',
-      'Set up a "List" of your competitors to track their announcements.'
+      'Post 1 "Outfit Thread" every Sunday.'
     ]
   },
   {
     id: 'twitch-styling',
     title: 'Twitch: Live Styling Sessions',
     platform: 'General',
-    description: 'Interactive long-form content. Build extreme loyalty through real-time chat.',
+    description: 'Interactive long-form content. Build extreme loyalty through real-time chat and styling.',
     icon: 'Activity',
     strategies: [
-      'Phase 1: The "Get Ready With Me" (GRWM) - Live stream your morning styling routine.',
-      'Phase 2: The Closet Audit - Critique your followers\' outfits in real-time (with their permission).',
-      'Phase 3: Shop-along - Browse online stores live and discuss why you would or wouldn\'t buy items.'
+      'The "Shop With Me" Stream: Share your screen and browse Shein live. Explain why you are skipping certain items and picking others.',
+      'Closet Audits: Have viewers send in photos of their clothes, and you style them using items from your Bridge Page.',
+      'Affiliate Commands: Use a bot so when someone types "!dress", it automatically posts your current favorite link.'
     ],
     actionItems: [
-      'Schedule a 2-hour "Style Sunday" stream every week.',
-      'Set up "Nightbot" to auto-post your affiliate links every 15 minutes.',
-      'Create a "Goal" on screen for "New Outfits Curated".'
+      'Schedule a weekly 2-hour "Style Sunday" stream.',
+      'Setup Nightbot with commands for your most popular curated categories.',
+      'Design custom "Overlays" for your stream that feature your Bridge Page URL.'
     ]
   },
   {
@@ -360,48 +382,48 @@ export const TRAINING_MODULES: TrainingModule[] = [
     description: 'High-income audience. Focus on "Power Dressing" and "Corporate Luxury".',
     icon: 'Linkedin',
     strategies: [
-      'Phase 1: Thought Leadership - Write about "How dressing well impacts your confidence".',
-      'Phase 2: The PDF Carousel - Create multi-page "Workwear Capsule" guides.',
-      'Phase 3: Engagement - Comment on "Promotion" posts with specific outfit congratulations.'
+      'The "Confidence & Clothing" Angle: Write about how dressing well impacts your career performance and mental health.',
+      'The "Workwear Capsule" PDF: Create a 5-page PDF guide and offer it for free in exchange for visiting your site.',
+      'Corporate Gifting: Curate lists of "Professional Accessories" that make great corporate gifts.'
     ],
     actionItems: [
-      'Post a "Monday Motivation" outfit every week.',
-      'Connect with 20 Luxury Brand Managers daily.',
-      'Update your LinkedIn Headline to include "Fashion Curator".'
+      'Update your LinkedIn Headline to "Fashion Curator & Style Strategist".',
+      'Post one "Monday Motivation" outfit every week.',
+      'Connect with 20 Luxury Brand Managers daily to build industry connections.'
     ]
   },
   {
     id: 'sms-marketing',
     title: 'SMS: The Direct Hit',
     platform: 'General',
-    description: '98% open rates. Use for the most exclusive "Sold Out" risk items.',
+    description: '98% open rates. Use for your absolute best deals and most exclusive content.',
     icon: 'Phone',
     strategies: [
-      'Phase 1: Consent - Never send without permission. Use a "Text for VIP Access" popup.',
-      'Phase 2: Scarcity - "Only 2 left! Click to grab it: [Link]".',
-      'Phase 3: Personalization - Use the customer\'s name in the text.'
+      'The "VIP Only" Deal: Never send more than 1 text per week. Make it feel like an exclusive secret.',
+      'Personalized Greetings: Use the subscriber\'s name: "Hey [Name], I just found the perfect dress for you... [Link]".',
+      'Automated Welcome: Send an instant text with a 10% discount code (if available) when someone signs up.'
     ],
     actionItems: [
-      'Set up a simple SMS list using a tool like Twilio or Klaviyo.',
-      'Offer a "VIP Only" deal for people who join the SMS list.',
-      'Send your first "Style Alert" to your top 10 clients.'
+      'Setup a simple SMS list using a tool like Twilio or SimpleTexting.',
+      'Add a "Text ME" button to your Bridge Page contact section.',
+      'Send your first "Style Alert" to your top 10 most loyal clients.'
     ]
   },
   {
     id: 'whatsapp-vip',
     title: 'WhatsApp: Personal Concierge',
     platform: 'WhatsApp',
-    description: 'Intimate, 1-on-1 selling. Perfect for high-ticket items.',
+    description: 'The most intimate selling channel. Perfect for high-ticket items and repeat customers.',
     icon: 'MessageCircle',
     strategies: [
-      'Phase 1: Status Selling - Post new drops to your WhatsApp Status daily.',
-      'Phase 2: Broadcast Lists - Send personalized "I thought of you" messages to VIPs.',
-      'Phase 3: Voice Note Styling - Send 30-second audio tips on how to wear a specific piece.'
+      'WhatsApp Status Selling: Post "Behind the scenes" photos and "New Drops" to your status daily. People view these more than stories.',
+      'Broadcast Lists: Create lists of 256 people. Send them a personal voice note once a month with a style tip.',
+      '1-on-1 Consultations: Offer a "15-minute quick styling" via WhatsApp for your top-tier customers.'
     ],
     actionItems: [
-      'Create a WhatsApp Business account.',
-      'Add the WhatsApp button to your site settings.',
-      'Post your first "Status" update showing a "Behind the Scenes" of your curation.'
+      'Switch to a WhatsApp Business account for professional features.',
+      'Add the WhatsApp button to your Bridge Page "Identity" settings.',
+      'Post your first "Status" update showing your current favorite curation.'
     ]
   }
 ];
