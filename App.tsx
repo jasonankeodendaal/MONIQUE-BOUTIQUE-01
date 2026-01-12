@@ -14,7 +14,7 @@ import Login from './pages/Login';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData, measureConnection } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -257,18 +257,46 @@ const TrackingInjector = () => {
 const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string) => void }) => {
   const location = useLocation();
   const hasTrackedGeo = useRef(false);
+  const sessionTracked = useRef(false);
   
   const getTrafficSource = () => {
     if (typeof document === 'undefined') return 'Direct';
+    
+    const params = new URLSearchParams(window.location.search);
+    const utmSource = params.get('utm_source') || params.get('source') || params.get('ref');
     const referrer = document.referrer.toLowerCase();
     
+    // Priority 1: URL Parameters (Exact detection for WhatsApp/etc if linked properly)
+    if (utmSource) {
+      const cleanSource = utmSource.toLowerCase();
+      if (cleanSource.includes('whatsapp')) return 'WhatsApp';
+      if (cleanSource.includes('linkedin')) return 'LinkedIn';
+      if (cleanSource.includes('tiktok')) return 'TikTok';
+      if (cleanSource.includes('instagram')) return 'Instagram';
+      if (cleanSource.includes('facebook') || cleanSource.includes('fb')) return 'Facebook';
+      if (cleanSource.includes('twitter') || cleanSource.includes('x')) return 'X (Twitter)';
+      // Capitalize first letter of unknown sources
+      return cleanSource.charAt(0).toUpperCase() + cleanSource.slice(1);
+    }
+
+    // Priority 2: Referrer Header
     if (referrer.includes('facebook') || referrer.includes('fb')) return 'Facebook';
     if (referrer.includes('instagram')) return 'Instagram';
     if (referrer.includes('tiktok')) return 'TikTok';
     if (referrer.includes('pinterest')) return 'Pinterest';
     if (referrer.includes('google')) return 'Google Search';
-    if (referrer.includes('twitter') || referrer.includes('t.co') || referrer.includes('x.com')) return 'Twitter';
-    if (referrer.length > 0) return 'Referral';
+    if (referrer.includes('twitter') || referrer.includes('t.co') || referrer.includes('x.com')) return 'X (Twitter)';
+    if (referrer.includes('linkedin')) return 'LinkedIn';
+    if (referrer.includes('whatsapp') || referrer.includes('wa.me')) return 'WhatsApp';
+    
+    if (referrer.length > 0) {
+      try {
+        const url = new URL(referrer);
+        return url.hostname.replace('www.', '');
+      } catch (e) {
+        return 'Referral';
+      }
+    }
     
     return 'Direct';
   };
@@ -277,10 +305,14 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
     // 1. Log View
     if (!location.pathname.startsWith('/admin')) {
       const source = getTrafficSource();
+      // Only log session view ONCE per session reload, or on route change if needed
+      // For general stats, logging every view is fine, but for Source stats, we want entry source
+      
+      // We pass the source to logEvent. logEvent handles saving.
       logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname, source);
     }
 
-    // 2. Fetch Geo & Device Data
+    // 2. Fetch Geo & Device Data (Once per session)
     const fetchGeo = async () => {
         if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
         

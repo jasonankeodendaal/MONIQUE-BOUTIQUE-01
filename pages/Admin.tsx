@@ -290,7 +290,38 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
   );
 };
 
-const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
+// --- Helper for generating dynamic colors for unknown sources ---
+const stringToColor = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const c = (hash & 0x00ffffff).toString(16).toUpperCase();
+  return '#' + '00000'.substring(0, 6 - c.length) + c;
+};
+
+const getPlatformStyles = (sourceName: string) => {
+  const lower = (sourceName || '').toLowerCase();
+  
+  if (lower.includes('facebook')) return { icon: Facebook, color: 'text-blue-500', bg: 'bg-blue-500', border: 'border-blue-500/20' };
+  if (lower.includes('instagram')) return { icon: Instagram, color: 'text-pink-500', bg: 'bg-pink-500', border: 'border-pink-500/20' };
+  if (lower.includes('tiktok')) return { icon: () => <span className="font-black text-[8px] bg-white text-black px-1 rounded">TK</span>, color: 'text-white', bg: 'bg-slate-700', border: 'border-slate-600' };
+  if (lower.includes('pinterest')) return { icon: Pin, color: 'text-red-600', bg: 'bg-red-600', border: 'border-red-600/20' };
+  if (lower.includes('whatsapp')) return { icon: MessageCircle, color: 'text-green-500', bg: 'bg-green-500', border: 'border-green-500/20' };
+  if (lower.includes('google')) return { icon: SearchCode, color: 'text-green-400', bg: 'bg-green-400', border: 'border-green-400/20' };
+  if (lower.includes('twitter') || lower.includes('x (')) return { icon: Twitter, color: 'text-sky-500', bg: 'bg-sky-500', border: 'border-sky-500/20' };
+  if (lower.includes('linkedin')) return { icon: Linkedin, color: 'text-blue-600', bg: 'bg-blue-600', border: 'border-blue-600/20' };
+  
+  // Dynamic fallback
+  return { 
+    icon: Globe, 
+    color: 'text-white', 
+    bg: `bg-[${stringToColor(sourceName)}]`, 
+    border: 'border-white/10' 
+  };
+};
+
+const TrafficAreaChart: React.FC<{ trafficEvents: any[] }> = ({ trafficEvents }) => {
   const [geoStats, setGeoStats] = useState<any[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
   const [deviceStats, setDeviceStats] = useState<{mobile: number, desktop: number, tablet: number}>({mobile: 0, desktop: 0, tablet: 0});
@@ -354,14 +385,8 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   }, []);
 
   const getSourceIcon = (source: string) => {
-    const s = (source || '').toLowerCase();
-    if (s.includes('facebook')) return <Facebook size={12} className="text-blue-500" />;
-    if (s.includes('instagram')) return <Instagram size={12} className="text-pink-500" />;
-    if (s.includes('tiktok')) return <span className="font-black text-[8px] bg-black text-white px-1 rounded">TK</span>;
-    if (s.includes('pinterest')) return <span className="font-black text-[8px] bg-red-600 text-white px-1 rounded">PIN</span>;
-    if (s.includes('google')) return <SearchCode size={12} className="text-green-500" />;
-    if (s.includes('twitter')) return <Twitter size={12} className="text-sky-500" />;
-    return <Globe size={12} className="text-slate-500" />;
+    const styles = getPlatformStyles(source);
+    return <styles.icon size={12} className={styles.color} />;
   };
 
   return (
@@ -881,20 +906,29 @@ const Admin: React.FC = () => {
     const maxHourly = Math.max(...hourlyDistribution, 1);
     const peakHour = hourlyDistribution.indexOf(Math.max(...hourlyDistribution));
 
-    const sourceStats = visitorLogs.reduce((acc: any, log: any) => {
+    // Calculate source stats from persistence log (All time)
+    // Filter only 'view' events or rely on all events having a source
+    const sourceStats = trafficEvents.reduce((acc: any, log: any) => {
+        // Normalize source
         const s = log.source || 'Direct';
+        // Aggregate
         acc[s] = (acc[s] || 0) + 1;
         return acc;
     }, {});
+    
     const totalSources = Object.values(sourceStats).reduce((a: any, b: any) => a + b, 0) as number;
-    const sourceData = [
-        { label: 'Facebook', count: sourceStats['Facebook'] || 0, color: 'bg-blue-600', icon: Facebook },
-        { label: 'Instagram', count: sourceStats['Instagram'] || 0, color: 'bg-pink-600', icon: Instagram },
-        { label: 'TikTok', count: sourceStats['TikTok'] || 0, color: 'bg-black border border-slate-700', icon: () => <span className="font-bold text-[8px]">TK</span> },
-        { label: 'Pinterest', count: sourceStats['Pinterest'] || 0, color: 'bg-red-600', icon: Pin },
-        { label: 'Google', count: sourceStats['Google Search'] || 0, color: 'bg-green-600', icon: SearchCode },
-        { label: 'Direct/Other', count: (sourceStats['Direct'] || 0) + (sourceStats['Referral'] || 0), color: 'bg-slate-600', icon: Globe },
-    ].sort((a, b) => b.count - a.count);
+    
+    // Sort sources by count descending
+    const sortedSources = Object.entries(sourceStats)
+        .sort(([,a]: any, [,b]: any) => b - a)
+        .map(([key, count]) => {
+           const styles = getPlatformStyles(key);
+           return {
+              label: key,
+              count: count as number,
+              ...styles
+           };
+        });
 
     return (
       <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
@@ -1071,23 +1105,23 @@ const Admin: React.FC = () => {
         
         {/* Precise Traffic Landscape - Moved below Departments */}
         <div className="mt-8">
-            <TrafficAreaChart stats={stats} />
+            <TrafficAreaChart trafficEvents={trafficEvents} />
         </div>
 
         {/* Traffic Origins */}
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl mt-8">
-             <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><Globe size={24} className="text-primary"/> Traffic Sources</h3>
+             <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><Globe size={24} className="text-primary"/> Traffic Sources (Live & Historical)</h3>
              <div className="space-y-8">
-                 {sourceData.map((s, i) => (
+                 {sortedSources.map((s, i) => (
                     <div key={i} className="flex items-center gap-6">
-                       <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center text-white shrink-0 border border-slate-700 shadow-xl"><s.icon size={24}/></div>
+                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 border shadow-xl ${s.bg} ${s.border}`}><s.icon size={24} className="text-white"/></div>
                        <div className="flex-grow">
                           <div className="flex justify-between mb-3">
                              <span className="text-base text-white font-bold">{s.label}</span>
                              <span className="text-xs text-slate-400 font-mono">{s.count} hits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
                           </div>
                           <div className="h-4 bg-slate-800 rounded-full overflow-hidden">
-                             <div className={`h-full ${s.color} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
+                             <div className={`h-full ${s.bg} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
                           </div>
                        </div>
                     </div>
