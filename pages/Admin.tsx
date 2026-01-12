@@ -63,9 +63,6 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   );
 };
 
-// ... (Other helper components like SettingField, FileUploader remain the same, ommited for brevity to fit 4096 tokens, but they are implicitly included in the final file structure as they are unchanged)
-// We need to re-declare them here for the full file replacement context if I were outputting the entire file, but I will include them.
-
 const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
   <div className="space-y-2 text-left w-full min-w-0">
     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
@@ -293,9 +290,6 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
   );
 };
 
-// ... (TrafficAreaChart, GuideIllustration, PermissionSelector, IconPicker, EmailReplyModal, AdGeneratorModal, CodeBlock, FileUploader, IntegrationGuide remain the same)
-// I will just re-insert them here to ensure the full file is valid.
-
 const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   const [geoStats, setGeoStats] = useState<any[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
@@ -371,11 +365,11 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 relative min-h-[400px] md:min-h-[500px] bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <div className="xl:col-span-2 relative min-h-[600px] bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
         
-        <div className="relative z-10 p-5 md:p-10 pb-4 border-b border-white/5 flex justify-between items-start text-left">
+        <div className="relative z-10 p-8 md:p-10 pb-4 border-b border-white/5 flex flex-col md:flex-row justify-between items-start text-left gap-4">
            <div>
               <div className="flex items-center gap-3 mb-2">
                  <div className="relative w-3 h-3">
@@ -386,47 +380,48 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
               </div>
               <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Precise <span className="text-primary">Location</span></h3>
            </div>
-           <div className="text-right">
+           <div className="text-left md:text-right">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Hits</span>
               <span className="text-3xl font-bold text-white font-mono">{totalTraffic.toLocaleString()}</span>
            </div>
         </div>
 
-        <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-4 md:p-6">
+        <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-4 md:p-8">
           {geoStats.length > 0 ? (
-            <div className="grid gap-3">
-               <div className="grid grid-cols-12 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                  <div className="col-span-1 hidden md:block">#</div>
-                  <div className="col-span-8 md:col-span-6 text-left">Location (Town/City)</div>
-                  <div className="col-span-2 text-right hidden md:block">Hits</div>
-                  <div className="col-span-4 md:col-span-3 text-right">Device/Source</div>
+            <div className="grid gap-4">
+               <div className="hidden md:grid grid-cols-12 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                  <div className="col-span-1">#</div>
+                  <div className="col-span-6 text-left">Location (Town/City)</div>
+                  <div className="col-span-2 text-right">Hits</div>
+                  <div className="col-span-3 text-right">Device/Source</div>
                </div>
                {geoStats.map((geo, idx) => {
                  const isLive = (Date.now() - geo.lastActive) < 300000;
                  return (
-                    <div key={idx} className="grid grid-cols-12 items-center p-4 bg-slate-800/40 rounded-2xl border border-white/5 hover:bg-slate-800 transition-colors group/item">
+                    <div key={idx} className="flex flex-col md:grid md:grid-cols-12 items-start md:items-center p-5 bg-slate-800/40 rounded-3xl border border-white/5 hover:bg-slate-800 transition-colors group/item gap-2 md:gap-0">
                        <div className="col-span-1 hidden md:block">
                           <span className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700">{idx + 1}</span>
                        </div>
-                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-2 text-left">
-                          <div className="font-bold text-white text-sm flex items-center gap-2 truncate">
-                             <MapPin size={14} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
+                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-2 text-left w-full">
+                          <div className="font-bold text-white text-base flex items-center gap-2 truncate">
+                             <MapPin size={16} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
                              {geo.city}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-medium mt-0.5 truncate">{geo.region}, {geo.country}</div>
+                          <div className="text-xs text-slate-500 font-medium mt-0.5 truncate">{geo.region}, {geo.country}</div>
                        </div>
-                       <div className="col-span-2 text-right hidden md:block">
-                          <div className="text-white font-mono font-bold">{geo.count}</div>
+                       <div className="col-span-2 text-right w-full md:w-auto flex justify-between md:block">
+                          <span className="md:hidden text-slate-500 text-xs font-bold uppercase">Hits:</span>
+                          <div className="text-white font-mono font-bold text-lg">{geo.count}</div>
                        </div>
-                       <div className="col-span-4 md:col-span-3 flex flex-col items-end gap-1">
+                       <div className="col-span-4 md:col-span-3 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t border-white/5 md:border-0">
                           {isLive ? (
-                             <span className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest border border-green-500/20">Online</span>
+                             <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase tracking-widest border border-green-500/20">Online</span>
                           ) : (
-                             <span className="text-[9px] text-slate-600 font-bold uppercase whitespace-nowrap">Last: {new Date(geo.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                             <span className="text-[10px] text-slate-600 font-bold uppercase whitespace-nowrap">Last: {new Date(geo.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                           )}
-                          <div className="flex items-center gap-2 text-[9px] text-slate-500">
-                             <div className="flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">{getSourceIcon(geo.source)} <span className="uppercase">{geo.source}</span></div>
-                             {geo.device === 'Mobile' ? <Smartphone size={10} /> : <Monitor size={10} />}
+                          <div className="flex items-center gap-3 text-[10px] text-slate-500">
+                             <div className="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700">{getSourceIcon(geo.source)} <span className="uppercase">{geo.source}</span></div>
+                             {geo.device === 'Mobile' ? <Smartphone size={12} /> : <Monitor size={12} />}
                           </div>
                        </div>
                     </div>
@@ -443,9 +438,9 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
         </div>
       </div>
 
-      <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 p-5 md:p-8 flex flex-col shadow-2xl text-left">
-         <div className="mb-6">
-            <h3 className="text-white font-bold text-xl flex items-center gap-2"><Smartphone size={20} className="text-primary"/> Device Breakdown</h3>
+      <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 p-8 md:p-10 flex flex-col shadow-2xl text-left h-full">
+         <div className="mb-8">
+            <h3 className="text-white font-bold text-xl flex items-center gap-3"><Smartphone size={24} className="text-primary"/> Device Breakdown</h3>
             <p className="text-slate-500 text-xs mt-1">Platform Distribution</p>
          </div>
          <div className="space-y-6 flex-grow">
@@ -454,18 +449,18 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
               { label: 'Desktop', count: deviceStats.desktop, icon: Monitor, color: 'text-blue-500', bar: 'bg-blue-500' },
               { label: 'Tablet', count: deviceStats.tablet, icon: Tablet, color: 'text-purple-500', bar: 'bg-purple-500' }
             ].map((d, i) => (
-              <div key={i} className="bg-slate-800/50 p-4 md:p-6 rounded-3xl border border-slate-800">
+              <div key={i} className="bg-slate-800/50 p-6 rounded-3xl border border-slate-800 hover:border-slate-700 transition-colors">
                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-3">
-                       <div className={`p-2 bg-slate-800 rounded-xl ${d.color}`}><d.icon size={18}/></div>
-                       <span className="text-white font-bold text-sm">{d.label}</span>
+                    <div className="flex items-center gap-4">
+                       <div className={`p-3 bg-slate-800 rounded-2xl ${d.color}`}><d.icon size={20}/></div>
+                       <span className="text-white font-bold text-base">{d.label}</span>
                     </div>
-                    <span className="text-white font-mono font-bold">{d.count}</span>
+                    <span className="text-white font-mono font-bold text-lg">{d.count}</span>
                  </div>
-                 <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
+                 <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
                     <div className={`h-full ${d.bar} transition-all duration-1000`} style={{ width: `${totalTraffic > 0 ? (d.count / totalTraffic) * 100 : 0}%` }}></div>
                  </div>
-                 <div className="mt-2 text-right">
+                 <div className="mt-3 text-right">
                     <span className="text-[10px] text-slate-500 font-bold">{totalTraffic > 0 ? Math.round((d.count / totalTraffic) * 100) : 0}% share</span>
                  </div>
               </div>
@@ -821,6 +816,8 @@ const Admin: React.FC = () => {
       return { ...p, ...pStats, reviewCount, ctr: pStats.views > 0 ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
     }).sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks));
 
+    const topProducts = sortedProducts.slice(0, 15);
+
     const categoryPerformance = categories.map(cat => {
       const catProducts = products.filter(p => p.categoryId === cat.id);
       const catProductIds = catProducts.map(p => p.id);
@@ -875,78 +872,169 @@ const Admin: React.FC = () => {
     ].sort((a, b) => b.count - a.count);
 
     return (
-      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
            <div className="space-y-2">
-              <h2 className="text-3xl font-serif text-white">Insights & Vitality</h2>
-              <p className="text-slate-400 text-sm">Real-time performance metrics and live engagement tracking.</p>
+              <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter">Insights & Vitality</h2>
+              <p className="text-slate-400 text-sm max-w-lg">Live data stream processing {totalUniqueVisitors} unique nodes. Peak engagement detected around {peakHour}:00 hours.</p>
            </div>
-           <div className="flex flex-wrap gap-8">
-              <div className="text-right">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Impressions</span>
-                <span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span>
+           
+           <div className="flex gap-12 text-right">
+              <div>
+                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Total Impressions</span>
+                 <span className="text-4xl md:text-5xl font-bold text-white tracking-tighter">{totalViews.toLocaleString()}</span>
               </div>
-              <div className="text-right border-l border-slate-800 pl-8">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Conversion Clicks</span>
-                <span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span>
+              <div>
+                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Total Conversions</span>
+                 <span className="text-4xl md:text-5xl font-bold text-primary tracking-tighter">{totalClicks.toLocaleString()}</span>
               </div>
            </div>
         </div>
 
-        <AdminTip title="Advanced Live Analytics">
-          Your bridge page is currently processing traffic from <strong>{totalUniqueVisitors} unique nodes</strong>.
-          Peak engagement is detected around <strong>{peakHour}:00</strong>.
-          Impressions include total page loads, while clicks track direct interaction with affiliate links.
-        </AdminTip>
+        {/* Traffic Heat Map (Hero Visual) */}
+        <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-800 shadow-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Activity size={120} className="text-primary"/></div>
+            <h3 className="text-white font-bold text-xl mb-12 flex items-center gap-3"><Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
+            <div className="flex items-end gap-1 h-64 w-full border-b border-slate-800 pb-2">
+               {hourlyDistribution.map((count, i) => (
+                 <div key={i} className="flex-1 group/bar relative h-full flex flex-col justify-end">
+                    <div 
+                      className={`w-full ${i === peakHour ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : 'bg-slate-800 group-hover/bar:bg-slate-600'} transition-all duration-500 rounded-t-sm`} 
+                      style={{ height: `${(count / maxHourly) * 100}%` }}
+                    ></div>
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none shadow-xl z-20 whitespace-nowrap">
+                      {count} Hits @ {i}:00
+                    </div>
+                    <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-[9px] font-bold ${i % 3 === 0 ? 'text-slate-500' : 'text-transparent'}`}>
+                       {i}
+                    </div>
+                 </div>
+               ))}
+            </div>
+            <div className="mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
+               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Active Monitoring: Live Updates Every 2 Seconds</span>
+               <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Peak Traffic</span></div>
+                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-800 rounded"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Average Load</span></div>
+               </div>
+            </div>
+        </div>
         
-        {/* Core Metric Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Core Metric Cards - Spacious Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
            {[
-             { label: 'Avg CTR', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
-             { label: 'Total Shares', value: totalShares, icon: Share2, color: 'text-blue-400' },
-             { label: 'Engagement Time', value: `${avgSessionTime}s`, icon: Timer, color: 'text-green-400' },
-             { label: 'Reviews Posted', value: products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
+             { label: 'Click Through Rate', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
+             { label: 'Social Shares', value: totalShares, icon: Share2, color: 'text-blue-400' },
+             { label: 'Avg Session Time', value: `${avgSessionTime}s`, icon: Timer, color: 'text-green-400' },
+             { label: 'Verified Reviews', value: products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
            ].map((m, i) => (
-             <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 hover:border-white/10 transition-colors flex flex-col justify-between h-32 shadow-xl">
-                <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${m.color}`}><m.icon size={20}/></div>
-                <div><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">{m.label}</span><span className="text-xl font-bold text-white">{m.value}</span></div>
+             <div key={i} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 hover:border-primary/50 transition-colors flex flex-col justify-between h-48 shadow-lg group">
+                <div className="flex justify-between items-start">
+                   <div className={`w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center ${m.color} group-hover:scale-110 transition-transform`}><m.icon size={24}/></div>
+                   <m.icon size={48} className={`${m.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                </div>
+                <div><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">{m.label}</span><span className="text-3xl font-bold text-white">{m.value}</span></div>
              </div>
            ))}
         </div>
 
+        {/* Top 15 Products Tracking */}
+        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 shadow-xl">
+          <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+            <h3 className="text-white font-bold text-xl flex items-center gap-3">
+              <TrendingUp size={24} className="text-primary"/> Top 15 Performing Products
+            </h3>
+            <button onClick={() => {
+               const csv = "Rank,Product,Category,Views,Clicks,CTR,Shares\n" +
+                 topProducts.map((p, i) => `${i+1},"${p.name}",${categories.find(c=>c.id===p.categoryId)?.name || 'N/A'},${p.views},${p.clicks},${p.ctr}%,${p.shares}`).join("\n");
+               const blob = new Blob([csv], { type: 'text/csv' });
+               const url = window.URL.createObjectURL(blob);
+               const a = document.createElement('a'); a.href = url; a.download = 'top_products.csv'; a.click();
+            }} className="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest flex items-center gap-2">
+               <Download size={14}/> Export Data
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-400">
+               <thead>
+                 <tr className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">
+                   <th className="pb-4 pl-4">#</th>
+                   <th className="pb-4">Product</th>
+                   <th className="pb-4">Dept</th>
+                   <th className="pb-4 text-right">Views</th>
+                   <th className="pb-4 text-right">Clicks</th>
+                   <th className="pb-4 text-right">CTR</th>
+                   <th className="pb-4 text-right pr-4">Shares</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-800">
+                 {topProducts.map((p, index) => (
+                   <tr key={p.id} className="group hover:bg-slate-800/50 transition-colors">
+                     <td className="py-4 pl-4 font-mono text-slate-600">{index + 1}</td>
+                     <td className="py-4">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden shrink-0 border border-slate-700">
+                              {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
+                           </div>
+                           <span className="font-bold text-white truncate max-w-[150px] md:max-w-xs">{p.name}</span>
+                        </div>
+                     </td>
+                     <td className="py-4 text-xs">
+                        <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                           {categories.find(c => c.id === p.categoryId)?.name || 'Uncategorized'}
+                        </span>
+                     </td>
+                     <td className="py-4 text-right font-mono text-white">{p.views.toLocaleString()}</td>
+                     <td className="py-4 text-right font-mono text-primary">{p.clicks.toLocaleString()}</td>
+                     <td className="py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                           <span className="font-bold text-white">{p.ctr}%</span>
+                           <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
+                              <div className="h-full bg-primary" style={{ width: `${Math.min(parseFloat(p.ctr as string), 100)}%` }}></div>
+                           </div>
+                        </div>
+                     </td>
+                     <td className="py-4 text-right pr-4 font-mono text-blue-400">{p.shares?.toLocaleString() || 0}</td>
+                   </tr>
+                 ))}
+               </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Category Performance Matrix */}
-        <div className="space-y-6">
-           <h3 className="text-white font-bold text-2xl flex items-center gap-3 px-2">
-              <Layers size={24} className="text-primary"/> Department Performance Matrix
+        <div className="space-y-8">
+           <h3 className="text-white font-bold text-2xl flex items-center gap-3 px-2 border-b border-white/5 pb-4">
+              <Layers size={24} className="text-primary"/> Department Performance
            </h3>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
              {categoryPerformance.map((cat, i) => {
                const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
                return (
-                 <div key={i} className="bg-slate-900 rounded-[2rem] border border-slate-800 p-8 flex flex-col md:flex-row items-center gap-8 group hover:border-primary/40 transition-all">
-                   <div className="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center text-primary shrink-0 shadow-inner group-hover:scale-110 transition-transform">
-                      <Icon size={32} />
+                 <div key={i} className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 group hover:border-primary/40 transition-all shadow-xl">
+                   <div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-primary shrink-0 shadow-inner group-hover:scale-110 transition-transform border border-slate-700">
+                      <Icon size={40} />
                    </div>
                    <div className="flex-grow w-full text-center md:text-left">
-                      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-                         <h4 className="text-white font-bold text-xl">{cat.name}</h4>
-                         <span className="text-primary font-mono font-bold text-sm">{cat.ctr}% Conversion</span>
+                      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+                         <h4 className="text-white font-bold text-2xl">{cat.name}</h4>
+                         <span className="px-4 py-2 rounded-full bg-primary/10 text-primary font-mono font-bold text-xs border border-primary/20">{cat.ctr}% CTR</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-4">
-                         <div>
+                      <div className="grid grid-cols-3 gap-6 mb-8">
+                         <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Views</span>
-                            <span className="text-white font-bold">{cat.views.toLocaleString()}</span>
+                            <span className="text-white font-bold text-lg">{cat.views.toLocaleString()}</span>
                          </div>
-                         <div>
+                         <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Clicks</span>
-                            <span className="text-white font-bold">{cat.clicks.toLocaleString()}</span>
+                            <span className="text-white font-bold text-lg">{cat.clicks.toLocaleString()}</span>
                          </div>
-                         <div>
+                         <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Shares</span>
-                            <span className="text-white font-bold">{cat.shares.toLocaleString()}</span>
+                            <span className="text-white font-bold text-lg">{cat.shares.toLocaleString()}</span>
                          </div>
                       </div>
-                      <div className="mt-6 w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                          <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${totalViews > 0 ? (cat.views / totalViews) * 100 : 0}%` }}></div>
                       </div>
                    </div>
@@ -955,51 +1043,25 @@ const Admin: React.FC = () => {
              })}
            </div>
         </div>
-
-        {/* Traffic Heat Map (Hourly) */}
-        <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-800 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Activity size={120} className="text-primary"/></div>
-            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
-            <div className="flex items-end gap-1 h-48 w-full border-b border-slate-800 pb-2">
-               {hourlyDistribution.map((count, i) => (
-                 <div key={i} className="flex-1 group relative">
-                    <div 
-                      className={`w-full ${i === peakHour ? 'bg-primary' : 'bg-slate-700 group-hover:bg-slate-500'} transition-all duration-500 rounded-t-lg`} 
-                      style={{ height: `${(count / maxHourly) * 100}%` }}
-                    ></div>
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-20">
-                      {count} Hits
-                    </div>
-                    <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-[8px] font-bold ${i % 3 === 0 ? 'text-slate-400' : 'text-transparent'}`}>
-                       {i}:00
-                    </div>
-                 </div>
-               ))}
-            </div>
-            <div className="mt-12 flex justify-between items-center px-2">
-               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Active Monitoring: Live Updates Every 2 Seconds</span>
-               <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2"><div className="w-2 h-2 bg-primary rounded-full"></div><span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Peak Traffic</span></div>
-                  <div className="flex items-center gap-2"><div className="w-2 h-2 bg-slate-700 rounded-full"></div><span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Average Load</span></div>
-               </div>
-            </div>
-        </div>
         
-        {/* ... Rest of Analytics components included implicitly ... */}
-        {/* Traffic Origins & Sources */}
-        <div className="grid lg:grid-cols-2 gap-8">
-           <div className="bg-slate-900 p-8 md:p-12 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 shadow-xl">
-              <h3 className="text-white font-bold mb-10 flex items-center gap-3"><Globe size={18} className="text-primary"/> Traffic Origin (Referrals)</h3>
-              <div className="space-y-6">
+        {/* Precise Traffic Landscape - Moved below Departments */}
+        <div className="mt-8">
+            <TrafficAreaChart stats={stats} />
+        </div>
+
+        {/* Traffic Origins */}
+        <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl mt-8">
+             <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><Globe size={24} className="text-primary"/> Traffic Sources</h3>
+             <div className="space-y-8">
                  {sourceData.map((s, i) => (
                     <div key={i} className="flex items-center gap-6">
-                       <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-white shrink-0 border border-slate-700 shadow-xl"><s.icon size={20}/></div>
+                       <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center text-white shrink-0 border border-slate-700 shadow-xl"><s.icon size={24}/></div>
                        <div className="flex-grow">
-                          <div className="flex justify-between mb-2">
-                             <span className="text-sm text-white font-bold">{s.label}</span>
+                          <div className="flex justify-between mb-3">
+                             <span className="text-base text-white font-bold">{s.label}</span>
                              <span className="text-xs text-slate-400 font-mono">{s.count} hits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
                           </div>
-                          <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-4 bg-slate-800 rounded-full overflow-hidden">
                              <div className={`h-full ${s.color} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
                           </div>
                        </div>
@@ -1007,9 +1069,6 @@ const Admin: React.FC = () => {
                  ))}
                  {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4 italic">Awaiting source data...</p>}
               </div>
-           </div>
-           
-           <TrafficAreaChart stats={stats} />
         </div>
       </div>
     );
