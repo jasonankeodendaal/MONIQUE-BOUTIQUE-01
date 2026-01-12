@@ -1,13 +1,18 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
-const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+// Robust environment variable detection
+const getEnv = (key: string) => {
+  return (import.meta as any).env?.[key] || (process as any).env?.[key] || '';
+};
+
+const rawUrl = getEnv('VITE_SUPABASE_URL');
+const rawKey = getEnv('VITE_SUPABASE_ANON_KEY');
 
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co') && supabaseAnonKey);
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
@@ -30,19 +35,21 @@ export async function fetchTableData(table: string) {
   if (!isSupabaseConfigured) {
     // Return local storage fallback if no cloud is connected
     const local = localStorage.getItem(`admin_${table}`);
-    // Map 'settings' table to 'site_settings' local key special case
     if (table === 'settings') {
         const s = localStorage.getItem('site_settings');
         return s ? [JSON.parse(s)] : [];
     }
     return local ? JSON.parse(local) : [];
   }
-  const { data, error } = await supabase.from(table).select('*');
-  if (error) {
+  
+  try {
+    const { data, error } = await supabase.from(table).select('*');
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
     console.error(`Fetch error for ${table}:`, error);
-    return [];
+    throw error; // Let the caller handle the catch
   }
-  return data || [];
 }
 
 /**
@@ -50,7 +57,6 @@ export async function fetchTableData(table: string) {
  */
 export async function upsertData(table: string, item: any) {
   if (!isSupabaseConfigured) return false;
-  // Remove any undefined fields to prevent Supabase errors if columns don't exist
   const cleanItem = JSON.parse(JSON.stringify(item));
   const { error } = await supabase.from(table).upsert(cleanItem);
   if (error) {
@@ -95,7 +101,7 @@ export async function uploadMedia(file: File, bucket = 'media') {
 
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
   if (!isSupabaseConfigured) {
-    return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
+    return { status: 'offline', latency: 0, message: 'Local Mode: No Cloud Credentials' };
   }
   
   const start = performance.now();
@@ -103,9 +109,9 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
     const { error } = await supabase.from('settings').select('companyName').limit(1);
     const end = performance.now();
     if (error) throw error;
-    return { status: 'online', latency: Math.round(end - start), message: 'Supabase Sync Active' };
+    return { status: 'online', latency: Math.round(end - start), message: 'Cloud Connected' };
   } catch (err) {
-    return { status: 'offline', latency: 0, message: 'Cloud connection failed' };
+    return { status: 'offline', latency: 0, message: 'Connection Timeout' };
   }
 }
 
