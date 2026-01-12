@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -29,9 +30,9 @@ const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ titl
     </div>
     <div className="space-y-1 min-w-0 flex-1">
       <h4 className="text-[10px] font-black text-yellow-600 uppercase tracking-widest">{title}</h4>
-      <p className="text-slate-400 text-xs leading-relaxed font-medium break-words">
+      <div className="text-slate-400 text-xs leading-relaxed font-medium break-words">
         {children}
-      </p>
+      </div>
     </div>
   </div>
 );
@@ -40,7 +41,7 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (status === 'saved') {
+    if (status === 'saved' || status === 'error') {
       setVisible(true);
       const timer = setTimeout(() => setVisible(false), 3000);
       return () => clearTimeout(timer);
@@ -50,13 +51,13 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-24 right-6 z-[100] bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20">
+    <div className={`fixed bottom-24 right-6 z-[100] ${status === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20`}>
       <div className="p-2 bg-white/20 rounded-full">
-        <CheckCircle2 size={24} className="text-white" />
+        {status === 'error' ? <AlertOctagon size={24} /> : <CheckCircle2 size={24} />}
       </div>
       <div>
-         <h4 className="font-bold text-sm uppercase tracking-widest">System Synced</h4>
-         <p className="text-[10px] opacity-90 font-medium">Changes successfully recorded.</p>
+         <h4 className="font-bold text-sm uppercase tracking-widest">{status === 'error' ? 'Connection Error' : 'System Synced'}</h4>
+         <p className="text-[10px] opacity-90 font-medium">{status === 'error' ? 'Check cloud configuration.' : 'Changes successfully recorded.'}</p>
       </div>
     </div>
   );
@@ -311,7 +312,6 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
       const rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
       setTotalTraffic(rawData.length);
 
-      // Aggregate by precise location
       const agg: Record<string, GeoStat> = {};
       let dev = { mobile: 0, desktop: 0, tablet: 0 };
       
@@ -321,7 +321,6 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
         const country = entry.country || 'Global';
         const device = entry.device || 'Desktop';
         
-        // Count Devices
         if (device === 'Mobile') dev.mobile++;
         else if (device === 'Tablet') dev.tablet++;
         else dev.desktop++;
@@ -343,17 +342,16 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
         }
         agg[key].count += 1;
         agg[key].lastActive = Math.max(agg[key].lastActive, entry.timestamp || 0);
-        // If source changes for same location, prioritize social
         if (entry.source && entry.source !== 'Direct') agg[key].source = entry.source;
       });
 
       setDeviceStats(dev);
-      const sorted = Object.values(agg).sort((a, b) => b.count - a.count).slice(0, 15); // Top 15
+      const sorted = Object.values(agg).sort((a, b) => b.count - a.count).slice(0, 15);
       setGeoStats(sorted);
     };
 
     loadDetailedGeo();
-    const interval = setInterval(loadDetailedGeo, 5000); // 5s Refresh
+    const interval = setInterval(loadDetailedGeo, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -370,12 +368,10 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main Location Feed */}
       <div className="lg:col-span-2 relative min-h-[400px] md:min-h-[500px] bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
         
-        {/* Header */}
-        <div className="relative z-10 p-5 md:p-10 pb-4 border-b border-white/5 flex justify-between items-start">
+        <div className="relative z-10 p-5 md:p-10 pb-4 border-b border-white/5 flex justify-between items-start text-left">
            <div>
               <div className="flex items-center gap-3 mb-2">
                  <div className="relative w-3 h-3">
@@ -392,13 +388,12 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
            </div>
         </div>
 
-        {/* List */}
         <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-4 md:p-6">
           {geoStats.length > 0 ? (
             <div className="grid gap-3">
                <div className="grid grid-cols-12 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
                   <div className="col-span-1 hidden md:block">#</div>
-                  <div className="col-span-8 md:col-span-6">Location (Town/City)</div>
+                  <div className="col-span-8 md:col-span-6 text-left">Location (Town/City)</div>
                   <div className="col-span-2 text-right hidden md:block">Hits</div>
                   <div className="col-span-4 md:col-span-3 text-right">Device/Source</div>
                </div>
@@ -409,7 +404,7 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
                        <div className="col-span-1 hidden md:block">
                           <span className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700">{idx + 1}</span>
                        </div>
-                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-2">
+                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-2 text-left">
                           <div className="font-bold text-white text-sm flex items-center gap-2 truncate">
                              <MapPin size={14} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
                              {geo.city}
@@ -444,8 +439,7 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
         </div>
       </div>
 
-      {/* Device Breakdown */}
-      <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 p-5 md:p-8 flex flex-col shadow-2xl">
+      <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 p-5 md:p-8 flex flex-col shadow-2xl text-left">
          <div className="mb-6">
             <h3 className="text-white font-bold text-xl flex items-center gap-2"><Smartphone size={20} className="text-primary"/> Device Breakdown</h3>
             <p className="text-slate-500 text-xs mt-1">Platform Distribution</p>
@@ -492,7 +486,7 @@ const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: st
   const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } };
   const toggleGroup = (node: PermissionNode) => { const childIds = node.children?.map(c => c.id) || []; const allSelected = childIds.every(id => permissions.includes(id)); if (allSelected) { onChange(permissions.filter(p => !childIds.includes(p))); } else { const newPerms = [...permissions]; childIds.forEach(id => { if (!newPerms.includes(id)) newPerms.push(id); }); onChange(newPerms); } };
   return (
-    <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div>
+    <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div>
   );
 };
 
@@ -511,7 +505,7 @@ const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ 
   const [sending, setSending] = useState(false); const [success, setSuccess] = useState(false); const [error, setError] = useState<string | null>(null);
   const handleSend = async () => { const serviceId = settings.emailJsServiceId?.trim(); const templateId = settings.emailJsTemplateId?.trim(); const publicKey = settings.emailJsPublicKey?.trim(); if (!serviceId || !templateId || !publicKey) { setError("Email.js is not configured."); return; } setSending(true); setError(null); try { const fileLinks: string[] = []; if (attachments.length > 0) { if (!isSupabaseConfigured) throw new Error("Supabase is required for attachments."); for (const file of attachments) { const url = await uploadMedia(file, 'media'); if (url) fileLinks.push(`${file.name}: ${url}`); } } let finalMessage = message.replace(/\n/g, '<br>'); if (fileLinks.length > 0) finalMessage += `<br><br><strong>Attachments:</strong><br>${fileLinks.map(l => `<a href="${l.split(': ')[1]}">${l.split(': ')[0]}</a>`).join('<br>')}`; let logoUrl = settings.companyLogoUrl || ''; const productsHtml = ''; const socialsHtml = ''; const templateParams = { to_name: enquiry.name, to_email: enquiry.email, subject, message: finalMessage, reply_to: enquiry.email, company_name: settings.companyName, company_address: settings.address, company_website: window.location.origin, company_logo_url: logoUrl, products_html: productsHtml, socials_html: socialsHtml, year: new Date().getFullYear().toString() }; await emailjs.send(serviceId, templateId, templateParams, publicKey); setSuccess(true); setTimeout(onClose, 2000); } catch (err: any) { console.error('EmailJS Error:', err); setError(err.text || err.message); } finally { setSending(false); } };
   if (success) return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"><div className="bg-white rounded-3xl p-10 text-center animate-in zoom-in"><div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-4"><CheckCircle size={40} /></div><h3 className="text-2xl font-bold text-slate-900">Email Sent!</h3></div></div>);
-  return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div className="p-6 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold flex items-center gap-3"><Reply size={20} className="text-primary"/> Reply to {enquiry.name}</h3><button onClick={onClose} className="text-slate-500 hover:text-white"><X size={24}/></button></div><div className="p-6 overflow-y-auto space-y-6">{error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">{error}</div>}<div className="space-y-4"><div className="grid grid-cols-2 gap-4"><SettingField label="To" value={enquiry.email} onChange={() => {}} type="text" /><SettingField label="Subject" value={subject} onChange={setSubject} /></div><SettingField label="Message (HTML Support Enabled)" value={message} onChange={setMessage} type="textarea" rows={12} /><div className="space-y-2 text-left"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Paperclip size={12}/> Attachments (Requires Storage)</label><input type="file" multiple onChange={e => e.target.files && setAttachments(Array.from(e.target.files))} className="block w-full text-xs text-slate-400 file:bg-slate-800 file:text-primary file:rounded-full file:border-0 file:py-2 file:px-4" /></div></div></div><div className="p-6 border-t border-slate-800 flex justify-end gap-3"><button onClick={onClose} className="px-6 py-3 rounded-xl text-slate-400 font-bold text-xs uppercase tracking-widest">Cancel</button><button onClick={handleSend} disabled={sending} className="px-8 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">{sending ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>} Send Email</button></div></div></div>);
+  return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div className="p-6 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold flex items-center gap-3"><Reply size={20} className="text-primary"/> Reply to {enquiry.name}</h3><button onClick={onClose} className="text-slate-500 hover:text-white"><X size={24}/></button></div><div className="p-6 overflow-y-auto space-y-6 text-left">{error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">{error}</div>}<div className="space-y-4"><div className="grid grid-cols-2 gap-4"><SettingField label="To" value={enquiry.email} onChange={() => {}} type="text" /><SettingField label="Subject" value={subject} onChange={setSubject} /></div><SettingField label="Message (HTML Support Enabled)" value={message} onChange={setMessage} type="textarea" rows={12} /><div className="space-y-2 text-left"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Paperclip size={12}/> Attachments (Requires Storage)</label><input type="file" multiple onChange={e => e.target.files && setAttachments(Array.from(e.target.files))} className="block w-full text-xs text-slate-400 file:bg-slate-800 file:text-primary file:rounded-full file:border-0 file:py-2 file:px-4" /></div></div></div><div className="p-6 border-t border-slate-800 flex justify-end gap-3"><button onClick={onClose} className="px-6 py-3 rounded-xl text-slate-400 font-bold text-xs uppercase tracking-widest">Cancel</button><button onClick={handleSend} disabled={sending} className="px-8 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">{sending ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>} Send Email</button></div></div></div>);
 };
 
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
@@ -537,26 +531,14 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
   }, [platform, product, settings]);
   const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   
-  // Native Share with File support and Text
   const handleShareBundle = async () => {
     if (!navigator.share) {
       alert("Sharing not supported on this device/browser. Please copy text and save image manually.");
       return;
     }
-    
     try {
       const link = `${window.location.origin}/#/product/${product.id}`;
-      // Crucial Fix: Append link to text because some platforms drop the 'url' param when sharing files
-      // NOTE: Many mobile apps (WhatsApp, etc.) will IGNORE text if a file is shared via navigator.share.
-      // We still pass it, but UI should encourage copying text separately.
-      
-      const shareData: any = {
-        title: settings.companyName,
-        text: customText, // Try to pass full text
-        url: link 
-      };
-
-      // Bundle image if available
+      const shareData: any = { title: settings.companyName, text: customText, url: link };
       if (product.media?.[0]?.url) {
         try {
           const response = await fetch(product.media[0].url);
@@ -565,11 +547,8 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
              shareData.files = [file];
           }
-        } catch (e) {
-          console.warn("Could not bundle image for share", e);
-        }
+        } catch (e) { console.warn("Could not bundle image for share", e); }
       }
-
       await navigator.share(shareData);
     } catch (error) {
       console.error('Error sharing', error);
@@ -577,7 +556,7 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
     }
   };
 
-  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>);
+  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>);
 };
 
 const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => {
@@ -585,16 +564,12 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
   return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>);
 };
 
-// --- File Uploader ---
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  
   const processFiles = (incomingFiles: FileList | null) => {
     if (!incomingFiles) return;
     setUploading(true);
-
-    // Non-blocking upload simulation (fire and forget per file)
     Array.from(incomingFiles).forEach(file => {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -612,23 +587,19 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
           type: file.type, 
           size: file.size 
         };
-        // Add to list immediately once this specific file is done
         onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
-        setUploading(false); // Simplified: assumes last one turns off spinner or parent manages loading state better for multiples
+        setUploading(false);
       };
       reader.readAsDataURL(file);
     });
   };
-
   return (
     <div className="space-y-4 text-left w-full min-w-0">
       <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]">
         {uploading ? (
            <div className="flex flex-col items-center">
              <Loader2 size={24} className="animate-spin text-primary mb-2" />
-             <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden">
-                <div className="bg-primary h-full animate-[grow_2s_infinite]"></div>
-             </div>
+             <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div>
              <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span>
            </div>
         ) : (
@@ -639,7 +610,6 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
         )}
         <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
       </div>
-      
       {files.length > 0 && (
         <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2">
           {files.map(f => (
@@ -661,7 +631,7 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
 };
 
 const IntegrationGuide: React.FC = () => (
-  <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8">
+  <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left">
      <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
        <Lightbulb size={16}/> Integration Setup Guide
      </h4>
@@ -677,7 +647,6 @@ const IntegrationGuide: React.FC = () => (
             <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p>
           </div>
         </details>
-        
         <details className="group">
           <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
             <BarChart size={14} /> Google Analytics 4
@@ -688,7 +657,6 @@ const IntegrationGuide: React.FC = () => (
             <p>3. Copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</p>
           </div>
         </details>
-
         <details className="group">
            <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
             <Target size={14} /> Meta / TikTok Pixels
@@ -701,9 +669,6 @@ const IntegrationGuide: React.FC = () => (
      </div>
   </div>
 );
-
-
-// --- Main Admin Component ---
 
 const Admin: React.FC = () => {
   const { 
@@ -720,7 +685,6 @@ const Admin: React.FC = () => {
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
   const [errorLogs, setErrorLogs] = useState<any[]>([]);
 
-  // Forms
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminData, setAdminData] = useState<Partial<AdminUser>>({});
   const [creatingAdmin, setCreatingAdmin] = useState(false);
@@ -729,56 +693,37 @@ const Admin: React.FC = () => {
   const [showHeroForm, setShowHeroForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedTraining, setExpandedTraining] = useState<string | null>(null);
-  
-  // Modals & Data
   const [selectedAdProduct, setSelectedAdProduct] = useState<Product | null>(null);
   const [replyEnquiry, setReplyEnquiry] = useState<Enquiry | null>(null);
-  const [showEmailTemplate, setShowEmailTemplate] = useState(false);
   const [productData, setProductData] = useState<Partial<Product>>({});
   const [catData, setCatData] = useState<Partial<Category>>({});
   const [heroData, setHeroData] = useState<Partial<CarouselSlide>>({});
-
-  // Local State for complex object building
   const [tempSubCatName, setTempSubCatName] = useState('');
   const [tempDiscountRule, setTempDiscountRule] = useState<Partial<DiscountRule>>({ type: 'percentage', value: 0, description: '' });
   const [tempFeature, setTempFeature] = useState('');
   const [tempSpec, setTempSpec] = useState({ key: '', value: '' });
-
-  // Filters
   const [enquirySearch, setEnquirySearch] = useState('');
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
-  
-  // Real Traffic
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
 
-  // RBAC LOGIC (Role Based Access Control)
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@kasicouture.com');
   const userId = user?.id;
-
   const displayProducts = useMemo(() => isOwner ? products : products.filter(p => !p.createdBy || p.createdBy === userId), [products, isOwner, userId]);
   const displayCategories = useMemo(() => isOwner ? categories : categories.filter(c => !c.createdBy || c.createdBy === userId), [categories, isOwner, userId]);
   const displayHeroSlides = useMemo(() => isOwner ? heroSlides : heroSlides.filter(s => !s.createdBy || s.createdBy === userId), [heroSlides, isOwner, userId]);
-  
   const displayStats = useMemo(() => {
     if (isOwner) return stats;
     const myProductIds = displayProducts.map(p => p.id);
     return stats.filter(s => myProductIds.includes(s.productId));
-  }, [stats, isOwner, displayProducts, products]);
+  }, [stats, isOwner, displayProducts]);
 
-  // Error listener
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      const newError = {
-        id: Date.now(),
-        message: event.message,
-        source: event.filename,
-        lineno: event.lineno,
-        timestamp: new Date().toLocaleTimeString()
-      };
-      setErrorLogs(prev => [newError, ...prev].slice(0, 20)); // Keep last 20
+      const newError = { id: Date.now(), message: event.message, source: event.filename, lineno: event.lineno, timestamp: new Date().toLocaleTimeString() };
+      setErrorLogs(prev => [newError, ...prev].slice(0, 20));
     };
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
@@ -796,10 +741,7 @@ const Admin: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === 'system' || activeTab === 'analytics') {
-       const check = async () => {
-          const health = await measureConnection();
-          setConnectionHealth(health);
-       };
+       const check = async () => { setConnectionHealth(await measureConnection()); };
        check();
        const interval = setInterval(check, 10000);
        return () => clearInterval(interval);
@@ -807,164 +749,39 @@ const Admin: React.FC = () => {
   }, [activeTab]);
 
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
+  const handleFactoryReset = async () => { if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { localStorage.clear(); window.location.reload(); } };
+  const handleBackup = () => { const data = { products, categories, subCategories, heroSlides, enquiries, admins, settings, stats }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); };
   
-  const handleFactoryReset = async () => { 
-    if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { 
-        localStorage.clear(); 
-        window.location.reload(); 
-    } 
-  };
-  
-  const handleBackup = () => { 
-      const data = { products, categories, subCategories, heroSlides, enquiries, admins, settings, stats }; 
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); 
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); 
-  };
-  
-  // CRUD Wrappers
-  const handleSaveProduct = async () => {
-    const newProduct = { 
-        ...productData, 
-        id: editingId || Date.now().toString(), 
-        createdAt: productData.createdAt || Date.now(),
-        createdBy: productData.createdBy || user?.id // Assign ownership
-    };
-    const ok = await updateData('products', newProduct);
-    if (ok) {
-        setShowProductForm(false);
-        setEditingId(null);
-    }
-  };
+  const handleSaveProduct = async () => { const newProduct = { ...productData, id: editingId || Date.now().toString(), createdAt: productData.createdAt || Date.now(), createdBy: productData.createdBy || user?.id }; const ok = await updateData('products', newProduct); if (ok) { setShowProductForm(false); setEditingId(null); } };
+  const handleSaveCategory = async () => { const newCat = { ...catData, id: editingId || Date.now().toString(), createdBy: catData.createdBy || user?.id }; const ok = await updateData('categories', newCat); if (ok) { setShowCategoryForm(false); setEditingId(null); } };
+  const handleSaveHero = async () => { const newSlide = { ...heroData, id: editingId || Date.now().toString(), createdBy: heroData.createdBy || user?.id }; const ok = await updateData('hero_slides', newSlide); if (ok) { setShowHeroForm(false); setEditingId(null); } };
+  const handleSaveAdmin = async () => { if (!adminData.email) return; setCreatingAdmin(true); try { const newAdmin = { ...adminData, id: editingId || Date.now().toString(), createdAt: adminData.createdAt || Date.now() }; const ok = await updateData('admin_users', newAdmin); if (ok) { setShowAdminForm(false); setEditingId(null); } } catch (err: any) { alert(`Error saving member: ${err.message}`); } finally { setCreatingAdmin(false); } };
 
-  const handleSaveCategory = async () => {
-    const newCat = { 
-        ...catData, 
-        id: editingId || Date.now().toString(),
-        createdBy: catData.createdBy || user?.id // Assign ownership
-    };
-    const ok = await updateData('categories', newCat);
-    if (ok) {
-        setShowCategoryForm(false);
-        setEditingId(null);
-    }
-  };
-
-  const handleSaveHero = async () => {
-    const newSlide = { 
-        ...heroData, 
-        id: editingId || Date.now().toString(),
-        createdBy: heroData.createdBy || user?.id // Assign ownership
-    };
-    const ok = await updateData('hero_slides', newSlide);
-    if (ok) {
-        setShowHeroForm(false);
-        setEditingId(null);
-    }
-  };
-  
-  const handleSaveAdmin = async () => {
-    if (!adminData.email) return;
-    setCreatingAdmin(true);
-    try {
-      const newAdmin = { 
-        ...adminData, 
-        id: editingId || Date.now().toString(), 
-        createdAt: adminData.createdAt || Date.now(),
-      };
-      const ok = await updateData('admin_users', newAdmin);
-      if (ok) {
-          setShowAdminForm(false);
-          setEditingId(null);
-      }
-    } catch (err: any) {
-      alert(`Error saving member: ${err.message}`);
-    } finally {
-      setCreatingAdmin(false);
-    }
-  };
-
-  const toggleEnquiryStatus = async (enquiry: Enquiry) => {
-    const updated = { ...enquiry, status: enquiry.status === 'read' ? 'unread' : 'read' };
-    await updateData('enquiries', updated);
-  };
-
-  const handleAddSubCategory = async (categoryId: string) => {
-    if (!tempSubCatName.trim()) return;
-    const newSub: SubCategory = { 
-        id: Date.now().toString(), 
-        categoryId, 
-        name: tempSubCatName,
-        createdBy: user?.id
-    };
-    await updateData('subcategories', newSub);
-    setTempSubCatName('');
-  };
-  
+  const toggleEnquiryStatus = async (enquiry: Enquiry) => { const updated = { ...enquiry, status: enquiry.status === 'read' ? 'unread' : 'read' }; await updateData('enquiries', updated); };
+  const handleAddSubCategory = async (categoryId: string) => { if (!tempSubCatName.trim()) return; const newSub: SubCategory = { id: Date.now().toString(), categoryId, name: tempSubCatName, createdBy: user?.id }; await updateData('subcategories', newSub); setTempSubCatName(''); };
   const handleDeleteSubCategory = async (id: string) => await deleteData('subcategories', id);
 
-  // --- Local State Helpers for Product Form ---
-  const handleAddDiscountRule = () => {
-    if (!tempDiscountRule.value || !tempDiscountRule.description) return;
-    const newRule: DiscountRule = { id: Date.now().toString(), type: tempDiscountRule.type || 'percentage', value: Number(tempDiscountRule.value), description: tempDiscountRule.description };
-    setProductData({ ...productData, discountRules: [...(productData.discountRules || []), newRule] });
-    setTempDiscountRule({ type: 'percentage', value: 0, description: '' });
-  };
-  const handleRemoveDiscountRule = (id: string) => {
-    setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) });
-  };
-  const handleAddFeature = () => {
-    if (!tempFeature.trim()) return;
-    setProductData(prev => ({ ...prev, features: [...(prev.features || []), tempFeature] }));
-    setTempFeature('');
-  };
-  const handleRemoveFeature = (index: number) => {
-    setProductData(prev => ({ ...prev, features: (prev.features || []).filter((_, i) => i !== index) }));
-  };
-  const handleAddSpec = () => {
-    if (!tempSpec.key.trim() || !tempSpec.value.trim()) return;
-    setProductData(prev => ({ ...prev, specifications: { ...(prev.specifications || {}), [tempSpec.key]: tempSpec.value } }));
-    setTempSpec({ key: '', value: '' });
-  };
-  const handleRemoveSpec = (key: string) => {
-    setProductData(prev => {
-      const newSpecs = { ...(prev.specifications || {}) };
-      delete newSpecs[key];
-      return { ...prev, specifications: newSpecs };
-    });
-  };
+  const handleAddDiscountRule = () => { if (!tempDiscountRule.value || !tempDiscountRule.description) return; const newRule: DiscountRule = { id: Date.now().toString(), type: tempDiscountRule.type || 'percentage', value: Number(tempDiscountRule.value), description: tempDiscountRule.description }; setProductData({ ...productData, discountRules: [...(productData.discountRules || []), newRule] }); setTempDiscountRule({ type: 'percentage', value: 0, description: '' }); };
+  const handleRemoveDiscountRule = (id: string) => { setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) }); };
+  const handleAddFeature = () => { if (!tempFeature.trim()) return; setProductData(prev => ({ ...prev, features: [...(prev.features || []), tempFeature] })); setTempFeature(''); };
+  const handleRemoveFeature = (index: number) => { setProductData(prev => ({ ...prev, features: (prev.features || []).filter((_, i) => i !== index) })); };
+  const handleAddSpec = () => { if (!tempSpec.key.trim() || !tempSpec.value.trim()) return; setProductData(prev => ({ ...prev, specifications: { ...(prev.specifications || {}), [tempSpec.key]: tempSpec.value } })); setTempSpec({ key: '', value: '' }); };
+  const handleRemoveSpec = (key: string) => { setProductData(prev => { const newSpecs = { ...(prev.specifications || {}) }; delete newSpecs[key]; return { ...prev, specifications: newSpecs }; }); };
 
-  // --- Site Editor Logic ---
   const handleOpenEditor = (section: any) => { setTempSettings({...settings}); setActiveEditorSection(section); setEditorDrawerOpen(true); };
   const updateTempSettings = (newSettings: Partial<SiteSettings>) => setTempSettings(prev => ({ ...prev, ...newSettings }));
-  
-  const exportEnquiries = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + enquiries.map(e => `${e.name},${e.email},${e.subject},"${e.message}",${new Date(e.createdAt).toLocaleDateString()}`).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "enquiries_export.csv");
-    document.body.appendChild(link);
-    link.click();
-  };
-
-  const filteredEnquiries = enquiries.filter(e => {
-    const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase());
-    const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const exportEnquiries = () => { const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + enquiries.map(e => `${e.name},${e.email},${e.subject},"${e.message}",${new Date(e.createdAt).toLocaleDateString()}`).join("\n"); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "enquiries_export.csv"); document.body.appendChild(link); link.click(); };
+  const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
 
   const renderEnquiries = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Inbox</h2><p className="text-slate-400 text-sm">Manage incoming client communications.</p></div>
          <div className="flex gap-3 w-full md:w-auto">
             <button onClick={exportEnquiries} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><FileSpreadsheet size={16}/> Export CSV</button>
          </div>
       </div>
-      <AdminTip title="Communication Hub">
-        This is your central command for client interactions. All inquiries from your contact form are routed here. 
-        Use the reply button to open a pre-filled email template, or archive messages to keep your inbox clean.
-      </AdminTip>
+      <AdminTip title="Communication Hub">This is your central command for client interactions. All inquiries from your contact form are routed here. Use the reply button to open a pre-filled email template, or archive messages to keep your inbox clean.</AdminTip>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
          <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'unread', 'read'].map(filter => (<button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
@@ -985,11 +802,29 @@ const Admin: React.FC = () => {
   );
 
   const renderAnalytics = () => {
-    // Analytics calculation logic using filtered stats
     const sortedProducts = [...displayProducts].map(p => {
       const pStats = displayStats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
-      return { ...p, ...pStats, ctr: pStats.views > 0 ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
+      const reviewCount = p.reviews?.length || 0;
+      return { ...p, ...pStats, reviewCount, ctr: pStats.views > 0 ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
     }).sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks));
+
+    const categoryPerformance = categories.map(cat => {
+      const catProducts = products.filter(p => p.categoryId === cat.id);
+      const catProductIds = catProducts.map(p => p.id);
+      const catMetrics = stats.filter(s => catProductIds.includes(s.productId));
+      
+      const views = catMetrics.reduce((a, b) => a + b.views, 0);
+      const clicks = catMetrics.reduce((a, b) => a + b.clicks, 0);
+      const shares = catMetrics.reduce((a, b) => a + (b.shares || 0), 0);
+      
+      return {
+        ...cat,
+        views,
+        clicks,
+        shares,
+        ctr: views > 0 ? ((clicks / views) * 100).toFixed(1) : 0
+      };
+    }).sort((a, b) => b.views - a.views);
     
     const totalViews = displayStats.reduce((acc, s) => acc + s.views, 0);
     const totalClicks = displayStats.reduce((acc, s) => acc + s.clicks, 0);
@@ -997,22 +832,25 @@ const Admin: React.FC = () => {
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
 
-    const catStats = categories.map(cat => {
-      const pInCat = displayProducts.filter(p => p.categoryId === cat.id).map(p => p.id);
-      const views = displayStats.filter(s => pInCat.includes(s.productId)).reduce((acc, s) => acc + s.views, 0);
-      return { name: cat.name, views };
-    }).sort((a, b) => b.views - a.views);
-    const maxCatViews = Math.max(...catStats.map(c => c.views), 1);
-
-    // Calculate REAL Traffic Source Breakdown from local visitor logs
     const visitorLogs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+    const totalUniqueVisitors = visitorLogs.length;
+
+    const hourlyDistribution = new Array(24).fill(0);
+    trafficEvents.forEach(evt => {
+        if (evt.timestamp) {
+            const hour = new Date(evt.timestamp).getHours();
+            hourlyDistribution[hour]++;
+        }
+    });
+    const maxHourly = Math.max(...hourlyDistribution, 1);
+    const peakHour = hourlyDistribution.indexOf(Math.max(...hourlyDistribution));
+
     const sourceStats = visitorLogs.reduce((acc: any, log: any) => {
         const s = log.source || 'Direct';
         acc[s] = (acc[s] || 0) + 1;
         return acc;
     }, {});
     const totalSources = Object.values(sourceStats).reduce((a: any, b: any) => a + b, 0) as number;
-
     const sourceData = [
         { label: 'Facebook', count: sourceStats['Facebook'] || 0, color: 'bg-blue-600', icon: Facebook },
         { label: 'Instagram', count: sourceStats['Instagram'] || 0, color: 'bg-pink-600', icon: Instagram },
@@ -1022,134 +860,200 @@ const Admin: React.FC = () => {
         { label: 'Direct/Other', count: (sourceStats['Direct'] || 0) + (sourceStats['Referral'] || 0), color: 'bg-slate-600', icon: Globe },
     ].sort((a, b) => b.count - a.count);
 
-    // Calculate REAL Peak Traffic Hours from traffic logs
-    const hourlyDistribution = new Array(24).fill(0);
-    trafficEvents.forEach(evt => {
-        if (evt.timestamp) {
-            const hour = new Date(evt.timestamp).getHours();
-            hourlyDistribution[hour]++;
-        }
-    });
-    const maxHourly = Math.max(...hourlyDistribution, 1);
-
     return (
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-           <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Insights</h2><p className="text-slate-400 text-sm">Comprehensive performance auditing.</p></div>
-           <div className="flex flex-wrap gap-8"><div className="text-right"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Lifetime Views</span><span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span></div><div className="text-right border-l border-slate-800 pl-8"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Click Throughs</span><span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span></div></div>
-        </div>
-        
-        {/* Conversion Funnel */}
-        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-12">
-            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><Filter size={20} className="text-primary"/> Engagement Funnel</h3>
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0 relative">
-               <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Total Impressions</span>
-                  <span className="text-3xl font-bold text-white">{totalViews}</span>
-                  <span className="text-xs text-slate-400 mt-1">100% Top Funnel</span>
-               </div>
-               <div className="hidden md:block h-1 flex-grow bg-slate-800 relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-700 rotate-45"></div></div>
-               <div className="md:hidden w-1 h-8 bg-slate-800"></div>
-               <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Social Shares</span>
-                  <span className="text-3xl font-bold text-blue-400">{totalShares}</span>
-                  <span className="text-xs text-slate-400 mt-1">{totalViews > 0 ? ((totalShares/totalViews)*100).toFixed(1) : 0}% Engagement</span>
-               </div>
-               <div className="hidden md:block h-1 flex-grow bg-slate-800 relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-700 rotate-45"></div></div>
-               <div className="md:hidden w-1 h-8 bg-slate-800"></div>
-               <div className="flex flex-col items-center z-10 w-full md:w-auto p-4 bg-primary/10 rounded-2xl border border-primary/20">
-                  <span className="text-[10px] font-black uppercase text-primary tracking-widest mb-2">Affiliate Leads</span>
-                  <span className="text-3xl font-bold text-white">{totalClicks}</span>
-                  <span className="text-xs text-primary/70 mt-1">{totalViews > 0 ? ((totalClicks/totalViews)*100).toFixed(1) : 0}% CTR</span>
-               </div>
-            </div>
-        </div>
-
-        {/* Source Breakdown Chart */}
-        <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
-            <h3 className="text-white font-bold mb-8 flex items-center gap-3"><Globe size={18} className="text-primary"/> Detailed Traffic Origins</h3>
-            <div className="flex flex-col gap-6">
-                {sourceData.map((s, i) => (
-                    <div key={i} className="flex items-center gap-6">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-white shrink-0 border border-slate-700 shadow-xl"><s.icon size={20}/></div>
-                        <div className="flex-grow">
-                            <div className="flex justify-between mb-2">
-                                <span className="text-sm text-white font-bold">{s.label}</span>
-                                <span className="text-xs text-slate-400 font-mono">{s.count} unique hits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
-                            </div>
-                            <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
-                                <div className={`h-full ${s.color} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4 italic">Aggregating source metrics...</p>}
-            </div>
-        </div>
-        
-        {/* Collection Performing Products - Grid View */}
-        <div className="space-y-8">
-            <div className="flex justify-between items-end px-2">
-               <div>
-                  <h3 className="text-white font-bold text-2xl flex items-center gap-3">
-                     <TrendingUp size={24} className="text-primary"/> Collection Performance
-                  </h3>
-                  <p className="text-slate-500 text-xs mt-1">Ranking by total interaction volume.</p>
-               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-               {sortedProducts.slice(0, 12).map((p, i) => (
-                  <div key={i} className="bg-slate-900 rounded-[2rem] border border-slate-800 p-6 flex flex-col gap-6 group hover:border-primary/40 transition-all shadow-xl">
-                     <div className="flex items-start gap-4">
-                        <div className="relative w-20 h-20 shrink-0">
-                           <img src={p.media?.[0]?.url} className="w-full h-full object-cover rounded-2xl border border-slate-800 shadow-lg" />
-                           <div className="absolute -top-2 -left-2 w-8 h-8 bg-slate-800 border border-slate-700 text-primary rounded-xl flex items-center justify-center text-xs font-black shadow-2xl">
-                              #{i+1}
-                           </div>
-                        </div>
-                        <div className="min-w-0">
-                           <h4 className="text-white font-bold truncate group-hover:text-primary transition-colors">{p.name}</h4>
-                           <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{categories.find(c => c.id === p.categoryId)?.name}</span>
-                           <div className="mt-2 text-primary font-mono font-bold text-sm">R {p.price}</div>
-                        </div>
-                     </div>
-                     
-                     <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800/50">
-                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
-                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Impressions</span>
-                           <span className="text-white font-bold">{p.views.toLocaleString()}</span>
-                        </div>
-                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
-                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">CTR</span>
-                           <span className="text-primary font-bold">{p.ctr}%</span>
-                        </div>
-                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
-                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Clicks</span>
-                           <span className="text-white font-bold">{p.clicks.toLocaleString()}</span>
-                        </div>
-                        <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
-                           <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Social Rank</span>
-                           <span className="text-blue-400 font-bold">{((p as any).shares || 0).toLocaleString()}</span>
-                        </div>
-                     </div>
-                  </div>
-               ))}
-            </div>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-           <div className="bg-slate-900 p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800">
-              <h3 className="text-white font-bold mb-10 flex items-center gap-3"><LayoutPanelTop size={18} className="text-primary"/> Department Interest</h3>
-              <div className="space-y-6">
-                 {catStats.map((c, i) => (
-                   <div key={i} className="space-y-2"><div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400"><span>{c.name}</span><span>{c.views} views</span></div><div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full transition-all duration-1000 ease-out" style={{ width: `${(c.views / maxCatViews) * 100}%` }} /></div></div>
-                 ))}
+           <div className="space-y-2">
+              <h2 className="text-3xl font-serif text-white">Insights & Vitality</h2>
+              <p className="text-slate-400 text-sm">Real-time performance metrics and live engagement tracking.</p>
+           </div>
+           <div className="flex flex-wrap gap-8">
+              <div className="text-right">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Impressions</span>
+                <span className="text-3xl font-bold text-white">{totalViews.toLocaleString()}</span>
+              </div>
+              <div className="text-right border-l border-slate-800 pl-8">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Conversion Clicks</span>
+                <span className="text-3xl font-bold text-primary">{totalClicks.toLocaleString()}</span>
               </div>
            </div>
+        </div>
+
+        <AdminTip title="Advanced Live Analytics">
+          Your bridge page is currently processing traffic from <strong>{totalUniqueVisitors} unique nodes</strong>.
+          Peak engagement is detected around <strong>{peakHour}:00</strong>.
+          Impressions include total page loads, while clicks track direct interaction with affiliate links.
+        </AdminTip>
+        
+        {/* Core Metric Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+           {[
+             { label: 'Avg CTR', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
+             { label: 'Total Shares', value: totalShares, icon: Share2, color: 'text-blue-400' },
+             { label: 'Engagement Time', value: `${avgSessionTime}s`, icon: Timer, color: 'text-green-400' },
+             { label: 'Reviews Posted', value: products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
+           ].map((m, i) => (
+             <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 hover:border-white/10 transition-colors flex flex-col justify-between h-32 shadow-xl">
+                <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${m.color}`}><m.icon size={20}/></div>
+                <div><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">{m.label}</span><span className="text-xl font-bold text-white">{m.value}</span></div>
+             </div>
+           ))}
+        </div>
+
+        {/* Category Performance Matrix */}
+        <div className="space-y-6">
+           <h3 className="text-white font-bold text-2xl flex items-center gap-3 px-2">
+              <Layers size={24} className="text-primary"/> Department Performance Matrix
+           </h3>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             {categoryPerformance.map((cat, i) => {
+               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
+               return (
+                 <div key={i} className="bg-slate-900 rounded-[2rem] border border-slate-800 p-8 flex flex-col md:flex-row items-center gap-8 group hover:border-primary/40 transition-all">
+                   <div className="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center text-primary shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                      <Icon size={32} />
+                   </div>
+                   <div className="flex-grow w-full text-center md:text-left">
+                      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+                         <h4 className="text-white font-bold text-xl">{cat.name}</h4>
+                         <span className="text-primary font-mono font-bold text-sm">{cat.ctr}% Conversion</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                         <div>
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Views</span>
+                            <span className="text-white font-bold">{cat.views.toLocaleString()}</span>
+                         </div>
+                         <div>
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Clicks</span>
+                            <span className="text-white font-bold">{cat.clicks.toLocaleString()}</span>
+                         </div>
+                         <div>
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Shares</span>
+                            <span className="text-white font-bold">{cat.shares.toLocaleString()}</span>
+                         </div>
+                      </div>
+                      <div className="mt-6 w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                         <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${totalViews > 0 ? (cat.views / totalViews) * 100 : 0}%` }}></div>
+                      </div>
+                   </div>
+                 </div>
+               );
+             })}
+           </div>
+        </div>
+
+        {/* Traffic Heat Map (Hourly) */}
+        <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-800 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><Activity size={120} className="text-primary"/></div>
+            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
+            <div className="flex items-end gap-1 h-48 w-full border-b border-slate-800 pb-2">
+               {hourlyDistribution.map((count, i) => (
+                 <div key={i} className="flex-1 group relative">
+                    <div 
+                      className={`w-full ${i === peakHour ? 'bg-primary' : 'bg-slate-700 group-hover:bg-slate-500'} transition-all duration-500 rounded-t-lg`} 
+                      style={{ height: `${(count / maxHourly) * 100}%` }}
+                    ></div>
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-20">
+                      {count} Hits
+                    </div>
+                    <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-[8px] font-bold ${i % 3 === 0 ? 'text-slate-400' : 'text-transparent'}`}>
+                       {i}:00
+                    </div>
+                 </div>
+               ))}
+            </div>
+            <div className="mt-12 flex justify-between items-center px-2">
+               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Active Monitoring: Live Updates Every 2 Seconds</span>
+               <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2"><div className="w-2 h-2 bg-primary rounded-full"></div><span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Peak Traffic</span></div>
+                  <div className="flex items-center gap-2"><div className="w-2 h-2 bg-slate-700 rounded-full"></div><span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Average Load</span></div>
+               </div>
+            </div>
+        </div>
+
+        {/* Top Products Detailed Stats */}
+        <div className="space-y-6">
+           <h3 className="text-white font-bold text-2xl flex items-center gap-3 px-2">
+              <TrendingUp size={24} className="text-primary"/> Product Vitality Leaderboard
+           </h3>
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedProducts.slice(0, 12).map((p, i) => (
+                 <div key={i} className="bg-slate-900 rounded-[2rem] border border-slate-800 p-6 flex flex-col gap-6 group hover:border-primary/40 transition-all shadow-xl">
+                    <div className="flex items-start gap-4">
+                       <div className="relative w-20 h-20 shrink-0">
+                          <img src={p.media?.[0]?.url} className="w-full h-full object-cover rounded-2xl border border-slate-800 shadow-lg" />
+                          <div className="absolute -top-2 -left-2 w-8 h-8 bg-slate-800 border border-slate-700 text-primary rounded-xl flex items-center justify-center text-xs font-black shadow-2xl">#{i+1}</div>
+                       </div>
+                       <div className="min-w-0 flex-grow">
+                          <h4 className="text-white font-bold truncate group-hover:text-primary transition-colors">{p.name}</h4>
+                          <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest block">{categories.find(c => c.id === p.categoryId)?.name}</span>
+                          <div className="flex items-center gap-2 mt-2">
+                             <div className="flex gap-0.5 text-yellow-500"><Star size={10} fill="currentColor" /></div>
+                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{p.reviewCount} REVIEWS</span>
+                          </div>
+                       </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800/50">
+                       <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Impressions</span>
+                          <span className="text-white font-bold">{p.views.toLocaleString()}</span>
+                       </div>
+                       <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">CTR</span>
+                          <span className="text-primary font-bold">{p.ctr}%</span>
+                       </div>
+                       <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Clicks</span>
+                          <span className="text-white font-bold">{p.clicks.toLocaleString()}</span>
+                       </div>
+                       <div className="bg-slate-800/30 p-3 rounded-xl border border-slate-800">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Shares</span>
+                          <span className="text-blue-400 font-bold">{p.shares.toLocaleString()}</span>
+                       </div>
+                    </div>
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        {/* Traffic Origins & Sources */}
+        <div className="grid lg:grid-cols-2 gap-8">
+           <div className="bg-slate-900 p-8 md:p-12 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 shadow-xl">
+              <h3 className="text-white font-bold mb-10 flex items-center gap-3"><Globe size={18} className="text-primary"/> Traffic Origin (Referrals)</h3>
+              <div className="space-y-6">
+                 {sourceData.map((s, i) => (
+                    <div key={i} className="flex items-center gap-6">
+                       <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center text-white shrink-0 border border-slate-700 shadow-xl"><s.icon size={20}/></div>
+                       <div className="flex-grow">
+                          <div className="flex justify-between mb-2">
+                             <span className="text-sm text-white font-bold">{s.label}</span>
+                             <span className="text-xs text-slate-400 font-mono">{s.count} hits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
+                          </div>
+                          <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+                             <div className={`h-full ${s.color} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
+                          </div>
+                       </div>
+                    </div>
+                 ))}
+                 {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4 italic">Awaiting source data...</p>}
+              </div>
+           </div>
+           
+           {/* Summary Cards */}
            <div className="grid grid-cols-2 gap-6">
-              {[ { label: 'Avg. CTR', value: totalViews > 0 ? `${((totalClicks / totalViews) * 100).toFixed(1)}%` : '0%', icon: MousePointer2, color: 'text-primary' }, { label: 'Peak Interest', value: sortedProducts[0]?.name || 'N/A', icon: Star, color: 'text-yellow-500' }, { label: 'Retention', value: `${avgSessionTime}s`, icon: Timer, color: 'text-blue-500' }, { label: 'Hot Dept.', value: catStats[0]?.name || 'N/A', icon: LayoutGrid, color: 'text-purple-500' } ].map((m, i) => (
-                <div key={i} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-800 flex flex-col justify-between hover:border-white/10 transition-colors"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${m.color}`}><m.icon size={20}/></div><div className="mt-6"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">{m.label}</span><span className="text-lg font-bold text-white truncate block">{m.value}</span></div></div>
+              {[
+                { label: 'Network Health', value: connectionHealth?.status === 'online' ? 'Excellent' : 'Degraded', icon: Wifi, color: 'text-green-500' },
+                { label: 'Sync Latency', value: `${connectionHealth?.latency || 0}ms`, icon: ActivityIcon, color: 'text-blue-500' },
+                { label: 'Active Sessions', value: totalUniqueVisitors, icon: Users, color: 'text-purple-500' },
+                { label: 'Database Node', value: isSupabaseConfigured ? 'AWS / Cape Town' : 'Local Host', icon: Server, color: 'text-primary' }
+              ].map((m, i) => (
+                <div key={i} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800 flex flex-col justify-between hover:bg-slate-800 transition-all group">
+                   <div className={`w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center ${m.color} group-hover:scale-110 transition-transform`}><m.icon size={24}/></div>
+                   <div className="mt-8 text-left">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">{m.label}</span>
+                      <span className="text-lg font-bold text-white block truncate">{m.value}</span>
+                   </div>
+                </div>
               ))}
            </div>
         </div>
@@ -1162,9 +1066,7 @@ const Admin: React.FC = () => {
       {showProductForm ? (
         <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
           <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
-          <AdminTip title="Inventory Deployment">
-             Optimize your listing with detailed specifications and high-res media. The 'Highlights' section powers the shoppable bridge features.
-          </AdminTip>
+          <AdminTip title="Inventory Deployment">Optimize your listing with detailed specifications and high-res media. The 'Highlights' section powers the shoppable bridge features.</AdminTip>
           <div className="grid md:grid-cols-2 gap-8">
              <div className="space-y-6"><SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} /><SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} /><SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" /><SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} /></div>
              <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="textarea" /></div>
@@ -1173,16 +1075,14 @@ const Admin: React.FC = () => {
               <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight (e.g. '100% Silk')" value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
               <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Tag size={18} className="text-primary"/> Specifications</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Key (e.g. Material)" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="w-1/3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" /><input type="text" placeholder="Value (e.g. Silk)" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddSpec()} /><button onClick={handleAddSpec} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{Object.entries(productData.specifications || {}).map(([key, value]) => (<div key={key} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="flex flex-col"><span className="text-[10px] font-black uppercase text-slate-500">{key}</span><span className="text-sm text-slate-300">{value}</span></div><button onClick={() => handleRemoveSpec(key)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
           </div>
-          <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
-          <div className="pt-8 border-t border-slate-800"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex flex-col md:flex-row gap-4 md:items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-full md:w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-full md:w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
+          <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
+          <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex flex-col md:flex-row gap-4 md:items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-full md:w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-full md:w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
           <div className="flex flex-col md:flex-row gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
         </div>
       ) : (
         <>
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Catalog</h2><p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p></div><button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> Add Product</button></div>
-          <AdminTip title="Inventory Management">
-             Filter by department or keyword. Use the megaphone icon to generate shareable social assets instantly.
-          </AdminTip>
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Catalog</h2><p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p></div><button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> Add Product</button></div>
+          <AdminTip title="Inventory Management">Filter by department or keyword. Use the megaphone icon to generate shareable social assets instantly.</AdminTip>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
              <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search by name..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
              <div className="relative min-w-[200px]"><Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><select value={productCatFilter} onChange={e => setProductCatFilter(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"><option value="all">All Departments</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} /></div>
@@ -1190,7 +1090,7 @@ const Admin: React.FC = () => {
           <div className="grid gap-4">
             {displayProducts.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) && (productCatFilter === 'all' || p.categoryId === productCatFilter)).map(p => (
               <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
-                <div className="flex items-center gap-6 min-w-0"><div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4><div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span><span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">• {categories.find(c => c.id === p.categoryId)?.name}</span></div></div></div>
+                <div className="flex items-center gap-6 min-w-0 text-left"><div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4><div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span><span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">• {categories.find(c => c.id === p.categoryId)?.name}</span></div></div></div>
                 <div className="flex gap-2 w-full md:w-auto flex-shrink-0"><button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button><button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button><button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button></div>
               </div>
             ))}
@@ -1202,20 +1102,13 @@ const Admin: React.FC = () => {
 
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
-        <AdminTip title="Hero Master Visuals">
-          Set the tone for your bridge page with cinematic hero visuals. Videos increase dwell time by up to 40%.
-        </AdminTip>
+        <AdminTip title="Hero Master Visuals">Set the tone for your bridge page with cinematic hero visuals. Videos increase dwell time by up to 40%.</AdminTip>
         {showHeroForm ? ( 
            <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-6">
               <div className="grid md:grid-cols-2 gap-6"><SettingField label="Title" value={heroData.title || ''} onChange={v => setHeroData({...heroData, title: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={heroData.type} onChange={e => setHeroData({...heroData, type: e.target.value as any})}><option value="image">Image</option><option value="video">Video</option></select></div></div>
               <SettingField label="Subtitle" value={heroData.subtitle || ''} onChange={v => setHeroData({...heroData, subtitle: v})} type="textarea" />
               <SettingField label="Button Label" value={heroData.cta || ''} onChange={v => setHeroData({...heroData, cta: v})} />
-              <SingleImageUploader 
-                label="Media Asset" 
-                value={heroData.image || ''} 
-                onChange={v => setHeroData({...heroData, image: v})} 
-                accept={heroData.type === 'video' ? "video/*" : "image/*"}
-              />
+              <SingleImageUploader label="Media Asset" value={heroData.image || ''} onChange={v => setHeroData({...heroData, image: v})} accept={heroData.type === 'video' ? "video/*" : "image/*"} />
               <div className="flex gap-4"><button onClick={handleSaveHero} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Slide</button><button onClick={() => setShowHeroForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
            </div> 
         ) : ( 
@@ -1236,10 +1129,8 @@ const Admin: React.FC = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
        {showCategoryForm ? (
           <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-8">
-             <AdminTip title="Department Structuring">
-               Define your niches. Departments categorize your curations into logical shopping flows for the end user.
-             </AdminTip>
-             <div className="grid md:grid-cols-2 gap-8">
+             <AdminTip title="Department Structuring">Define your niches. Departments categorize your curations into logical shopping flows for the end user.</AdminTip>
+             <div className="grid md:grid-cols-2 gap-8 text-left">
                 <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
                 <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
              </div>
@@ -1247,9 +1138,7 @@ const Admin: React.FC = () => {
           </div>
        ) : (
           <>
-            <AdminTip title="Collections Navigation">
-              Each department acts as a portal. Use high-fashion imagery to attract attention to specific collections.
-            </AdminTip>
+            <AdminTip title="Collections Navigation">Each department acts as a portal. Use high-fashion imagery to attract attention to specific collections.</AdminTip>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
                {displayCategories.map(c => (
@@ -1266,15 +1155,12 @@ const Admin: React.FC = () => {
 
   const renderTeam = () => (
      <div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison Staffing</h2><p className="text-slate-400 text-sm mt-2">Roles and permissions for collaborative curation.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison Staffing</h2><p className="text-slate-400 text-sm mt-2">Roles and permissions for collaborative curation.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
         {showAdminForm ? (
-           <div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-12">
+           <div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-12 text-left">
               <div className="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl flex items-start gap-4">
                  <div className="p-2 bg-blue-500/20 rounded-full text-blue-400"><Info size={20}/></div>
-                 <div>
-                    <h4 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">Identity Sync</h4>
-                    <p className="text-slate-400 text-xs leading-relaxed"> Ensure the email matches the Supabase Auth identity exactly. </p>
-                 </div>
+                 <div><h4 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">Identity Sync</h4><p className="text-slate-400 text-xs leading-relaxed">Ensure the email matches the Supabase Auth identity exactly.</p></div>
               </div>
               <div className="grid md:grid-cols-2 gap-12">
                  <div className="space-y-6">
@@ -1282,35 +1168,26 @@ const Admin: React.FC = () => {
                     <SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} />
                     <SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} />
                     <SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" />
-                    
                     <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
-                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed"> Manage passkeys via the Supabase cloud dashboard. </p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
+                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed">Manage passkeys via the Supabase cloud dashboard.</p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
                  </div>
-                 <div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
+                 <div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
            </div>
         ) : (
            <>
-             <AdminTip title="Role Management">
-                Manage your staff here. Only Owners can delete other members or factory reset the system.
-             </AdminTip>
+             <AdminTip title="Role Management">Manage your staff here. Only Owners can delete other members or factory reset the system.</AdminTip>
              <div className="grid gap-6">
                {admins.map(a => {
                  const isCurrentUser = user && (a.id === user.id || a.email === user.email);
                  return (
                  <div key={a.id} className={`bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group ${isCurrentUser ? 'border-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
                    <div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0">
-                      <div className="relative flex-shrink-0">
-                        <div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>
-                        {isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}
-                      </div>
+                      <div className="relative flex-shrink-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>{isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}</div>
                       <div className="space-y-2 flex-grow text-center md:text-left min-w-0">
-                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start">
-                          <h4 className="text-white text-xl font-bold break-words">{a.name}</h4>
-                          <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${a.role === 'owner' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400'}`}>{a.role}</span>
-                        </div>
+                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${a.role === 'owner' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400'}`}>{a.role}</span></div>
                         <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm break-words"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div>
                         <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.role === 'owner' ? 'Full System' : `${a.permissions.length} modules`}</span></div>
                       </div>
@@ -1326,95 +1203,37 @@ const Admin: React.FC = () => {
   );
 
   const renderTraining = () => (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-         <div className="space-y-2">
-           <h2 className="text-3xl font-serif text-white">Academy</h2>
-           <p className="text-slate-400 text-sm">Curation marketing mastery across {TRAINING_MODULES.length} channels.</p>
-         </div>
-         <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2">
-            <Video size={16}/> Mastering the Algorithm
-         </a>
+         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Academy</h2><p className="text-slate-400 text-sm">Curation marketing mastery across {TRAINING_MODULES.length} channels.</p></div>
+         <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2"><Video size={16}/> Mastering the Algorithm</a>
       </div>
-
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {TRAINING_MODULES.map((module) => {
           const isExpanded = expandedTraining === module.id;
           const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
-          
           return (
-            <div 
-              key={module.id} 
-              className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}
-            >
-              <button 
-                onClick={() => setExpandedTraining(isExpanded ? null : module.id)}
-                className="w-full p-6 md:p-8 flex items-start text-left group h-full"
-              >
+            <div key={module.id} className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}>
+              <button onClick={() => setExpandedTraining(isExpanded ? null : module.id)} className="w-full p-6 md:p-8 flex items-start text-left group h-full">
                  <div className="flex items-start gap-4 md:gap-6 w-full">
-                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${
-                      module.platform === 'Pinterest' ? 'bg-red-600' : 
-                      module.platform === 'TikTok' ? 'bg-black border border-slate-700' :
-                      module.platform === 'Instagram' ? 'bg-pink-600' :
-                      module.platform === 'WhatsApp' ? 'bg-green-500' : 
-                      module.platform === 'SEO' ? 'bg-blue-600' :
-                      'bg-slate-800 text-slate-300'
-                    }`}>
-                      <Icon size={28} />
-                    </div>
-                    <div className="flex-grow min-w-0">
-                      <div className="flex justify-between items-start">
-                         <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>
-                         {!isExpanded && <ChevronDown size={20} className="text-slate-500 mt-1" />}
-                      </div>
-                      <p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>
-                      {!isExpanded && (
-                         <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                            View Training <ArrowRight size={12}/>
-                         </div>
-                      )}
-                    </div>
+                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${module.platform === 'Pinterest' ? 'bg-red-600' : module.platform === 'TikTok' ? 'bg-black border border-slate-700' : module.platform === 'Instagram' ? 'bg-pink-600' : module.platform === 'WhatsApp' ? 'bg-green-500' : module.platform === 'SEO' ? 'bg-blue-600' : 'bg-slate-800 text-slate-300'}`}><Icon size={28} /></div>
+                    <div className="flex-grow min-w-0"><div className="flex justify-between items-start"><h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>{!isExpanded && <ChevronDown size={20} className="text-slate-500 mt-1" />}</div><p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>{!isExpanded && (<div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">View Training <ArrowRight size={12}/></div>)}</div>
                  </div>
               </button>
-
               {isExpanded && (
                 <div className="px-6 md:px-10 pb-10 pt-0 animate-in fade-in">
                   <div className="w-full h-px bg-slate-800 mb-8"></div>
                   <div className="grid md:grid-cols-2 gap-10">
                     <div className="space-y-6">
-                      <div className="flex items-center gap-3">
-                         <div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div>
-                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4>
-                      </div>
-                      <ul className="space-y-4">
-                        {module.strategies.map((strat, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div>
-                            <span className="leading-relaxed">{strat}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4></div>
+                      <ul className="space-y-4">{module.strategies.map((strat, idx) => (<li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div><span className="leading-relaxed">{strat}</span></li>))}</ul>
                     </div>
                     <div className="space-y-6">
-                      <div className="flex items-center gap-3">
-                         <div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div>
-                         <h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4>
-                      </div>
-                      <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">
-                        {module.actionItems.map((item, idx) => (
-                          <div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer">
-                            <div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div>
-                            <span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span>
-                          </div>
-                        ))}
-                      </div>
+                      <div className="flex items-center gap-3"><div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4></div>
+                      <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">{module.actionItems.map((item, idx) => (<div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer"><div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div><span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span></div>))}</div>
                     </div>
                   </div>
-                  <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end">
-                     <button onClick={() => setExpandedTraining(null)} className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">
-                        Complete Session
-                     </button>
-                  </div>
+                  <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end"><button onClick={() => setExpandedTraining(null)} className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">Complete Session</button></div>
                 </div>
               )}
             </div>
@@ -1425,71 +1244,26 @@ const Admin: React.FC = () => {
   );
 
   const renderSystem = () => {
-    const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     const visitorLogs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
     return (
      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
-        <AdminTip title="Core Infrastructure Monitoring">
-          Your bridge page is linked to a high-performance Supabase backend. All read/write operations are synchronized in real-time.
-        </AdminTip>
-        
-        {/* Metrics Grid */}
+        <AdminTip title="Core Infrastructure Monitoring">Your bridge page is linked to a high-performance Supabase backend. All read/write operations are synchronized in real-time.</AdminTip>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[ 
-            { label: 'Cloud Uptime', value: '100%', icon: Activity, color: 'text-green-500' }, 
-            { label: 'Supabase DB', value: isSupabaseConfigured ? 'Synchronized' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, 
-            { label: 'Data Registry', value: isSupabaseConfigured ? 'Cloud' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, 
-            { label: 'Total Traffic', value: visitorLogs.length.toLocaleString(), icon: TrendingUp, color: 'text-purple-500' } 
-          ].map((item, i) => (
-            <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}>
-                <item.icon size={20}/>
-              </div>
-              <div className="min-w-0">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block truncate">{item.label}</span>
-                <span className="text-base font-bold text-white truncate block">{item.value}</span>
-              </div>
-            </div>
+          {[ { label: 'Cloud Uptime', value: '100%', icon: Activity, color: 'text-green-500' }, { label: 'Supabase DB', value: isSupabaseConfigured ? 'Synchronized' : 'Offline', icon: Database, color: isSupabaseConfigured ? 'text-primary' : 'text-slate-600' }, { label: 'Data Registry', value: isSupabaseConfigured ? 'Cloud' : 'Local', icon: UploadCloud, color: 'text-blue-500' }, { label: 'Total Traffic', value: visitorLogs.length.toLocaleString(), icon: TrendingUp, color: 'text-purple-500' } ].map((item, i) => (
+            <div key={i} className="bg-slate-900/50 p-6 rounded-[2rem] border border-slate-800 flex items-center gap-4 text-left"><div className={`w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center ${item.color} flex-shrink-0`}><item.icon size={20}/></div><div className="min-w-0"><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block truncate">{item.label}</span><span className="text-base font-bold text-white truncate block">{item.value}</span></div></div>
           ))}
         </div>
-
-        {/* Real Live Traffic Component */}
         <TrafficAreaChart stats={stats} />
-
-        <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden">
+        <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left">
            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-white font-bold text-xl flex items-center gap-3">
-                 <Terminal size={24} className="text-red-500"/> Real-time Exception Logs
-              </h3>
-              <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                 <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Active Watch</span>
-              </div>
+              <h3 className="text-white font-bold text-xl flex items-center gap-3"><Terminal size={24} className="text-red-500"/> Real-time Exception Logs</h3>
+              <div className="flex items-center gap-2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div><span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Active Watch</span></div>
            </div>
-           
            <div className="bg-black rounded-xl border border-slate-800 p-4 h-64 overflow-y-auto custom-scrollbar font-mono text-xs">
-              {errorLogs.length > 0 ? (
-                 errorLogs.map((err, i) => (
-                    <div key={i} className="mb-3 border-b border-slate-900 pb-2 last:border-0">
-                       <div className="flex items-center gap-2 mb-1">
-                          <span className="text-slate-500">[{err.timestamp}]</span>
-                          <span className="text-red-500 font-bold">ERROR</span>
-                       </div>
-                       <div className="text-slate-300 break-words pl-4">{err.message}</div>
-                       {err.source && <div className="text-slate-600 pl-4 mt-1">{err.source}:{err.lineno}</div>}
-                    </div>
-                 ))
-              ) : (
-                 <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
-                    <Activity size={32} className="mb-2"/>
-                    <span>System Nominal. No exceptions recorded.</span>
-                 </div>
-              )}
+              {errorLogs.length > 0 ? ( errorLogs.map((err, i) => (<div key={i} className="mb-3 border-b border-slate-900 pb-2 last:border-0"><div className="flex items-center gap-2 mb-1"><span className="text-slate-500">[{err.timestamp}]</span><span className="text-red-500 font-bold">ERROR</span></div><div className="text-slate-300 break-words pl-4">{err.message}</div>{err.source && <div className="text-slate-600 pl-4 mt-1">{err.source}:{err.lineno}</div>}</div>)) ) : ( <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50"><Activity size={32} className="mb-2"/><span>System Nominal. No exceptions recorded.</span></div> )}
            </div>
         </div>
-        
-        {/* Data Snapshots */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 text-left">
            <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4">
               <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Catalog Export</h3>
               <p className="text-slate-500 text-xs leading-relaxed">Save a complete snapshot of all products, settings, and analytical data to JSON.</p>
@@ -1509,40 +1283,27 @@ const Admin: React.FC = () => {
      <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
         <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
             <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
-            <div className="max-w-3xl relative z-10">
-                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30">
-                    <Zap size={14}/> Launch Protocol
-                </div>
-                <h2 className="text-3xl sm:text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none break-words">
-                    Architecture <span className="text-primary italic font-light lowercase">Blueprint</span>
-                </h2>
-                <p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed max-w-full">
-                    Complete the following milestones to transition from local prototype to a fully-synced global luxury bridge page.
-                </p>
+            <div className="max-w-3xl relative z-10 text-left">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30"><Zap size={14}/> Launch Protocol</div>
+                <h2 className="text-3xl sm:text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none break-words">Architecture <span className="text-primary italic font-light lowercase">Blueprint</span></h2>
+                <p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed max-w-full">Complete the following milestones to transition from local prototype to a fully-synced global luxury bridge page.</p>
             </div>
         </div>
-        
-        <div className="grid gap-16 md:gap-32">
+        <div className="grid gap-16 md:gap-32 text-left">
             {GUIDE_STEPS.map((step, idx) => (
                 <div key={step.id} className="relative flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-20">
-                    
-                    {/* Number Column */}
                     <div className="md:col-span-1 flex flex-row md:flex-col items-center gap-4 md:gap-0">
-                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl sticky md:top-32 static shrink-0">
-                            {idx + 1}
-                        </div>
+                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl sticky md:top-32 static shrink-0">{idx + 1}</div>
                         <div className="md:hidden text-lg font-bold text-white">Step {idx + 1}</div>
                         <div className="hidden md:block flex-grow w-0.5 bg-gradient-to-b from-slate-800 to-transparent my-4" />
                     </div>
-
-                    {/* Content Column */}
-                    <div className="md:col-span-7 space-y-6 md:space-y-10 min-w-0">
-                        <div className="space-y-4">
+                    <div className="md:col-span-7 space-y-6 md:space-y-10 min-w-0 text-left">
+                        <div className="space-y-4 text-left">
                             <h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{step.title}</h3>
                             <p className="text-slate-400 text-sm md:text-lg leading-relaxed">{step.description}</p>
                         </div>
                         {step.subSteps && (
-                            <div className="grid gap-4">
+                            <div className="grid gap-4 text-left">
                                 {step.subSteps.map((sub, i) => (
                                     <div key={i} className="flex items-start gap-4 p-4 md:p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
                                         <CheckCircle size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
@@ -1553,11 +1314,7 @@ const Admin: React.FC = () => {
                         )}
                         {step.code && (<CodeBlock code={step.code} label={step.codeLabel} />)}
                     </div>
-
-                    {/* Illustration Column */}
-                    <div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0">
-                        <GuideIllustration id={step.illustrationId} />
-                    </div>
+                    <div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0"><GuideIllustration id={step.illustrationId} /></div>
                 </div>
             ))}
         </div>
@@ -1565,11 +1322,9 @@ const Admin: React.FC = () => {
   );
 
   const renderSiteEditor = () => (
-     <div className="space-y-6 w-full max-w-7xl mx-auto">
-       <AdminTip title="Canvas Editor">
-          Control your site's visual identity. Publishing changes here will synchronize with Supabase and update for all visitors.
-       </AdminTip>
-       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+     <div className="space-y-6 w-full max-w-7xl mx-auto text-left">
+       <AdminTip title="Canvas Editor">Control your site's visual identity. Publishing changes here will synchronize with Supabase and update for all visitors.</AdminTip>
+       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
           {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
             <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
                <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
@@ -1583,14 +1338,12 @@ const Admin: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
       <style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style>
-      
       <SaveIndicator status={saveStatus} />
-
       {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
       {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
 
       <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
-        <div className="flex flex-col gap-6"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
+        <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
         <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
             {[ { id: 'enquiries', label: 'Inbox', icon: Inbox }, { id: 'analytics', label: 'Insights', icon: BarChart3 }, { id: 'catalog', label: 'Items', icon: ShoppingBag }, { id: 'hero', label: 'Visuals', icon: LayoutPanelTop }, { id: 'categories', label: 'Depts', icon: Layout }, { id: 'site_editor', label: 'Canvas', icon: Palette }, { id: 'team', label: 'Maison', icon: Users }, { id: 'training', label: 'Training', icon: GraduationCap }, { id: 'system', label: 'System', icon: Activity }, { id: 'guide', label: 'Pilot', icon: Rocket } ].map(tab => (
@@ -1601,7 +1354,7 @@ const Admin: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden">
+      <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
         {activeTab === 'enquiries' && renderEnquiries()}
         {activeTab === 'analytics' && renderAnalytics()}
         {activeTab === 'catalog' && renderCatalog()}
@@ -1614,11 +1367,9 @@ const Admin: React.FC = () => {
         {activeTab === 'guide' && renderGuide()}
       </main>
 
-      {/* Editor Drawer */}
       {editorDrawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
-             {/* Header */}
              <div className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
                 <div>
                   <h3 className="text-3xl font-serif text-white mb-2">
@@ -1633,217 +1384,63 @@ const Admin: React.FC = () => {
                   </h3>
                   <p className="text-slate-500 text-sm">Real-time configuration.</p>
                 </div>
-                <button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800">
-                   <X size={24} />
-                </button>
+                <button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800"><X size={24} /></button>
              </div>
-             
-             {/* Form Content */}
-             <div className="space-y-8">
+             <div className="space-y-8 text-left">
                {activeEditorSection === 'brand' && (
                  <>
-                   <div className="space-y-6">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4>
-                      <SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} />
-                      <SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} />
-                   </div>
-                   <div className="space-y-6">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4>
-                      <div className="grid grid-cols-2 gap-6">
-                         <SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} />
-                         <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} />
-                      </div>
-                   </div>
-                   <div className="space-y-6">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4>
-                      <div className="grid grid-cols-3 gap-4">
-                         <SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" />
-                         <SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" />
-                         <SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" />
-                      </div>
-                   </div>
+                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} /><SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} /></div>
+                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4><div className="grid grid-cols-2 gap-6"><SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} /></div></div>
+                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" /><SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" /><SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" /></div></div>
                  </>
                )}
-               
                {activeEditorSection === 'nav' && (
-                  <>
-                     <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
-                     <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} />
-                     <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} />
-                     <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
-                     <div className="pt-6 border-t border-slate-800">
-                        <SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" />
-                        <div className="mt-4">
-                           <SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} />
-                        </div>
-                     </div>
-                  </>
+                  <><SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} /><SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} /><SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} /><SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} /><div className="pt-6 border-t border-slate-800"><SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" /><div className="mt-4"><SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} /></div></div></>
                )}
-
                {activeEditorSection === 'home' && (
-                  <>
-                     <SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} />
-                     <div className="pt-6 border-t border-slate-800 space-y-6">
-                        <h4 className="text-white font-bold">About Section</h4>
-                        <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} />
-                        <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" />
-                        <SingleImageUploader label="Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} />
-                        <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} />
-                     </div>
-                     <div className="pt-6 border-t border-slate-800 space-y-6">
-                        <h4 className="text-white font-bold">Trust Signals</h4>
-                        <div className="grid grid-cols-1 gap-4">
-                           <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                              <SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} />
-                              <SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} />
-                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
-                              <IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} />
-                           </div>
-                           <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                              <SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} />
-                              <SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} />
-                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
-                              <IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} />
-                           </div>
-                           <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                              <SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} />
-                              <SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} />
-                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
-                              <IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} />
-                           </div>
-                        </div>
-                     </div>
-                  </>
+                  <><SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} /><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} /><SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" /><SingleImageUploader label="Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} /></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Trust Signals</h4><div className="grid grid-cols-1 gap-4"><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} /><SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} /><SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} /><SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} /></div></div></div></>
                )}
-
                {activeEditorSection === 'collections' && (
-                  <>
-                     <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
-                     <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
-                     <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: v[0] || '' })} />
-                     <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
-                  </>
+                  <><SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" /><MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: v[0] || '' })} /><SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} /></>
                )}
-
                {activeEditorSection === 'about' && (
-                  <>
-                     <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
-                     <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
-                     <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
-                     <div className="grid grid-cols-3 gap-4">
-                        <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
-                        <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
-                        <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
-                     </div>
-                     <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
-                     <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
-                     <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
-                     
-                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
-                     <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
-                     <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
-                     <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
-                     <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
-                     <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
-                     <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
-                     
-                     <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
-                  </>
+                  <><SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" /><SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} /><div className="grid grid-cols-3 gap-4"><SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} /><SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} /><SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} /></div><SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} /><SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} /><SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" /><h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4><SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} /><SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" /><SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} /><SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" /><SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} /><SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" /><MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} /></>
                )}
-
                {activeEditorSection === 'contact' && (
-                  <>
-                     <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} />
-                     <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" />
-                     <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} />
-                        <SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} />
-                     </div>
-                     <SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} />
-                     <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" />
-                     
-                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4>
-                     <SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} />
-                     
-                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Social Media</h4>
-                     <SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} />
-                  </>
+                  <><SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" /><div className="grid grid-cols-2 gap-4"><SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} /><SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} /></div><SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} /><SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" /><h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4><SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} /><h4 className="text-white font-bold border-t border-slate-800 pt-6">Social Media</h4><SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} /></>
                )}
-
                {activeEditorSection === 'legal' && (
-                  <>
-                     <div className="space-y-6">
-                        <SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
-                        <SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} />
-                     </div>
-                     <div className="space-y-6 pt-6 border-t border-slate-800">
-                        <SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
-                        <SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} />
-                     </div>
-                     <div className="space-y-6 pt-6 border-t border-slate-800">
-                        <SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
-                        <SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} />
-                     </div>
-                  </>
+                  <><div className="space-y-6"><SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} /><SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} /><SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} /><SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} /></div></>
                )}
-
                {activeEditorSection === 'integrations' && (
-                  <>
-                     <IntegrationGuide />
-                     <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4>
-                        <div className="space-y-4">
-                           <SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} />
-                           <SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} />
-                           <SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} />
-                        </div>
-                     </div>
-                     <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4>
-                        <div className="space-y-4">
-                           <SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
-                           <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
-                           <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
-                           <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
-                        </div>
-                     </div>
-                  </>
+                  <><IntegrationGuide /><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4><div className="space-y-4"><SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} /><SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} /><SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} /></div></div><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4><div className="space-y-4"><SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} /><SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} /><SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} /><SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} /></div></div></>
                )}
              </div>
-
-             {/* Footer Actions */}
-             <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4">
-                <button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button>
-                <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-colors shadow-lg shadow-primary/20">Publish Changes</button>
-             </div>
+             <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4"><button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-colors shadow-lg shadow-primary/20">Publish Changes</button></div>
           </div>
         </div>
       )}
 
-      {/* Connection Status Footer */}
       <footer className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/80 backdrop-blur-md border-t border-white/5 py-4 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-widest">
            <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-green-500' : 'bg-slate-600'}`}></div>
+                 <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-slate-600'}`}></div>
                  <span className="text-slate-500">Supabase: <span className={isSupabaseConfigured ? 'text-green-500' : 'text-slate-400'}>{isSupabaseConfigured ? 'Synced' : 'Local'}</span></span>
               </div>
               <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                 <div className={`w-2 h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]' : 'bg-red-500 animate-ping shadow-[0_0_8px_#ef4444]'}`}></div>
                  <span className="text-slate-500">Latency: <span className="text-white">{connectionHealth?.latency || 0}ms</span></span>
               </div>
            </div>
-           
            <div className="flex items-center gap-6">
               <span className="text-slate-600">Session ID: <span className="text-white font-mono">{userId?.substring(0, 8) || 'LOCAL'}</span></span>
               <button onClick={() => refreshAllData()} className="flex items-center gap-2 text-primary hover:text-white transition-colors">
-                 <RefreshCcw size={12} className={saveStatus === 'saving' ? 'animate-spin' : ''} />
-                 Force Resync
+                 <RefreshCcw size={12} className={saveStatus === 'saving' ? 'animate-spin' : ''} /> Force Resync
               </button>
            </div>
-           
            <div className="flex items-center gap-2">
-              <span className="text-slate-600">Maison Portal v2.5.4</span>
+              <span className="text-slate-600">Maison Portal v2.5.5</span>
               <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
               <span className="text-slate-500">100% Secure Handshake</span>
            </div>

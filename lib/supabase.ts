@@ -1,18 +1,12 @@
-
 import { createClient } from '@supabase/supabase-js';
 
-// Robust environment variable detection
-const getEnv = (key: string) => {
-  return (import.meta as any).env?.[key] || (process as any).env?.[key] || '';
-};
-
-const rawUrl = getEnv('VITE_SUPABASE_URL');
-const rawKey = getEnv('VITE_SUPABASE_ANON_KEY');
+const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
+const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co') && supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
@@ -33,7 +27,6 @@ export async function syncLocalToCloud(table: string, data: any[]) {
  */
 export async function fetchTableData(table: string) {
   if (!isSupabaseConfigured) {
-    // Return local storage fallback if no cloud is connected
     const local = localStorage.getItem(`admin_${table}`);
     if (table === 'settings') {
         const s = localStorage.getItem('site_settings');
@@ -41,15 +34,12 @@ export async function fetchTableData(table: string) {
     }
     return local ? JSON.parse(local) : [];
   }
-  
-  try {
-    const { data, error } = await supabase.from(table).select('*');
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
+  const { data, error } = await supabase.from(table).select('*');
+  if (error) {
     console.error(`Fetch error for ${table}:`, error);
-    throw error; // Let the caller handle the catch
+    return [];
   }
+  return data || [];
 }
 
 /**
@@ -101,17 +91,22 @@ export async function uploadMedia(file: File, bucket = 'media') {
 
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
   if (!isSupabaseConfigured) {
-    return { status: 'offline', latency: 0, message: 'Local Mode: No Cloud Credentials' };
+    return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
   }
   
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
   const start = performance.now();
   try {
     const { error } = await supabase.from('settings').select('companyName').limit(1);
     const end = performance.now();
+    clearTimeout(timeoutId);
     if (error) throw error;
-    return { status: 'online', latency: Math.round(end - start), message: 'Cloud Connected' };
-  } catch (err) {
-    return { status: 'offline', latency: 0, message: 'Connection Timeout' };
+    return { status: 'online', latency: Math.round(end - start), message: 'Supabase Sync Active' };
+  } catch (err: any) {
+    console.warn("Connection check failed:", err.message);
+    return { status: 'offline', latency: 0, message: 'Cloud connection failed' };
   }
 }
 

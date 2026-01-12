@@ -82,13 +82,18 @@
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>
-      // Clean Service Worker registration to avoid 404s and CSP issues
+      // Clean Service Worker registration with enhanced path detection
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          const swPath = window.location.hostname === 'localhost' ? '/sw.js' : './sw.js';
-          navigator.serviceWorker.register(swPath)
+          // Detect actual base path to prevent 404s in subdirectories or Vercel deployments
+          const scriptUrl = '/sw.js';
+          navigator.serviceWorker.register(scriptUrl)
             .then(reg => console.log('SW active:', reg.scope))
-            .catch(err => console.debug('Offline mode limited:', err.message));
+            .catch(err => {
+               // Fallback for relative path environments
+               navigator.serviceWorker.register('./sw.js')
+                 .catch(err2 => console.debug('Offline mode limited:', err2.message));
+            });
         });
       }
     </script>

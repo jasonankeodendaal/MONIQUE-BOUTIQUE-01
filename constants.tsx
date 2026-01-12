@@ -29,21 +29,258 @@ export const EMAIL_TEMPLATE_HTML = `
   </html>
 `;
 
-// GUIDE_STEPS added to fix import error in Admin.tsx
 export const GUIDE_STEPS = [
   {
-    id: 'forge',
-    title: 'Cloud Synchronization',
-    description: 'Connect your local curation engine to a global Supabase backend for real-time inventory management and user tracking.',
+    id: 'database',
+    title: 'Database & Schema Engine',
+    description: 'The foundation of your Maison. Execute this SQL script in your Supabase SQL Editor to create the necessary tables for products, inquiries, and site settings.',
     illustrationId: 'forge',
     subSteps: [
-      'Create a free Supabase project at supabase.com',
-      'Go to Project Settings > API and copy the Project URL and Anon Key',
-      'Create a .env file in your root directory',
-      'Restart your development server to sync'
+      'Navigate to the "SQL Editor" tab in your Supabase Dashboard.',
+      'Click "New Query" and paste the provided SQL block.',
+      'Click "Run" to initialize all 8 core tables.',
+      'Verify tables appear in the "Table Editor" sidebar.'
     ],
-    code: 'VITE_SUPABASE_URL=your_project_url\nVITE_SUPABASE_ANON_KEY=your_anon_key',
+    code: `-- 1. Site Settings Table
+CREATE TABLE IF NOT EXISTS settings (
+  id TEXT PRIMARY KEY,
+  "companyName" TEXT,
+  slogan TEXT,
+  "companyLogo" TEXT,
+  "companyLogoUrl" TEXT,
+  "primaryColor" TEXT,
+  "secondaryColor" TEXT,
+  "accentColor" TEXT,
+  "navHomeLabel" TEXT,
+  "navProductsLabel" TEXT,
+  "navAboutLabel" TEXT,
+  "navContactLabel" TEXT,
+  "navDashboardLabel" TEXT,
+  "contactEmail" TEXT,
+  "contactPhone" TEXT,
+  "whatsappNumber" TEXT,
+  address TEXT,
+  "socialLinks" JSONB,
+  "footerDescription" TEXT,
+  "footerCopyrightText" TEXT,
+  "homeHeroBadge" TEXT,
+  "homeAboutTitle" TEXT,
+  "homeAboutDescription" TEXT,
+  "homeAboutImage" TEXT,
+  "homeAboutCta" TEXT,
+  "homeCategorySectionTitle" TEXT,
+  "homeCategorySectionSubtitle" TEXT,
+  "homeTrustSectionTitle" TEXT,
+  "homeTrustItem1Title" TEXT,
+  "homeTrustItem1Desc" TEXT,
+  "homeTrustItem1Icon" TEXT,
+  "homeTrustItem2Title" TEXT,
+  "homeTrustItem2Desc" TEXT,
+  "homeTrustItem2Icon" TEXT,
+  "homeTrustItem3Title" TEXT,
+  "homeTrustItem3Desc" TEXT,
+  "homeTrustItem3Icon" TEXT,
+  "productsHeroTitle" TEXT,
+  "productsHeroSubtitle" TEXT,
+  "productsHeroImage" TEXT,
+  "productsHeroImages" TEXT[],
+  "productsSearchPlaceholder" TEXT,
+  "aboutHeroTitle" TEXT,
+  "aboutHeroSubtitle" TEXT,
+  "aboutMainImage" TEXT,
+  "aboutEstablishedYear" TEXT,
+  "aboutFounderName" TEXT,
+  "aboutLocation" TEXT,
+  "aboutHistoryTitle" TEXT,
+  "aboutHistoryBody" TEXT,
+  "aboutMissionTitle" TEXT,
+  "aboutMissionBody" TEXT,
+  "aboutMissionIcon" TEXT,
+  "aboutCommunityTitle" TEXT,
+  "aboutCommunityBody" TEXT,
+  "aboutCommunityIcon" TEXT,
+  "aboutIntegrityTitle" TEXT,
+  "aboutIntegrityBody" TEXT,
+  "aboutIntegrityIcon" TEXT,
+  "aboutSignatureImage" TEXT,
+  "aboutGalleryImages" TEXT[],
+  "contactHeroTitle" TEXT,
+  "contactHeroSubtitle" TEXT,
+  "contactFormNameLabel" TEXT,
+  "contactFormEmailLabel" TEXT,
+  "contactFormSubjectLabel" TEXT,
+  "contactFormMessageLabel" TEXT,
+  "contactFormButtonText" TEXT,
+  "contactInfoTitle" TEXT,
+  "contactAddressLabel" TEXT,
+  "contactHoursLabel" TEXT,
+  "contactHoursWeekdays" TEXT,
+  "contactHoursWeekends" TEXT,
+  "disclosureTitle" TEXT,
+  "disclosureContent" TEXT,
+  "privacyTitle" TEXT,
+  "privacyContent" TEXT,
+  "termsTitle" TEXT,
+  "termsContent" TEXT,
+  "emailJsServiceId" TEXT,
+  "emailJsTemplateId" TEXT,
+  "emailJsPublicKey" TEXT,
+  "googleAnalyticsId" TEXT,
+  "facebookPixelId" TEXT,
+  "tiktokPixelId" TEXT,
+  "amazonAssociateId" TEXT,
+  "webhookUrl" TEXT,
+  "pinterestTagId" TEXT
+);
+
+-- 2. Products Table
+CREATE TABLE IF NOT EXISTS products (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  sku TEXT,
+  price NUMERIC,
+  "affiliateLink" TEXT,
+  "categoryId" TEXT,
+  "subCategoryId" TEXT,
+  description TEXT,
+  features TEXT[],
+  specifications JSONB,
+  media JSONB,
+  "discountRules" JSONB,
+  reviews JSONB,
+  "createdAt" BIGINT,
+  "createdBy" TEXT
+);
+
+-- 3. Categories Table
+CREATE TABLE IF NOT EXISTS categories (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  icon TEXT,
+  image TEXT,
+  description TEXT,
+  "createdBy" TEXT
+);
+
+-- 4. Subcategories Table
+CREATE TABLE IF NOT EXISTS subcategories (
+  id TEXT PRIMARY KEY,
+  "categoryId" TEXT,
+  name TEXT,
+  "createdBy" TEXT
+);
+
+-- 5. Hero Slides Table
+CREATE TABLE IF NOT EXISTS hero_slides (
+  id TEXT PRIMARY KEY,
+  image TEXT,
+  type TEXT,
+  title TEXT,
+  subtitle TEXT,
+  cta TEXT,
+  "createdBy" TEXT
+);
+
+-- 6. Enquiries Table
+CREATE TABLE IF NOT EXISTS enquiries (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  whatsapp TEXT,
+  subject TEXT,
+  message TEXT,
+  "createdAt" BIGINT,
+  status TEXT
+);
+
+-- 7. Admin Users Table
+CREATE TABLE IF NOT EXISTS admin_users (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  role TEXT,
+  permissions TEXT[],
+  "createdAt" BIGINT,
+  "lastActive" BIGINT,
+  "profileImage" TEXT,
+  phone TEXT,
+  address TEXT
+);
+
+-- 8. Traffic Logs Table
+CREATE TABLE IF NOT EXISTS traffic_logs (
+  id TEXT PRIMARY KEY,
+  type TEXT,
+  text TEXT,
+  time TEXT,
+  timestamp BIGINT,
+  source TEXT
+);
+
+-- 9. Product Stats Table
+CREATE TABLE IF NOT EXISTS product_stats (
+  "productId" TEXT PRIMARY KEY,
+  views INTEGER DEFAULT 0,
+  clicks INTEGER DEFAULT 0,
+  shares INTEGER DEFAULT 0,
+  "totalViewTime" NUMERIC DEFAULT 0,
+  "lastUpdated" BIGINT
+);`,
+    codeLabel: 'Initial Schema (PostgreSQL)'
+  },
+  {
+    id: 'environment',
+    title: 'Cloud Synchronization',
+    description: 'Connect your local curation engine to your global Supabase project for real-time inventory management.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Go to Supabase Project Settings > API.',
+      'Copy the Project URL and Anon Key.',
+      'Create a .env file in your project root.',
+      'The app will automatically detect these and switch to Cloud Mode.'
+    ],
+    code: 'VITE_SUPABASE_URL=https://your-project-id.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-key-here',
     codeLabel: '.env Configuration'
+  },
+  {
+    id: 'storage',
+    title: 'Asset Vault (Storage)',
+    description: 'Enable high-speed image and video hosting for your product galleries.',
+    illustrationId: 'forge',
+    subSteps: [
+      'In Supabase, go to the "Storage" tab.',
+      'Create a new bucket named exactly "media".',
+      'Set the bucket to "Public" (crucial for affiliate links).',
+      'Test by uploading a logo in the Identity settings.'
+    ],
+    code: 'Bucket Name: media\nVisibility: Public\nAllowed MIME Types: image/*, video/*',
+    codeLabel: 'Storage Parameters'
+  },
+  {
+    id: 'emailjs',
+    title: 'Concierge Automation (EmailJS)',
+    description: 'Configure your automatic reply system so you can respond to inquiries directly from the Maison Portal.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Sign up at emailjs.com.',
+      'Add a Service (like Gmail or Outlook).',
+      'Create a Template. Copy the IDs into the Integrations tab.',
+      'Ensure template variables match: {{to_name}}, {{message}}, {{subject}}.'
+    ],
+    code: 'Variables Required:\n{{to_name}} - Recipient Name\n{{message}} - Your reply body\n{{subject}} - Email subject\n{{company_name}} - Your brand',
+    codeLabel: 'EmailJS Template Config'
+  },
+  {
+    id: 'tracking',
+    title: 'Intelligence & Pixels',
+    description: 'Install tracking sensors to monitor visitor behavior across Facebook, TikTok, and Pinterest.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Get your Measurement ID from Google Analytics G-XXXXXX.',
+      'Get your Pixel IDs from Meta, TikTok, and Pinterest dashboards.',
+      'Paste them into the Canvas > Integrations section.',
+      'Check the Analytics tab to see live hits appearing.'
+    ]
   },
   {
     id: 'deployment',
@@ -51,9 +288,9 @@ export const GUIDE_STEPS = [
     description: 'Deploy your bridge page to a production environment for global access.',
     illustrationId: 'rocket',
     subSteps: [
-      'Connect your repository to Vercel or Netlify',
-      'Configure environment variables in the provider dashboard',
-      'Trigger a production build'
+      'Connect your GitHub repository to Vercel or Netlify.',
+      'Add the .env variables to the "Environment Variables" section in their dashboard.',
+      'Click Deploy. Your high-conversion bridge page is live!'
     ]
   }
 ];
@@ -114,316 +351,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Create 5 "Highlight" categories: "Shop My Style", "Reviews", "Sale Alerts", "FAQ", "Daily Picks".',
       'Post 3 Stories daily following the "Problem-Solution-Link" framework.',
       'Setup DM automation for your top 3 performing affiliate pieces.'
-    ]
-  },
-  {
-    id: 'tiktok-growth',
-    title: 'TikTok: The Virality Engine',
-    platform: 'TikTok',
-    description: 'High-volume, raw content designed for rapid scaling. TikTok is where you build massive awareness in days, not months.',
-    icon: 'Video',
-    strategies: [
-      'The 3-Second Hook Rule: You have 3 seconds to stop the scroll. Show the "After" (the styled look) first, then the "Before" (the package or unstyled item).',
-      'ASMR Unboxing: Focus on the sounds of the Shein packaging, the fabric rustle, and the shoe clicks. Sensory content has a 40% higher completion rate.',
-      'SEO Tagging: TikTok is a search engine. Use captions like "Affordable Fall Outfits 2024" rather than "My new clothes". Use 3-5 hyper-specific hashtags.',
-      'The "Stitch" Strategy: Find trending fashion critiques or "How to style" videos. Stitch them with your own curation to leverage existing viral momentum.'
-    ],
-    actionItems: [
-      'Post 3x daily for 21 days to find your "Viral Niche".',
-      'Create a pinned video explaining exactly how to use your Bridge Page link.',
-      'Reply to every comment with a video response to double your engagement metrics.',
-      'Use the "Search Bar" to find trending "Shein Hauls" and recreate the top-performing styles.'
-    ]
-  },
-  {
-    id: 'pinterest-seo',
-    title: 'Pinterest: Visual Search SEO',
-    platform: 'Pinterest',
-    description: 'Pinterest is a long-term traffic play. Unlike Instagram, Pins have a lifespan of 6-12 months, driving passive traffic while you sleep.',
-    icon: 'Pin',
-    strategies: [
-      'The 2:3 Vertical Standard: All images must be vertical. Use Canva to add "Clean Typography" overlays explaining what the pin is (e.g., "5 Minimalist Work Outfits").',
-      'Board Architecture: Create boards for specific "Vibes" (e.g., "Old Money Aesthetic", "Streetwear Staples"). Pin 10-20 high-quality images per board.',
-      'Idea Pins for Retention: Use Pinterest Idea Pins (like Stories) to show multi-page styling guides. These are currently favored by the algorithm.',
-      'Keyword Rich Descriptions: Treat your Pin descriptions like a blog post. Use keywords that people actually search for in the Pinterest search bar.'
-    ],
-    actionItems: [
-      'Claim your Bridge Page domain in Pinterest settings for "Rich Pins" (automatic price updates).',
-      'Create 10 niche boards and pin 5 items to each today.',
-      'Design 10 templates in Canva that feature your brand logo and colors.',
-      'Schedule 5 pins per day using a tool like Tailwind to maintain consistency.'
-    ]
-  },
-  {
-    id: 'youtube-shorts',
-    title: 'YouTube Shorts: Evergreen Video',
-    platform: 'General',
-    description: 'Repurpose your TikToks and Reels here. YouTube Shorts are indexed by Google Search, giving you evergreen visibility.',
-    icon: 'Youtube',
-    strategies: [
-      'Looping Content: Edit for the "Infinite Loop". If the video never feels like it ends, retention stays at 100%+, which triggers the "Shorts Shelf".',
-      'The Pinned Comment Funnel: YouTube descriptions are often ignored on mobile. Always put your Bridge Page link in the "Pinned Comment" for easy access.',
-      'Search-Optimized Titles: Use titles like "SHEIN Summer Dress Haul under $30" to capture search intent from Google.'
-    ],
-    actionItems: [
-      'Upload your top 10 best-performing TikToks to YouTube Shorts.',
-      'Add a custom "End Screen" graphic to your long-form videos if you have any.',
-      'Check "YouTube Analytics" weekly to see which search terms are leading people to your curation.'
-    ]
-  },
-  {
-    id: 'reddit-authority',
-    title: 'Reddit: Community Trust',
-    platform: 'General',
-    description: 'The most skeptical but high-converting audience. Focus on being a "Helpful Expert" rather than a "Salesperson".',
-    icon: 'MessageSquare',
-    strategies: [
-      'The "No-Link" First Rule: Spend 2 weeks purely answering questions in r/fashion and r/luxury without posting links. Build "Karma" and trust.',
-      'The Deep Dive Guide: Write massive text-based guides (e.g., "How to spot quality in fast fashion"). At the end, mention your site as a personal resource.',
-      'Subreddit Research: Monitor r/shein and r/affiliate to see what common problems people have, then solve them on your Bridge Page.'
-    ],
-    actionItems: [
-      'Join 10 niche fashion subreddits and contribute 3 helpful comments daily.',
-      'Create a "Hero Post" guide with no links to build your account authority.',
-      'Update your Reddit Bio to include a subtle link to your Bridge Page.'
-    ]
-  },
-  {
-    id: 'lemon8-curation',
-    title: 'Lemon8: Aesthetic Guides',
-    platform: 'General',
-    description: 'A hybrid of Instagram and Pinterest. Focus on high-aesthetic "Magazine Style" carousels.',
-    icon: 'Sparkles',
-    strategies: [
-      'The Magazine Layout: Use Lemon8 built-in templates. Add arrows, price tags, and text callouts directly onto your photos.',
-      'Honest Reviews: Lemon8 users value "Realness". Post "What I ordered vs What I got" to build massive credibility.',
-      'Hyper-Niche Tagging: Use the maximum number of relevant tags for every post to appear in the "For You" feed.'
-    ],
-    actionItems: [
-      'Post your first "What\'s in my bag" or "Outfit Breakdown" carousel.',
-      'Follow 50 creators in the "Lifestyle" and "Fashion" categories.',
-      'Engage with 10 trending posts daily to signal your activity to the algorithm.'
-    ]
-  },
-  {
-    id: 'substack-newsletter',
-    title: 'Substack: The Long-form Edit',
-    platform: 'General',
-    description: 'Build a recurring, dedicated readership. This is where you sell high-ticket items and build deep brand loyalty.',
-    icon: 'Mail',
-    strategies: [
-      'The Friday Curation: Send a weekly email titled "The Weekly Edit: 5 Things I\'m Loving". This creates a predictable habit for your readers.',
-      'Exclusive Insight: Share "Early Access" links or items that are almost sold out to make your subscribers feel like VIPs.',
-      'Direct Reader Interaction: Use the "Threads" feature to ask your readers what they want you to curate next.'
-    ],
-    actionItems: [
-      'Setup your Substack and import any existing email contacts.',
-      'Write a "Welcome" post explaining what your newsletter offers.',
-      'Set a goal to gain your first 50 subscribers by cross-promoting on Instagram.'
-    ]
-  },
-  {
-    id: 'ltk-integration',
-    title: 'LTK: Influencer Industry Standard',
-    platform: 'General',
-    description: 'The "Gold Standard" for fashion affiliates. Syncs your shoppable photos with a global audience of shoppers.',
-    icon: 'ShoppingBag',
-    strategies: [
-      'The Mirror Selfie Goldmine: Simple, unedited mirror selfies are the highest-converting images on LTK. Don\'t overproduce.',
-      'Tagging Similar Items: If an item is sold out, tag 3-5 "Similar Picks". This ensures you don\'t lose a commission if the primary item is unavailable.',
-      'The "LTK Exclusive" Badge: Tell your Instagram followers that specific links are "Only on my LTK" to drive traffic to your profile there.'
-    ],
-    actionItems: [
-      'Apply for LTK Creator status if you have over 1k followers on Instagram.',
-      'Upload 10 high-quality OOTDs with at least 5 tags per photo.',
-      'Add your LTK profile link to your Bridge Page "Social Links" section.'
-    ]
-  },
-  {
-    id: 'snapchat-shows',
-    title: 'Snapchat: Behind the Scenes',
-    platform: 'General',
-    description: 'Urgency and intimacy. Use Snapchat for "Flash Sales" and "Real-time" shopping trips.',
-    icon: 'Ghost',
-    strategies: [
-      'The 24-Hour Timer: Post links that you claim will "Expire" or are "Limited Time Only" to trigger FOMO (Fear of Missing Out).',
-      'Shopping With Me: Take your phone into stores or film yourself browsing Shein live. Talk through your thought process.',
-      'Snap Map Tags: Tag popular luxury locations to appear to high-net-worth individuals browsing the map.'
-    ],
-    actionItems: [
-      'Create a Snapchat Public Profile for "Spotlight" access.',
-      'Post 5 "Spotlight" videos of your best unboxings.',
-      'Add your WhatsApp number to your Snapchat bio for direct consulting inquiries.'
-    ]
-  },
-  {
-    id: 'quora-questions',
-    title: 'Quora: Problem Solving',
-    platform: 'General',
-    description: 'Evergreen traffic from people actively looking for answers. Solve their style problems and they will follow your links.',
-    icon: 'HelpCircle',
-    strategies: [
-      'The "Value-First" Answer: Write 500+ words answering a specific style question. Include your Bridge Page link only at the end as "Further Reading".',
-      'Authority Building: Follow topics like "Fashion Trends", "Shein Reviews", and "Personal Styling". Answer 1-2 questions daily.',
-      'The "Best Of" Listicles: Answer questions like "What are the best summer dresses?" with a curated list from your site.'
-    ],
-    actionItems: [
-      'Search for "Shein Reviews" on Quora and answer the top 3 questions.',
-      'Setup a Quora "Space" for your brand to aggregate your answers.',
-      'Optimize your Quora profile with your Bridge Page URL.'
-    ]
-  },
-  {
-    id: 'medium-blogging',
-    title: 'Medium: SEO Authority',
-    platform: 'General',
-    description: 'Leverage Medium\'s massive domain authority to rank for high-competition keywords on Google.',
-    icon: 'FileText',
-    strategies: [
-      'The "Ultimate Guide" Format: Write 1,500+ word articles like "The Ultimate Guide to Shein Wedding Guest Dresses".',
-      'Internal Linking: Link to your different Bridge Page categories within the text of your Medium articles.',
-      'Publication Submission: Submit your fashion articles to large publications like "The Startup" to reach their thousands of followers.'
-    ],
-    actionItems: [
-      'Repurpose your Substack articles for Medium.',
-      'Include 3-5 high-quality images per article with affiliate captions.',
-      'Add a "Call to Action" at the end of every post pointing to your Bridge Page.'
-    ]
-  },
-  {
-    id: 'discord-community',
-    title: 'Discord: The VIP Lounge',
-    platform: 'General',
-    description: 'Create a walled garden for your most loyal fans. High engagement and high repeat-click rates.',
-    icon: 'Gamepad2',
-    strategies: [
-      'The "Exclusive Drop" Channel: Create a channel where you post new finds 1 hour before social media.',
-      'Live Styling Calls: Host voice chats where you help members style their own outfits in real-time.',
-      'Automated Alerts: Use bots to notify your Discord members whenever you add a new product to this website.'
-    ],
-    actionItems: [
-      'Setup your Discord server with channels for "Style-Advice" and "New-Drops".',
-      'Invite your top 10 most active Instagram commenters to join the "VIP Lounge".',
-      'Create "Roles" for members based on their level of interaction.'
-    ]
-  },
-  {
-    id: 'telegram-alerts',
-    title: 'Telegram: Flash Alerts',
-    platform: 'General',
-    description: 'Direct, algorithm-free communication. 100% of your subscribers will see your messages.',
-    icon: 'Send',
-    strategies: [
-      'The "Price Drop" Bot: Send short, punchy messages: "🚨 PRICE DROP: The Midnight Silk is now $15! [Link]".',
-      'Polls for Curation: Ask your audience: "Should I curate more bags or shoes this week?". Engagement builds loyalty.',
-      'Broadcast-Only Channel: Keep it clean. Only post high-value links and 1 high-quality photo.'
-    ],
-    actionItems: [
-      'Start a Public Telegram Channel.',
-      'Post a "Pinned Message" explaining how to turn on notifications for your alerts.',
-      'Add the Telegram link to your Bridge Page footer.'
-    ]
-  },
-  {
-    id: 'facebook-groups',
-    title: 'Facebook: Community Lead',
-    platform: 'General',
-    description: 'Leverage massive existing communities. Don\'t build your own yet; join others and be the helpful expert.',
-    icon: 'Facebook',
-    strategies: [
-      'The "Style Consultant" Persona: Join groups like "Shein Addicts" and "Fashion over 30". Answer 10 posts daily with genuine advice.',
-      'Native Uploads: Don\'t just share links. Upload your photos directly to Facebook, and put the link in the first comment.',
-      'DM-to-Sale: If someone asks "Where is that from?", send them a polite DM with your Bridge Page link.'
-    ],
-    actionItems: [
-      'Join 5 active Facebook groups related to your fashion niche.',
-      'Post one "Value-Only" outfit inspiration daily to these groups.',
-      'Setup a Facebook Page to run $5/day "Boosted Posts" for your best-performing items.'
-    ]
-  },
-  {
-    id: 'twitter-hype',
-    title: 'Twitter (X): Real-time Critique',
-    platform: 'General',
-    description: 'Fast-paced fashion critique. Great for "Newsjacking" trending fashion events.',
-    icon: 'Twitter',
-    strategies: [
-      'Live-Tweeting Events: Tweet your thoughts during the Met Gala or Fashion Week. Use trending hashtags to get discovered.',
-      'Thread Curation: Create a thread: "1/10 The best Shein dupes I found this week. 🧵". People love scrolling through threads.',
-      'Engagement with Brands: Tag the brands you curation. Sometimes they retweet, giving you massive free exposure.'
-    ],
-    actionItems: [
-      'Follow 50 major fashion editors and journalists.',
-      'Use #FashionTwitter and #StyleThreads in every post.',
-      'Post 1 "Outfit Thread" every Sunday.'
-    ]
-  },
-  {
-    id: 'twitch-styling',
-    title: 'Twitch: Live Styling Sessions',
-    platform: 'General',
-    description: 'Interactive long-form content. Build extreme loyalty through real-time chat and styling.',
-    icon: 'Activity',
-    strategies: [
-      'The "Shop With Me" Stream: Share your screen and browse Shein live. Explain why you are skipping certain items and picking others.',
-      'Closet Audits: Have viewers send in photos of their clothes, and you style them using items from your Bridge Page.',
-      'Affiliate Commands: Use a bot so when someone types "!dress", it automatically posts your current favorite link.'
-    ],
-    actionItems: [
-      'Schedule a weekly 2-hour "Style Sunday" stream.',
-      'Setup Nightbot with commands for your most popular curated categories.',
-      'Design custom "Overlays" for your stream that feature your Bridge Page URL.'
-    ]
-  },
-  {
-    id: 'linkedin-luxury',
-    title: 'LinkedIn: The Professional Buyer',
-    platform: 'General',
-    description: 'High-income audience. Focus on "Power Dressing" and "Corporate Luxury".',
-    icon: 'Linkedin',
-    strategies: [
-      'The "Confidence & Clothing" Angle: Write about how dressing well impacts your career performance and mental health.',
-      'The "Workwear Capsule" PDF: Create a 5-page PDF guide and offer it for free in exchange for visiting your site.',
-      'Corporate Gifting: Curate lists of "Professional Accessories" that make great corporate gifts.'
-    ],
-    actionItems: [
-      'Update your LinkedIn Headline to "Fashion Curator & Style Strategist".',
-      'Post one "Monday Motivation" outfit every week.',
-      'Connect with 20 Luxury Brand Managers daily to build industry connections.'
-    ]
-  },
-  {
-    id: 'sms-marketing',
-    title: 'SMS: The Direct Hit',
-    platform: 'General',
-    description: '98% open rates. Use for your absolute best deals and most exclusive content.',
-    icon: 'Phone',
-    strategies: [
-      'The "VIP Only" Deal: Never send more than 1 text per week. Make it feel like an exclusive secret.',
-      'Personalized Greetings: Use the subscriber\'s name: "Hey [Name], I just found the perfect dress for you... [Link]".',
-      'Automated Welcome: Send an instant text with a 10% discount code (if available) when someone signs up.'
-    ],
-    actionItems: [
-      'Setup a simple SMS list using a tool like Twilio or SimpleTexting.',
-      'Add a "Text ME" button to your Bridge Page contact section.',
-      'Send your first "Style Alert" to your top 10 most loyal clients.'
-    ]
-  },
-  {
-    id: 'whatsapp-vip',
-    title: 'WhatsApp: Personal Concierge',
-    platform: 'WhatsApp',
-    description: 'The most intimate selling channel. Perfect for high-ticket items and repeat customers.',
-    icon: 'MessageCircle',
-    strategies: [
-      'WhatsApp Status Selling: Post "Behind the scenes" photos and "New Drops" to your status daily. People view these more than stories.',
-      'Broadcast Lists: Create lists of 256 people. Send them a personal voice note once a month with a style tip.',
-      '1-on-1 Consultations: Offer a "15-minute quick styling" via WhatsApp for your top-tier customers.'
-    ],
-    actionItems: [
-      'Switch to a WhatsApp Business account for professional features.',
-      'Add the WhatsApp button to your Bridge Page "Identity" settings.',
-      'Post your first "Status" update showing your current favorite curation.'
     ]
   }
 ];
@@ -643,7 +570,8 @@ export const INITIAL_SETTINGS: SiteSettings = {
   facebookPixelId: '',
   tiktokPixelId: '',
   amazonAssociateId: '',
-  webhookUrl: ''
+  webhookUrl: '',
+  pinterestTagId: ''
 };
 
 export const INITIAL_CAROUSEL: CarouselSlide[] = [
