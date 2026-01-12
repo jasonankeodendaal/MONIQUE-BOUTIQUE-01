@@ -743,14 +743,48 @@ const Admin: React.FC = () => {
     return stats.filter(s => myProductIds.includes(s.productId));
   }, [stats, isOwner, displayProducts]);
 
+  // Enhanced Error Logging
   useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      const newError = { id: Date.now(), message: event.message, source: event.filename, lineno: event.lineno, timestamp: new Date().toLocaleTimeString() };
-      setErrorLogs(prev => [newError, ...prev].slice(0, 20));
+    const handleRuntimeError = (event: ErrorEvent) => {
+      const newError = {
+        id: Date.now() + Math.random(),
+        type: 'RUNTIME_EXCEPTION',
+        message: event.message,
+        source: event.filename ? event.filename.split('/').pop() : 'Script',
+        lineno: event.lineno,
+        stack: event.error?.stack,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setErrorLogs(prev => [newError, ...prev].slice(0, 50));
     };
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+
+    const handlePromiseRejection = (event: PromiseRejectionEvent) => {
+      const newError = {
+        id: Date.now() + Math.random(),
+        type: 'PROMISE_REJECTION',
+        message: event.reason?.message || String(event.reason),
+        source: 'Async',
+        stack: event.reason?.stack,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setErrorLogs(prev => [newError, ...prev].slice(0, 50));
+    };
+
+    window.addEventListener('error', handleRuntimeError);
+    window.addEventListener('unhandledrejection', handlePromiseRejection);
+
+    return () => {
+      window.removeEventListener('error', handleRuntimeError);
+      window.removeEventListener('unhandledrejection', handlePromiseRejection);
+    };
   }, []);
+
+  const simulateSystemError = () => {
+    // Asynchronously throw to trigger rejection
+    setTimeout(() => {
+       throw new Error("Simulated Critical System Failure: Test Protocol Initiated");
+    }, 100);
+  };
 
   useEffect(() => {
     const fetchTraffic = async () => {
@@ -1300,13 +1334,53 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
-        {/* Real-time Exception Logs (Keep existing) */}
+        {/* Real-time Exception Logs (Enhanced) */}
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left">
            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-white font-bold text-xl flex items-center gap-3"><AlertTriangle size={24} className="text-red-500"/> Exception Trace</h3>
+              <h3 className="text-white font-bold text-xl flex items-center gap-3">
+                 <AlertTriangle size={24} className="text-red-500"/>
+                 Live Exception Trace
+              </h3>
+              <div className="flex gap-2">
+                 <button onClick={simulateSystemError} className="px-3 py-1.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-colors">
+                    Simulate Error
+                 </button>
+                 <button onClick={() => setErrorLogs([])} className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-colors">
+                    Clear
+                 </button>
+              </div>
            </div>
-           <div className="bg-black rounded-xl border border-slate-800 p-4 h-48 overflow-y-auto custom-scrollbar font-mono text-xs">
-              {errorLogs.length > 0 ? ( errorLogs.map((err, i) => (<div key={i} className="mb-3 border-b border-slate-900 pb-2 last:border-0"><div className="flex items-center gap-2 mb-1"><span className="text-slate-500">[{err.timestamp}]</span><span className="text-red-500 font-bold">ERROR</span></div><div className="text-slate-300 break-words pl-4">{err.message}</div>{err.source && <div className="text-slate-600 pl-4 mt-1">{err.source}:{err.lineno}</div>}</div>)) ) : ( <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50"><Activity size={32} className="mb-2"/><span>System Nominal. No exceptions recorded.</span></div> )}
+           <div className="bg-black rounded-xl border border-slate-800 p-4 h-64 overflow-y-auto custom-scrollbar font-mono text-xs relative">
+              <div className="absolute top-0 right-0 p-2 opacity-50 pointer-events-none">
+                 <Activity size={120} className="text-slate-800"/>
+              </div>
+              {errorLogs.length > 0 ? (
+                 errorLogs.map((err, i) => (
+                    <div key={err.id} className="mb-4 border-b border-slate-900 pb-3 last:border-0 relative z-10 animate-in slide-in-from-left duration-300">
+                       <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="text-slate-500">[{err.timestamp}]</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${err.type === 'RUNTIME_EXCEPTION' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                             {err.type}
+                          </span>
+                          <span className="text-slate-600">{err.source}</span>
+                       </div>
+                       <div className="text-slate-300 break-words pl-0 md:pl-4 font-bold">
+                          {err.message}
+                       </div>
+                       {err.stack && (
+                          <div className="mt-2 pl-4 text-[10px] text-slate-600 overflow-x-auto whitespace-pre">
+                             {err.stack.split('\n').slice(0, 3).join('\n')}...
+                          </div>
+                       )}
+                    </div>
+                 ))
+              ) : (
+                 <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
+                    <ShieldCheck size={32} className="mb-2 text-green-500/50"/>
+                    <span className="text-green-500/50 font-bold uppercase tracking-widest">System Nominal</span>
+                    <span className="text-[10px] mt-1">No active exceptions detected in the execution runtime.</span>
+                 </div>
+              )}
            </div>
         </div>
 
@@ -1596,7 +1670,7 @@ const Admin: React.FC = () => {
         {activeTab === 'guide' && renderGuide()}
       </main>
 
-      {/* Editor Drawer remains same - implicitly included */}
+      {/* Editor Drawer */}
       {editorDrawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
