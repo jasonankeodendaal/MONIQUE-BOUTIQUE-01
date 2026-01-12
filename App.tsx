@@ -11,9 +11,9 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, syncLocalToCloud, upsertData, deleteData as deleteSupabaseData, measureConnection } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 };
 
 const Footer: React.FC = () => {
-  const { settings, user, saveStatus } = useSettings();
+  const { settings, user, saveStatus, connectionHealth } = useSettings();
   const location = useLocation();
   if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
 
@@ -81,19 +81,25 @@ const Footer: React.FC = () => {
         </div>
         <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>&copy; {new Date().getFullYear()} {settings.companyName}. {settings.footerCopyrightText}</p>
-          <div className="flex items-center gap-3">
-            <div 
-              className={`w-2 h-2 rounded-full transition-all duration-500 ${
-                saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' :
-                saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]' :
-                saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
-                'bg-slate-700'
-              }`} 
-              title={`System Status: ${saveStatus}`}
-            />
-            <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
-              Bridge Concierge Portal
-            </Link>
+          <div className="flex items-center gap-6">
+             <div className="flex items-center gap-2">
+                <div className={`w-1.5 h-1.5 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <span className="text-[9px] font-mono">{connectionHealth?.latency || 0}ms</span>
+             </div>
+             <div className="flex items-center gap-3">
+              <div 
+                className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                  saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' :
+                  saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]' :
+                  saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
+                  'bg-slate-700'
+                }`} 
+                title={`System Status: ${saveStatus}`}
+              />
+              <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
+                Bridge Concierge Portal
+              </Link>
+             </div>
           </div>
         </div>
       </div>
@@ -326,6 +332,11 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  
+  // Monitoring State
+  const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
+  const [systemLogs, setSystemLogs] = useState<SystemLog[]>([]);
+  const [storageStats, setStorageStats] = useState<StorageStats>({ dbSize: 0, mediaSize: 0, totalRecords: 0, mediaCount: 0 });
 
   // Refs for stable access inside logEvent
   const productsRef = useRef(products);
@@ -349,6 +360,69 @@ const App: React.FC = () => {
        performLogout();
     }
   });
+
+  // Calculate Storage Breakdown
+  const calculateStorage = useCallback(() => {
+      // 1. Calculate Database Size (Approx JSON String Length)
+      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats];
+      const jsonString = JSON.stringify(dataSet);
+      const dbBytes = new Blob([jsonString]).size;
+      
+      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length;
+
+      // 2. Calculate Media Size
+      let mediaBytes = 0;
+      let mediaCnt = 0;
+
+      // Scan Products
+      products.forEach(p => {
+         if (p.media) {
+           p.media.forEach(m => {
+             mediaBytes += m.size || 0; // If size stored
+             // Fallback estimate if size missing (e.g. 500KB per image)
+             if (!m.size) mediaBytes += 500 * 1024;
+             mediaCnt++;
+           });
+         }
+      });
+      // Scan Hero
+      heroSlides.forEach(h => {
+         mediaBytes += 1024 * 1024; // Estimate 1MB for hero
+         mediaCnt++;
+      });
+      // Scan Categories
+      categories.forEach(c => {
+         if (c.image) {
+            mediaBytes += 500 * 1024;
+            mediaCnt++;
+         }
+      });
+
+      setStorageStats({
+        dbSize: dbBytes,
+        mediaSize: mediaBytes,
+        totalRecords: totalRecs,
+        mediaCount: mediaCnt
+      });
+  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats]);
+
+  useEffect(() => {
+    calculateStorage();
+  }, [calculateStorage]);
+
+  // Global Latency Check - Runs every 10s to ensure footer is always accurate
+  useEffect(() => {
+     const checkConnection = async () => { 
+        setConnectionHealth(await measureConnection()); 
+     };
+     
+     // Initial check
+     checkConnection();
+
+     // Periodic check
+     const interval = setInterval(checkConnection, 10000);
+     return () => clearInterval(interval);
+  }, []);
 
   // 2. Logout on Refresh / Initial Load Logic
   useEffect(() => {
@@ -393,7 +467,21 @@ const App: React.FC = () => {
       }
   };
 
+  const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
+    const newLog: SystemLog = {
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now(),
+      type,
+      target,
+      message,
+      sizeBytes,
+      status
+    };
+    setSystemLogs(prev => [newLog, ...prev].slice(0, 50)); // Keep last 50
+  };
+
   const refreshAllData = async () => {
+    addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
     try {
       if (isSupabaseConfigured) {
         // Use Promise.allSettled to ensure failure in one table doesn't hang the whole UI
@@ -428,6 +516,8 @@ const App: React.FC = () => {
         if (adm.status === 'fulfilled') setAdmins(adm.value);
         if (st.status === 'fulfilled') setStats(st.value);
 
+        addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
+
       } else {
         // Local Mode: Use loadOrSeed helper to ensure persistence survives refresh
         loadOrSeedLocal('site_settings', INITIAL_SETTINGS, setSettings);
@@ -438,10 +528,13 @@ const App: React.FC = () => {
         loadOrSeedLocal('admin_enquiries', INITIAL_ENQUIRIES, setEnquiries);
         loadOrSeedLocal('admin_users', INITIAL_ADMINS, setAdmins);
         loadOrSeedLocal('admin_product_stats', [], setStats);
+        
+        addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0);
       }
       setSaveStatus('saved');
     } catch (e) {
       console.error("Data sync failed", e);
+      addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed');
       setSaveStatus('error');
     }
   };
@@ -454,11 +547,19 @@ const App: React.FC = () => {
     // Always save local first for immediate UI feel
     localStorage.setItem('site_settings', JSON.stringify(updated));
 
+    const payloadSize = new Blob([JSON.stringify(updated)]).size;
+
     if (isSupabaseConfigured) {
       try {
         await upsertData('settings', { ...updated, id: settingsId });
-      } catch (e) { console.warn("Cloud settings sync failed"); }
-    } 
+        addSystemLog('UPDATE', 'settings', 'Global settings updated', payloadSize);
+      } catch (e) { 
+        console.warn("Cloud settings sync failed");
+        addSystemLog('ERROR', 'settings', 'Cloud sync failed', payloadSize, 'failed');
+      }
+    } else {
+      addSystemLog('UPDATE', 'settings', 'Local settings updated', payloadSize);
+    }
     setTimeout(() => setSaveStatus('saved'), 500);
   };
 
@@ -487,14 +588,20 @@ const App: React.FC = () => {
        : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
 
+    const payloadSize = new Blob([JSON.stringify(data)]).size;
+
     try {
       if (isSupabaseConfigured) {
         await upsertData(table, data);
+        addSystemLog('UPDATE', table, `Upserted ID: ${data.id?.substring(0,8)}`, payloadSize);
+      } else {
+        addSystemLog('UPDATE', table, `Local Update ID: ${data.id?.substring(0,8)}`, payloadSize);
       }
       setSaveStatus('saved');
       return true;
     } catch (e) {
       console.error(`Update failed for ${table}`, e);
+      addSystemLog('ERROR', table, `Update failed: ${data.id}`, payloadSize, 'failed');
       setSaveStatus('error');
       return false;
     }
@@ -523,11 +630,15 @@ const App: React.FC = () => {
     try {
       if (isSupabaseConfigured) {
         await deleteSupabaseData(table, id);
+        addSystemLog('DELETE', table, `Deleted ID: ${id.substring(0,8)}`, 0);
+      } else {
+        addSystemLog('DELETE', table, `Local Delete ID: ${id.substring(0,8)}`, 0);
       }
       setSaveStatus('saved');
       return true;
     } catch (e) {
       setSaveStatus('error');
+      addSystemLog('ERROR', table, `Delete failed: ${id}`, 0, 'failed');
       refreshAllData(); // Revert on failure
       return false;
     }
@@ -649,7 +760,8 @@ const App: React.FC = () => {
       products, categories, subCategories, heroSlides, enquiries, admins, stats,
       refreshAllData, updateData, deleteData,
       user, loadingAuth, 
-      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent
+      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent,
+      connectionHealth, systemLogs, storageStats
     }}>
       <Router>
         <ScrollToTop />

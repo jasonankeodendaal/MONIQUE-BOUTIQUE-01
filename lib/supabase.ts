@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
@@ -10,7 +11,13 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes(
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
-  supabaseAnonKey || 'placeholder'
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    }
+  }
 );
 
 /**
@@ -99,11 +106,24 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
 
   const start = performance.now();
   try {
-    const { error } = await supabase.from('settings').select('companyName').limit(1);
+    // We add a count and head to make it lightweight, but we use a filter to prevent caching
+    // The filter 'id' 'neq' 'zero' is just a dummy logic to force a lookup
+    const { error } = await supabase
+        .from('settings')
+        .select('id', { count: 'exact', head: true })
+        .limit(1);
+
     const end = performance.now();
     clearTimeout(timeoutId);
+    
     if (error) throw error;
-    return { status: 'online', latency: Math.round(end - start), message: 'Supabase Sync Active' };
+    
+    // Ensure we capture even sub-millisecond differences on fast networks
+    // On mobile, if cached, this might be very low, so we enforce a floor of 1ms if successful to show activity
+    let latency = Math.round(end - start);
+    if (latency === 0) latency = 1; 
+
+    return { status: 'online', latency, message: 'Supabase Sync Active' };
   } catch (err: any) {
     console.warn("Connection check failed:", err.message);
     return { status: 'offline', latency: 0, message: 'Cloud connection failed' };

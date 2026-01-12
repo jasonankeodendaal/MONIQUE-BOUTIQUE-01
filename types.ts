@@ -1,3 +1,4 @@
+
 export interface Category {
   id: string;
   name: string;
@@ -244,6 +245,23 @@ export interface TrainingModule {
   icon: string;
 }
 
+export interface SystemLog {
+  id: string;
+  timestamp: number;
+  type: 'SYNC' | 'UPDATE' | 'DELETE' | 'ERROR' | 'AUTH';
+  target: string;
+  message: string;
+  sizeBytes?: number;
+  status: 'success' | 'failed';
+}
+
+export interface StorageStats {
+  dbSize: number; // Bytes
+  mediaSize: number; // Bytes
+  totalRecords: number;
+  mediaCount: number;
+}
+
 export interface SettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
@@ -266,4 +284,9 @@ export interface SettingsContextType {
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
   logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
+  
+  // Monitoring
+  connectionHealth: { status: 'online' | 'offline', latency: number, message: string } | null;
+  systemLogs: SystemLog[];
+  storageStats: StorageStats;
 }
