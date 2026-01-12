@@ -309,7 +309,14 @@ const TrafficAreaChart: React.FC<{ stats?: ProductStats[] }> = ({ stats }) => {
   
   useEffect(() => {
     const loadDetailedGeo = () => {
-      const rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+      let rawData = [];
+      try {
+        const parsed = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+        if (Array.isArray(parsed)) rawData = parsed;
+      } catch (e) {
+        console.warn("Failed to parse visitor locations", e);
+      }
+      
       setTotalTraffic(rawData.length);
 
       const agg: Record<string, GeoStat> = {};
@@ -731,8 +738,12 @@ const Admin: React.FC = () => {
 
   useEffect(() => {
     const fetchTraffic = () => {
-       const logs = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-       setTrafficEvents(logs);
+       try {
+           const logs = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
+           setTrafficEvents(Array.isArray(logs) ? logs : []);
+       } catch (e) {
+           setTrafficEvents([]);
+       }
     };
     fetchTraffic();
     const interval = setInterval(fetchTraffic, 2000);
@@ -832,11 +843,16 @@ const Admin: React.FC = () => {
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
 
-    const visitorLogs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+    let visitorLogs: any[] = [];
+    try {
+        const parsed = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+        if (Array.isArray(parsed)) visitorLogs = parsed;
+    } catch(e) {}
+    
     const totalUniqueVisitors = visitorLogs.length;
 
     const hourlyDistribution = new Array(24).fill(0);
-    trafficEvents.forEach(evt => {
+    (Array.isArray(trafficEvents) ? trafficEvents : []).forEach(evt => {
         if (evt.timestamp) {
             const hour = new Date(evt.timestamp).getHours();
             hourlyDistribution[hour]++;
@@ -855,7 +871,7 @@ const Admin: React.FC = () => {
         { label: 'Facebook', count: sourceStats['Facebook'] || 0, color: 'bg-blue-600', icon: Facebook },
         { label: 'Instagram', count: sourceStats['Instagram'] || 0, color: 'bg-pink-600', icon: Instagram },
         { label: 'TikTok', count: sourceStats['TikTok'] || 0, color: 'bg-black border border-slate-700', icon: () => <span className="font-bold text-[8px]">TK</span> },
-        { label: 'Pinterest', count: sourceStats['Pinterest'] || 0, color: 'bg-red-600', icon: Pin },
+        { label: 'Pinterest', count: sourceStats['Pinterest'] || 0, color: 'bg-red-600', icon: () => <span className="font-bold text-[8px]">PIN</span> },
         { label: 'Google', count: sourceStats['Google Search'] || 0, color: 'bg-green-600', icon: SearchCode },
         { label: 'Direct/Other', count: (sourceStats['Direct'] || 0) + (sourceStats['Referral'] || 0), color: 'bg-slate-600', icon: Globe },
     ].sort((a, b) => b.count - a.count);
@@ -1244,7 +1260,12 @@ const Admin: React.FC = () => {
   );
 
   const renderSystem = () => {
-    const visitorLogs = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+    let visitorLogs: any[] = [];
+    try {
+        const raw = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+        if (Array.isArray(raw)) visitorLogs = raw;
+    } catch (e) {}
+    
     return (
      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
         <AdminTip title="Core Infrastructure Monitoring">Your bridge page is linked to a high-performance Supabase backend. All read/write operations are synchronized in real-time.</AdminTip>

@@ -271,7 +271,12 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
                 timestamp: Date.now()
             };
 
-            const existing = JSON.parse(stored || '[]');
+            let existing = [];
+            try {
+              const parsed = JSON.parse(stored || '[]');
+              if (Array.isArray(parsed)) existing = parsed;
+            } catch(e) {}
+
             // Keep last 50 visits
             const updated = [visitData, ...existing].slice(0, 50);
             localStorage.setItem('site_visitor_locations', JSON.stringify(updated));
