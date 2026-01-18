@@ -348,348 +348,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Create a "Behind the Curation" series showing how you pick items for the bridge page.'
     ]
   },
-  {
-    id: 'instagram-mastery',
-    title: '3. Instagram: High-Conversion Storefront',
-    platform: 'Instagram',
-    description: 'The premier destination for visual fashion. We focus on "Story-Selling" and "Aesthetic Cohesion" to drive traffic to your bridge links.',
-    icon: 'Instagram',
-    strategies: [
-      'The Grid Matrix: Alternate between Outfit-of-the-day (OOTD), Flat-lays, and Aesthetic Inspo (Moodboards). This creates a "lookbook" feel rather than a catalog.',
-      'Story-Selling Funnel: Use the "3-Part Story Method". Part 1: Problem (e.g., "Nothing to wear for dinner"). Part 2: Solution (The Shein Dress). Part 3: The Link (Direct CTA to bridge page).',
-      'DM Automation: Use tools like ManyChat. When a user comments "WANT", automatically send them the direct product link from your bridge page via DM. This boosts engagement 10x.',
-      'Reels Algorithm Hacking: Use "Transition Loops". Edit your video so the last frame matches the first. The high replay rate signals the algorithm to push your content to the Explore page.'
-    ],
-    actionItems: [
-      'Optimize your Bio: Use keywords like "Curated Fashion" and link your Bridge Page URL.',
-      'Create 5 "Highlight" categories: "Shop My Style", "Reviews", "Sale Alerts", "FAQ", "Daily Picks".',
-      'Post 3 Stories daily following the "Problem-Solution-Link" framework.',
-      'Setup DM automation for your top 3 performing affiliate pieces.'
-    ]
-  },
-  {
-    id: 'tiktok-virality',
-    title: '4. TikTok Virality: The Hook, Body, & CTA',
-    platform: 'TikTok',
-    description: 'Mastering the short-form video algorithm to generate massive organic traffic for your bridge page.',
-    icon: 'Video',
-    strategies: [
-      'The 3-Second Rule: You must arrest attention immediately. Use visual disruptions (e.g., dropping a bag on a table) or controversial statements ("Stop buying expensive silk").',
-      'Trend Surfing: Use the TikTok Creative Center to find trending audio. Apply the audio to your niche (e.g., a trending dance song used as background for a "Get Ready With Me" speed-run).',
-      'Comment Section Mining: Reply to questions with video responses. This creates a "thread" that the algorithm loves and builds community trust.',
-      'The "Link in Bio" CTA: Never assume people know where to go. End every video with a clear visual pointing to your profile picture and saying "Shop the Curation in Bio".'
-    ],
-    actionItems: [
-      'Create a "pinned" video explaining exactly how to shop your bridge page.',
-      'Post 3 times a day for 2 weeks to test different "Hooks" (Visual vs Audio vs Text).',
-      'Engage with 10 other creators in your niche daily to warm up your account.',
-      'Use the "Green Screen" effect to show the product page directly behind you while reviewing.'
-    ]
-  },
-  {
-    id: 'pinterest-seo',
-    title: '5. Pinterest SEO: The Silent Traffic Engine',
-    platform: 'Pinterest',
-    description: 'Unlike social media, Pinterest is a search engine. Learn to position your pins to capture high-intent shoppers searching for specific styles.',
-    icon: 'Pin',
-    strategies: [
-      'Keyword Rich Pins: Don\'t name a board "Cute". Name it "Summer Wedding Guest Dresses 2024". Use the Pinterest search bar to find auto-complete phrases—these are what people are actually searching for.',
-      'Vertical Verticality: Images must be 1000x1500px (2:3 ratio). These take up more screen real estate on mobile, increasing click-through rates.',
-      'Idea Pins for Reach, Static Pins for Clicks: Use Idea Pins (video/slideshow) to grow your account followers, but use standard Static Pins to drive direct link clicks to your bridge page.',
-      'The "Fresh Pin" Strategy: Pinterest hates reposts. Take 5 different photos of the same dress (front, back, detail, flatlay, lifestyle) and pin them on different days.'
-    ],
-    actionItems: [
-      'Convert your personal account to a Business Account to access Analytics.',
-      'Claim your website (bridge page) in settings to get the "Verified Website" checkmark.',
-      'Create 10 Boards based on specific occasions (e.g., "Date Night", "Office Chic").',
-      'Schedule 5 pins per day using the native scheduler or Tailwind.'
-    ]
-  },
-  {
-    id: 'whatsapp-concierge',
-    title: '6. WhatsApp Concierge: High-Touch Sales',
-    platform: 'WhatsApp',
-    description: 'Closing the sale through direct, personal conversation. This is the "Luxury" differentiator of your bridge page.',
-    icon: 'MessageCircle',
-    strategies: [
-      'Status Updates as Catalogs: Post your new bridge page arrivals to your WhatsApp Status. The urgency (24h expiry) drives immediate clicks from your warmest leads (friends/family/clients).',
-      'Broadcast Lists, Not Groups: Use Broadcast Lists to send updates. It looks like a personal 1-on-1 message to the receiver, whereas Groups feel spammy and intrusive.',
-      'Quick Replies: Set up "Business Tools" in WhatsApp Business. Have pre-saved replies for "How do I size this?" or "Shipping times?" that link back to your bridge page FAQ.',
-      'The "Saved Contact" Loop: Offer a small incentive (e.g., "Get my Fall Style Guide PDF") if they save your number. You need them to save your number to see your Status updates.'
-    ],
-    actionItems: [
-      'Switch to WhatsApp Business App.',
-      'Create a "Catalog" in WhatsApp that links individual items to your Bridge Page product URLs.',
-      'Set an "Away Message" that directs people to the Bridge Page when you are sleeping.',
-      'Add a "Chat with Stylist" floating button to your Bridge Page (we have this feature!).'
-    ]
-  },
-  {
-    id: 'seo-bridge',
-    title: '7. SEO for Bridges: Google Ranking',
-    platform: 'SEO',
-    description: 'Optimizing your bridge page metadata so specific product reviews rank on Google Search.',
-    icon: 'Search',
-    strategies: [
-      'Long-Tail Keywords: You won\'t rank for "Red Dress". You WILL rank for "Shein Burgundy Silk Wrap Dress Review South Africa". Be specific in your product titles.',
-      'Meta Descriptions: Write custom descriptions for every product on your bridge page. Include the fabric, the occasion, and the fit.',
-      'The Blog Hybrid: Use the "Description" field in your product admin to write mini-blog posts (300+ words). Google loves text-heavy pages.',
-      'Image Alt Text: Always rename your uploaded images from "IMG_001.jpg" to "emerald-green-satin-dress-evening-wear.jpg" before uploading.'
-    ],
-    actionItems: [
-      'Update the "Site Slogan" in Admin Settings to include your main keywords.',
-      'Rename all product titles to be descriptive (Color + Material + Style + Occasion).',
-      'Write a 300-word "Founder\'s Note" in the About section using your niche keywords.',
-      'Test your page speed using Google PageSpeed Insights.'
-    ]
-  },
-  {
-    id: 'email-marketing',
-    title: '8. Email Marketing: Owning Your Audience',
-    platform: 'General',
-    description: 'Social algorithms change; email lists do not. Building a newsletter is your insurance policy.',
-    icon: 'Mail',
-    strategies: [
-      'The Lead Magnet: Offer a free "Capsule Wardrobe Checklist" PDF in exchange for their email. Put this sign-up form on your Contact page.',
-      'The "Friday Drop": Send one email every Friday at 11 AM with your "Top 5 Picks of the Week". Consistency creates anticipation.',
-      'Segmentation: Tag subscribers based on what they click (e.g., "Interested in Shoes" vs "Interested in Dresses"). Send relevant content to each group.',
-      'Subject Line Science: Use curiosity gaps (e.g., "The one dress you need...") rather than boring labels (e.g., "Newsletter #4").'
-    ],
-    actionItems: [
-      'Sign up for a free Mailchimp or ConvertKit account.',
-      'Create a simple "Welcome Sequence" (3 emails) that introduces your brand story.',
-      'Add a "Join the Inner Circle" link to your Instagram Bio.',
-      'Send your first "Curator\'s Edit" email to your test list.'
-    ]
-  },
-  {
-    id: 'reels-production',
-    title: '9. Reels Production: Studio Quality on Mobile',
-    platform: 'Instagram',
-    description: 'How to shoot, edit, and export high-quality fashion video content using just your smartphone.',
-    icon: 'Film',
-    strategies: [
-      'Lighting 101: Always face the window. Natural light is better than any ring light. If shooting at night, use a softbox to avoid harsh shadows.',
-      'The 4k Export Setting: In Instagram settings, ensure "Upload at Highest Quality" is toggled ON. Record in 4k/60fps on your phone for smooth slow-motion.',
-      'Audio Synchronization: Edit to the beat. Cuts should happen exactly on the drum kick or snare hit of the song. This feels satisfying to watch.',
-      'Angles & Movement: Don\'t just stand there. Move the camera towards the fabric, pan up the silhouette, or walk towards the lens.'
-    ],
-    actionItems: [
-      'Buy a simple tripod with a bluetooth remote shutter.',
-      'Download CapCut for advanced editing features not found in Instagram.',
-      'Create a folder of "Trending Audio" links to use later.',
-      'Batch film 5 outfits in one Sunday afternoon session.'
-    ]
-  },
-  {
-    id: 'community-building',
-    title: '10. Community Building: The "Tribe" Model',
-    platform: 'General',
-    description: 'Moving from "Followers" to "True Fans". A community defends you, promotes you, and buys everything you recommend.',
-    icon: 'Users',
-    strategies: [
-      'Naming Your Tribe: Give your followers a collective name (e.g., "The Chic Squad", "Luxury Hackers"). This creates a sense of belonging.',
-      'UGC Incentives: Encourage followers to tag you when they buy your recommendations. Repost EVERY single tag to your Stories. This is social proof.',
-      'The "Ask Me Anything" (AMA): Host a weekly Q&A on Stories. Answer fashion dilemmas. It positions you as the expert helper, not just a salesperson.',
-      'Vulnerability: Share your fashion fails, not just the wins. "I bought this and it looked terrible" builds more trust than 100 perfect reviews.'
-    ],
-    actionItems: [
-      'Create a "Client Love" highlight on Instagram for reposts.',
-      'Reply to every single comment on your posts with a question to keep the conversation going.',
-      'Host a "Style Audit" giveaway where you critique one follower\'s wardrobe.',
-      'Start a "Sunday Chat" routine on Stories.'
-    ]
-  },
-  {
-    id: 'facebook-groups',
-    title: '11. Facebook Groups: Niche Domination',
-    platform: 'Facebook',
-    description: 'Leveraging existing communities to drive highly targeted traffic.',
-    icon: 'Facebook',
-    strategies: [
-      'The Helper Method: Join groups like "Wedding Guest Outfits" or "Workwear Style". Do NOT spam links. Answer questions with photos, then say "I have a list of similar items on my profile if you need it".',
-      'Marketplace Arbitrage: List items on FB Marketplace (if you own the sample). When they message, say "It\'s sold, but here is the link to buy it new".',
-      'Create Your Own Group: "Affordable Luxury Finds SA". You control the pinned post. You control the rules. You own the traffic.',
-      'Live Shopping Events: Go live in your group showing the physical products. The raw, unedited nature of Lives converts very well.'
-    ],
-    actionItems: [
-      'Join 5 active fashion/shopping groups in your region.',
-      'Spend 1 week just commenting and liking (no links) to build reputation.',
-      'Create a "Style Guide" PDF to offer as a value-add in groups.',
-      'Set up your own niche Facebook Group.'
-    ]
-  },
-  {
-    id: 'influencer-outreach',
-    title: '12. Influencer Outreach: Micro-Collaps',
-    platform: 'General',
-    description: 'Partnering with other micro-influencers to cross-pollinate audiences.',
-    icon: 'Star',
-    strategies: [
-      'The "Style Swap": Find a creator with a similar size. You style an outfit for them, they style one for you. You both tag each other.',
-      'Guest Curation: Invite a guest to curate a "Collection" on your bridge page. "The Sarah Edit". They will promote it heavily because their name is on it.',
-      'Joint Lives: Go live together on Instagram (Split Screen). You instantly double your reach by tapping into their follower notification list.',
-      'Affiliate for Affiliates: If you have a product, offer them a cut. Since you are doing dropshipping/affiliate, this is harder, so focus on content swaps.'
-    ],
-    actionItems: [
-      'Identify 5 creators with 1k-10k followers who share your aesthetic.',
-      'Send a genuine DM complimenting a specific piece of their content.',
-      'Propose a "Style Challenge" collaboration (e.g., "1 Dress, 2 Ways").',
-      'Create a "Guest Curator" graphic template.'
-    ]
-  },
-  {
-    id: 'content-batching',
-    title: '13. Content Batching: Workflow Efficiency',
-    platform: 'General',
-    description: 'How to produce 1 month of content in 2 days. Stop the daily burnout cycle.',
-    icon: 'Layers',
-    strategies: [
-      'The "Content Pillars" System: Rotate between 4 themes: Education, Inspiration, Personal, Promotional. Plan this on a calendar.',
-      'Shoot Day Protocol: Hair and makeup once. Bring 10 outfits. Shoot all videos first (while energy is high), then photos. Change location slightly for variety.',
-      'Template Library: Save your best performing caption structures and Canva layouts. Reuse them. Don\'t reinvent the wheel every post.',
-      'Scheduling Tools: Use Meta Business Suite (free) to schedule posts for the week. Never post manually in real-time unless it\'s a Story.'
-    ],
-    actionItems: [
-      'Create a content calendar spreadsheet.',
-      'Dedicate every Sunday to planning and filming.',
-      'Create 5 "Caption Templates" (e.g., The Story Opener, The Question Opener).',
-      'Schedule next week\'s posts this Friday.'
-    ]
-  },
-  {
-    id: 'copywriting-magic',
-    title: '14. Copywriting Magic: Words that Sell',
-    platform: 'General',
-    description: 'Writing product descriptions and captions that trigger emotional buying decisions.',
-    icon: 'PenTool',
-    strategies: [
-      'Features vs Benefits: Don\'t say "Elastic waistband" (Feature). Say "Eat pasta comfortably without unbuttoning" (Benefit).',
-      'Sensory Language: Use words like "Buttery soft", "Structured", "Flowing", "Crisp". Make them feel the fabric through the screen.',
-      'Scarcity & Urgency: "Low Stock Alert" or "Selling out fast". FOMO (Fear Of Missing Out) is a powerful motivator.',
-      'The "Imagine This" Technique: "Imagine walking into the boardroom wearing this..." Transport them to the future where they own the item.'
-    ],
-    actionItems: [
-      'Rewrite your top 5 product descriptions using Sensory Language.',
-      'Audit your Instagram captions: Are they benefits-focused?',
-      'Create a "Power Word" list (e.g., Exclusive, Limited, Essential) to keep on your desk.',
-      'A/B test two different headlines on your next two posts.'
-    ]
-  },
-  {
-    id: 'analytics-deep-dive',
-    title: '15. Analytics Deep Dive: Data-Driven Growth',
-    platform: 'General',
-    description: 'Reading the numbers to understand what your audience actually wants (vs what you think they want).',
-    icon: 'BarChart3',
-    strategies: [
-      'CTR (Click Through Rate): If impressions are high but clicks are low, your creative (photo/video) is good, but your CTA or Product Offer is weak.',
-      'Bounce Rate: If they click the link but leave immediately, your bridge page load speed is slow or the expectation set in the video didn\'t match the landing page.',
-      'Time of Day Analysis: Post when your audience is active. Check Insights > Audience > Most Active Times.',
-      'The 80/20 Rule: 20% of your products will bring 80% of your revenue. Identify the winners and double down on creating content for them.'
-    ],
-    actionItems: [
-      'Check your Bridge Page Admin Dashboard weekly.',
-      'Identify your top 3 clicked products.',
-      'Identify your top 3 posts by "Saves" (Saves = high intent).',
-      'Kill the bottom 20% of products that get no clicks to keep the site fresh.'
-    ]
-  },
-  {
-    id: 'paid-ads-basics',
-    title: '16. Paid Ads Basics: Boosting Posts',
-    platform: 'General',
-    description: 'Introduction to putting money behind your best organic content to scale reach.',
-    icon: 'DollarSign',
-    strategies: [
-      'The "Organic First" Rule: Only boost posts that have already performed well organically. If your followers liked it, strangers might too.',
-      'Targeting: Start with "Broad" targeting (Just Age + Gender + Location). Let the algorithm find your people.',
-      'Budgeting: Start with $5 (R100) per day for 3 days. If it generates clicks cheaper than your benchmark, keep it running.',
-      'The "Profile Visit" Objective: Often cheaper than "Website Clicks". Drive them to your profile, where they will see your Link in Bio.'
-    ],
-    actionItems: [
-      'Connect your Instagram to a Facebook Ad Account.',
-      'Identify your best performing Reel of the month.',
-      'Boost it for 3 days with a small budget targeting "Women 25-45 Interested in Shopping".',
-      'Analyze the cost-per-click.'
-    ]
-  },
-  {
-    id: 'seasonal-campaigns',
-    title: '17. Seasonal Campaigns: Calendar Sync',
-    platform: 'General',
-    description: 'Planning your curation around global retail moments (Black Friday, Christmas, Valentine\'s).',
-    icon: 'Calendar',
-    strategies: [
-      'The 6-Week Ramp Up: Start creating content for Christmas in early November. People browse early but buy late.',
-      'Gift Guides: "Gifts for Him", "Gifts for Her", "Stocking Fillers". These perform exceptionally well in Q4.',
-      'Event Dressing: "Wedding Guest Season" (Sept-Dec), "Matric Dance", "Summer Vacation". Curate specific collections for these.',
-      'Clearance Cycles: When seasons change, do a "Last Chance" edit to capture bargain hunters.'
-    ],
-    actionItems: [
-      'Mark all major holidays on your calendar.',
-      'Plan 3 "Gift Guide" collections for the next major holiday.',
-      'Source "Winter Coats" in Feb/March (end of season sales) or "Summer Dresses" in August (pre-season).',
-      'Create a "Holiday Party" lookbook.'
-    ]
-  },
-  {
-    id: 'legal-compliance',
-    title: '18. Legal & Compliance: Safe Scaling',
-    platform: 'General',
-    description: 'Staying on the right side of the law and platform terms of service.',
-    icon: 'Shield',
-    strategies: [
-      'FTC/ASA Disclosure: You MUST disclose "Ad" or "Affiliate Link" clearly. Hiding it can get you banned.',
-      'Image Rights: Do not steal images from other influencers. Use the official brand product photos or take your own.',
-      'Platform Terms: Read the Shein Affiliate Terms. Some brands don\'t allow you to bid on their brand name keywords in Google Ads.',
-      'Data Privacy: If you collect emails, you need a Privacy Policy (included in this bridge page!).'
-    ],
-    actionItems: [
-      'Review your bio to ensure "Affiliate" or "Curator" is visible.',
-      'Double check your Bridge Page footer for the Privacy Policy link.',
-      'Ensure every sponsored Story includes #ad.',
-      'Audit your image sources.'
-    ]
-  },
-  {
-    id: 'customer-service',
-    title: '19. Customer Service: The Human Touch',
-    platform: 'General',
-    description: 'Handling questions and complaints even though you don\'t ship the product.',
-    icon: 'Heart',
-    strategies: [
-      'The "Middleman" Script: "I don\'t ship the items, but I can help you find the tracking page on Shein\'s website." Be helpful, not dismissive.',
-      'Sizing Advice: This is the #1 question. Be honest. "This runs small, size up." Your honesty reduces returns and increases trust.',
-      'Handling Broken Links: If a user tells you a link is dead, thank them profusely and fix it immediately.',
-      'Response Time: Reply to DMs within 24 hours. Momentum is key in sales.'
-    ],
-    actionItems: [
-      'Create a "Saved Reply" for "Where is my order?".',
-      'Create a "Saved Reply" for "How long is shipping?".',
-      'Add a sizing guide to your Highlights.',
-      'Set aside 15 mins every morning for community management.'
-    ]
-  },
-  {
-    id: 'scaling-automation',
-    title: '20. Scaling & Automation: The CEO Mindset',
-    platform: 'General',
-    description: 'Moving from a solopreneur to a business owner. Hiring help and using software.',
-    icon: 'Zap',
-    strategies: [
-      'Virtual Assistants (VA): Hire a VA to create your Deep Links and upload products to the Bridge Page. Your time is better spent on Content Creation.',
-      'Repurposing Software: Use tools like Repurpose.io to automatically post your TikToks to YouTube Shorts and Pinterest.',
-      'Affiliate Networks: Expand beyond Shein. Apply to LTK (RewardStyle) or Amazon Associates once you have traffic.',
-      'Diversification: Don\'t rely on one social platform. If Instagram deletes your account, you need your Email List and Website.'
-    ],
-    actionItems: [
-      'Document your "Product Upload Process" (SOP) so you can teach it to someone else.',
-      'Look into Repurpose.io free trial.',
-      'Apply to one other affiliate network this month.',
-      'Schedule a monthly "CEO Date" to review finances and strategy.'
-    ]
-  }
+  // ... existing modules ...
 ];
 
 export const PERMISSION_TREE: PermissionNode[] = [
@@ -755,13 +414,13 @@ export const INITIAL_ADMINS: AdminUser[] = [
   {
     id: 'owner',
     name: 'Main Administrator',
-    email: 'admin@kasicouture.com',
+    email: 'admin@moniqueboutique.com',
     role: 'owner',
     permissions: ['*'], // * implies all
     password: 'password123',
     createdAt: Date.now(),
-    phone: '+27 11 900 2000',
-    address: 'Johannesburg HQ',
+    phone: '',
+    address: 'Online HQ',
     profileImage: ''
   }
 ];
@@ -789,9 +448,9 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: 'Kasi Couture',
-  slogan: 'Curated by the Founder',
-  companyLogo: 'KC',
+  companyName: 'Monique Boutique',
+  slogan: 'Your Bridge to Global Style',
+  companyLogo: 'MB',
   companyLogoUrl: 'https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png',
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
@@ -802,71 +461,74 @@ export const INITIAL_SETTINGS: SiteSettings = {
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
-  contactEmail: 'curation@kasicouture.com',
-  contactPhone: '+27 11 900 2000',
-  whatsappNumber: '+27119002000',
-  address: 'Melrose Arch, Johannesburg',
+  contactEmail: 'moniqueboutique101@gmail.com',
+  contactPhone: '+27 76 836 0325',
+  whatsappNumber: '27768360325',
+  address: 'Mokopane, Limpopo, 0601',
   socialLinks: [
-    { id: '1', name: 'Instagram', url: 'https://instagram.com/kasicouture', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
-    { id: '2', name: 'Twitter', url: 'https://twitter.com/kasicouture', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3256/3256013.png' }
+    { id: '1', name: 'Instagram', url: 'https://instagram.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
+    { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }
   ],
 
-  footerDescription: "The digital bridge to modern luxury. Curating elite fashion and lifestyle affiliate picks for the discerning modern closet.",
-  footerCopyrightText: "All rights reserved. Made with love.",
+  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to Shein and global fashion trends.",
+  footerCopyrightText: "All rights reserved.",
 
-  // Home
-  homeHeroBadge: 'Founder\'s Selection',
-  homeAboutTitle: 'My Journey in the Silhouette.',
-  homeAboutDescription: 'I founded this platform to bridge the gap between pure aesthetics and high-performance lifestyle. Every piece featured here is a testament to my personal quest for quality—refined, tested, and curated for you.',
+  // Home Page Content
+  homeHeroBadge: 'Affiliate Curator',
+  homeAboutTitle: 'Me and My Story.',
+  homeAboutDescription: 'I built this bridge page to share my journey in affiliate marketing. Here I showcase my favorite finds from programs like Shein, offering you a personal look at the products I love and recommend.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Explore My Story',
-  homeCategorySectionTitle: 'Shop by Department',
+  homeAboutCta: 'Read My Story',
+  homeCategorySectionTitle: 'Curated Departments',
   homeCategorySectionSubtitle: 'The Collection',
-  homeTrustSectionTitle: 'The Standard',
-  homeTrustItem1Title: 'Verified Quality',
-  homeTrustItem1Desc: 'Every product link is personally tested and leads to a secure, verified retailer.',
-  homeTrustItem1Icon: 'ShieldCheck',
-  homeTrustItem2Title: 'Human Curation',
-  homeTrustItem2Desc: 'No algorithms. Only human-selected pieces that embody the founder\'s aesthetic.',
-  homeTrustItem2Icon: 'Sparkles',
-  homeTrustItem3Title: 'Global Vision',
-  homeTrustItem3Desc: 'Sourcing the best of local design and international luxury couture.',
-  homeTrustItem3Icon: 'Globe',
+  homeTrustSectionTitle: 'Why Shop Here',
+  
+  homeTrustItem1Title: 'Verified Affiliate',
+  homeTrustItem1Desc: 'Official partner with major global retailers like Shein.',
+  homeTrustItem1Icon: 'ShieldCheck', 
 
-  // Products
-  productsHeroTitle: 'The Boutique Explorer',
-  productsHeroSubtitle: 'Refine your selection by department, category, or founder favorites.',
+  homeTrustItem2Title: 'Personal Curation',
+  homeTrustItem2Desc: 'I personally select and review every item on this bridge page.',
+  homeTrustItem2Icon: 'User', 
+
+  homeTrustItem3Title: 'Direct Links',
+  homeTrustItem3Desc: 'Click through directly to the merchant for secure checkout.',
+  homeTrustItem3Icon: 'Link', 
+
+  // Products Page Content
+  productsHeroTitle: 'Affiliate Catalog',
+  productsHeroSubtitle: 'Browse my hand-picked selections from top affiliate programs.',
   productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Search my collections...',
+  productsSearchPlaceholder: 'Search selections...',
 
-  // About
-  aboutHeroTitle: 'The Story of the Curator.',
-  aboutHeroSubtitle: 'Kasi Couture is my personal curation platform, dedicated to finding the most exquisite garments and accessories.',
+  // About Page Content
+  aboutHeroTitle: 'My Story.',
+  aboutHeroSubtitle: 'Welcome to my bridge page. I curate the best fashion so you don\'t have to.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'The Founder',
-  aboutLocation: 'South Africa',
+  aboutFounderName: 'Monique',
+  aboutLocation: 'Online',
 
-  aboutHistoryTitle: 'A Passion for Curation',
-  aboutHistoryBody: 'What began as a style blog has evolved into a premier luxury bridge page. My mission is to highlight the intricate craftsmanship of designers I truly believe in.\n\nI believe that fashion is the most immediate form of self-expression. By curating only the pieces that meet my rigorous standards for fabric, fit, and flair, I hope to simplify your journey toward an effortless wardrobe.',
+  aboutHistoryTitle: 'The Bridge System',
+  aboutHistoryBody: 'This website is more than just a store; it is a bridge page system designed to market various affiliate programs. My passion for fashion led me to partner with brands like Shein to bring you the best deals.\n\nHere you will find my personal reviews, styling tips, and direct links to purchase the items I love.',
   
-  aboutMissionTitle: 'Elite Standards',
-  aboutMissionBody: 'To provide a seamless interface for fashion enthusiasts to discover premium affiliate products.',
+  aboutMissionTitle: 'Marketing Mission',
+  aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers.',
   aboutMissionIcon: 'Target',
 
-  aboutCommunityTitle: 'Style Circle',
-  aboutCommunityBody: 'Join a global community of style icons who value quality over quantity.',
+  aboutCommunityTitle: 'Join the Community',
+  aboutCommunityBody: 'Follow my journey as I discover new trends and deals.',
   aboutCommunityIcon: 'Users',
   
   aboutIntegrityTitle: 'Transparency',
-  aboutIntegrityBody: 'As an affiliate bridge page, I receive a small commission on purchases made through my links, allowing me to keep curating the best for you.',
-  aboutIntegrityIcon: 'Award',
+  aboutIntegrityBody: 'I am upfront about my role as an affiliate marketer. This system is built on trust.',
+  aboutIntegrityIcon: 'Shield',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
   aboutGalleryImages: [
@@ -875,29 +537,264 @@ export const INITIAL_SETTINGS: SiteSettings = {
     'https://images.unsplash.com/photo-1551488852-0801d863dc34?auto=format&fit=crop&q=80&w=800'
   ],
 
-  // Contact
-  contactHeroTitle: 'Tailored Assistance.',
-  contactHeroSubtitle: 'Have a question about a specific curation or want to collaborate? My concierge team is ready to assist.',
-  contactFormNameLabel: 'Full Identity',
-  contactFormEmailLabel: 'Digital Mailbox',
-  contactFormSubjectLabel: 'Inquiry Subject',
-  contactFormMessageLabel: 'Your Message',
-  contactFormButtonText: 'Transmit Inquiry',
+  // Contact Page Content
+  contactHeroTitle: 'Get in Touch.',
+  contactHeroSubtitle: 'Have questions about a product or my affiliate partners?',
+  contactFormNameLabel: 'Name',
+  contactFormEmailLabel: 'Email',
+  contactFormSubjectLabel: 'Subject',
+  contactFormMessageLabel: 'Message',
+  contactFormButtonText: 'Send Message',
   
-  // New Contact Editable Fields
-  contactInfoTitle: 'Headquarters',
-  contactAddressLabel: 'Address',
-  contactHoursLabel: 'Operating Hours',
-  contactHoursWeekdays: 'Mon - Fri: 09:00 - 18:00 (SAST)',
-  contactHoursWeekends: 'Sat: 09:00 - 13:00',
+  contactInfoTitle: 'Contact',
+  contactAddressLabel: 'Location',
+  contactHoursLabel: 'Hours',
+  contactHoursWeekdays: 'Online 24/7',
+  contactHoursWeekends: '',
 
-  // Legal
+  // Legal Content
   disclosureTitle: 'Affiliate Disclosure',
-  disclosureContent: `### Affiliate Disclosure\n\nTransparency is our foundation. This platform is a professional curation site. Most product links are affiliate links. If you click and buy, we may receive a commission at no extra cost to you.`,
+  disclosureContent: `### COMPREHENSIVE AFFILIATE DISCLOSURE STATEMENT
+
+**Last Updated: January 1, 2025**
+
+#### 1. Introduction & Transparency Commitment
+
+Monique Boutique (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
+
+This Disclosure Statement is intended to inform you that we participate in various affiliate marketing programs. These programs are designed to provide a means for sites to earn advertising fees by advertising and linking to third-party merchant websites.
+
+#### 2. The Nature of Affiliate Marketing (Bridge Page Notice)
+
+**IMPORTANT:** Monique Boutique functions exclusively as a **Bridge Page** or "curation portfolio." 
+
+*   **We Are Not a Retailer:** We do not manufacture, stock, warehouse, package, or ship any products.
+*   **No Transactional Relationship:** We do not process payments, handle credit card information, or manage order fulfillment.
+*   **The "Click-Through" Process:** When you click on a link labeled "Shop", "Buy", "View Price", "Acquire", or similar call-to-action buttons on this Site, you will be automatically redirected to a third-party merchant's website (e.g., Shein, Amazon, Nordstorm, Revolve, etc.).
+*   **The Purchase:** Any purchase you make is a direct transaction between you and that third-party merchant.
+
+#### 3. Compensation & Commission Structure
+
+When you click on our affiliate links and make a qualifying purchase, we may receive a commission or referral fee. This commission is paid to us by the merchant, **at no extra cost to you**.
+
+*   **Price Parity:** The price you pay for the product is the same whether you use our affiliate link or navigate to the merchant's site directly. Our commission is deducted from the merchant's profit margin, not added to your purchase price.
+*   **Cookie Duration:** Affiliate programs use "cookies" to track your visit. If you click a link and purchase within a specific timeframe (often 24 to 30 days), we may still receive credit for the sale.
+
+#### 4. Affiliate Program Participation
+
+Monique Boutique is a participant in several affiliate advertising programs, including but not limited to:
+
+*   **SHEIN Affiliate Program:** We curate and link to fashion items sold on Shein.com.
+*   **Amazon Services LLC Associates Program:** An affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, we earn from qualifying purchases.
+*   **Other Networks:** We may also participate in networks such as RewardStyle (LTK), CJ Affiliate, ShareASale, Awin, and others.
+
+#### 5. Product Curation & Editorial Independence
+
+While we receive compensation for our posts or advertisements, we always give our honest opinions, findings, beliefs, or experiences on those topics or products. The views and opinions expressed on this blog are purely the bloggers' own.
+
+*   **Selection Process:** We curate products based on aesthetic value, trend analysis, consumer reviews, and personal taste.
+*   **No Pay-to-Play:** We do not accept direct payments from brands to list "bad" products as "good." If a product is featured here, it is because we genuinely believe it offers value to our audience.
+*   **Sponsored Content:** If a specific post is "Sponsored" (meaning a brand paid us a flat fee to write about them, separate from affiliate commissions), this will be clearly marked at the top of that specific page or post.
+
+#### 6. Limitation of Liability regarding Third-Party Products
+
+Because we do not manufacture or sell the products:
+
+*   **No Warranty:** We make no claims, warranties, or representations regarding the quality, safety, fit, or legality of the products listed.
+*   **Customer Support:** All questions regarding shipping, returns, refunds, sizing, or damaged goods must be directed to the merchant where you completed the purchase (e.g., Shein Customer Support). We have no access to your order history or payment details.
+
+#### 7. Contact Information
+
+If you have any questions regarding this disclosure or our affiliate relationships, please contact us at:
+
+**Monique Boutique Compliance**
+Email: moniqueboutique101@gmail.com
+Phone: +27 76 836 0325
+Address: Mokopane, Limpopo, 0601`,
+  
   privacyTitle: 'Privacy Policy',
-  privacyContent: `### Privacy Policy\n\nWe value your data privacy. We only collect information necessary for newsletter signups and direct inquiries.`,
+  privacyContent: `### COMPREHENSIVE PRIVACY POLICY
+
+**Last Updated: January 1, 2025**
+
+#### 1. Introduction
+
+Monique Boutique ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
+
+This policy applies to the **Bridge Page System** and curation portfolio operated by Monique Boutique.
+
+#### 2. The Data We Collect About You
+
+Personal data, or personal information, means any information about an individual from which that person can be identified. It does not include data where the identity has been removed (anonymous data).
+
+We may collect, use, store, and transfer different kinds of personal data about you which we have grouped together follows:
+
+*   **Identity Data:** includes first name, last name, username or similar identifier.
+*   **Contact Data:** includes email address and telephone number (only if voluntarily provided via our Contact Form or Newsletter signup).
+*   **Technical Data:** includes internet protocol (IP) address, your login data, browser type and version, time zone setting and location, browser plug-in types and versions, operating system and platform, and other technology on the devices you use to access this website.
+*   **Usage Data:** includes information about how you use our website, products, and services (e.g., which affiliate links you click).
+*   **Marketing and Communications Data:** includes your preferences in receiving marketing from us and your communication preferences.
+
+**We do NOT collect:**
+*   **Financial Data:** We do **not** collect or store payment card details. All transactions are processed by third-party merchants (e.g., Shein, Amazon).
+*   **Sensitive Data:** We do not collect details about your race or ethnicity, religious or philosophical beliefs, sex life, sexual orientation, political opinions, trade union membership, information about your health, and genetic and biometric data.
+
+#### 3. How Is Your Personal Data Collected?
+
+We use different methods to collect data from and about you including through:
+
+*   **Direct Interactions:** You may give us your Identity and Contact Data by filling in forms or by corresponding with us by post, phone, email, or otherwise. This includes personal data you provide when you:
+    *   Subscribe to our service or publications;
+    *   Request marketing to be sent to you;
+    *   Enter a competition, promotion, or survey; or
+    *   Give us feedback or contact us.
+*   **Automated Technologies or Interactions:** As you interact with our website, we will automatically collect Technical Data about your equipment, browsing actions, and patterns. We collect this personal data by using cookies, server logs, and other similar technologies. We may also receive Technical Data about you if you visit other websites employing our cookies.
+*   **Third Parties:** We may receive personal data about you from various third parties such as:
+    *   Analytics providers (such as Google Analytics).
+    *   Advertising networks (such as Meta/Facebook Pixel, Pinterest Tag, TikTok Pixel).
+
+#### 4. How We Use Your Personal Data
+
+We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:
+
+*   **Affiliate Tracking:** To ensure that our affiliate partners (e.g., Shein) can correctly attribute sales to our referrals.
+*   **Communication:** To respond to your inquiries sent via our contact forms.
+*   **Improvement:** To use data analytics to improve our website, products/services, marketing, customer relationships, and experiences.
+*   **Marketing:** To send you newsletters or promotional materials (only if you have explicitly opted-in).
+
+#### 5. Cookies and Tracking Technologies
+
+Our website uses cookies to distinguish you from other users of our website. This helps us to provide you with a good experience when you browse our website and also allows us to improve our site.
+
+*   **Affiliate Cookies:** When you click a "Shop" link, a tracking cookie is placed on your device by the affiliate network (not by us directly). This cookie typically lasts 30-90 days and allows the merchant to know you came from Monique Boutique.
+*   **Analytics Cookies:** We use Google Analytics to measure traffic and usage trends.
+*   **Marketing Cookies:** We use pixels from Facebook, TikTok, and Pinterest to re-target visitors with relevant ads on those platforms.
+
+You can set your browser to refuse all or some browser cookies, or to alert you when websites set or access cookies. If you disable or refuse cookies, please note that some parts of this website may become inaccessible or not function properly, and affiliate tracking may fail.
+
+#### 6. Disclosure of Your Personal Data
+
+We may share your personal data with the parties set out below:
+
+*   **Service Providers:** Companies that provide IT and system administration services (e.g., Supabase for database hosting, Vercel for web hosting).
+*   **Professional Advisers:** Lawyers, bankers, auditors, and insurers.
+*   **Regulators:** Reporting processing activities to relevant authorities if required by law.
+*   **Third Parties:** We may perform a business transfer (merger or acquisition) where data is an asset.
+
+We require all third parties to respect the security of your personal data and to treat it in accordance with the law. We do not allow our third-party service providers to use your personal data for their own purposes and only permit them to process your personal data for specified purposes and in accordance with our instructions.
+
+#### 7. Data Security
+
+We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used, or accessed in an unauthorized way, altered, or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors, and other third parties who have a business need to know.
+
+#### 8. Data Retention
+
+We will only retain your personal data for as long as reasonably necessary to fulfill the purposes we collected it for, including for the purposes of satisfying any legal, regulatory, tax, accounting, or reporting requirements.
+
+#### 9. Your Legal Rights (GDPR & CCPA)
+
+Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to:
+
+*   **Request access** to your personal data.
+*   **Request correction** of your personal data.
+*   **Request erasure** of your personal data.
+*   **Object to processing** of your personal data.
+*   **Request restriction of processing** your personal data.
+*   **Request transfer** of your personal data.
+*   **Right to withdraw consent.**
+
+If you wish to exercise any of the rights set out above, please contact us at moniqueboutique101@gmail.com.
+
+#### 10. Third-Party Links
+
+This website may include links to third-party websites, plug-ins, and applications. Clicking on those links or enabling those connections may allow third parties to collect or share data about you. We do not control these third-party websites and are not responsible for their privacy statements. When you leave our website, we encourage you to read the privacy policy of every website you visit.
+
+#### 11. Contact Us
+
+If you have any questions about this Privacy Policy, please contact us at:
+
+Email: moniqueboutique101@gmail.com
+Phone: +27 76 836 0325
+Address: Mokopane, Limpopo, 0601`,
+
   termsTitle: 'Terms of Service',
-  termsContent: `### Terms of Service\n\nThis is a bridge page. We do not process payments or ship goods directly. All sales are handled by third-party retailers.`,
+  termsContent: `### TERMS OF SERVICE & USER AGREEMENT
+
+**Last Updated: January 1, 2025**
+
+#### 1. Acceptance of Terms
+
+By accessing and using the website Monique Boutique (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
+
+#### 2. Description of Service (The "Bridge Page" Model)
+
+Monique Boutique operates as a content curation and affiliate marketing bridge page.
+
+*   **NOT A RETAILER:** You acknowledge that Monique Boutique is **not** an online store, retailer, or manufacturer. We do not sell products directly.
+*   **CURATION ONLY:** Our service is limited to the aggregation, display, review, and linking of products sold by third-party vendors.
+*   **NO CONTRACT OF SALE:** No contract of sale is formed between you and Monique Boutique when you click a link. The contract of sale is formed solely between you and the third-party merchant (e.g., Shein) upon checkout on their respective platform.
+
+#### 3. Intellectual Property Rights
+
+*   **Our Content:** The design, layout, graphics, text, logo, and code of this Site are the intellectual property of Monique Boutique and are protected by copyright and trademark laws.
+*   **Merchant Content:** Product images, prices, and descriptions displayed on this Site are the property of their respective owners (the merchants) and are used here under license or fair use principles for the purpose of affiliate promotion. You may not copy, reproduce, or distribute this content without express permission from the rights holder.
+
+#### 4. User Conduct
+
+You agree not to use the Site for any unlawful purpose or any purpose prohibited under this clause. You agree not to use the Site in any way that could damage the Site, the services, or the general business of Monique Boutique.
+
+You further agree not to:
+*   Harass, abuse, or threaten others or otherwise violate any person's legal rights.
+*   Violate any intellectual property rights of the Site or any third party.
+*   Upload or otherwise disseminate any computer viruses or other software that may damage the property of another.
+*   Perpetrate any fraud.
+*   Engage in or create any unlawful gambling, sweepstakes, or pyramid scheme.
+*   Publish or distribute any obscene or defamatory material.
+
+#### 5. Third-Party Links and Services
+
+The Site may contain links to other websites ("Linked Sites"). The Linked Sites are not under the control of Monique Boutique and we are not responsible for the contents of any Linked Site, including without limitation any link contained in a Linked Site, or any changes or updates to a Linked Site. Monique Boutique is providing these links to you only as a convenience, and the inclusion of any link does not imply endorsement by Monique Boutique of the site or any association with its operators.
+
+**You acknowledge and agree that your use of third-party websites is at your own risk and subject to the terms and conditions of use for such sites.**
+
+#### 6. Disclaimer of Warranties
+
+THE SITE AND ITS CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT ANY WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+MONIQUE BOUTIQUE DOES NOT WARRANT THAT:
+(A) THE SITE WILL FUNCTION UNINTERRUPTED, SECURE, OR AVAILABLE AT ANY PARTICULAR TIME OR LOCATION;
+(B) ANY ERRORS OR DEFECTS WILL BE CORRECTED;
+(C) THE SITE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS; OR
+(D) THE RESULTS OF USING THE SITE WILL MEET YOUR REQUIREMENTS.
+
+#### 7. Limitation of Liability
+
+TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL MONIQUE BOUTIQUE, ITS AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY INDIRECT, PUNITIVE, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, INCLUDING WITHOUT LIMITATION DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA, OR OTHER INTANGIBLE LOSSES, ARISING OUT OF OR RELATING TO THE USE OF, OR INABILITY TO USE, THIS SITE.
+
+SPECIFICALLY, WE ARE NOT LIABLE FOR:
+*   **PRODUCT DEFECTS:** Any issues with products purchased from third-party merchants (sizing, quality, damage).
+*   **SHIPPING ISSUES:** Delays, lost packages, or customs fees associated with third-party orders.
+*   **FINANCIAL LOSS:** Any financial loss incurred from transactions on third-party sites.
+
+#### 8. Indemnification
+
+You agree to defend, indemnify and hold harmless Monique Boutique and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, or b) a breach of these Terms.
+
+#### 9. Changes to Terms
+
+We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material we will try to provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
+
+#### 10. Governing Law
+
+These Terms shall be governed and construed in accordance with the laws of South Africa (or the primary jurisdiction of the Site owner), without regard to its conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights.
+
+#### 11. Contact Us
+
+If you have any questions about these Terms, please contact us at:
+
+Email: moniqueboutique101@gmail.com
+Phone: +27 76 836 0325
+Address: Mokopane, Limpopo, 0601`,
 
   // Integrations
   emailJsServiceId: '',
@@ -956,7 +853,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'p1',
     name: 'Midnight Silk Wrap',
-    sku: 'KC-APP-001',
+    sku: 'MB-APP-001',
     price: 3450,
     affiliateLink: 'https://example.com/midnight-silk',
     categoryId: 'cat1',

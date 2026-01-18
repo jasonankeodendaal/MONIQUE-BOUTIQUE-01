@@ -80,6 +80,7 @@ const Footer: React.FC = () => {
               <ul className="space-y-3 text-sm font-light">
                 <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
                 <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
+                <li><Link to="/terms" className="hover:text-primary transition-colors">{settings.termsTitle}</Link></li>
               </ul>
             </div>
           </div>
