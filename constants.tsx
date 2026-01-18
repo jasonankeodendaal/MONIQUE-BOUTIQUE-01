@@ -1,42 +1,93 @@
-
-
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
 export const EMAIL_TEMPLATE_HTML = `
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; background-color: #f9f9f9; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 20px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #D4AF37; padding-bottom: 20px; }
-        .header img { max-height: 80px; margin-bottom: 10px; }
-        .header h1 { font-family: 'Playfair Display', serif; color: #1e293b; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px; }
-        .content { color: #475569; font-size: 16px; }
-        .footer { font-size: 11px; color: #94a3b8; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
-        .cta-button { display: inline-block; padding: 12px 24px; background-color: #D4AF37; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>{{company_name}}</h1>
-        </div>
-        <div class="content">
-          <p>Dear {{to_name}},</p>
-          <div>{{message}}</div>
-          <p>If you have further questions, feel free to visit our concierge portal.</p>
-          <a href="{{company_website}}" class="cta-button">Visit Our Collections</a>
-        </div>
-        <div class="footer">
-          <p>&copy; {{year}} {{company_name}} | Boutique Curation</p>
-          <p>{{company_address}}</p>
-        </div>
-      </div>
-    </body>
-  </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message from {{company_name}}</title>
+<style>
+    /* RESET & BASICS */
+    body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #FDFCFB; color: #1E293B; -webkit-font-smoothing: antialiased; line-height: 1.6; }
+    table { border-spacing: 0; width: 100%; }
+    td { padding: 0; }
+    img { border: 0; }
+    
+    /* WRAPPER */
+    .wrapper { width: 100%; table-layout: fixed; background-color: #FDFCFB; padding-bottom: 60px; }
+    .webkit { max-width: 600px; background-color: #FFFFFF; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1); border: 1px solid #f1f5f9; }
+    .outer { margin: 0 auto; width: 100%; max-width: 600px; }
+    
+    /* HEADER */
+    .header { background-color: #1E293B; padding: 40px 20px; text-align: center; }
+    .brand-title { color: #FFFFFF; font-family: 'Playfair Display', Times, serif; font-size: 28px; letter-spacing: 2px; text-transform: uppercase; margin: 0; font-weight: 400; }
+    .brand-subtitle { color: #D4AF37; font-size: 10px; text-transform: uppercase; letter-spacing: 4px; margin-top: 5px; font-weight: 700; display: block; }
+    
+    /* CONTENT */
+    .content { padding: 40px; background-color: #FFFFFF; }
+    .greeting { font-size: 20px; font-weight: 600; color: #1E293B; margin-bottom: 20px; font-family: 'Playfair Display', serif; }
+    .message-body { font-size: 15px; color: #475569; line-height: 1.8; white-space: pre-wrap; margin-bottom: 30px; }
+    
+    /* BUTTON */
+    .btn-container { text-align: center; margin: 35px 0; }
+    .btn { display: inline-block; background-color: #D4AF37; color: #FFFFFF; padding: 16px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); }
+    
+    /* FOOTER */
+    .footer { background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
+    .footer-text { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .address { color: #cbd5e1; font-size: 10px; line-height: 1.5; margin-top: 10px; }
+    .socials { margin-top: 20px; }
+    .social-link { color: #D4AF37; font-size: 11px; text-decoration: none; margin: 0 10px; font-weight: 700; }
+</style>
+</head>
+<body>
+<center class="wrapper">
+    <div class="webkit">
+        <table class="outer" align="center">
+            <!-- Header -->
+            <tr>
+                <td class="header">
+                    <h1 class="brand-title">{{company_name}}</h1>
+                    <span class="brand-subtitle">Private Concierge</span>
+                </td>
+            </tr>
+            
+            <!-- Body -->
+            <tr>
+                <td class="content">
+                    <p class="greeting">Dear {{to_name}},</p>
+                    <div class="message-body">
+                        {{message}}
+                    </div>
+                    <div class="btn-container">
+                        <a href="{{company_website}}" class="btn">Visit Collection</a>
+                    </div>
+                    <p style="font-size: 13px; color: #64748b; text-align: center; font-style: italic;">
+                        "Curating the exceptional for the discerning few."
+                    </p>
+                </td>
+            </tr>
+            
+            <!-- Footer -->
+            <tr>
+                <td class="footer">
+                    <p class="footer-text">&copy; {{year}} {{company_name}}</p>
+                    <p class="footer-text">All Rights Reserved</p>
+                    <div class="address">{{company_address}}</div>
+                    <div class="socials">
+                        <a href="{{company_website}}" class="social-link">Website</a>
+                        <span style="color: #cbd5e1;">|</span>
+                        <a href="mailto:{{reply_to}}" class="social-link">Contact Support</a>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</center>
+</body>
+</html>
 `;
 
 export const GUIDE_STEPS = [
