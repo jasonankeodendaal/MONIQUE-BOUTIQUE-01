@@ -1,3 +1,4 @@
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
@@ -59,7 +60,7 @@ export const EMAIL_TEMPLATE_HTML = `
                 <td class="content">
                     <p class="greeting">Dear {{to_name}},</p>
                     <div class="message-body">
-                        {{message}}
+                        {{{message}}}
                     </div>
                     <div class="btn-container">
                         <a href="{{company_website}}" class="btn">Visit Collection</a>
