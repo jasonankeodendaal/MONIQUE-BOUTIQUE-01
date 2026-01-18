@@ -238,7 +238,7 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 export interface TrainingModule {
   id: string;
   title: string;
-  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General' | 'Facebook';
+  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General' | 'Facebook' | 'YouTube' | 'LinkedIn' | 'Twitter' | 'Threads' | 'Snapchat' | 'Email';
   description: string;
   strategies: string[];
   actionItems: string[];
