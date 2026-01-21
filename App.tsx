@@ -853,6 +853,10 @@ const App: React.FC = () => {
     document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
   }, [settings.primaryColor]);
 
+  useEffect(() => {
+    document.title = settings.companyName || 'Monique Boutique';
+  }, [settings.companyName]);
+
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, 
