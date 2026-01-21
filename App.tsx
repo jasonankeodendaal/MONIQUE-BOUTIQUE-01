@@ -484,22 +484,40 @@ const App: React.FC = () => {
       name: settings.companyName,
       short_name: settings.companyName,
       description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
+      id: "/",
       start_url: "/",
       display: "standalone",
+      orientation: "portrait-primary",
       background_color: "#FDFCFB",
       theme_color: settings.primaryColor || "#D4AF37",
       icons: [
         {
           src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
-          sizes: "192x192",
+          sizes: "500x500", // Corrected size declaration for the provided image
           type: "image/png",
-          purpose: "any maskable"
+          purpose: "any"
         },
         {
           src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
-          sizes: "512x512",
+          sizes: "192x192", // Kept for compatibility but using the same source (browser resizes)
           type: "image/png",
-          purpose: "any maskable"
+          purpose: "maskable"
+        }
+      ],
+      screenshots: [
+        {
+           src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1280",
+           sizes: "1280x853",
+           type: "image/jpeg",
+           form_factor: "wide",
+           label: "Curated Collections"
+        },
+        {
+           src: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&q=80&w=720",
+           sizes: "720x1080",
+           type: "image/jpeg",
+           form_factor: "narrow",
+           label: "Mobile Shopping"
         }
       ]
     };
