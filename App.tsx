@@ -1,4 +1,3 @@
-
 // Added React import to resolve namespace errors
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
@@ -478,6 +477,49 @@ const App: React.FC = () => {
      const interval = setInterval(checkConnection, 10000);
      return () => clearInterval(interval);
   }, []);
+
+  // --- DYNAMIC PWA MANIFEST SYSTEM ---
+  useEffect(() => {
+    const manifest = {
+      name: settings.companyName,
+      short_name: settings.companyName,
+      description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
+      start_url: "/",
+      display: "standalone",
+      background_color: "#FDFCFB",
+      theme_color: settings.primaryColor || "#D4AF37",
+      icons: [
+        {
+          src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "any maskable"
+        },
+        {
+          src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any maskable"
+        }
+      ]
+    };
+
+    const stringManifest = JSON.stringify(manifest);
+    const blob = new Blob([stringManifest], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    
+    let link = document.querySelector('link[rel="manifest"]');
+    if (link) {
+        link.setAttribute('href', manifestURL);
+    } else {
+        const newLink = document.createElement('link');
+        newLink.rel = 'manifest';
+        newLink.href = manifestURL;
+        document.head.appendChild(newLink);
+    }
+
+    return () => URL.revokeObjectURL(manifestURL);
+  }, [settings]);
 
   useEffect(() => {
     let mounted = true;
