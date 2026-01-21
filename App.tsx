@@ -853,9 +853,21 @@ const App: React.FC = () => {
     document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
   }, [settings.primaryColor]);
 
+  // Update document title and favicon based on settings
   useEffect(() => {
     document.title = settings.companyName || 'Monique Boutique';
-  }, [settings.companyName]);
+    
+    // Update Favicon dynamically
+    if (settings.companyLogoUrl) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = settings.companyLogoUrl;
+    }
+  }, [settings.companyName, settings.companyLogoUrl]);
 
   return (
     <SettingsContext.Provider value={{ 
