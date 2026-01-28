@@ -62,7 +62,7 @@ const Contact: React.FC = () => {
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         </button>
 
-      <div className="pt-32 md:pt-48 pb-20 md:pb-32 max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+      <div className="pt-36 md:pt-48 pb-20 md:pb-32 max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
         
         {/* Header Section */}
         <div className="mb-16 md:mb-24">

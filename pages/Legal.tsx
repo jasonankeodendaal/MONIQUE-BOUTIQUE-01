@@ -37,7 +37,7 @@ const Legal: React.FC = () => {
   const { title, content, icon } = getPageData();
 
   return (
-    <div className="min-h-screen pt-28 md:pt-40 pb-24 bg-[#FDFCFB] relative">
+    <div className="min-h-screen pt-32 md:pt-40 pb-24 bg-[#FDFCFB] relative">
       <div className="max-w-3xl mx-auto px-6">
         
         {/* Back Button */}

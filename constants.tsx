@@ -507,6 +507,17 @@ END $$;`,
       'Post your new link in your Instagram Bio and TikTok Profile.',
       'Celebrate! You are now a digital asset owner.'
     ]
+  },
+  {
+    id: 'payment-setup',
+    title: '21. Payment Setup Guide',
+    description: 'Your application supports three primary payment methods for Direct Sales: Yoco, PayFast, and Manual EFT. Below are the detailed steps to acquire the necessary API keys and credentials for each service.',
+    illustrationId: 'rocket',
+    subSteps: [
+      '1. Yoco (Card Payments): Sign up for a business account at portal.yoco.co.za. Navigate to Sell Online > Payment Gateway > API Keys. Copy the Public Key (starts with pk_test_ or pk_live_) and paste it into Site Editor > Integrations & Payments.',
+      '2. PayFast (EFT & Card): Register at payfast.co.za and verify your account. Go to Settings > Integration. Copy Merchant ID and Merchant Key. Set a Passphrase under Security. Enter these into your Admin Dashboard.',
+      '3. Manual EFT: In Admin > Site Editor > Integrations, scroll to Manual EFT. Enter your Bank Name, Account Holder, Account Number, Branch Code, and Reference Instructions in the Bank Details field. Save to display at checkout.'
+    ]
   }
 ];
 

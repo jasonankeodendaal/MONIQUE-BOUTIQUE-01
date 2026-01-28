@@ -185,7 +185,7 @@ const Checkout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] pt-28 md:pt-40 pb-20">
+    <div className="min-h-screen bg-[#FDFCFB] pt-32 md:pt-40 pb-20">
       <div className="max-w-6xl mx-auto px-6">
         
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">

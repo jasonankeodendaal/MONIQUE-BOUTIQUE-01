@@ -240,10 +240,10 @@ const ProductDetail: React.FC = () => {
   const isOutOfStock = product.isDirectSale && (product.stockQuantity || 0) <= 0;
 
   return (
-    <main className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <main className={`min-h-screen bg-[#FDFCFB] pt-28 md:pt-32 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       
       {/* --- Breadcrumbs --- */}
-      <div className="hidden lg:block absolute top-28 left-10 md:left-20 z-30">
+      <div className="hidden lg:block absolute top-32 left-10 md:left-20 z-30">
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
            <ChevronRight size={10} />
@@ -259,10 +259,10 @@ const ProductDetail: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden">
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-8rem)] lg:h-[calc(100vh-8rem)] lg:overflow-hidden">
         
         {/* Left Side: Cinematic Media Gallery */}
-        <div className="w-full lg:w-3/5 h-[45vh] md:h-[55vh] lg:h-full relative bg-slate-100 overflow-hidden group">
+        <div className="w-full lg:w-3/5 h-[45vh] md:h-[55vh] lg:h-full relative bg-slate-100 overflow-hidden group rounded-t-[2.5rem] lg:rounded-tr-none lg:rounded-l-[2.5rem]">
           <button 
             onClick={() => navigate('/products')}
             className="absolute top-6 left-6 md:top-10 md:left-10 lg:hidden z-30 w-10 h-10 md:w-12 md:h-12 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-2xl border border-white/20"
