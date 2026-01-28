@@ -1,12 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { Target, Users, Award, Star, Quote, Sparkles, MapPin, Calendar, Heart } from 'lucide-react';
+import { Target, Users, Award, Star, Quote, Sparkles, MapPin, Calendar, Heart, ArrowRight, ShoppingBag, Milestone } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
 const About: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, products } = useSettings();
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -19,6 +20,9 @@ const About: React.FC = () => {
     const IconComponent = CustomIcons[iconName] || (LucideIcons as any)[iconName];
     return IconComponent ? <IconComponent size={32} /> : defaultIcon;
   };
+
+  // Get random or top 3 products for the "Essentials" section
+  const curatorEssentials = products.slice(0, 3);
 
   return (
     <div className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
@@ -72,7 +76,7 @@ const About: React.FC = () => {
       </div>
 
       {/* Main Narrative Spread */}
-      <section className="py-24 md:py-48 max-w-7xl mx-auto px-5 sm:px-8">
+      <section className="py-24 md:py-40 max-w-7xl mx-auto px-5 sm:px-8">
         <div className="grid lg:grid-cols-12 gap-16 md:gap-32">
             
             <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit order-2 lg:order-1">
@@ -112,15 +116,83 @@ const About: React.FC = () => {
                    {settings.aboutHistoryTitle}
                 </h3>
                 
-                <div className="columns-1 md:columns-2 gap-12 text-slate-500 font-light leading-loose text-lg text-pretty">
+                <div className="columns-1 md:columns-2 gap-12 text-slate-500 font-light leading-loose text-lg text-pretty mb-20">
                     <div className="whitespace-pre-wrap first-letter:text-7xl first-letter:font-serif first-letter:font-bold first-letter:text-slate-900 first-letter:float-left first-letter:mr-6 first-letter:mt-1">
                         {settings.aboutHistoryBody}
                     </div>
                 </div>
 
+                {/* --- JOURNEY TIMELINE --- */}
+                <div className="mb-24 relative pl-8 border-l-2 border-slate-100">
+                   <div className="absolute top-0 -left-[9px] w-4 h-4 rounded-full bg-primary border-4 border-white shadow-lg"></div>
+                   <div className="space-y-12">
+                      <div className="relative">
+                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">{settings.aboutEstablishedYear}</span>
+                         <h4 className="text-2xl font-serif text-slate-900 mb-2">Inception</h4>
+                         <p className="text-slate-500 leading-relaxed font-light">Founded in {settings.aboutLocation} with a vision to curate global style.</p>
+                      </div>
+                      <div className="relative">
+                         <div className="absolute top-2 -left-[41px] w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></div>
+                         <h4 className="text-2xl font-serif text-slate-900 mb-2">Expansion</h4>
+                         <p className="text-slate-500 leading-relaxed font-light">Connecting with premium affiliate partners to broaden the collection.</p>
+                      </div>
+                      <div className="relative">
+                         <div className="absolute top-2 -left-[41px] w-4 h-4 rounded-full bg-slate-900 border-4 border-white"></div>
+                         <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 block">Today</span>
+                         <h4 className="text-2xl font-serif text-slate-900 mb-2">Global Bridge</h4>
+                         <p className="text-slate-500 leading-relaxed font-light">Serving a community of fashion-forward individuals worldwide.</p>
+                      </div>
+                   </div>
+                </div>
+
+                {/* --- NEW: Curator's Essentials Section (Bridge to Affiliate) --- */}
+                {curatorEssentials.length > 0 && (
+                  <div className="mb-20">
+                     <div className="flex items-end justify-between mb-10 border-b border-slate-100 pb-6">
+                        <div>
+                           <span className="text-[9px] font-black uppercase tracking-[0.4em] text-primary mb-2 block">My Wardrobe Staples</span>
+                           <h4 className="text-3xl font-serif text-slate-900">Curator's Essentials</h4>
+                        </div>
+                        <Link to="/products" className="hidden md:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors group">
+                           View Full Collection <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform"/>
+                        </Link>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {curatorEssentials.map((product) => (
+                           <Link key={product.id} to={`/product/${product.id}`} className="group block">
+                              <div className="aspect-[4/5] overflow-hidden rounded-[2rem] mb-6 relative bg-slate-100">
+                                 <img 
+                                    src={product.media?.[0]?.url} 
+                                    alt={product.name} 
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                 />
+                                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300">
+                                       <ShoppingBag size={20}/>
+                                    </div>
+                                 </div>
+                                 <div className="absolute top-4 left-4">
+                                    <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-slate-900">
+                                       Essential
+                                    </div>
+                                 </div>
+                              </div>
+                              <h5 className="text-xl font-serif text-slate-900 mb-2 group-hover:text-primary transition-colors">{product.name}</h5>
+                              <p className="text-sm text-slate-500 line-clamp-2 font-light leading-relaxed">{product.description}</p>
+                           </Link>
+                        ))}
+                     </div>
+                     <div className="mt-8 text-center md:hidden">
+                        <Link to="/products" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-900 hover:text-primary transition-colors">
+                           View Full Collection <ArrowRight size={14}/>
+                        </Link>
+                     </div>
+                  </div>
+                )}
+
                 {/* Gallery Spread */}
                 {settings.aboutGalleryImages && settings.aboutGalleryImages.length > 0 && (
-                  <div className="mt-24 md:mt-40 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
                     {settings.aboutGalleryImages.map((img, i) => (
                       <div key={i} className={`rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-xl hover:-translate-y-4 transition-transform duration-700 ${i % 2 === 0 ? 'mt-8 md:mt-16' : ''}`}>
                          <img src={img} alt={`Moment ${i}`} className="w-full h-full object-cover aspect-[3/4]" />

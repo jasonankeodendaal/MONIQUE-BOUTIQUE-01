@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star } from 'lucide-react';
+import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
@@ -19,7 +19,7 @@ const SectionDivider: React.FC = () => (
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { settings, categories } = useSettings();
+  const { settings, categories, products } = useSettings();
 
   return (
     <main className="pt-0">

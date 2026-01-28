@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingBag } from 'lucide-react';
+import { Menu, X, ShoppingBag, User } from 'lucide-react';
 import { useSettings } from '../App';
+import { useCart } from '../context/CartContext';
 
 const Header: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, user } = useSettings();
+  const { itemCount, toggleCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -16,8 +18,8 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Hide header entirely on admin pages
-  if (location.pathname.startsWith('/admin')) {
+  // Hide header entirely on admin/auth pages
+  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/client-login') || location.pathname.startsWith('/login')) {
     return null;
   }
 
@@ -89,16 +91,48 @@ const Header: React.FC = () => {
             
             <div className="flex items-center pl-6 border-l border-slate-200/20 space-x-4">
               <Link
-                to="/products"
-                className={`p-2 transition-colors ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                to={user ? "/account" : "/client-login"}
+                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                title={user ? "My Account" : "Client Login"}
+              >
+                <User size={22} />
+              </Link>
+
+              <button
+                onClick={toggleCart}
+                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
               >
                 <ShoppingBag size={22} />
-              </Link>
+                {itemCount > 0 && (
+                   <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-slate-900 text-[9px] font-black rounded-full flex items-center justify-center border border-white">
+                      {itemCount}
+                   </span>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Mobile Toggle */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Mobile Toggle & Cart */}
+          <div className="md:hidden flex items-center gap-4">
+            <Link
+                to={user ? "/account" : "/client-login"}
+                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+            >
+                <User size={24} />
+            </Link>
+
+            <button
+                onClick={toggleCart}
+                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+              >
+                <ShoppingBag size={24} />
+                {itemCount > 0 && (
+                   <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-slate-900 text-[9px] font-black rounded-full flex items-center justify-center border border-white">
+                      {itemCount}
+                   </span>
+                )}
+            </button>
+            
             <button
               onClick={() => setIsOpen(!isOpen)}
               className={`p-2 rounded-lg transition-colors ${
@@ -127,6 +161,14 @@ const Header: React.FC = () => {
                 {link.name}
               </Link>
             ))}
+            {/* Mobile Account Link Text */}
+            <Link
+                to={user ? "/account" : "/client-login"}
+                onClick={() => setIsOpen(false)}
+                className="text-lg font-bold uppercase tracking-widest text-slate-500 hover:text-primary pt-4 border-t border-slate-100"
+            >
+                {user ? "My Account" : "Login / Register"}
+            </Link>
           </div>
         </div>
       </nav>

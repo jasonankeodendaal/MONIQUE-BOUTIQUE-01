@@ -25,11 +25,19 @@ const AboutSection: React.FC = () => {
               <div className="hidden md:block absolute -top-10 -right-10 w-40 h-40 border-t-2 border-r-2 border-primary/20 rounded-tr-[4rem] z-20 pointer-events-none"></div>
               <div className="hidden md:block absolute -bottom-10 -left-10 w-40 h-40 border-b-2 border-l-2 border-primary/20 rounded-bl-[4rem] z-20 pointer-events-none"></div>
 
-              {/* Founder Tag */}
-              <div className="absolute -bottom-6 -right-6 md:bottom-12 md:-right-12 z-30 bg-white p-4 md:p-8 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-start min-w-[160px] md:min-w-[240px]">
-                 <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1 md:mb-2">Founder & Curator</span>
-                 <h4 className="text-xl md:text-3xl font-serif text-slate-900 mb-2">{settings.aboutFounderName}</h4>
-                 <div className="w-12 h-1 bg-primary/20 rounded-full"></div>
+              {/* Founder Tag - Enhanced */}
+              <div className="absolute -bottom-6 -right-6 md:bottom-12 md:-right-12 z-30 bg-white/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-2xl border border-white/50 flex flex-col items-start min-w-[180px] md:min-w-[260px] transform transition-transform duration-500 hover:scale-105 group-hover:translate-x-2">
+                 <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Founder & Curator</span>
+                 </div>
+                 <h4 className="text-xl md:text-3xl font-serif text-slate-900 mb-3">{settings.aboutFounderName}</h4>
+                 <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full w-1/3 bg-primary rounded-full"></div>
+                 </div>
+                 {settings.aboutSignatureImage && (
+                    <img src={settings.aboutSignatureImage} className="h-8 w-auto object-contain mt-4 opacity-50" alt="Signature" />
+                 )}
               </div>
             </div>
           </div>
@@ -52,12 +60,6 @@ const AboutSection: React.FC = () => {
               </p>
             </div>
 
-            {settings.aboutSignatureImage && (
-              <div className="mb-12">
-                <img src={settings.aboutSignatureImage} alt="Signature" className="h-16 md:h-24 w-auto object-contain opacity-70 grayscale" />
-              </div>
-            )}
-
             <Link 
               to="/about" 
               className="inline-flex items-center gap-6 group"
@@ -65,7 +67,7 @@ const AboutSection: React.FC = () => {
               <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-900 group-hover:text-primary transition-colors">
                 {settings.homeAboutCta}
               </span>
-              <div className="w-10 h-10 md:w-14 md:h-14 bg-slate-900 rounded-full flex items-center justify-center text-white group-hover:bg-primary transition-all duration-300 shadow-xl">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-slate-900 rounded-full flex items-center justify-center text-white group-hover:bg-primary transition-all duration-300 shadow-xl group-hover:scale-110">
                 <ArrowRight size={16} className="md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>

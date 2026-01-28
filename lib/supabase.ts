@@ -131,3 +131,66 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
 }
 
 export const getSupabaseUrl = () => supabaseUrl;
+
+/**
+ * Checks if the remote DB is empty and migrates local data if so.
+ * Returns true if migration occurred.
+ */
+export async function checkAndMigrate(): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+
+  try {
+    // 1. Check if remote DB is empty (using settings table as indicator)
+    const { count, error } = await supabase
+      .from('settings')
+      .select('*', { count: 'exact', head: true });
+
+    if (error || (count !== null && count > 0)) {
+      return false; // Remote has data or error, skip migration
+    }
+
+    console.log("Empty remote DB detected. Migrating local data...");
+
+    // 2. Migration Map: LocalStorage Key -> Supabase Table
+    const migrationMap = [
+      { table: 'settings', key: 'site_settings', transform: (d: any) => ({ ...d, id: 'global' }) },
+      { table: 'products', key: 'admin_products' },
+      { table: 'categories', key: 'admin_categories' },
+      { table: 'subcategories', key: 'admin_subcategories' },
+      { table: 'hero_slides', key: 'admin_hero' },
+      { table: 'enquiries', key: 'admin_enquiries' },
+      { table: 'admin_users', key: 'admin_users' },
+      { table: 'product_stats', key: 'admin_product_stats' },
+      { table: 'orders', key: 'admin_orders' }
+    ];
+
+    let migrated = false;
+
+    // 3. Perform Migration
+    for (const m of migrationMap) {
+      const local = localStorage.getItem(m.key);
+      if (local) {
+        let data = JSON.parse(local);
+        if (!Array.isArray(data)) data = [data]; // Settings might be object, others array
+        
+        if (data.length > 0) {
+          if (m.transform) data = data.map(m.transform);
+          
+          const { error: upError } = await supabase.from(m.table).upsert(data);
+          
+          if (!upError) {
+            console.log(`Migrated ${data.length} records to ${m.table}`);
+            migrated = true;
+          } else {
+            console.error(`Failed to migrate ${m.table}:`, upError);
+          }
+        }
+      }
+    }
+    
+    return migrated;
+  } catch (e) {
+    console.error("Migration check failed", e);
+    return false;
+  }
+}

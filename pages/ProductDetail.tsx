@@ -1,14 +1,17 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag } from 'lucide-react';
 import { useSettings } from '../App';
+import { useCart } from '../context/CartContext';
 import { Review, Product } from '../types';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { settings, products, categories, updateData, logEvent } = useSettings();
+  const { addToCart } = useCart();
   
   const product = products.find((p: Product) => p.id === id);
   const category = categories.find(c => c.id === product?.categoryId);
@@ -16,9 +19,14 @@ const ProductDetail: React.FC = () => {
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
   
-  // Review Form State
+  // Reviews State (Normalized)
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState({ userName: '', comment: '', rating: 5 });
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  // Direct Sale State
+  const [quantity, setQuantity] = useState(1);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   // Accordion State
   const [openAccordion, setOpenAccordion] = useState<string | null>('specs');
@@ -39,6 +47,79 @@ const ProductDetail: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [id, product]);
 
+  // --- FETCH REVIEWS ---
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!id) return;
+
+      if (isSupabaseConfigured) {
+        const { data } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('productId', id)
+          .order('createdAt', { ascending: false });
+        if (data) setReviews(data);
+      } else {
+        // Local Mode: Simulate relational DB using localStorage
+        const allReviews: Review[] = JSON.parse(localStorage.getItem('site_reviews') || '[]');
+        const productReviews = allReviews.filter(r => r.productId === id).sort((a, b) => b.createdAt - a.createdAt);
+        setReviews(productReviews);
+      }
+    };
+    fetchReviews();
+  }, [id, isSupabaseConfigured]);
+
+  // --- DYNAMIC META & SHARE CONTENT GENERATION ---
+  useEffect(() => {
+    if (product) {
+        document.title = `${product.name} | ${settings.companyName}`;
+        
+        const updateMeta = (name: string, content: string) => {
+            let meta = document.querySelector(`meta[property="${name}"]`) || document.querySelector(`meta[name="${name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute(name.startsWith('og:') ? 'property' : 'name', name);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        };
+
+        updateMeta('og:title', product.name);
+        updateMeta('og:description', product.description.substring(0, 200));
+        updateMeta('og:image', product.media?.[0]?.url || '');
+        updateMeta('twitter:title', product.name);
+        updateMeta('twitter:description', product.description.substring(0, 200));
+        updateMeta('twitter:image', product.media?.[0]?.url || '');
+    }
+  }, [product, settings.companyName]);
+
+  const sharePayload = useMemo(() => {
+      if (!product) return { title: '', text: '', url: '' };
+      
+      const discount = product.discountRules?.[0];
+      const discountString = discount 
+        ? (discount.type === 'percentage' ? `-${discount.value}%` : `-R${discount.value}`) 
+        : '';
+      
+      const priceString = `R ${product.price.toLocaleString()}`;
+      
+      const adText = [
+          `✨ ${product.name} ✨`,
+          '',
+          product.description.length > 150 ? `${product.description.substring(0, 150)}...` : product.description,
+          '',
+          `💎 Price: ${priceString} ${discountString ? `(${discountString} OFF 🔥)` : ''}`,
+          '',
+          '👇 View details & Acquire:'
+      ].join('\n');
+
+      return {
+          title: product.name,
+          text: adText,
+          url: window.location.href
+      };
+  }, [product]);
+
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!product) return;
@@ -46,89 +127,97 @@ const ProductDetail: React.FC = () => {
     
     const review: Review = {
         id: Date.now().toString(),
+        productId: product.id,
         userName: newReview.userName || 'Guest',
         rating: newReview.rating,
         comment: newReview.comment,
         createdAt: Date.now()
     };
 
-    const updatedProduct = { ...product, reviews: [review, ...(product.reviews || [])] };
-    await updateData('products', updatedProduct);
+    if (isSupabaseConfigured) {
+        await supabase.from('reviews').insert(review);
+    } else {
+        const allReviews: Review[] = JSON.parse(localStorage.getItem('site_reviews') || '[]');
+        localStorage.setItem('site_reviews', JSON.stringify([review, ...allReviews]));
+    }
       
+    setReviews(prev => [review, ...prev]);
     setNewReview({ userName: '', comment: '', rating: 5 });
     setIsSubmittingReview(false);
+  };
+
+  const handleAddToCart = () => {
+     if (!product) return;
+     addToCart(product, quantity);
+     setAddedToCart(true);
+     logEvent('click', `Add to Cart: ${product.name}`);
+     setTimeout(() => setAddedToCart(false), 2000);
   };
 
   const handleShare = async () => {
     if (!product) return;
     logEvent('share', `Product: ${product.name}`);
 
-    // Compile Text Caption
-    const discount = product.discountRules?.[0];
-    const discountString = discount 
-      ? (discount.type === 'percentage' ? `${discount.value}% OFF` : `R${discount.value} OFF`) 
-      : '';
-    
-    const shareText = `${product.name}\n\n${product.description.substring(0, 150)}...\n\n${discountString ? `🔥 ${discountString}\n` : ''}Shop here: ${window.location.href}`;
+    const { title, text, url } = sharePayload;
 
-    // Try Native Share with File Bundle
     if (navigator.share) {
       try {
         const shareData: ShareData = {
-          title: product.name,
-          text: shareText,
-          url: window.location.href
+          title: title,
+          text: `${text}\n${url}`
         };
 
-        // Try to fetch image to bundle
         const imgUrl = product.media?.[activeMediaIndex]?.url || product.media?.[0]?.url;
         if (imgUrl) {
           try {
             const response = await fetch(imgUrl);
             const blob = await response.blob();
-            const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type });
+            const filename = `${product.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`;
+            const file = new File([blob], filename, { type: blob.type });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                shareData.files = [file];
             }
           } catch (e) {
-            console.warn("Could not fetch image for share bundle, sharing text only", e);
+            console.warn("Image bundle failed, sharing text only", e);
           }
         }
 
         await navigator.share(shareData);
-        return;
       } catch (err) {
-        console.log("Native share cancelled or failed", err);
+        if ((err as Error).name !== 'AbortError') {
+            setIsShareOpen(true);
+        }
       }
+    } else {
+      setIsShareOpen(true);
     }
-    
-    // Fallback to custom modal if native share fails or not supported
-    setIsShareOpen(true);
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const { text, url } = sharePayload;
+    navigator.clipboard.writeText(`${text}\n${url}`);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
   const averageRating = useMemo(() => {
-    if (!product?.reviews || product.reviews.length === 0) return 0;
-    const sum = product.reviews.reduce((acc, r) => acc + r.rating, 0);
-    return Math.round(sum / product.reviews.length);
-  }, [product?.reviews]);
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return Math.round(sum / reviews.length);
+  }, [reviews]);
 
   const socialShares = useMemo(() => {
-     const url = window.location.href;
-     const text = `Check out ${product?.name}`;
-     // Manually encode to ensure emojis and spacing work
+     if (!product) return [];
+     const { text, url } = sharePayload;
+     const fullText = `${text}\n${url}`;
+     
      return [
-      { name: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]', text: 'text-white', url: `https://wa.me/?text=${encodeURIComponent(`${text} 💎 ${url}`)}` },
-      { name: 'Facebook', icon: Facebook, color: 'bg-[#1877F2]', text: 'text-white', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
+      { name: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]', text: 'text-white', url: `https://wa.me/?text=${encodeURIComponent(fullText)}` },
+      { name: 'Facebook', icon: Facebook, color: 'bg-[#1877F2]', text: 'text-white', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}` },
       { name: 'Twitter', icon: Twitter, color: 'bg-[#1DA1F2]', text: 'text-white', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
-      { name: 'Email', icon: Mail, color: 'bg-slate-100', text: 'text-slate-900', url: `mailto:?subject=${encodeURIComponent(product?.name || '')}&body=${encodeURIComponent(`${text}: ${url}`)}` },
+      { name: 'Email', icon: Mail, color: 'bg-slate-100', text: 'text-slate-900', url: `mailto:?subject=${encodeURIComponent(product?.name || '')}&body=${encodeURIComponent(fullText)}` },
     ];
-  }, [product]);
+  }, [product, sharePayload]);
 
   if (!product) {
     return (
@@ -147,6 +236,8 @@ const ProductDetail: React.FC = () => {
 
   const nextMedia = () => setActiveMediaIndex((prev) => (prev === media.length - 1 ? 0 : prev + 1));
   const prevMedia = () => setActiveMediaIndex((prev) => (prev === 0 ? media.length - 1 : prev - 1));
+
+  const isOutOfStock = product.isDirectSale && (product.stockQuantity || 0) <= 0;
 
   return (
     <main className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
@@ -245,9 +336,8 @@ const ProductDetail: React.FC = () => {
                       <Star key={star} size={14} fill={star <= averageRating ? "currentColor" : "none"} />
                     ))}
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">({product.reviews?.length || 0} Verified Reviews)</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">({reviews.length} Verified Reviews)</span>
                 </div>
-                {/* Header Share Button - Kept for consistency */}
                 <button onClick={handleShare} className="p-2 rounded-full hover:bg-slate-50 text-slate-400 hover:text-slate-900 transition-colors">
                   <Share2 size={18} />
                 </button>
@@ -266,27 +356,39 @@ const ProductDetail: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="grid grid-cols-6 gap-3 py-8 border-y border-slate-100">
-               <a 
-                 href={product.affiliateLink} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 onClick={() => logEvent('click', `Product: ${product.name}`)}
-                 className="col-span-5 py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
-               >
-                 <span>Secure Acquisition</span>
-                 <ExternalLink size={16} />
-               </a>
-               <button 
-                onClick={handleShare}
-                className="col-span-1 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-slate-800 transition-colors"
-                title="Share this product"
-               >
-                 <Share2 size={20} />
-               </button>
-               <div className="col-span-6">
-                 <p className="text-[10px] text-center text-slate-400 mt-2">Transactions processed securely by our authorized retail partner.</p>
-               </div>
+            <div className="py-8 border-y border-slate-100 space-y-6">
+               {product.isDirectSale ? (
+                  <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                         <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Quantity</span>
+                         <div className={`flex items-center bg-slate-100 rounded-xl ${isOutOfStock ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"><Minus size={14}/></button>
+                            <span className="w-10 text-center font-bold text-slate-900">{quantity}</span>
+                            <button onClick={() => setQuantity(Math.min((product.stockQuantity || 1), quantity + 1))} className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"><Plus size={14}/></button>
+                         </div>
+                      </div>
+                      <button 
+                         onClick={handleAddToCart} 
+                         disabled={isOutOfStock || addedToCart}
+                         className={`w-full py-5 font-black uppercase tracking-[0.2em] text-xs rounded-2xl transition-all shadow-xl flex items-center justify-center gap-3 ${
+                            isOutOfStock 
+                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
+                              : addedToCart 
+                                ? 'bg-green-500 text-white shadow-green-500/20' 
+                                : 'bg-primary text-slate-900 hover:brightness-110 shadow-primary/20 active:scale-95'
+                         }`}
+                      >
+                         {isOutOfStock ? 'Sold Out' : (addedToCart ? (<><span>Added to Bag</span><CheckCircle size={16}/></>) : (<><span>Add to Shopping Bag</span><ShoppingBag size={16}/></>))}
+                      </button>
+                      <p className="text-[10px] text-center text-slate-400">Secure checkout via Yoco / PayFast. Ships within 3-5 business days.</p>
+                  </div>
+               ) : (
+                  <div className="grid grid-cols-6 gap-3">
+                    <a href={product.affiliateLink} target="_blank" rel="noopener noreferrer" onClick={() => logEvent('click', `Product: ${product.name}`)} className="col-span-5 py-5 bg-slate-900 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:bg-primary hover:text-slate-900 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3"><span>Secure Acquisition</span><ExternalLink size={16} /></a>
+                    <button onClick={handleShare} className="col-span-1 bg-slate-100 text-slate-500 rounded-2xl flex items-center justify-center hover:bg-slate-200 transition-colors" title="Share this product"><Share2 size={20} /></button>
+                    <div className="col-span-6"><p className="text-[10px] text-center text-slate-400 mt-2">Transactions processed securely by our authorized retail partner.</p></div>
+                  </div>
+               )}
             </div>
 
             {/* Description */}
@@ -307,10 +409,7 @@ const ProductDetail: React.FC = () => {
             {/* Specifications Accordion */}
             {product.specifications && Object.keys(product.specifications).length > 0 && (
                <div className="border border-slate-100 rounded-2xl overflow-hidden">
-                  <button 
-                    onClick={() => setOpenAccordion(openAccordion === 'specs' ? null : 'specs')}
-                    className="w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
-                  >
+                  <button onClick={() => setOpenAccordion(openAccordion === 'specs' ? null : 'specs')} className="w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors">
                      <span className="text-xs font-black uppercase tracking-widest text-slate-900">Technical Specifications</span>
                      {openAccordion === 'specs' ? <Minus size={14}/> : <Plus size={14}/>}
                   </button>
@@ -334,7 +433,6 @@ const ProductDetail: React.FC = () => {
                   <button onClick={() => setOpenAccordion(openAccordion === 'review' ? null : 'review')} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-slate-900 transition-colors">Write Review</button>
                </div>
 
-               {/* Review Form */}
                {openAccordion === 'review' && (
                  <form onSubmit={handleSubmitReview} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4 animate-in slide-in-from-top-4">
                     <div className="space-y-2">
@@ -349,34 +447,18 @@ const ProductDetail: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Name</label>
-                       <input 
-                        type="text" 
-                        required
-                        value={newReview.userName}
-                        onChange={e => setNewReview({...newReview, userName: e.target.value})}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white"
-                        placeholder="Your Name"
-                       />
+                       <input type="text" required value={newReview.userName} onChange={e => setNewReview({...newReview, userName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white" placeholder="Your Name" />
                     </div>
                     <div className="space-y-2">
                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Experience</label>
-                       <textarea 
-                        rows={3}
-                        required
-                        value={newReview.comment}
-                        onChange={e => setNewReview({...newReview, comment: e.target.value})}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white resize-none"
-                        placeholder="Share your thoughts..."
-                       />
+                       <textarea rows={3} required value={newReview.comment} onChange={e => setNewReview({...newReview, comment: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white resize-none" placeholder="Share your thoughts..." />
                     </div>
-                    <button disabled={isSubmittingReview} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-colors disabled:opacity-50">
-                       {isSubmittingReview ? 'Submitting...' : 'Post Review'}
-                    </button>
+                    <button disabled={isSubmittingReview} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-colors disabled:opacity-50">{isSubmittingReview ? 'Submitting...' : 'Post Review'}</button>
                  </form>
                )}
 
                <div className="space-y-6">
-                  {product.reviews && product.reviews.length > 0 ? product.reviews.map(review => (
+                  {reviews.length > 0 ? reviews.map(review => (
                      <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0">
                         <div className="flex items-center justify-between mb-2">
                            <span className="font-bold text-slate-900 text-sm">{review.userName}</span>
@@ -399,34 +481,25 @@ const ProductDetail: React.FC = () => {
         </div>
       </div>
       
-      {/* Share Modal */}
       {isShareOpen && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm relative">
+            <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm relative shadow-2xl">
                <button onClick={() => setIsShareOpen(false)} className="absolute top-4 right-4 p-2 bg-slate-50 rounded-full hover:bg-slate-100"><X size={20} className="text-slate-500"/></button>
-               <h3 className="text-xl font-serif text-slate-900 mb-6 text-center">Share This Piece</h3>
+               <h3 className="text-xl font-serif text-slate-900 mb-2 text-center">Share This Piece</h3>
+               <p className="text-center text-slate-400 text-xs mb-6">Select a platform or copy the ad text below.</p>
                <div className="grid grid-cols-4 gap-4 mb-6">
                   {socialShares.map((s) => (
-                     <a 
-                      key={s.name} 
-                      href={s.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center gap-2 group"
-                     >
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${s.color} ${s.text} group-hover:scale-110 transition-transform`}>
-                           <s.icon size={20} />
-                        </div>
+                     <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 group">
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${s.color} ${s.text} group-hover:scale-110 transition-transform`}><s.icon size={20} /></div>
                         <span className="text-[10px] font-bold text-slate-500 uppercase">{s.name}</span>
                      </a>
                   ))}
                </div>
                <div className="relative">
-                  <input readOnly value={window.location.href} className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 outline-none" />
-                  <button onClick={handleCopyLink} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white shadow-sm border border-slate-100 rounded-lg hover:text-primary transition-colors">
-                     {copySuccess ? <Check size={16} className="text-green-500"/> : <Copy size={16}/>}
-                  </button>
+                  <div className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 overflow-hidden whitespace-nowrap text-ellipsis">{sharePayload.text.substring(0, 40)}...</div>
+                  <button onClick={handleCopyLink} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white shadow-sm border border-slate-100 rounded-lg hover:text-primary transition-colors tooltip" title="Copy full ad text">{copySuccess ? <Check size={16} className="text-green-500"/> : <Copy size={16}/>}</button>
                </div>
+               {copySuccess && <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase tracking-widest">Ad copied to clipboard!</p>}
             </div>
          </div>
       )}

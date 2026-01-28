@@ -1,3 +1,4 @@
+
 // Added React import to resolve namespace errors
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
@@ -10,11 +11,16 @@ import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import ClientAuth from './pages/ClientAuth';
+import ClientDashboard from './pages/ClientDashboard';
+import Checkout from './pages/Checkout';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats } from './types';
+import CartDrawer from './components/CartDrawer';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, checkAndMigrate } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { CartProvider } from './context/CartContext';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
@@ -44,7 +50,7 @@ const Footer: React.FC = () => {
   const location = useLocation();
   const [showCreatorModal, setShowCreatorModal] = useState(false);
 
-  if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/client-login') return null;
 
   return (
     <>
@@ -407,6 +413,7 @@ const App: React.FC = () => {
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
   const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
+  const [orders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -430,16 +437,16 @@ const App: React.FC = () => {
   }, []);
 
   useInactivityTimer(() => {
-    if (user && !window.location.hash.includes('login')) {
+    if (user && !window.location.hash.includes('login') && !window.location.hash.includes('client-login')) {
        performLogout();
     }
   });
 
   const calculateStorage = useCallback(() => {
-      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats];
+      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders];
       const jsonString = JSON.stringify(dataSet);
       const dbBytes = new Blob([jsonString]).size;
-      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length;
+      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length + orders.length;
       let mediaBytes = 0;
       let mediaCnt = 0;
 
@@ -463,7 +470,7 @@ const App: React.FC = () => {
       });
 
       setStorageStats({ dbSize: dbBytes, mediaSize: mediaBytes, totalRecords: totalRecs, mediaCount: mediaCnt });
-  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats]);
+  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders]);
 
   useEffect(() => {
     calculateStorage();
@@ -539,11 +546,32 @@ const App: React.FC = () => {
     return () => URL.revokeObjectURL(manifestURL);
   }, [settings]);
 
+  const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
+    const newLog: SystemLog = {
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now(),
+      type, target, message, sizeBytes, status
+    };
+    setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
+  };
+
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
 
-    refreshAllData();
+    const initSequence = async () => {
+       // 1. Attempt Migration if new connection
+       if (isSupabaseConfigured) {
+          const migrated = await checkAndMigrate();
+          if (migrated && mounted) {
+             addSystemLog('SYNC', 'CLOUD', 'Local data migrated to Supabase', 0);
+          }
+       }
+       // 2. Fetch Data (will fetch migrated data if successful)
+       if (mounted) refreshAllData();
+    };
+
+    initSequence();
 
     if (!isSupabaseConfigured) {
       setLoadingAuth(false);
@@ -578,15 +606,6 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
-    const newLog: SystemLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now(),
-      type, target, message, sizeBytes, status
-    };
-    setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
-  };
-
   const refreshAllData = async () => {
     addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
     try {
@@ -599,10 +618,11 @@ const App: React.FC = () => {
           fetchTableData('hero_slides'),
           fetchTableData('enquiries'),
           fetchTableData('admin_users'),
-          fetchTableData('product_stats')
+          fetchTableData('product_stats'),
+          fetchTableData('orders')
         ]);
 
-        const [s, p, c, sc, hs, enq, adm, st] = results;
+        const [s, p, c, sc, hs, enq, adm, st, ord] = results;
 
         if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
           const { id, ...rest } = s.value[0];
@@ -610,6 +630,7 @@ const App: React.FC = () => {
           setSettings(rest as SiteSettings);
           localStorage.setItem('site_settings', JSON.stringify(rest));
         } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
+          // Only fallback to default/local upsert if NO data exists remotely (and checkAndMigrate didn't run or found empty)
           await upsertData('settings', { ...settings, id: 'global' });
           setSettingsId('global');
         }
@@ -642,11 +663,14 @@ const App: React.FC = () => {
             setStats(st.value);
             localStorage.setItem('admin_product_stats', JSON.stringify(st.value));
         }
+        if (ord.status === 'fulfilled' && ord.value !== null) {
+            setOrders(ord.value);
+            localStorage.setItem('admin_orders', JSON.stringify(ord.value));
+        }
 
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
       } else {
-        // Local Mode: Data is primarily managed by state hooks initialized from local storage.
-        // We log the sync but rely on the state already being set.
+        // Local Mode
         addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0);
       }
       setSaveStatus('saved');
@@ -690,6 +714,7 @@ const App: React.FC = () => {
         case 'hero_slides': setHeroSlides(updateLocalState(heroSlides)); break;
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
+        case 'orders': setOrders(updateLocalState(orders)); break;
     }
 
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
@@ -724,6 +749,7 @@ const App: React.FC = () => {
         case 'hero_slides': setHeroSlides(deleteLocalState(heroSlides)); break;
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
+        case 'orders': setOrders(deleteLocalState(orders)); break;
     }
 
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
@@ -872,41 +898,47 @@ const App: React.FC = () => {
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, 
-      products, categories, subCategories, heroSlides, enquiries, admins, stats,
+      products, categories, subCategories, heroSlides, enquiries, admins, stats, orders,
       refreshAllData, updateData, deleteData,
       user, loadingAuth, 
       isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent,
       connectionHealth, systemLogs, storageStats
     }}>
-      <Router>
-        <ScrollToTop />
-        <TrackingInjector />
-        <TrafficTracker logEvent={logEvent} />
-        <style>{`
-          .text-primary { color: var(--primary-color); }
-          .bg-primary { background-color: var(--primary-color); }
-          .border-primary { border-color: var(--primary-color); }
-          .hover\\:bg-primary:hover { background-color: var(--primary-color); }
-        `}</style>
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <div className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/disclosure" element={<Legal />} />
-              <Route path="/privacy" element={<Legal />} />
-              <Route path="/terms" element={<Legal />} />
-            </Routes>
+      <CartProvider>
+        <Router>
+          <ScrollToTop />
+          <TrackingInjector />
+          <TrafficTracker logEvent={logEvent} />
+          <CartDrawer />
+          <style>{`
+            .text-primary { color: var(--primary-color); }
+            .bg-primary { background-color: var(--primary-color); }
+            .border-primary { border-color: var(--primary-color); }
+            .hover\\:bg-primary:hover { background-color: var(--primary-color); }
+          `}</style>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <div className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/client-login" element={<ClientAuth />} />
+                <Route path="/account" element={<ClientDashboard />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/disclosure" element={<Legal />} />
+                <Route path="/privacy" element={<Legal />} />
+                <Route path="/terms" element={<Legal />} />
+              </Routes>
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
-      </Router>
+        </Router>
+      </CartProvider>
     </SettingsContext.Provider>
   );
 };

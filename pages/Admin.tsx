@@ -12,16 +12,19 @@ import {
   ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
-  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign
+  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
+  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, Order, OrderItem } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupabaseUrl } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 import { CustomIcons } from '../components/CustomIcons';
+
+// --- SUB-COMPONENTS ---
 
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-yellow-500/5 border border-yellow-500/20 p-5 md:p-6 rounded-3xl mb-8 flex gap-4 md:gap-5 items-start text-left animate-in fade-in slide-in-from-top-2">
@@ -63,7 +66,6 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   );
 };
 
-// ... (omitting helper components to save space, but keeping them in final file is implied. Re-including required ones for context)
 const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
   <div className="space-y-2 text-left w-full min-w-0">
     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
@@ -75,6 +77,53 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
   </div>
 );
 
+// --- IMAGE COMPRESSION HELPER ---
+const compressImage = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    // Pass through non-images (videos) without compression, size check handled by uploader
+    if (!file.type.startsWith('image/')) {
+       const reader = new FileReader();
+       reader.readAsDataURL(file);
+       reader.onload = (e) => resolve(e.target?.result as string);
+       reader.onerror = (e) => reject(e);
+       return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const scaleSize = MAX_WIDTH / img.width;
+        
+        if (scaleSize < 1) {
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+        } else {
+            canvas.width = img.width;
+            canvas.height = img.height;
+        }
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            reject(new Error('Canvas context failed'));
+            return;
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Compress to JPEG 0.7
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -85,17 +134,30 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
 
     setUploading(true);
     try {
+      // Compress first
+      const compressedDataUrl = await compressImage(file);
+      
+      // Check Size (~4MB limit for Local Storage safety)
+      if (compressedDataUrl.length > 5 * 1024 * 1024) { // ~5MB string length is roughly 3.7MB binary
+          alert("File is too large. Please use an image under 4MB.");
+          setUploading(false);
+          return;
+      }
+
       if (isSupabaseConfigured) {
-        const url = await uploadMedia(file, 'media');
+        // Convert Base64 back to File for upload
+        const res = await fetch(compressedDataUrl);
+        const blob = await res.blob();
+        const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+        
+        const url = await uploadMedia(compressedFile, 'media');
         if (url) onChange(url);
       } else {
-        const reader = new FileReader();
-        reader.onload = (ev) => onChange(ev.target?.result as string);
-        reader.readAsDataURL(file);
+        onChange(compressedDataUrl);
       }
     } catch (err) {
       console.error("Upload failed", err);
-      alert("Upload failed. Ensure Supabase storage is configured.");
+      alert("Upload failed. Ensure Supabase storage is configured or image is valid.");
     } finally {
       setUploading(false);
     }
@@ -162,18 +224,22 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
     try {
       for (let i = 0; i < incomingFiles.length; i++) {
         const file = incomingFiles[i];
+        
+        const compressedDataUrl = await compressImage(file);
+        
+        if (compressedDataUrl.length > 5 * 1024 * 1024) {
+            alert(`Skipped ${file.name}: Too large (>4MB)`);
+            continue;
+        }
+
         if (isSupabaseConfigured) {
-          const url = await uploadMedia(file, 'media');
+          const res = await fetch(compressedDataUrl);
+          const blob = await res.blob();
+          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+          const url = await uploadMedia(compressedFile, 'media');
           if (url) newUrls.push(url);
         } else {
-           const reader = new FileReader();
-           await new Promise<void>((resolve) => {
-             reader.onload = (e) => {
-               if (e.target?.result) newUrls.push(e.target.result as string);
-               resolve();
-             };
-             reader.readAsDataURL(file);
-           });
+           newUrls.push(compressedDataUrl);
         }
       }
       onChange([...images, ...newUrls]);
@@ -291,212 +357,6 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
   );
 };
 
-// --- Helper for generating dynamic colors for unknown sources ---
-const stringToColor = (str: string) => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const c = (hash & 0x00ffffff).toString(16).toUpperCase();
-  return '#' + '00000'.substring(0, 6 - c.length) + c;
-};
-
-const getPlatformStyles = (sourceName: string) => {
-  const lower = (sourceName || '').toLowerCase();
-  
-  if (lower.includes('facebook')) return { icon: Facebook, color: 'text-blue-500', bg: 'bg-blue-500', border: 'border-blue-500/20' };
-  if (lower.includes('instagram')) return { icon: Instagram, color: 'text-pink-500', bg: 'bg-pink-500', border: 'border-pink-500/20' };
-  if (lower.includes('tiktok')) return { icon: () => <span className="font-black text-[8px] bg-white text-black px-1 rounded">TK</span>, color: 'text-white', bg: 'bg-slate-700', border: 'border-slate-600' };
-  if (lower.includes('pinterest')) return { icon: Pin, color: 'text-red-600', bg: 'bg-red-600', border: 'border-red-600/20' };
-  if (lower.includes('whatsapp')) return { icon: MessageCircle, color: 'text-green-500', bg: 'bg-green-500', border: 'border-green-500/20' };
-  if (lower.includes('google')) return { icon: SearchCode, color: 'text-green-400', bg: 'bg-green-400', border: 'border-green-400/20' };
-  if (lower.includes('twitter') || lower.includes('x (')) return { icon: Twitter, color: 'text-sky-500', bg: 'bg-sky-500', border: 'border-sky-500/20' };
-  if (lower.includes('linkedin')) return { icon: Linkedin, color: 'text-blue-600', bg: 'bg-blue-600', border: 'border-blue-600/20' };
-  
-  // Dynamic fallback
-  return { 
-    icon: Globe, 
-    color: 'text-white', 
-    bg: `bg-[${stringToColor(sourceName)}]`, 
-    border: 'border-white/10' 
-  };
-};
-
-const TrafficAreaChart: React.FC<{ trafficEvents: any[] }> = ({ trafficEvents }) => {
-  const [geoStats, setGeoStats] = useState<any[]>([]);
-  const [totalTraffic, setTotalTraffic] = useState(0);
-  const [deviceStats, setDeviceStats] = useState<{mobile: number, desktop: number, tablet: number}>({mobile: 0, desktop: 0, tablet: 0});
-  
-  useEffect(() => {
-    const loadDetailedGeo = () => {
-      let rawData = [];
-      try {
-        rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-        if (!Array.isArray(rawData)) rawData = [];
-      } catch (e) {
-        console.warn("Failed to parse geo stats", e);
-        rawData = [];
-      }
-      
-      setTotalTraffic(rawData.length);
-
-      const agg: Record<string, any> = {};
-      let dev = { mobile: 0, desktop: 0, tablet: 0 };
-      
-      rawData.forEach((entry: any) => {
-        if (!entry) return;
-        
-        const city = entry.city || 'Unknown City';
-        const region = entry.region || '';
-        const country = entry.country || 'Global';
-        const device = entry.device || 'Desktop';
-        
-        if (device === 'Mobile') dev.mobile++;
-        else if (device === 'Tablet') dev.tablet++;
-        else dev.desktop++;
-
-        const key = `${city}-${region}-${country}`;
-        
-        if (!agg[key]) {
-          agg[key] = {
-            city,
-            region,
-            country,
-            device,
-            os: entry.os || 'Unknown',
-            browser: entry.browser || 'Unknown',
-            source: entry.source || 'Direct',
-            count: 0,
-            lastActive: 0
-          };
-        }
-        agg[key].count += 1;
-        agg[key].lastActive = Math.max(agg[key].lastActive, entry.timestamp || 0);
-        if (entry.source && entry.source !== 'Direct') agg[key].source = entry.source;
-      });
-
-      setDeviceStats(dev);
-      const sorted = Object.values(agg).sort((a: any, b: any) => b.count - a.count).slice(0, 15);
-      setGeoStats(sorted);
-    };
-
-    loadDetailedGeo();
-    const interval = setInterval(loadDetailedGeo, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const getSourceIcon = (source: string) => {
-    const styles = getPlatformStyles(source);
-    return <styles.icon size={12} className={styles.color} />;
-  };
-
-  return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-      <div className="xl:col-span-2 relative min-h-[600px] bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
-        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-        
-        <div className="relative z-10 p-8 md:p-10 pb-4 border-b border-white/5 flex flex-col md:flex-row justify-between items-start text-left gap-4">
-           <div>
-              <div className="flex items-center gap-3 mb-2">
-                 <div className="relative w-3 h-3">
-                    <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                    <div className="relative w-3 h-3 bg-green-500 rounded-full"></div>
-                 </div>
-                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-green-500">Live Traffic Feed</span>
-              </div>
-              <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Precise <span className="text-primary">Location</span></h3>
-           </div>
-           <div className="text-left md:text-right">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Hits</span>
-              <span className="text-3xl font-bold text-white font-mono">{totalTraffic.toLocaleString()}</span>
-           </div>
-        </div>
-
-        <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-4 md:p-8">
-          {geoStats.length > 0 ? (
-            <div className="grid gap-4">
-               <div className="hidden md:grid grid-cols-12 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                  <div className="col-span-1">#</div>
-                  <div className="col-span-6 text-left">Location (Town/City)</div>
-                  <div className="col-span-2 text-right">Hits</div>
-                  <div className="col-span-3 text-right">Device/Source</div>
-               </div>
-               {geoStats.map((geo, idx) => {
-                 const isLive = (Date.now() - geo.lastActive) < 300000;
-                 return (
-                    <div key={idx} className="flex flex-col md:grid md:grid-cols-12 items-start md:items-center p-5 bg-slate-800/40 rounded-3xl border border-white/5 hover:bg-slate-800 transition-colors group/item gap-2 md:gap-0">
-                       <div className="col-span-1 hidden md:block">
-                          <span className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700">{idx + 1}</span>
-                       </div>
-                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-2 text-left w-full">
-                          <div className="font-bold text-white text-base flex items-center gap-2 truncate">
-                             <MapPin size={16} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
-                             {geo.city}
-                          </div>
-                          <div className="text-xs text-slate-500 font-medium mt-0.5 truncate">{geo.region}, {geo.country}</div>
-                       </div>
-                       <div className="col-span-2 text-right w-full md:w-auto flex justify-between md:block">
-                          <span className="md:hidden text-slate-500 text-xs font-bold uppercase">Hits:</span>
-                          <div className="text-white font-mono font-bold text-lg">{geo.count}</div>
-                       </div>
-                       <div className="col-span-4 md:col-span-3 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t border-white/5 md:border-0">
-                          {isLive ? (
-                             <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase tracking-widest border border-green-500/20">Online</span>
-                          ) : (
-                             <span className="text-[10px] text-slate-600 font-bold uppercase whitespace-nowrap">Last: {new Date(geo.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                          )}
-                          <div className="flex items-center gap-3 text-[10px] text-slate-500">
-                             <div className="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700">{getSourceIcon(geo.source)} <span className="uppercase">{geo.source}</span></div>
-                             {geo.device === 'Mobile' ? <Smartphone size={12} /> : <Monitor size={12} />}
-                          </div>
-                       </div>
-                    </div>
-                 );
-               })}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
-               <Globe size={48} className="text-slate-500 mb-4 animate-pulse" />
-               <h4 className="text-white font-bold uppercase tracking-widest">Awaiting Signal</h4>
-               <p className="text-slate-500 text-xs mt-2 max-w-xs">Data populates as visitors access your bridge page.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 p-8 md:p-10 flex flex-col shadow-2xl text-left h-full">
-         <div className="mb-8">
-            <h3 className="text-white font-bold text-xl flex items-center gap-3"><Smartphone size={24} className="text-primary"/> Device Breakdown</h3>
-            <p className="text-slate-500 text-xs mt-1">Platform Distribution</p>
-         </div>
-         <div className="space-y-6 flex-grow">
-            {[
-              { label: 'Mobile', count: deviceStats.mobile, icon: Smartphone, color: 'text-primary', bar: 'bg-primary' },
-              { label: 'Desktop', count: deviceStats.desktop, icon: Monitor, color: 'text-blue-500', bar: 'bg-blue-500' },
-              { label: 'Tablet', count: deviceStats.tablet, icon: Tablet, color: 'text-purple-500', bar: 'bg-purple-500' }
-            ].map((d, i) => (
-              <div key={i} className="bg-slate-800/50 p-6 rounded-3xl border border-slate-800 hover:border-slate-700 transition-colors">
-                 <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-4">
-                       <div className={`p-3 bg-slate-800 rounded-2xl ${d.color}`}><d.icon size={20}/></div>
-                       <span className="text-white font-bold text-base">{d.label}</span>
-                    </div>
-                    <span className="text-white font-mono font-bold text-lg">{d.count}</span>
-                 </div>
-                 <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
-                    <div className={`h-full ${d.bar} transition-all duration-1000`} style={{ width: `${totalTraffic > 0 ? (d.count / totalTraffic) * 100 : 0}%` }}></div>
-                 </div>
-                 <div className="mt-3 text-right">
-                    <span className="text-[10px] text-slate-500 font-bold">{totalTraffic > 0 ? Math.round((d.count / totalTraffic) * 100) : 0}% share</span>
-                 </div>
-              </div>
-            ))}
-         </div>
-      </div>
-    </div>
-  );
-};
-
 const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => {
   switch (id) {
     case 'forge':
@@ -523,7 +383,7 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
 };
 
 const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
-  const { settings, products } = useSettings();
+  const { settings } = useSettings();
   const [subject, setSubject] = useState(`Re: ${enquiry.subject}`);
   const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`);
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -589,35 +449,51 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
   return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>);
 };
 
-// ... (Rest of existing uploader components: FileUploader)
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const processFiles = (incomingFiles: FileList | null) => {
+  const processFiles = async (incomingFiles: FileList | null) => {
     if (!incomingFiles) return;
     setUploading(true);
-    Array.from(incomingFiles).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        let result = e.target?.result as string;
-        if (isSupabaseConfigured) {
-           try {
-             const publicUrl = await uploadMedia(file, 'media');
-             if (publicUrl) result = publicUrl;
-           } catch (err) { console.error("Upload failed", err); }
+    
+    const newFiles: MediaFile[] = [];
+
+    for (let i = 0; i < incomingFiles.length; i++) {
+        const file = incomingFiles[i];
+        try {
+            const compressedDataUrl = await compressImage(file);
+            
+            if (compressedDataUrl.length > 5 * 1024 * 1024) {
+                alert(`Skipped ${file.name}: Too large (>4MB)`);
+                continue;
+            }
+
+            let result = compressedDataUrl;
+
+            if (isSupabaseConfigured) {
+               const res = await fetch(compressedDataUrl);
+               const blob = await res.blob();
+               const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+               try {
+                 const publicUrl = await uploadMedia(compressedFile, 'media');
+                 if (publicUrl) result = publicUrl;
+               } catch (err) { console.error("Upload failed", err); }
+            }
+            
+            newFiles.push({ 
+              id: Math.random().toString(36).substr(2, 9), 
+              url: result, 
+              name: file.name, 
+              type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, // Compression converts to jpeg
+              size: file.size // Approximate
+            });
+        } catch (e) {
+            console.error("Processing failed", e);
         }
-        const newMedia: MediaFile = { 
-          id: Math.random().toString(36).substr(2, 9), 
-          url: result, 
-          name: file.name, 
-          type: file.type, 
-          size: file.size 
-        };
-        onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
-    });
+    }
+    
+    onFilesChange(multiple ? [...files, ...newFiles] : newFiles);
+    setUploading(false);
   };
   return (
     <div className="space-y-4 text-left w-full min-w-0">
@@ -673,45 +549,803 @@ const IntegrationGuide: React.FC = () => (
             <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p>
           </div>
         </details>
-        <details className="group">
-          <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
-            <BarChart size={14} /> Google Analytics 4
-          </summary>
-          <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p>1. Go to <a href="https://analytics.google.com" target="_blank" className="text-white underline">Google Analytics</a>.</p>
-            <p>2. Create a property. Go to Admin &gt; Data Streams &gt; Web.</p>
-            <p>3. Copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</p>
-          </div>
-        </details>
-        <details className="group">
-           <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
-            <Target size={14} /> Meta / TikTok Pixels
-          </summary>
-          <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p><strong>Meta (Facebook):</strong> Go to Events Manager &gt; Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
-            <p><strong>TikTok:</strong> Go to Ads Manager &gt; Assets &gt; Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
-          </div>
-        </details>
      </div>
   </div>
 );
 
+// --- VISUAL CHARTS & DIAGRAMS ---
+
+const SimpleLineChart = ({ data, color, height = 120 }: { data: number[], color: string, height?: number }) => {
+  if (!data || data.length < 2) return <div className="h-full flex items-center justify-center text-xs text-slate-600 font-medium">Insufficient Data</div>;
+  
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * 100;
+    const y = 100 - ((val - min) / range) * 80 - 10; // buffer 10%
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <div className="w-full relative overflow-hidden" style={{ height: `${height}px` }}>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+            {/* Grid Lines */}
+            <line x1="0" y1="20" x2="100" y2="20" stroke="#334155" strokeWidth="0.1" strokeDasharray="2 2" />
+            <line x1="0" y1="50" x2="100" y2="50" stroke="#334155" strokeWidth="0.1" strokeDasharray="2 2" />
+            <line x1="0" y1="80" x2="100" y2="80" stroke="#334155" strokeWidth="0.1" strokeDasharray="2 2" />
+
+            {/* Gradient Fill */}
+            <defs>
+               <linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+                  <stop offset="100%" stopColor={color} stopOpacity="0" />
+               </linearGradient>
+            </defs>
+            <path 
+                d={`M0,100 L0,${100 - ((data[0]-min)/range)*80-10} ${points.split(' ').map(p => 'L'+p).join(' ')} L100,100 Z`} 
+                fill={`url(#grad-${color})`} 
+                stroke="none"
+            />
+            {/* Line */}
+            <polyline
+                fill="none"
+                stroke={color}
+                strokeWidth="1.5"
+                points={points}
+                vectorEffect="non-scaling-stroke"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    </div>
+  );
+};
+
+const SimpleBarChart = ({ data, color, showLabels = true }: { data: { label: string, value: number }[], color: string, showLabels?: boolean }) => {
+    const max = Math.max(...data.map(d => d.value), 1);
+    
+    return (
+        <div className="flex items-end justify-between gap-2 h-full w-full">
+            {data.map((d, i) => (
+                <div key={i} className="flex flex-col items-center flex-1 h-full justify-end group relative">
+                    <div 
+                        className="w-full rounded-t-sm transition-all duration-500 hover:opacity-80 min-h-[4px]" 
+                        style={{ height: `${(d.value / max) * 100}%`, backgroundColor: color }}
+                    >
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none font-bold">
+                            {d.value}
+                        </div>
+                    </div>
+                    {showLabels && <span className="text-[8px] text-slate-500 mt-2 truncate w-full text-center font-medium uppercase tracking-wider">{d.label}</span>}
+                </div>
+            ))}
+        </div>
+    );
+}
+
+const HorizontalBarChart = ({ data, color }: { data: { label: string, value: number }[], color: string }) => {
+    const max = Math.max(...data.map(d => d.value), 1);
+    return (
+        <div className="space-y-4 w-full">
+            {data.map((d, i) => (
+                <div key={i} className="w-full group">
+                    <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-medium">
+                        <span>{d.label}</span>
+                        <span className="font-bold text-slate-300">{d.value}</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div 
+                            className="h-full rounded-full transition-all duration-1000 group-hover:brightness-125" 
+                            style={{ width: `${(d.value / max) * 100}%`, backgroundColor: color }}
+                        />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+const SimpleDonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => {
+    const total = data.reduce((acc, curr) => acc + curr.value, 0) || 1;
+    let accumulated = 0;
+    
+    return (
+       <div className="relative w-32 h-32 mx-auto">
+          <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+             {data.map((d, i) => {
+                const percent = d.value / total;
+                const dashArray = `${percent * 283} 283`; // 2 * pi * 45 ≈ 283
+                const dashOffset = -accumulated * 283;
+                accumulated += percent;
+                
+                return (
+                   <circle
+                      key={i}
+                      cx="50"
+                      cy="50"
+                      r="45"
+                      fill="transparent"
+                      stroke={d.color}
+                      strokeWidth="10"
+                      strokeDasharray={dashArray}
+                      strokeDashoffset={dashOffset}
+                      className="transition-all duration-500 hover:stroke-[12px]"
+                   />
+                );
+             })}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+             <span className="text-xl font-bold text-white">{total > 999 ? '1k+' : total}</span>
+             <span className="text-[8px] uppercase font-black text-slate-500 tracking-widest">Hits</span>
+          </div>
+       </div>
+    );
+};
+
+const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[] }> = ({ trafficEvents, products, stats, orders, categories }) => {
+  // --- Data Aggregation Logic ---
+  const activeOrders = orders.filter(o => o.status !== 'cancelled');
+  const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
+  const totalOrders = orders.length;
+  const totalVisits = Math.max(trafficEvents.length, 1);
+  const conversionRate = totalVisits > 0 ? (totalOrders / totalVisits) * 100 : 0;
+  const aov = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  const [matrixView, setMatrixView] = useState<'products' | 'categories'>('products');
+
+  // Timeline Data (Last 7 Days)
+  const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d.toLocaleDateString('en-US', { weekday: 'short' });
+  });
+
+  // Hourly Traffic Breakdown
+  const hourlyTraffic = useMemo(() => {
+    const hours = Array(24).fill(0);
+    trafficEvents.forEach(e => {
+      const h = new Date(e.timestamp).getHours();
+      if (h >= 0 && h < 24) hours[h]++;
+    });
+    // Convert to format for chart
+    return hours.map((count, hour) => ({
+      label: `${hour.toString().padStart(2, '0')}:00`,
+      value: count
+    }));
+  }, [trafficEvents]);
+
+  // Find Peak Hour
+  const peakHour = useMemo(() => {
+     const max = Math.max(...hourlyTraffic.map(h => h.value));
+     const hour = hourlyTraffic.find(h => h.value === max);
+     return { time: hour?.label || '00:00', count: max };
+  }, [hourlyTraffic]);
+
+  // Simulated trend data based on real (aggregated) counts
+  const getTimelineData = (sourceArr: any[], dateField: string) => {
+      const counts = Array(7).fill(0);
+      const now = new Date();
+      sourceArr.forEach(item => {
+          const d = new Date(item[dateField]);
+          const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 3600 * 24));
+          if (diffDays < 7 && diffDays >= 0) {
+              counts[6 - diffDays]++;
+          }
+      });
+      return counts;
+  };
+
+  const trafficTrend = getTimelineData(trafficEvents, 'timestamp');
+  const orderTrend = getTimelineData(activeOrders, 'createdAt');
+  
+  // Device Distribution
+  const devices = trafficEvents.reduce((acc: any, curr) => {
+      const d = curr.device || 'Desktop';
+      acc[d] = (acc[d] || 0) + 1;
+      return acc;
+  }, {});
+  const deviceData = [
+      { label: 'Mobile', value: devices['Mobile'] || 0, color: '#ec4899' }, // Pink
+      { label: 'Desktop', value: devices['Desktop'] || 0, color: '#3b82f6' }, // Blue
+      { label: 'Tablet', value: devices['Tablet'] || 0, color: '#a855f7' } // Purple
+  ].filter(d => d.value > 0);
+
+  // Top Products
+  const topProducts = stats
+      .sort((a,b) => b.views - a.views)
+      .slice(0, 5)
+      .map(s => ({
+          label: products.find(p => p.id === s.productId)?.name || 'Unknown',
+          value: s.views
+      }));
+
+  // Top Sources
+  const sources = trafficEvents.reduce((acc: any, curr) => {
+      const s = curr.source || 'Direct';
+      acc[s] = (acc[s] || 0) + 1;
+      return acc;
+  }, {});
+  const sourceData = Object.entries(sources)
+      .sort(([,a]: any, [,b]: any) => b - a)
+      .slice(0, 5)
+      .map(([label, value]) => ({ label, value: value as number }));
+
+  const metrics = [
+    { label: 'Net Revenue', value: `R ${totalRevenue.toLocaleString()}`, change: '+12%', icon: DollarSign, color: 'text-green-500', bg: 'bg-green-500/10' },
+    { label: 'Orders', value: totalOrders, change: '+5%', icon: ShoppingBag, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Site Visits', value: totalVisits.toLocaleString(), change: '+24%', icon: Eye, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'Conversion', value: `${conversionRate.toFixed(2)}%`, change: '-1%', icon: Target, color: 'text-amber-500', bg: 'bg-amber-500/10', negative: true },
+  ];
+
+  // --- MATRIX DATA PREP ---
+  const productMatrix = useMemo(() => {
+    return products.map(p => {
+        const stat = stats.find(s => s.productId === p.id) || { productId: p.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: 0 };
+        const ctr = stat.views > 0 ? (stat.clicks / stat.views) * 100 : 0;
+        return { ...p, stats: stat, ctr };
+    }).sort((a, b) => b.stats.views - a.stats.views);
+  }, [products, stats]);
+
+  const maxProductViews = Math.max(...productMatrix.map(p => p.stats.views), 1);
+  const maxProductClicks = Math.max(...productMatrix.map(p => p.stats.clicks), 1);
+
+  const categoryMatrix = useMemo(() => {
+    return categories.map(cat => {
+        const catProducts = products.filter(p => p.categoryId === cat.id);
+        const catStats = catProducts.reduce((acc, p) => {
+            const stat = stats.find(s => s.productId === p.id);
+            if (stat) {
+                acc.views += stat.views;
+                acc.clicks += stat.clicks;
+            }
+            return acc;
+        }, { views: 0, clicks: 0 });
+        
+        return {
+            ...cat,
+            stats: catStats,
+            productCount: catProducts.length
+        };
+    }).sort((a, b) => b.stats.views - a.stats.views);
+  }, [categories, products, stats]);
+
+  const maxCatViews = Math.max(...categoryMatrix.map(c => c.stats.views), 1);
+  const maxCatClicks = Math.max(...categoryMatrix.map(c => c.stats.clicks), 1);
+
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+         <div className="space-y-2">
+            <h2 className="text-3xl font-serif text-white">Intelligence Center</h2>
+            <p className="text-slate-400 text-sm">Real-time telemetry and performance analytics.</p>
+         </div>
+         <div className="flex gap-2">
+            <button className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors">Last 7 Days</button>
+            <button onClick={() => window.location.reload()} className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white"><RefreshCcw size={16}/></button>
+         </div>
+      </div>
+
+      {/* KPI CARDS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+         {metrics.map((m, i) => (
+            <div key={i} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-colors shadow-lg">
+               <div className="flex justify-between items-start mb-4">
+                  <div className={`p-2.5 rounded-xl ${m.bg} ${m.color}`}>
+                     <m.icon size={20} />
+                  </div>
+                  <div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${m.negative ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
+                     {m.negative ? <TrendingDown size={12}/> : <TrendingUp size={12}/>} {m.change}
+                  </div>
+               </div>
+               <div>
+                  <h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">{m.value}</h4>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{m.label}</p>
+               </div>
+            </div>
+         ))}
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+          
+          {/* MAIN CHART */}
+          <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 relative overflow-hidden">
+              <div className="flex justify-between items-center mb-8">
+                  <div>
+                      <h3 className="text-lg font-bold text-white flex items-center gap-2"><Activity size={18} className="text-primary"/> Performance Timeline</h3>
+                      <p className="text-xs text-slate-500 mt-1">Traffic vs Sales volume over the last week.</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Traffic</div>
+                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div> Orders</div>
+                  </div>
+              </div>
+              
+              <div className="h-64 w-full relative">
+                  {/* Layered Charts */}
+                  <div className="absolute inset-0 opacity-100"><SimpleLineChart data={trafficTrend} color="#3b82f6" height={250} /></div>
+                  <div className="absolute inset-0 opacity-70"><SimpleLineChart data={orderTrend} color="#22c55e" height={250} /></div>
+              </div>
+              
+              <div className="flex justify-between mt-4 text-[10px] font-mono text-slate-500 uppercase">
+                  {days.map(d => <span key={d}>{d}</span>)}
+              </div>
+          </div>
+
+          {/* DEVICE BREAKDOWN */}
+          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Smartphone size={18} className="text-pink-500"/> Device Access</h3>
+              <p className="text-xs text-slate-500 mb-8">Platform distribution of your visitors.</p>
+              
+              <div className="flex-grow flex items-center justify-center">
+                  <SimpleDonutChart data={deviceData} />
+              </div>
+
+              <div className="mt-8 space-y-3">
+                  {deviceData.map((d, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div>
+                              <span className="text-slate-300 font-medium">{d.label}</span>
+                          </div>
+                          <span className="text-slate-500 font-mono">{d.value}</span>
+                      </div>
+                  ))}
+              </div>
+          </div>
+      </div>
+
+      {/* NEW: HOURLY TRAFFIC CHART */}
+      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
+          <div className="flex justify-between items-start mb-6">
+              <div>
+                  <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                      <Clock size={18} className="text-orange-500"/> Peak Activity Times
+                  </h3>
+                  <p className="text-xs text-slate-500">Distribution of visits by hour of the day.</p>
+              </div>
+              <div className="px-4 py-2 bg-orange-500/10 rounded-xl border border-orange-500/20 text-right">
+                  <span className="block text-[9px] font-black uppercase tracking-widest text-orange-500">Peak Hour</span>
+                  <span className="text-lg font-bold text-white">{peakHour.time}</span>
+              </div>
+          </div>
+          <div className="h-48 w-full">
+              <SimpleBarChart data={hourlyTraffic} color="#f97316" showLabels={false} />
+          </div>
+          <div className="flex justify-between mt-2 text-[9px] font-mono text-slate-600">
+              <span>00:00</span>
+              <span>06:00</span>
+              <span>12:00</span>
+              <span>18:00</span>
+              <span>23:00</span>
+          </div>
+      </div>
+
+      {/* GRANULAR PERFORMANCE MATRIX */}
+      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 mt-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+              <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <LayoutGrid size={18} className="text-primary"/> Granular Performance Matrix
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">Detailed breakdown of asset efficiency.</p>
+              </div>
+              <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  <button onClick={() => setMatrixView('products')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${matrixView === 'products' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Products</button>
+                  <button onClick={() => setMatrixView('categories')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${matrixView === 'categories' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Categories</button>
+              </div>
+          </div>
+
+          <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                  <thead>
+                      <tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                          <th className="pb-4 pl-4">{matrixView === 'products' ? 'Item' : 'Department'}</th>
+                          <th className="pb-4 w-48">Engagement (Views)</th>
+                          <th className="pb-4 w-48">Conversion (Clicks)</th>
+                          {matrixView === 'products' && <th className="pb-4 text-right pr-4">Efficiency (CTR)</th>}
+                      </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                    {matrixView === 'products' ? (
+                        // Product Rows
+                        productMatrix.map(item => (
+                            <tr key={item.id} className="group hover:bg-slate-800/20 transition-colors">
+                                <td className="py-3 pl-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden border border-slate-700">
+                                            <img src={item.media?.[0]?.url} className="w-full h-full object-cover" />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold text-white line-clamp-1 max-w-[150px]">{item.name}</div>
+                                            <div className="text-[10px] text-slate-500 font-mono">R {item.price}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="py-3">
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex justify-between text-[10px] text-slate-400">
+                                            <span>{item.stats.views}</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                            <div className="h-full bg-blue-500" style={{ width: `${(item.stats.views / maxProductViews) * 100}%` }}></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="py-3">
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex justify-between text-[10px] text-slate-400">
+                                            <span>{item.stats.clicks}</span>
+                                            <span className="flex items-center gap-1 text-[9px]"><Share2 size={8}/> {item.stats.shares}</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                            <div className="h-full bg-purple-500" style={{ width: `${(item.stats.clicks / maxProductClicks) * 100}%` }}></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="py-3 pr-4 text-right">
+                                    <span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold border ${
+                                        item.ctr > 5 ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                        item.ctr > 2 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                                        'bg-slate-800 text-slate-500 border-slate-700'
+                                    }`}>
+                                        {item.ctr.toFixed(1)}%
+                                    </span>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        // Category Rows
+                        categoryMatrix.map(cat => {
+                            const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
+                            return (
+                                <tr key={cat.id} className="group hover:bg-slate-800/20 transition-colors">
+                                    <td className="py-3 pl-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700 text-slate-400">
+                                                <Icon size={18} />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-bold text-white">{cat.name}</div>
+                                                <div className="text-[10px] text-slate-500">{cat.productCount} Items</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-3">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex justify-between text-[10px] text-slate-400">
+                                                <span>{cat.stats.views}</span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                                <div className="h-full bg-blue-500" style={{ width: `${(cat.stats.views / maxCatViews) * 100}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-3">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex justify-between text-[10px] text-slate-400">
+                                                <span>{cat.stats.clicks}</span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                                <div className="h-full bg-purple-500" style={{ width: `${(cat.stats.clicks / maxCatClicks) * 100}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })
+                    )}
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+          
+          {/* TOP PRODUCTS */}
+          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-yellow-500"/> Product Interest</h3>
+              <p className="text-xs text-slate-500 mb-6">Top performing items by unique page views.</p>
+              <HorizontalBarChart data={topProducts} color="#eab308" />
+          </div>
+
+          {/* TRAFFIC SOURCES */}
+          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Globe size={18} className="text-cyan-500"/> Acquisition Channels</h3>
+              <p className="text-xs text-slate-500 mb-6">Where your visitors are coming from.</p>
+              <div className="h-48">
+                  <SimpleBarChart data={sourceData} color="#06b6d4" />
+              </div>
+          </div>
+
+      </div>
+
+      {/* GEO MAP SIMULATION */}
+      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row gap-8">
+              <div className="w-full md:w-1/3">
+                  <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><MapPin size={18} className="text-red-500"/> Geographic Reach</h3>
+                  <p className="text-xs text-slate-500 mb-6">Top cities interacting with your bridge page.</p>
+                  
+                  <div className="space-y-4">
+                      {/* Mock Top Cities - In real app, calculate from trafficEvents.city */}
+                      {[
+                          { city: 'Johannesburg', percent: 45 },
+                          { city: 'Cape Town', percent: 30 },
+                          { city: 'Durban', percent: 15 },
+                          { city: 'Pretoria', percent: 10 },
+                      ].map((c, i) => (
+                          <div key={i}>
+                              <div className="flex justify-between text-xs text-slate-300 mb-1">
+                                  <span>{c.city}</span>
+                                  <span>{c.percent}%</span>
+                              </div>
+                              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                  <div className="h-full bg-red-500" style={{ width: `${c.percent}%` }}></div>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+              <div className="w-full md:w-2/3 h-64 bg-slate-950/50 rounded-2xl border border-slate-800 flex items-center justify-center relative overflow-hidden group">
+                  {/* Abstract Map Dots */}
+                  <div className="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center invert grayscale"></div>
+                  
+                  {/* Pulsing Beacons */}
+                  <div className="absolute top-[60%] left-[55%] w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+                  <div className="absolute top-[60%] left-[55%] w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900"></div>
+                  
+                  <div className="absolute top-[65%] left-[53%] w-2 h-2 bg-red-500 rounded-full animate-ping delay-300"></div>
+                  <div className="absolute top-[65%] left-[53%] w-2 h-2 bg-red-500 rounded-full border-2 border-slate-900"></div>
+
+                  <div className="absolute bottom-4 right-4 text-[10px] font-mono text-slate-500">Live Activity Feed</div>
+              </div>
+          </div>
+      </div>
+    </div>
+  );
+};
+
+const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
+   // High-Density Sci-Fi Dashboard State
+   const [serverLoad, setServerLoad] = useState<number[]>(new Array(20).fill(20));
+   const [apiRequestRate, setApiRequestRate] = useState<{label: string, value: number}[]>(
+     ['GET', 'POST', 'PUT', 'DEL'].map(l => ({ label: l, value: Math.floor(Math.random() * 50) + 10 }))
+   );
+   const [cacheHealth, setCacheHealth] = useState(98);
+
+   // Animation Loop
+   useEffect(() => {
+      const interval = setInterval(() => {
+         // Simulate CPU/Memory Load
+         setServerLoad(prev => {
+            const nextVal = Math.max(10, Math.min(90, prev[prev.length - 1] + (Math.random() * 20 - 10)));
+            return [...prev.slice(1), nextVal];
+         });
+         
+         // Simulate API Requests fluctuation
+         setApiRequestRate(prev => prev.map(p => ({
+             ...p,
+             value: Math.max(5, Math.min(100, p.value + (Math.random() * 20 - 10)))
+         })));
+
+         // Cache health drift
+         setCacheHealth(prev => Math.min(100, Math.max(90, prev + (Math.random() * 2 - 1))));
+
+      }, 1000);
+      return () => clearInterval(interval);
+   }, []);
+
+   return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+         <div className="flex flex-col gap-2 mb-6">
+            <h2 className="text-3xl font-serif text-white flex items-center gap-3">
+               <Activity className="text-primary animate-pulse" size={28}/> System Core
+            </h2>
+            <p className="text-slate-400 text-sm font-mono uppercase tracking-widest">Real-time Infrastructure Telemetry</p>
+         </div>
+
+         {/* TOP ROW: Vital Stats Cards */}
+         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all">
+                <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><Cpu size={48} /></div>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">CPU Load</h4>
+                <div className="text-2xl font-mono font-bold text-white mb-2">{serverLoad[serverLoad.length-1].toFixed(1)}%</div>
+                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${serverLoad[serverLoad.length-1]}%` }}></div>
+                </div>
+            </div>
+            
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all">
+                <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><HardDrive size={48} /></div>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Memory Usage</h4>
+                <div className="text-2xl font-mono font-bold text-white mb-2">{(storageStats.dbSize / 1024).toFixed(1)} KB</div>
+                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: '45%' }}></div>
+                </div>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all">
+                <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><Zap size={48} /></div>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Cache Health</h4>
+                <div className="text-2xl font-mono font-bold text-white mb-2">{cacheHealth.toFixed(1)}%</div>
+                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 transition-all duration-300" style={{ width: `${cacheHealth}%` }}></div>
+                </div>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all">
+                <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><Activity size={48} /></div>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Latency</h4>
+                <div className="text-2xl font-mono font-bold text-white mb-2">{connectionHealth?.latency || 0}ms</div>
+                <div className={`text-[10px] font-bold uppercase tracking-widest ${connectionHealth?.status === 'online' ? 'text-green-500' : 'text-red-500'}`}>
+                    {connectionHealth?.status || 'OFFLINE'}
+                </div>
+            </div>
+         </div>
+
+         {/* MIDDLE ROW: Charts */}
+         <div className="grid lg:grid-cols-3 gap-6">
+            
+            {/* Server Load Line Chart */}
+            <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2rem] p-6 relative">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-white font-bold text-sm flex items-center gap-2"><Server size={16} className="text-blue-500"/> Server Load Distribution</h3>
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        <span className="text-[10px] font-mono text-slate-500">LIVE</span>
+                    </div>
+                </div>
+                <div className="h-64 w-full bg-slate-950/50 rounded-xl border border-slate-800/50 overflow-hidden relative">
+                    {/* Grid Overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+                    <SimpleLineChart data={serverLoad} color="#3b82f6" height={250} />
+                </div>
+            </div>
+
+            {/* API Request Rate */}
+            <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 flex flex-col">
+                <h3 className="text-white font-bold text-sm flex items-center gap-2 mb-6"><Globe size={16} className="text-purple-500"/> API Throughput</h3>
+                <div className="flex-grow flex items-end gap-2 pb-2">
+                    <SimpleBarChart data={apiRequestRate} color="#a855f7" showLabels={true} />
+                </div>
+                <div className="mt-4 pt-4 border-t border-slate-800 text-[10px] text-slate-500 font-mono text-center">
+                    Requests per Second (RPS)
+                </div>
+            </div>
+         </div>
+         
+         {/* BOTTOM ROW: System Log Terminal */}
+         <div className="bg-slate-950 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+            <div className="bg-slate-900 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                <h3 className="text-white font-bold text-sm flex items-center gap-2"><Terminal size={16} className="text-green-500"/> System Events Log</h3>
+                <span className="text-[10px] font-mono text-slate-500">{systemLogs.length} Events Recorded</span>
+            </div>
+            <div className="p-4 h-60 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">
+               {systemLogs.map(log => (
+                  <div key={log.id} className="flex gap-4 p-2 hover:bg-white/5 rounded transition-colors group">
+                     <span className="text-slate-600 w-24 flex-shrink-0">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                     <span className={`w-16 flex-shrink-0 font-bold ${log.status === 'success' ? 'text-green-500' : 'text-red-500'}`}>{log.type}</span>
+                     <span className="text-slate-400 group-hover:text-white transition-colors">{log.message}</span>
+                  </div>
+               ))}
+               {systemLogs.length === 0 && <div className="text-slate-600 text-center py-10">No events logged in current session.</div>}
+            </div>
+         </div>
+      </div>
+   );
+};
+
+const TrainingGrid: React.FC = () => {
+   const [filter, setFilter] = useState('All');
+   const categories = ['All', 'Social', 'Marketplace', 'SEO', 'Email'];
+   const [expandedModule, setExpandedModule] = useState<string | null>(null);
+
+   const filteredModules = TRAINING_MODULES.filter(m => {
+      if (filter === 'All') return true;
+      if (filter === 'Social') return ['Instagram', 'TikTok', 'Pinterest', 'Facebook'].includes(m.platform);
+      if (filter === 'Marketplace') return ['General', 'Amazon'].includes(m.platform);
+      return m.platform === filter;
+   });
+
+   return (
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+         <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+            <div className="space-y-2">
+               <h2 className="text-3xl font-serif text-white">Academy</h2>
+               <p className="text-slate-400 text-sm">Master the art of affiliate curation.</p>
+            </div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+               {categories.map(cat => (
+                  <button 
+                     key={cat}
+                     onClick={() => setFilter(cat)} 
+                     className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === cat ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}
+                  >
+                     {cat}
+                  </button>
+               ))}
+            </div>
+         </div>
+
+         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredModules.map((module, i) => {
+               const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
+               const isExpanded = expandedModule === module.id;
+               
+               return (
+                  <div key={module.id} className={`bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden flex flex-col transition-all duration-300 ${isExpanded ? 'md:col-span-2 row-span-2 border-primary/50 shadow-2xl z-10' : 'hover:border-slate-600'}`}>
+                     <div className="p-6 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white ${module.platform === 'Pinterest' ? 'bg-red-600' : 'bg-slate-800 border border-slate-700'}`}>
+                              <Icon size={20} />
+                           </div>
+                           <span className="px-2 py-1 rounded-md bg-slate-800 text-[9px] font-bold text-slate-400 uppercase tracking-widest">{module.platform}</span>
+                        </div>
+                        <h3 className="text-white font-bold text-lg mb-2 leading-tight">{module.title}</h3>
+                        <p className="text-slate-500 text-xs line-clamp-3 mb-4">{module.description}</p>
+                        
+                        <div className="mt-auto">
+                           <button 
+                              onClick={() => setExpandedModule(isExpanded ? null : module.id)}
+                              className="w-full py-3 bg-slate-800/50 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                           >
+                              {isExpanded ? 'Close Module' : 'Start Lesson'} <ArrowRight size={12}/>
+                           </button>
+                        </div>
+                     </div>
+
+                     {isExpanded && (
+                        <div className="px-6 pb-6 bg-slate-900 border-t border-slate-800 animate-in fade-in">
+                           <div className="pt-6 space-y-6">
+                              <div>
+                                 <h4 className="text-primary font-bold text-xs uppercase tracking-widest mb-3 flex items-center gap-2"><Target size={14}/> Strategy</h4>
+                                 <ul className="space-y-2">
+                                    {module.strategies.map((s, idx) => (
+                                       <li key={idx} className="text-slate-300 text-xs pl-4 border-l-2 border-slate-700">{s}</li>
+                                    ))}
+                                 </ul>
+                              </div>
+                              <div>
+                                 <h4 className="text-green-500 font-bold text-xs uppercase tracking-widest mb-3 flex items-center gap-2"><Rocket size={14}/> Action Items</h4>
+                                 <div className="space-y-2">
+                                    {module.actionItems.map((item, idx) => (
+                                       <label key={idx} className="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-green-500/30 transition-colors">
+                                          <input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-green-500 focus:ring-0" />
+                                          <span className="text-slate-400 text-xs">{item}</span>
+                                       </label>
+                                    ))}
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     )}
+                  </div>
+               );
+            })}
+         </div>
+      </div>
+   );
+};
+
+// --- MAIN ADMIN COMPONENT ---
+
 const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
-    products, categories, subCategories, heroSlides, enquiries, admins, stats,
+    products, categories, subCategories, heroSlides, enquiries, admins, stats, orders,
     updateData, deleteData, refreshAllData, connectionHealth, systemLogs, storageStats
   } = useSettings();
   
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training'>('enquiries');
+  const [activeTab, setActiveTab] = useState<'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'orders'>('enquiries');
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
   const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
   
   // Real-time error handling state
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
-  const [minErrorTimestamp, setMinErrorTimestamp] = useState(0);
 
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [adminData, setAdminData] = useState<Partial<AdminUser>>({});
@@ -720,7 +1354,6 @@ const Admin: React.FC = () => {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showHeroForm, setShowHeroForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [expandedTraining, setExpandedTraining] = useState<string | null>(null);
   const [selectedAdProduct, setSelectedAdProduct] = useState<Product | null>(null);
   const [replyEnquiry, setReplyEnquiry] = useState<Enquiry | null>(null);
   const [productData, setProductData] = useState<Partial<Product>>({});
@@ -735,35 +1368,27 @@ const Admin: React.FC = () => {
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
 
+  // Orders State
+  const [orderFilter, setOrderFilter] = useState('all');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
+  const [trackingInfo, setTrackingInfo] = useState({ courier: '', tracking: '' });
+
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@kasicouture.com');
   const userId = user?.id;
   const displayProducts = useMemo(() => isOwner ? products : products.filter(p => !p.createdBy || p.createdBy === userId), [products, isOwner, userId]);
   const displayCategories = useMemo(() => isOwner ? categories : categories.filter(c => !c.createdBy || c.createdBy === userId), [categories, isOwner, userId]);
   const displayHeroSlides = useMemo(() => isOwner ? heroSlides : heroSlides.filter(s => !s.createdBy || s.createdBy === userId), [heroSlides, isOwner, userId]);
-  const displayStats = useMemo(() => {
-    if (isOwner) return stats;
-    const myProductIds = displayProducts.map(p => p.id);
-    return stats.filter(s => myProductIds.includes(s.productId));
-  }, [stats, isOwner, displayProducts]);
-
-  const simulateSystemError = () => {
-    // This throws an error that is caught by the global handler in App.tsx
-    // The handler writes to traffic_logs, which we then fetch below.
-    setTimeout(() => {
-       throw new Error("Simulation: Database Handshake Timeout (504 Gateway)");
-    }, 100);
-  };
 
   useEffect(() => {
     const fetchTraffic = async () => {
        try {
          if (isSupabaseConfigured) {
-            // Fetch real data from Supabase if connected
-            const { data } = await supabase.from('traffic_logs').select('*').limit(2000);
+            const { data } = await supabase.from('traffic_logs').select('*').order('timestamp', { ascending: false }).limit(2000);
             if (data) setTrafficEvents(data);
          } else {
-             // Fallback to local storage for demo/local mode
              const rawLogs = localStorage.getItem('site_traffic_logs');
              const logs = rawLogs ? JSON.parse(rawLogs) : [];
              if (Array.isArray(logs)) setTrafficEvents(logs);
@@ -777,29 +1402,7 @@ const Admin: React.FC = () => {
     return () => clearInterval(interval);
   }, [isSupabaseConfigured]);
 
-  // Derived error logs from actual traffic events (persistent data)
-  const errorLogs = useMemo(() => {
-    return trafficEvents
-      .filter(e => 
-        e.timestamp > minErrorTimestamp &&
-        e.type === 'system' && 
-        (typeof e.text === 'string' && (e.text.includes('[CRITICAL]') || e.text.includes('Error') || e.text.includes('Exception')))
-      )
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .map(e => ({
-         id: e.id,
-         timestamp: e.time,
-         type: e.text.includes('Async') ? 'PROMISE_REJECTION' : 'RUNTIME_EXCEPTION',
-         source: e.source,
-         message: e.text.replace('[CRITICAL] ', ''),
-         stack: null // Stack not stored in simple log schema, simplified for view
-      }))
-      .slice(0, 50);
-  }, [trafficEvents, minErrorTimestamp]);
-
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
-  const handleFactoryReset = async () => { if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { localStorage.clear(); window.location.reload(); } };
-  const handleBackup = () => { const data = { products, categories, subCategories, heroSlides, enquiries, admins, settings, stats }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); };
   
   const handleSaveProduct = async () => { const newProduct = { ...productData, id: editingId || Date.now().toString(), createdAt: productData.createdAt || Date.now(), createdBy: productData.createdBy || user?.id }; const ok = await updateData('products', newProduct); if (ok) { setShowProductForm(false); setEditingId(null); } };
   const handleSaveCategory = async () => { const newCat = { ...catData, id: editingId || Date.now().toString(), createdBy: catData.createdBy || user?.id }; const ok = await updateData('categories', newCat); if (ok) { setShowCategoryForm(false); setEditingId(null); } };
@@ -809,6 +1412,51 @@ const Admin: React.FC = () => {
   const toggleEnquiryStatus = async (enquiry: Enquiry) => { const updated = { ...enquiry, status: enquiry.status === 'read' ? 'unread' : 'read' }; await updateData('enquiries', updated); };
   const handleAddSubCategory = async (categoryId: string) => { if (!tempSubCatName.trim()) return; const newSub: SubCategory = { id: Date.now().toString(), categoryId, name: tempSubCatName, createdBy: user?.id }; await updateData('subcategories', newSub); setTempSubCatName(''); };
   const handleDeleteSubCategory = async (id: string) => await deleteData('subcategories', id);
+  
+  // Order Handlers
+  const handleOrderStatusUpdate = async (orderId: string, newStatus: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    await updateData('orders', { ...order, status: newStatus });
+    if(viewingOrder && viewingOrder.id === orderId) setViewingOrder({ ...order, status: newStatus as any });
+  };
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    for(const oid of selectedOrderIds) {
+       const order = orders.find(o => o.id === oid);
+       if(order) await updateData('orders', { ...order, status: newStatus });
+    }
+    setSelectedOrderIds([]);
+  };
+
+  const handleSaveTracking = async () => {
+    if(!viewingOrder) return;
+    const updated = { ...viewingOrder, courierName: trackingInfo.courier, trackingNumber: trackingInfo.tracking, status: 'shipped' as const };
+    await updateData('orders', updated);
+    setViewingOrder(updated);
+    // Simulate notification
+    alert(`Status updated to Shipped. Notification sent to ${viewingOrder.customerEmail}`);
+  };
+
+  const printInvoice = (order: Order) => {
+    const w = window.open('', '_blank');
+    if(w) {
+        w.document.write(`
+            <html><head><title>Invoice ${order.id}</title>
+            <style>body { font-family: sans-serif; padding: 40px; } .header { margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 20px; } th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; } .total { margin-top: 20px; text-align: right; font-size: 20px; font-weight: bold; }</style>
+            </head><body>
+            <div class="header"><h1>${settings.companyName}</h1><p>Invoice #${order.id}</p><p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p></div>
+            <p><strong>Bill To:</strong> ${order.customerName}<br>${order.shippingAddress}<br>${order.customerEmail}</p>
+            <table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>
+            ${order.items?.map(i => `<tr><td>${i.productName}</td><td>${i.quantity}</td><td>R ${i.price}</td><td>R ${i.price * i.quantity}</td></tr>`).join('')}
+            </tbody></table>
+            <div class="total">Total: R ${order.total.toLocaleString()}</div>
+            </body></html>
+        `);
+        w.document.close();
+        w.print();
+    }
+  };
 
   const handleAddDiscountRule = () => { if (!tempDiscountRule.value || !tempDiscountRule.description) return; const newRule: DiscountRule = { id: Date.now().toString(), type: tempDiscountRule.type || 'percentage', value: Number(tempDiscountRule.value), description: tempDiscountRule.description }; setProductData({ ...productData, discountRules: [...(productData.discountRules || []), newRule] }); setTempDiscountRule({ type: 'percentage', value: 0, description: '' }); };
   const handleRemoveDiscountRule = (id: string) => { setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) }); };
@@ -830,7 +1478,7 @@ const Admin: React.FC = () => {
             <button onClick={exportEnquiries} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><FileSpreadsheet size={16}/> Export CSV</button>
          </div>
       </div>
-      <AdminTip title="Communication Hub">This is your central command for client interactions. All inquiries from your contact form are routed here. Use the reply button to open a pre-filled email template, or archive messages to keep your inbox clean.</AdminTip>
+      <AdminTip title="Communication Hub">This is your central command for client interactions. All inquiries from your contact form are routed here.</AdminTip>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
          <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'unread', 'read'].map(filter => (<button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
@@ -850,527 +1498,30 @@ const Admin: React.FC = () => {
     </div>
   );
 
-  const renderAnalytics = () => {
-    // ... (This function remains unchanged, fetching traffic stats)
-    // Safe parse visitorLogs
-    let visitorLogs: any[] = [];
-    try {
-      const rawLogs = localStorage.getItem('site_visitor_locations');
-      visitorLogs = rawLogs ? JSON.parse(rawLogs) : [];
-      if (!Array.isArray(visitorLogs)) visitorLogs = [];
-    } catch (e) {
-      visitorLogs = [];
-    }
-    
-    const sortedProducts = [...displayProducts].map(p => {
-      const pStats = displayStats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
-      const reviewCount = p.reviews?.length || 0;
-      return { ...p, ...pStats, reviewCount, ctr: pStats.views > 0 ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
-    }).sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks));
-
-    const topProducts = sortedProducts.slice(0, 15);
-
-    const categoryPerformance = categories.map(cat => {
-      const catProducts = products.filter(p => p.categoryId === cat.id);
-      const catProductIds = catProducts.map(p => p.id);
-      const catMetrics = stats.filter(s => catProductIds.includes(s.productId));
-      
-      const views = catMetrics.reduce((a, b) => a + b.views, 0);
-      const clicks = catMetrics.reduce((a, b) => a + b.clicks, 0);
-      const shares = catMetrics.reduce((a, b) => a + (b.shares || 0), 0);
-      
-      return {
-        ...cat,
-        views,
-        clicks,
-        shares,
-        ctr: views > 0 ? ((clicks / views) * 100).toFixed(1) : 0
-      };
-    }).sort((a, b) => b.views - a.views);
-    
-    const totalViews = displayStats.reduce((acc, s) => acc + s.views, 0);
-    const totalClicks = displayStats.reduce((acc, s) => acc + s.clicks, 0);
-    const totalShares = displayStats.reduce((acc, s) => acc + (s.shares || 0), 0);
-    const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
-    const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
-
-    const totalUniqueVisitors = visitorLogs.length;
-
-    const hourlyDistribution = new Array(24).fill(0);
-    trafficEvents.forEach(evt => {
-        if (evt.timestamp) {
-            const hour = new Date(evt.timestamp).getHours();
-            if (hour >= 0 && hour < 24) {
-               hourlyDistribution[hour]++;
-            }
-        }
-    });
-    const maxHourly = Math.max(...hourlyDistribution, 1);
-    const peakHour = hourlyDistribution.indexOf(Math.max(...hourlyDistribution));
-
-    // Calculate source stats from persistence log (All time)
-    // Filter only 'view' events or rely on all events having a source
-    const sourceStats = trafficEvents.reduce((acc: any, log: any) => {
-        // Normalize source
-        const s = log.source || 'Direct';
-        // Aggregate
-        acc[s] = (acc[s] || 0) + 1;
-        return acc;
-    }, {});
-    
-    const totalSources = Object.values(sourceStats).reduce((a: any, b: any) => a + b, 0) as number;
-    
-    // Sort sources by count descending
-    const sortedSources = Object.entries(sourceStats)
-        .sort(([,a]: any, [,b]: any) => b - a)
-        .map(([key, count]) => {
-           const styles = getPlatformStyles(key);
-           return {
-              label: key,
-              count: count as number,
-              ...styles
-           };
-        });
-
-    return (
-      <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
-           <div className="space-y-2">
-              <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter">Insights & Vitality</h2>
-              <p className="text-slate-400 text-sm max-w-lg">Live data stream processing {totalUniqueVisitors} unique nodes. Peak engagement detected around {peakHour}:00 hours.</p>
-           </div>
-           
-           <div className="flex gap-12 text-right">
-              <div>
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Total Impressions</span>
-                 <span className="text-4xl md:text-5xl font-bold text-white tracking-tighter">{totalViews.toLocaleString()}</span>
-              </div>
-              <div>
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Total Conversions</span>
-                 <span className="text-4xl md:text-5xl font-bold text-primary tracking-tighter">{totalClicks.toLocaleString()}</span>
-              </div>
-           </div>
-        </div>
-
-        {/* Traffic Heat Map (Hero Visual) */}
-        <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-800 shadow-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Activity size={120} className="text-primary"/></div>
-            <h3 className="text-white font-bold text-xl mb-12 flex items-center gap-3"><Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
-            <div className="flex items-end gap-1 h-64 w-full border-b border-slate-800 pb-2">
-               {hourlyDistribution.map((count, i) => (
-                 <div key={i} className="flex-1 group/bar relative h-full flex flex-col justify-end">
-                    <div 
-                      className={`w-full ${i === peakHour ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : 'bg-slate-800 group-hover/bar:bg-slate-600'} transition-all duration-500 rounded-t-sm`} 
-                      style={{ height: `${(count / maxHourly) * 100}%` }}
-                    ></div>
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none shadow-xl z-20 whitespace-nowrap">
-                      {count} Hits @ {i}:00
-                    </div>
-                    <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-[9px] font-bold ${i % 3 === 0 ? 'text-slate-500' : 'text-transparent'}`}>
-                       {i}
-                    </div>
-                 </div>
-               ))}
-            </div>
-            <div className="mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
-               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Active Monitoring: Live Updates Every 5 Seconds</span>
-               <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Peak Traffic</span></div>
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-800 rounded"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Average Load</span></div>
-               </div>
-            </div>
-        </div>
-        
-        {/* Core Metric Cards - Spacious Layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-           {[
-             { label: 'Click Through Rate', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
-             { label: 'Social Shares', value: totalShares, icon: Share2, color: 'text-blue-400' },
-             { label: 'Avg Session Time', value: `${avgSessionTime}s`, icon: Timer, color: 'text-green-400' },
-             { label: 'Verified Reviews', value: products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
-           ].map((m, i) => (
-             <div key={i} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 hover:border-primary/50 transition-colors flex flex-col justify-between h-48 shadow-lg group">
-                <div className="flex justify-between items-start">
-                   <div className={`w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center ${m.color} group-hover:scale-110 transition-transform`}><m.icon size={24}/></div>
-                   <m.icon size={48} className={`${m.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                </div>
-                <div><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">{m.label}</span><span className="text-3xl font-bold text-white">{m.value}</span></div>
-             </div>
-           ))}
-        </div>
-
-        {/* Top 15 Products Tracking */}
-        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 shadow-xl">
-          <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
-            <h3 className="text-white font-bold text-xl flex items-center gap-3">
-              <TrendingUp size={24} className="text-primary"/> Top 15 Performing Products
-            </h3>
-            <button onClick={() => {
-               const csv = "Rank,Product,Category,Views,Clicks,CTR,Shares\n" +
-                 topProducts.map((p, i) => `${i+1},"${p.name}",${categories.find(c=>c.id===p.categoryId)?.name || 'N/A'},${p.views},${p.clicks},${p.ctr}%,${p.shares}`).join("\n");
-               const blob = new Blob([csv], { type: 'text/csv' });
-               const url = window.URL.createObjectURL(blob);
-               const a = document.createElement('a'); a.href = url; a.download = 'top_products.csv'; a.click();
-            }} className="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest flex items-center gap-2">
-               <Download size={14}/> Export Data
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-400">
-               <thead>
-                 <tr className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">
-                   <th className="pb-4 pl-4">#</th>
-                   <th className="pb-4">Product</th>
-                   <th className="pb-4">Dept</th>
-                   <th className="pb-4 text-right">Views</th>
-                   <th className="pb-4 text-right">Clicks</th>
-                   <th className="pb-4 text-right">CTR</th>
-                   <th className="pb-4 text-right pr-4">Shares</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-800">
-                 {topProducts.map((p, index) => (
-                   <tr key={p.id} className="group hover:bg-slate-800/50 transition-colors">
-                     <td className="py-4 pl-4 font-mono text-slate-600">{index + 1}</td>
-                     <td className="py-4">
-                        <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden shrink-0 border border-slate-700">
-                              {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
-                           </div>
-                           <span className="font-bold text-white truncate max-w-[150px] md:max-w-xs">{p.name}</span>
-                        </div>
-                     </td>
-                     <td className="py-4 text-xs">
-                        <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300">
-                           {categories.find(c => c.id === p.categoryId)?.name || 'Uncategorized'}
-                        </span>
-                     </td>
-                     <td className="py-4 text-right font-mono text-white">{p.views.toLocaleString()}</td>
-                     <td className="py-4 text-right font-mono text-primary">{p.clicks.toLocaleString()}</td>
-                     <td className="py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                           <span className="font-bold text-white">{p.ctr}%</span>
-                           <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
-                              <div className="h-full bg-primary" style={{ width: `${Math.min(parseFloat(p.ctr as string), 100)}%` }}></div>
-                           </div>
-                        </div>
-                     </td>
-                     <td className="py-4 text-right pr-4 font-mono text-blue-400">{p.shares?.toLocaleString() || 0}</td>
-                   </tr>
-                 ))}
-               </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Category Performance Matrix */}
-        <div className="space-y-8">
-           <h3 className="text-white font-bold text-2xl flex items-center gap-3 px-2 border-b border-white/5 pb-4">
-              <Layers size={24} className="text-primary"/> Department Performance
-           </h3>
-           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-             {categoryPerformance.map((cat, i) => {
-               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
-               return (
-                 <div key={i} className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 group hover:border-primary/40 transition-all shadow-xl">
-                   <div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-primary shrink-0 shadow-inner group-hover:scale-110 transition-transform border border-slate-700">
-                      <Icon size={40} />
-                   </div>
-                   <div className="flex-grow w-full text-center md:text-left">
-                      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-                         <h4 className="text-white font-bold text-2xl">{cat.name}</h4>
-                         <span className="px-4 py-2 rounded-full bg-primary/10 text-primary font-mono font-bold text-xs border border-primary/20">{cat.ctr}% CTR</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-6 mb-8">
-                         <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
-                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Views</span>
-                            <span className="text-white font-bold text-lg">{cat.views.toLocaleString()}</span>
-                         </div>
-                         <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
-                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Clicks</span>
-                            <span className="text-white font-bold text-lg">{cat.clicks.toLocaleString()}</span>
-                         </div>
-                         <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800">
-                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Shares</span>
-                            <span className="text-white font-bold text-lg">{cat.shares.toLocaleString()}</span>
-                         </div>
-                      </div>
-                      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                         <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${totalViews > 0 ? (cat.views / totalViews) * 100 : 0}%` }}></div>
-                      </div>
-                   </div>
-                 </div>
-               );
-             })}
-           </div>
-        </div>
-        
-        {/* Precise Traffic Landscape - Moved below Departments */}
-        <div className="mt-8">
-            <TrafficAreaChart trafficEvents={trafficEvents} />
-        </div>
-
-        {/* Traffic Origins */}
-        <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl mt-8">
-             <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><Globe size={24} className="text-primary"/> Traffic Sources (Live & Historical)</h3>
-             <div className="space-y-8">
-                 {sortedSources.map((s, i) => (
-                    <div key={i} className="flex items-center gap-6">
-                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 border shadow-xl ${s.bg} ${s.border}`}><s.icon size={24} className="text-white"/></div>
-                       <div className="flex-grow">
-                          <div className="flex justify-between mb-3">
-                             <span className="text-base text-white font-bold">{s.label}</span>
-                             <span className="text-xs text-slate-400 font-mono">{s.count} hits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
-                          </div>
-                          <div className="h-4 bg-slate-800 rounded-full overflow-hidden">
-                             <div className={`h-full ${s.bg} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
-                          </div>
-                       </div>
-                    </div>
-                 ))}
-                 {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4 italic">Awaiting source data...</p>}
-              </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderSystem = () => {
-    // Helper for formatting bytes
-    const formatBytes = (bytes: number, decimals = 2) => {
-        if (!+bytes) return '0 B';
-        const k = 1024;
-        const dm = decimals < 0 ? 0 : decimals;
-        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-    };
-
-    const latencyColor = (l: number) => {
-        if (l < 200) return 'bg-green-500';
-        if (l < 500) return 'bg-yellow-500';
-        return 'bg-red-500';
-    };
-
-    return (
-     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
-        <AdminTip title="Core Infrastructure Monitoring">
-            Your bridge page is linked to a high-performance Supabase backend. All read/write operations are synchronized in real-time.
-            The storage metrics below are estimates based on client-side data.
-        </AdminTip>
-
-        {/* CONNECTION HEALTH & LATENCY VISUALIZER */}
-        <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-slate-900 rounded-[2rem] border border-slate-800 p-8 flex flex-col justify-between shadow-xl">
-                 <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h3 className="text-white font-bold text-lg flex items-center gap-2"><Wifi size={20} className="text-primary"/> Network Heartbeat</h3>
-                        <p className="text-slate-500 text-xs mt-1">{connectionHealth?.message || 'Connecting...'}</p>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${connectionHealth?.status === 'online' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                        {connectionHealth?.status || 'UNKNOWN'}
-                    </div>
-                 </div>
-                 
-                 <div className="relative pt-6">
-                    <div className="flex justify-between text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                        <span>Latency</span>
-                        <span className="text-white">{connectionHealth?.latency || 0} ms</span>
-                    </div>
-                    <div className="h-4 bg-slate-800 rounded-full overflow-hidden flex">
-                        <div 
-                            className={`h-full transition-all duration-500 ${latencyColor(connectionHealth?.latency || 0)}`} 
-                            style={{ width: `${Math.min((connectionHealth?.latency || 0) / 10, 100)}%` }} // Scale: 1000ms = 100%
-                        ></div>
-                    </div>
-                    <div className="flex justify-between mt-2 text-[9px] text-slate-600 font-mono">
-                        <span>0ms</span>
-                        <span>500ms</span>
-                        <span>1s+</span>
-                    </div>
-                 </div>
-            </div>
-
-            <div className="bg-slate-900 rounded-[2rem] border border-slate-800 p-8 flex flex-col justify-between shadow-xl">
-                 <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h3 className="text-white font-bold text-lg flex items-center gap-2"><Server size={20} className="text-primary"/> Database Status</h3>
-                        <p className="text-slate-500 text-xs mt-1">{isSupabaseConfigured ? 'Connected to Cloud' : 'Local Storage Mode'}</p>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isSupabaseConfigured ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
-                        {isSupabaseConfigured ? 'POSTGRES' : 'LOCAL'}
-                    </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-800">
-                        <span className="block text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Total Records</span>
-                        <span className="text-xl font-bold text-white font-mono">{storageStats.totalRecords}</span>
-                    </div>
-                    <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-800">
-                        <span className="block text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Endpoints</span>
-                        <span className="text-xl font-bold text-white font-mono">8</span>
-                    </div>
-                 </div>
-            </div>
-        </div>
-
-        {/* STORAGE BREAKDOWN */}
-        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-12 shadow-2xl">
-            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><HardDrive size={24} className="text-blue-500"/> Storage Anatomy</h3>
-            
-            <div className="space-y-8">
-                {/* Database Size */}
-                <div>
-                    <div className="flex justify-between items-end mb-2">
-                        <div className="flex items-center gap-2">
-                            <Database size={16} className="text-slate-400"/>
-                            <span className="text-sm font-bold text-slate-200">Text Data (JSON)</span>
-                        </div>
-                        <span className="text-sm font-mono font-bold text-primary">{formatBytes(storageStats.dbSize)}</span>
-                    </div>
-                    <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-slate-600 w-full animate-pulse opacity-50"></div> 
-                        {/* Note: Relative bar size is hard without a limit, so we just show activity */}
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-2">Includes all product text, settings configurations, and user logs.</p>
-                </div>
-
-                {/* Media Size */}
-                <div>
-                    <div className="flex justify-between items-end mb-2">
-                        <div className="flex items-center gap-2">
-                            <Image size={16} className="text-slate-400"/>
-                            <span className="text-sm font-bold text-slate-200">Media Assets ({storageStats.mediaCount} files)</span>
-                        </div>
-                        <span className="text-sm font-mono font-bold text-blue-400">{formatBytes(storageStats.mediaSize)}</span>
-                    </div>
-                    <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden relative">
-                         <div className="absolute inset-0 bg-blue-500/20"></div>
-                         <div className="h-full bg-blue-500 w-1/3"></div> 
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-2">Approximate total size of hosted images and videos.</p>
-                </div>
-            </div>
-        </div>
-
-        {/* SYNC LEDGER (TERMINAL STYLE) */}
-        <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left font-mono">
-           <div className="flex justify-between items-center mb-6">
-              <h3 className="text-white font-bold text-xl flex items-center gap-3"><Terminal size={24} className="text-green-500"/> Sync Ledger</h3>
-              <div className="flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span className="text-[10px] font-black uppercase text-green-500 tracking-widest">Live Feed</span></div>
-           </div>
-           
-           <div className="w-full overflow-x-auto">
-               <table className="w-full text-xs text-left whitespace-nowrap">
-                   <thead>
-                       <tr className="border-b border-slate-800 text-slate-500 uppercase tracking-widest">
-                           <th className="pb-4 pl-4">Timestamp</th>
-                           <th className="pb-4">Operation</th>
-                           <th className="pb-4">Target</th>
-                           <th className="pb-4">Size</th>
-                           <th className="pb-4 pr-4 text-right">Status</th>
-                       </tr>
-                   </thead>
-                   <tbody className="text-slate-300">
-                       {systemLogs.length > 0 ? systemLogs.map((log) => (
-                           <tr key={log.id} className="border-b border-slate-800/50 hover:bg-white/5 transition-colors">
-                               <td className="py-3 pl-4 text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</td>
-                               <td className="py-3">
-                                   <span className={`px-2 py-1 rounded text-[10px] font-black ${
-                                       log.type === 'SYNC' ? 'bg-blue-500/20 text-blue-400' : 
-                                       log.type === 'UPDATE' ? 'bg-yellow-500/20 text-yellow-400' :
-                                       log.type === 'DELETE' ? 'bg-red-500/20 text-red-400' :
-                                       log.type === 'ERROR' ? 'bg-red-600 text-white' :
-                                       'bg-slate-700 text-slate-300'
-                                   }`}>
-                                       {log.type}
-                                   </span>
-                               </td>
-                               <td className="py-3 font-bold">{log.target}</td>
-                               <td className="py-3 text-slate-500">{log.sizeBytes ? formatBytes(log.sizeBytes, 0) : '-'}</td>
-                               <td className="py-3 pr-4 text-right">
-                                   {log.status === 'success' ? <span className="text-green-500 font-bold">OK</span> : <span className="text-red-500 font-bold">FAIL</span>}
-                               </td>
-                           </tr>
-                       )) : (
-                           <tr>
-                               <td colSpan={5} className="py-8 text-center text-slate-600 italic">No sync activity recorded in this session.</td>
-                           </tr>
-                       )}
-                   </tbody>
-               </table>
-           </div>
-        </div>
-
-        {/* Real-time Exception Logs (Persistent) */}
-        <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left">
-           <div className="flex justify-between items-center mb-6">
-              <h3 className="text-white font-bold text-xl flex items-center gap-3">
-                 <AlertTriangle size={24} className="text-red-500"/>
-                 Global Exception Trace
-              </h3>
-              <div className="flex gap-2">
-                 <button onClick={simulateSystemError} className="px-3 py-1.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-colors">
-                    Trigger Failure
-                 </button>
-                 <button onClick={() => setMinErrorTimestamp(Date.now())} className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-colors">
-                    Clear View
-                 </button>
-              </div>
-           </div>
-           <div className="bg-black rounded-xl border border-slate-800 p-4 h-64 overflow-y-auto custom-scrollbar font-mono text-xs relative">
-              <div className="absolute top-0 right-0 p-2 opacity-50 pointer-events-none">
-                 <Activity size={120} className="text-slate-800"/>
-              </div>
-              {errorLogs.length > 0 ? (
-                 errorLogs.map((err, i) => (
-                    <div key={err.id} className="mb-4 border-b border-slate-900 pb-3 last:border-0 relative z-10 animate-in slide-in-from-left duration-300">
-                       <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <span className="text-slate-500">[{err.timestamp}]</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${err.type === 'RUNTIME_EXCEPTION' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
-                             {err.type}
-                          </span>
-                          <span className="text-slate-600">{err.source}</span>
-                       </div>
-                       <div className="text-slate-300 break-words pl-0 md:pl-4 font-bold">
-                          {err.message}
-                       </div>
-                    </div>
-                 ))
-              ) : (
-                 <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
-                    <ShieldCheck size={32} className="mb-2 text-green-500/50"/>
-                    <span className="text-green-500/50 font-bold uppercase tracking-widest">System Nominal</span>
-                    <span className="text-[10px] mt-1">No active exceptions detected in the execution runtime.</span>
-                 </div>
-              )}
-           </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 text-left">
-           <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4">
-              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Catalog Export</h3>
-              <p className="text-slate-500 text-xs leading-relaxed">Save a complete snapshot of all products, settings, and analytical data to JSON.</p>
-              <button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2 border border-slate-700">Download Data</button>
-           </div>
-           <div className="bg-red-950/10 p-8 rounded-[2rem] border border-red-500/20 text-left space-y-4">
-              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> System Purge</h3>
-              <p className="text-slate-500 text-xs leading-relaxed">Immediately factory reset all local storage data. Supabase cloud data is preserved unless manually wiped.</p>
-              <button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Purge</button>
-           </div>
-        </div>
-     </div>
-    );
-  };
-
   const renderCatalog = () => (
     <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
       {showProductForm ? (
         <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
           <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
-          <AdminTip title="Inventory Deployment">Optimize your listing with detailed specifications and high-res media. The 'Highlights' section powers the shoppable bridge features.</AdminTip>
+          <AdminTip title="Inventory Deployment">Optimize your listing with detailed specifications and high-res media.</AdminTip>
           <div className="grid md:grid-cols-2 gap-8">
-             <div className="space-y-6"><SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} /><SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} /><SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" /><SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} /></div>
+             <div className="space-y-6">
+                <SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} />
+                <SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} />
+                <div className="grid grid-cols-2 gap-4">
+                   <SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" />
+                   {productData.isDirectSale && (
+                      <SettingField label="Stock Quantity" value={productData.stockQuantity?.toString() || '0'} onChange={v => setProductData({...productData, stockQuantity: parseInt(v) || 0})} type="number" />
+                   )}
+                </div>
+                <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800 flex items-center justify-between">
+                   <span className="text-white font-bold text-sm">Sell Directly on Site?</span>
+                   <div onClick={() => setProductData({...productData, isDirectSale: !productData.isDirectSale})} className={`w-12 h-6 rounded-full cursor-pointer transition-colors ${productData.isDirectSale ? 'bg-primary' : 'bg-slate-700'}`}>
+                      <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform mt-1 ml-1 ${productData.isDirectSale ? 'translate-x-6' : ''}`}></div>
+                   </div>
+                </div>
+                <SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} />
+             </div>
              <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="textarea" /></div>
           </div>
           <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-slate-800">
@@ -1392,7 +1543,16 @@ const Admin: React.FC = () => {
           <div className="grid gap-4">
             {displayProducts.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) && (productCatFilter === 'all' || p.categoryId === productCatFilter)).map(p => (
               <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
-                <div className="flex items-center gap-6 min-w-0 text-left"><div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4><div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span><span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">• {categories.find(c => c.id === p.categoryId)?.name}</span></div></div></div>
+                <div className="flex items-center gap-6 min-w-0 text-left">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div>
+                  <div className="min-w-0">
+                    <h4 className="text-white font-bold line-clamp-1 break-words flex items-center gap-2">
+                      {p.name}
+                      {p.isDirectSale && <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-500 text-[8px] font-black uppercase tracking-widest border border-green-500/20">Direct Sale</span>}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span><span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">• {categories.find(c => c.id === p.categoryId)?.name}</span></div>
+                  </div>
+                </div>
                 <div className="flex gap-2 w-full md:w-auto flex-shrink-0"><button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button><button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button><button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button></div>
               </div>
             ))}
@@ -1402,7 +1562,227 @@ const Admin: React.FC = () => {
     </div>
   );
 
-  // ... (Keeping renderHero, renderCategories, renderTeam, renderTraining, renderGuide, renderSiteEditor as originally provided)
+  const renderOrders = () => {
+    const filteredOrders = orders.filter(o => {
+        const matchesSearch = o.id.toLowerCase().includes(orderSearch.toLowerCase()) || 
+                              o.customerName.toLowerCase().includes(orderSearch.toLowerCase()) || 
+                              o.customerEmail.toLowerCase().includes(orderSearch.toLowerCase());
+        const matchesFilter = orderFilter === 'all' ? true : o.status === orderFilter;
+        return matchesSearch && matchesFilter;
+    }).sort((a, b) => b.createdAt - a.createdAt);
+
+    const toggleOrderSelection = (id: string) => {
+        setSelectedOrderIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    };
+
+    const getStatusBadge = (status: string) => {
+        const styles: Record<string, string> = {
+            paid: 'bg-blue-500/20 text-blue-400',
+            shipped: 'bg-purple-500/20 text-purple-400',
+            delivered: 'bg-green-500/20 text-green-400',
+            cancelled: 'bg-red-500/20 text-red-400',
+            pending_payment: 'bg-yellow-500/20 text-yellow-400',
+            processing: 'bg-orange-500/20 text-orange-400'
+        };
+        return <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${styles[status] || styles.pending_payment}`}>{status.replace('_', ' ')}</span>;
+    };
+
+    return (
+      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
+         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+            <div className="space-y-2">
+               <h2 className="text-3xl font-serif text-white">Fulfillment</h2>
+               <p className="text-slate-400 text-sm">Manage orders, update logistics, and print invoices.</p>
+            </div>
+            
+            {/* Filter Tabs */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                {['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => (
+                    <button 
+                        key={f} 
+                        onClick={() => setOrderFilter(f)}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}
+                    >
+                        {f.replace('_', ' ')}
+                    </button>
+                ))}
+            </div>
+         </div>
+
+         {/* Bulk Actions */}
+         {selectedOrderIds.length > 0 && (
+             <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-primary text-slate-900 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
+                 <span className="text-xs font-bold">{selectedOrderIds.length} Selected</span>
+                 <div className="h-4 w-px bg-slate-900/20"></div>
+                 <button onClick={() => handleBulkStatusUpdate('processing')} className="text-[10px] font-black uppercase hover:text-white transition-colors">Mark Processing</button>
+                 <button onClick={() => handleBulkStatusUpdate('shipped')} className="text-[10px] font-black uppercase hover:text-white transition-colors">Mark Shipped</button>
+                 <button onClick={() => setSelectedOrderIds([])} className="p-1 rounded-full hover:bg-white/20"><X size={14}/></button>
+             </div>
+         )}
+
+         {/* Search Bar */}
+         <div className="relative mb-6">
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+             <input 
+                type="text" 
+                placeholder="Search orders by ID, name or email..." 
+                value={orderSearch} 
+                onChange={e => setOrderSearch(e.target.value)} 
+                className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" 
+             />
+         </div>
+
+         {/* Orders Table */}
+         <div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden">
+             <table className="w-full text-left border-collapse">
+                 <thead>
+                     <tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">
+                         <th className="p-4 w-12 text-center">
+                             <input 
+                                type="checkbox" 
+                                className="rounded bg-slate-800 border-slate-700 text-primary focus:ring-0" 
+                                onChange={(e) => setSelectedOrderIds(e.target.checked ? filteredOrders.map(o => o.id) : [])}
+                                checked={selectedOrderIds.length === filteredOrders.length && filteredOrders.length > 0}
+                             />
+                         </th>
+                         <th className="p-4">Order ID</th>
+                         <th className="p-4">Date</th>
+                         <th className="p-4">Customer</th>
+                         <th className="p-4">Status</th>
+                         <th className="p-4 text-right">Total</th>
+                         <th className="p-4 w-12"></th>
+                     </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-800">
+                     {filteredOrders.length === 0 ? (
+                         <tr><td colSpan={7} className="p-8 text-center text-slate-500 text-sm">No orders found.</td></tr>
+                     ) : (
+                         filteredOrders.map(order => (
+                             <tr key={order.id} className="hover:bg-slate-800/30 transition-colors group cursor-pointer" onClick={() => { setViewingOrder(order); setTrackingInfo({ courier: order.courierName || '', tracking: order.trackingNumber || '' }); }}>
+                                 <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                     <input 
+                                        type="checkbox" 
+                                        checked={selectedOrderIds.includes(order.id)}
+                                        onChange={() => toggleOrderSelection(order.id)}
+                                        className="rounded bg-slate-800 border-slate-700 text-primary focus:ring-0"
+                                     />
+                                 </td>
+                                 <td className="p-4 font-mono text-xs text-white">{order.id}</td>
+                                 <td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td>
+                                 <td className="p-4">
+                                     <div className="flex flex-col">
+                                         <span className="text-sm font-bold text-white">{order.customerName}</span>
+                                         <span className="text-[10px] text-slate-500">{order.customerEmail}</span>
+                                     </div>
+                                 </td>
+                                 <td className="p-4">{getStatusBadge(order.status)}</td>
+                                 <td className="p-4 text-right text-sm font-bold text-white">R {order.total.toLocaleString()}</td>
+                                 <td className="p-4 text-slate-500 group-hover:text-primary transition-colors"><ChevronRight size={16}/></td>
+                             </tr>
+                         ))
+                     )}
+                 </tbody>
+             </table>
+         </div>
+
+         {/* Detail Drawer */}
+         {viewingOrder && (
+             <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setViewingOrder(null)}>
+                 <div className="w-full max-w-lg bg-slate-900 h-full shadow-2xl border-l border-slate-800 overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}>
+                     
+                     {/* Drawer Header */}
+                     <div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950/50">
+                         <div>
+                             <h3 className="text-2xl font-serif text-white mb-1">Order Details</h3>
+                             <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+                                 <span>#{viewingOrder.id}</span>
+                                 <span>•</span>
+                                 <span>{new Date(viewingOrder.createdAt).toLocaleString()}</span>
+                             </div>
+                         </div>
+                         <button onClick={() => setViewingOrder(null)} className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"><X size={20}/></button>
+                     </div>
+
+                     <div className="flex-grow p-6 space-y-8">
+                         
+                         {/* Status & Actions */}
+                         <div className="space-y-4">
+                             <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Order Status</label>
+                             <select 
+                                value={viewingOrder.status} 
+                                onChange={(e) => handleOrderStatusUpdate(viewingOrder.id, e.target.value)}
+                                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"
+                             >
+                                 {['pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => (
+                                     <option key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</option>
+                                 ))}
+                             </select>
+                         </div>
+
+                         {/* Customer Info */}
+                         <div className="space-y-4">
+                             <h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><User size={16} className="text-primary"/> Customer</h4>
+                             <div className="grid grid-cols-2 gap-4 text-xs text-slate-300">
+                                 <div><span className="block text-slate-500 uppercase text-[9px] font-bold mb-1">Name</span>{viewingOrder.customerName}</div>
+                                 <div><span className="block text-slate-500 uppercase text-[9px] font-bold mb-1">Email</span>{viewingOrder.customerEmail}</div>
+                                 <div className="col-span-2">
+                                     <span className="block text-slate-500 uppercase text-[9px] font-bold mb-1">Shipping Address</span>
+                                     <p className="leading-relaxed whitespace-pre-wrap">{viewingOrder.shippingAddress}</p>
+                                 </div>
+                             </div>
+                         </div>
+
+                         {/* Order Items */}
+                         <div className="space-y-4">
+                             <h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><ShoppingBag size={16} className="text-primary"/> Items</h4>
+                             <div className="space-y-3">
+                                 {viewingOrder.items?.map((item: OrderItem) => (
+                                     <div key={item.id} className="flex justify-between items-center bg-slate-950/30 p-3 rounded-xl border border-slate-800/50">
+                                         <div className="flex items-center gap-3">
+                                             <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-xs font-bold text-white">{item.quantity}x</div>
+                                             <span className="text-sm text-slate-300">{item.productName}</span>
+                                         </div>
+                                         <span className="text-xs font-mono text-white">R {(item.price * item.quantity).toLocaleString()}</span>
+                                     </div>
+                                 ))}
+                                 <div className="flex justify-between items-center pt-2 text-sm font-bold text-white">
+                                     <span>Total</span>
+                                     <span className="text-primary text-lg">R {viewingOrder.total.toLocaleString()}</span>
+                                 </div>
+                             </div>
+                         </div>
+
+                         {/* Logistics */}
+                         <div className="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                             <h4 className="text-white font-bold text-sm flex items-center gap-2 mb-2"><Truck size={16} className="text-blue-500"/> Logistics</h4>
+                             <div className="space-y-3">
+                                 <div className="space-y-1">
+                                     <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Courier Name</label>
+                                     <input type="text" value={trackingInfo.courier} onChange={e => setTrackingInfo({...trackingInfo, courier: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none focus:border-primary" placeholder="e.g. Aramex" />
+                                 </div>
+                                 <div className="space-y-1">
+                                     <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Tracking Number</label>
+                                     <input type="text" value={trackingInfo.tracking} onChange={e => setTrackingInfo({...trackingInfo, tracking: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none focus:border-primary" placeholder="e.g. DBP123456789" />
+                                 </div>
+                                 <button onClick={handleSaveTracking} className="w-full py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-colors">Update & Notify Client</button>
+                             </div>
+                         </div>
+
+                     </div>
+
+                     {/* Drawer Footer */}
+                     <div className="p-6 border-t border-slate-800 bg-slate-950/50 flex gap-4">
+                         <button onClick={() => printInvoice(viewingOrder)} className="flex-1 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white hover:bg-slate-700 flex items-center justify-center gap-2">
+                             <Printer size={16}/> Print Invoice
+                         </button>
+                     </div>
+                 </div>
+             </div>
+         )}
+      </div>
+    );
+  };
+
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <AdminTip title="Hero Master Visuals">Set the tone for your bridge page with cinematic hero visuals. Videos increase dwell time by up to 40%.</AdminTip>
@@ -1456,9 +1836,35 @@ const Admin: React.FC = () => {
     </div>
   );
 
+  const renderSiteEditor = () => (
+     <div className="space-y-6 w-full max-w-7xl mx-auto text-left">
+       <AdminTip title="Canvas Editor">Control your site's visual identity. Publishing changes here will synchronize with Supabase and update for all visitors.</AdminTip>
+       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
+          {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations & Payments', icon: LinkIcon, desc: 'EmailJS, Tracking, Commerce'} ].map(s => ( 
+            <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
+               <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
+            </button> 
+          ))}
+       </div>
+       <style>{`.edit-hover { opacity: 0; } .group:hover .edit-hover { opacity: 1; }`}</style>
+     </div>
+  );
+
   const renderTeam = () => (
      <div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison Staffing</h2><p className="text-slate-400 text-sm mt-2">Roles and permissions for collaborative curation.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left">
+           <div className="text-left"><h2 className="text-3xl font-serif text-white">Maison Staffing</h2><p className="text-slate-400 text-sm mt-2">Roles and permissions for collaborative curation.</p></div>
+           
+           <div className="flex gap-4">
+              <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-3 text-left max-w-xs">
+                 <Info size={16} className="text-blue-400 flex-shrink-0" />
+                 <p className="text-[9px] text-blue-300 font-medium leading-tight">
+                    <strong>Invitation Guide:</strong> Users must first be invited via the Supabase Auth Dashboard or sign up publicly. Once their account exists, add their email here to grant privileges.
+                 </p>
+              </div>
+              <button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto flex-shrink-0 h-fit self-center"><Plus size={16}/> New Member</button>
+           </div>
+        </div>
         {showAdminForm ? (
            <div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-12 text-left">
               <div className="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl flex items-start gap-4">
@@ -1473,7 +1879,6 @@ const Admin: React.FC = () => {
                     <SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" />
                     <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
-                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed">Manage passkeys via the Supabase cloud dashboard.</p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
                  </div>
                  <div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
               </div>
@@ -1503,47 +1908,6 @@ const Admin: React.FC = () => {
            </>
         )}
      </div>
-  );
-
-  const renderTraining = () => (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Academy</h2><p className="text-slate-400 text-sm">Curation marketing mastery across {TRAINING_MODULES.length} channels.</p></div>
-         <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2"><Video size={16}/> Mastering the Algorithm</a>
-      </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {TRAINING_MODULES.map((module) => {
-          const isExpanded = expandedTraining === module.id;
-          const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
-          return (
-            <div key={module.id} className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}>
-              <button onClick={() => setExpandedTraining(isExpanded ? null : module.id)} className="w-full p-6 md:p-8 flex items-start text-left group h-full">
-                 <div className="flex items-start gap-4 md:gap-6 w-full">
-                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${module.platform === 'Pinterest' ? 'bg-red-600' : module.platform === 'TikTok' ? 'bg-black border border-slate-700' : module.platform === 'Instagram' ? 'bg-pink-600' : module.platform === 'WhatsApp' ? 'bg-green-500' : module.platform === 'SEO' ? 'bg-blue-600' : 'bg-slate-800 text-slate-300'}`}><Icon size={28} /></div>
-                    <div className="flex-grow min-w-0"><div className="flex justify-between items-start"><h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>{!isExpanded && <ChevronDown size={20} className="text-slate-500 mt-1" />}</div><p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>{!isExpanded && (<div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">View Training <ArrowRight size={12}/></div>)}</div>
-                 </div>
-              </button>
-              {isExpanded && (
-                <div className="px-6 md:px-10 pb-10 pt-0 animate-in fade-in">
-                  <div className="w-full h-px bg-slate-800 mb-8"></div>
-                  <div className="grid md:grid-cols-2 gap-10">
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4></div>
-                      <ul className="space-y-4">{module.strategies.map((strat, idx) => (<li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div><span className="leading-relaxed">{strat}</span></li>))}</ul>
-                    </div>
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3"><div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4></div>
-                      <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">{module.actionItems.map((item, idx) => (<div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer"><div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div><span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span></div>))}</div>
-                    </div>
-                  </div>
-                  <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end"><button onClick={() => setExpandedTraining(null)} className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">Complete Session</button></div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
   );
 
   const renderGuide = () => (
@@ -1588,20 +1952,6 @@ const Admin: React.FC = () => {
      </div>
   );
 
-  const renderSiteEditor = () => (
-     <div className="space-y-6 w-full max-w-7xl mx-auto text-left">
-       <AdminTip title="Canvas Editor">Control your site's visual identity. Publishing changes here will synchronize with Supabase and update for all visitors.</AdminTip>
-       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
-          {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
-            <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
-               <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
-            </button> 
-          ))}
-       </div>
-       <style>{`.edit-hover { opacity: 0; } .group:hover .edit-hover { opacity: 1; }`}</style>
-     </div>
-  );
-
   return (
     <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
       <style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style>
@@ -1613,7 +1963,7 @@ const Admin: React.FC = () => {
         <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
         <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
-            {[ { id: 'enquiries', label: 'Inbox', icon: Inbox }, { id: 'analytics', label: 'Insights', icon: BarChart3 }, { id: 'catalog', label: 'Items', icon: ShoppingBag }, { id: 'hero', label: 'Visuals', icon: LayoutPanelTop }, { id: 'categories', label: 'Depts', icon: Layout }, { id: 'site_editor', label: 'Canvas', icon: Palette }, { id: 'team', label: 'Maison', icon: Users }, { id: 'training', label: 'Training', icon: GraduationCap }, { id: 'system', label: 'System', icon: Activity }, { id: 'guide', label: 'Pilot', icon: Rocket } ].map(tab => (
+            {[ { id: 'enquiries', label: 'Inbox', icon: Inbox }, { id: 'orders', label: 'Orders', icon: ShoppingBag }, { id: 'analytics', label: 'Insights', icon: BarChart3 }, { id: 'catalog', label: 'Items', icon: Tag }, { id: 'hero', label: 'Visuals', icon: LayoutPanelTop }, { id: 'categories', label: 'Depts', icon: Layout }, { id: 'site_editor', label: 'Canvas', icon: Palette }, { id: 'team', label: 'Maison', icon: Users }, { id: 'training', label: 'Training', icon: GraduationCap }, { id: 'system', label: 'System', icon: Activity }, { id: 'guide', label: 'Pilot', icon: Rocket } ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
             ))}
           </div>
@@ -1623,14 +1973,15 @@ const Admin: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
         {activeTab === 'enquiries' && renderEnquiries()}
-        {activeTab === 'analytics' && renderAnalytics()}
+        {activeTab === 'orders' && renderOrders()}
+        {activeTab === 'analytics' && <AnalyticsDashboard trafficEvents={trafficEvents} products={products} stats={stats} orders={orders} categories={categories} />}
         {activeTab === 'catalog' && renderCatalog()}
         {activeTab === 'hero' && renderHero()}
         {activeTab === 'categories' && renderCategories()}
         {activeTab === 'site_editor' && renderSiteEditor()}
         {activeTab === 'team' && renderTeam()}
-        {activeTab === 'training' && renderTraining()}
-        {activeTab === 'system' && renderSystem()}
+        {activeTab === 'training' && <TrainingGrid />}
+        {activeTab === 'system' && <SystemMonitor connectionHealth={connectionHealth} systemLogs={systemLogs} storageStats={storageStats} />}
         {activeTab === 'guide' && renderGuide()}
       </main>
 
@@ -1648,7 +1999,7 @@ const Admin: React.FC = () => {
                     {activeEditorSection === 'about' && 'About Page'}
                     {activeEditorSection === 'contact' && 'Contact Page'}
                     {activeEditorSection === 'legal' && 'Legal & Policy'}
-                    {activeEditorSection === 'integrations' && 'Integrations'}
+                    {activeEditorSection === 'integrations' && 'Integrations & Payments'}
                   </h3>
                   <p className="text-slate-500 text-sm">Real-time configuration.</p>
                 </div>
@@ -1681,7 +2032,64 @@ const Admin: React.FC = () => {
                   <><div className="space-y-6"><SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} /><SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} /><SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} /><SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} /></div></>
                )}
                {activeEditorSection === 'integrations' && (
-                  <><IntegrationGuide /><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4><div className="space-y-4"><SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} /><SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} /><SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} /></div></div><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4><div className="space-y-4"><SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} /><SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} /><SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} /><SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} /></div></div></>
+                  <>
+                    <IntegrationGuide />
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6">
+                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><CreditCard size={16} /> Commerce & Payments</h4>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                                <span className="text-sm text-slate-300 font-bold">Enable Direct Sales</span>
+                                <div onClick={() => updateTempSettings({ enableDirectSales: !tempSettings.enableDirectSales })} className={`w-12 h-6 rounded-full cursor-pointer transition-colors ${tempSettings.enableDirectSales ? 'bg-primary' : 'bg-slate-700'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform mt-1 ml-1 ${tempSettings.enableDirectSales ? 'translate-x-6' : ''}`}></div>
+                                </div>
+                            </div>
+                            {tempSettings.enableDirectSales && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <SettingField label="Store Currency" value={tempSettings.currency || 'ZAR'} onChange={v => updateTempSettings({ currency: v })} />
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="p-4 border border-slate-800 rounded-xl bg-slate-950">
+                                            <h5 className="text-xs font-black uppercase text-blue-400 tracking-widest mb-3 flex items-center gap-2"><CreditCard size={14}/> Yoco (Card)</h5>
+                                            <SettingField label="Public Key" value={tempSettings.yocoPublicKey || ''} onChange={v => updateTempSettings({ yocoPublicKey: v })} placeholder="pk_test_..." />
+                                        </div>
+                                        <div className="p-4 border border-slate-800 rounded-xl bg-slate-950">
+                                            <h5 className="text-xs font-black uppercase text-red-400 tracking-widest mb-3 flex items-center gap-2"><ShieldCheck size={14}/> PayFast</h5>
+                                            <SettingField label="Merchant ID" value={tempSettings.payfastMerchantId || ''} onChange={v => updateTempSettings({ payfastMerchantId: v })} />
+                                            <SettingField label="Merchant Key" value={tempSettings.payfastMerchantKey || ''} onChange={v => updateTempSettings({ payfastMerchantKey: v })} />
+                                            <SettingField label="Passphrase" value={tempSettings.payfastSaltPassphrase || ''} onChange={v => updateTempSettings({ payfastSaltPassphrase: v })} type="password" />
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 border border-slate-800 rounded-xl bg-slate-950">
+                                        <h5 className="text-xs font-black uppercase text-green-400 tracking-widest mb-3 flex items-center gap-2"><Banknote size={14}/> Manual EFT</h5>
+                                        <SettingField label="Bank Instructions" value={tempSettings.bankDetails || ''} onChange={v => updateTempSettings({ bankDetails: v })} type="textarea" rows={4} placeholder="Bank Name: Capitec..." />
+                                    </div>
+
+                                    <div className="p-4 border border-slate-800 rounded-xl bg-slate-950">
+                                        <h5 className="text-xs font-black uppercase text-amber-400 tracking-widest mb-3 flex items-center gap-2"><Zap size={14}/> Automation</h5>
+                                        <SettingField label="Zapier Webhook URL" value={tempSettings.zapierWebhookUrl || ''} onChange={v => updateTempSettings({ zapierWebhookUrl: v })} placeholder="https://hooks.zapier.com/..." />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6">
+                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4>
+                        <div className="space-y-4">
+                            <SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} />
+                            <SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} />
+                            <SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} />
+                        </div>
+                    </div>
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4>
+                        <div className="space-y-4">
+                            <SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
+                            <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
+                            <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
+                            <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
+                        </div>
+                    </div>
+                  </>
                )}
              </div>
              <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4"><button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-colors shadow-lg shadow-primary/20">Publish Changes</button></div>

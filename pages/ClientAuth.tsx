@@ -1,0 +1,356 @@
+
+import React, { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { Mail, Lock, ArrowRight, User, ShoppingBag, ArrowLeft, Phone, MapPin, Building, Home } from 'lucide-react';
+import { useSettings } from '../App';
+
+const ClientAuth: React.FC = () => {
+  const { settings } = useSettings();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get('redirect') || '/';
+
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Consolidated Form State
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    phone: '',
+    building: '',
+    street: '',
+    suburb: '',
+    city: '',
+    province: '',
+    postalCode: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (mode === 'register') {
+        // 1. Sign Up User
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+              phone: formData.phone,
+              role: 'customer'
+            }
+          }
+        });
+
+        if (authError) throw authError;
+
+        // 2. Create Profile Record (if Supabase is configured and user created)
+        if (authData.user && isSupabaseConfigured) {
+            const { error: profileError } = await supabase.from('profiles').upsert({
+                id: authData.user.id,
+                fullName: formData.fullName,
+                phone: formData.phone,
+                building: formData.building,
+                street: formData.street,
+                suburb: formData.suburb,
+                city: formData.city,
+                province: formData.province,
+                postalCode: formData.postalCode,
+                updatedAt: Date.now()
+            });
+
+            if (profileError) {
+                console.error("Profile creation failed:", profileError);
+                // Don't block flow, but log error
+            }
+        }
+
+        // 3. Handle Session & Redirect
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            navigate(redirectPath);
+        } else {
+            setError("Please check your email to confirm your account.");
+        }
+
+      } else {
+        // Login Flow
+        const { error } = await supabase.auth.signInWithPassword({ 
+            email: formData.email, 
+            password: formData.password 
+        });
+        if (error) throw error;
+        navigate(redirectPath);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute top-0 right-0 w-[60vw] h-[60vw] bg-primary/5 rounded-full blur-[120px] translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+        
+        {/* Nav */}
+        <div className="relative z-10 p-6 flex justify-between items-center">
+            <button 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            >
+                <ArrowLeft size={16} />
+                <span className="text-xs font-bold uppercase tracking-widest">Return Home</span>
+            </button>
+        </div>
+
+        <div className="flex-grow flex items-center justify-center p-6 relative z-10 overflow-y-auto">
+            <div className={`w-full transition-all duration-500 ${mode === 'register' ? 'max-w-2xl' : 'max-w-md'}`}>
+                <div className="text-center mb-10">
+                    <div className="w-16 h-16 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                        <ShoppingBag className="text-primary" size={24} />
+                    </div>
+                    <h1 className="text-3xl font-serif text-white mb-2">{mode === 'login' ? 'Welcome Back' : 'Join the Maison'}</h1>
+                    <p className="text-slate-500 text-sm">
+                        {mode === 'login' 
+                            ? 'Sign in to access your bag and order history.' 
+                            : 'Create a profile for expedited checkout and order tracking.'}
+                    </p>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
+                    {/* Glass Shine */}
+                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl text-center">
+                           {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleAuth} className="space-y-6">
+                        
+                        {/* --- PERSONAL DETAILS --- */}
+                        <div className="space-y-4">
+                            {mode === 'register' && (
+                                <h4 className="text-xs font-black uppercase text-slate-600 tracking-widest border-b border-slate-800 pb-2 mb-4">Identity</h4>
+                            )}
+                            
+                            {mode === 'register' && (
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
+                                        <div className="relative group">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
+                                            <input 
+                                                type="text" 
+                                                name="fullName"
+                                                required
+                                                value={formData.fullName}
+                                                onChange={handleChange}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                                placeholder="Jane Doe"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Phone</label>
+                                        <div className="relative group">
+                                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
+                                            <input 
+                                                type="tel" 
+                                                name="phone"
+                                                value={formData.phone}
+                                                onChange={handleChange}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                                placeholder="+27..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid md:grid-cols-1 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Email Address</label>
+                                    <div className="relative group">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
+                                        <input 
+                                            type="email" 
+                                            name="email"
+                                            required
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                            placeholder="you@example.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Password</label>
+                                    <div className="relative group">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
+                                        <input 
+                                            type="password" 
+                                            name="password"
+                                            required
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* --- ADDRESS DETAILS (Register Only) --- */}
+                        {mode === 'register' && (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                                <h4 className="text-xs font-black uppercase text-slate-600 tracking-widest border-b border-slate-800 pb-2 mb-4 mt-2">Shipping Address</h4>
+                                
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Building / Unit</label>
+                                        <div className="relative group">
+                                            <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
+                                            <input 
+                                                type="text" 
+                                                name="building"
+                                                value={formData.building}
+                                                onChange={handleChange}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                                placeholder="Apt 4B"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Street Address</label>
+                                        <div className="relative group">
+                                            <Home className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
+                                            <input 
+                                                type="text" 
+                                                name="street"
+                                                required
+                                                value={formData.street}
+                                                onChange={handleChange}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                                placeholder="123 Fashion Ave"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Suburb</label>
+                                        <input 
+                                            type="text" 
+                                            name="suburb"
+                                            value={formData.suburb}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                            placeholder="Sandton"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">City</label>
+                                        <div className="relative group">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
+                                            <input 
+                                                type="text" 
+                                                name="city"
+                                                required
+                                                value={formData.city}
+                                                onChange={handleChange}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                                placeholder="Johannesburg"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Province</label>
+                                        <input 
+                                            type="text" 
+                                            name="province"
+                                            required
+                                            value={formData.province}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                            placeholder="Gauteng"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Postal Code</label>
+                                        <input 
+                                            type="text" 
+                                            name="postalCode"
+                                            required
+                                            value={formData.postalCode}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all placeholder:text-slate-700 text-sm"
+                                            placeholder="2196"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <button 
+                            type="submit" 
+                            disabled={loading}
+                            className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/10 flex items-center justify-center gap-3 disabled:opacity-50 mt-4 group"
+                        >
+                            {loading ? (
+                                <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
+                            ) : (
+                                <>
+                                    <span>{mode === 'login' ? 'Sign In' : 'Complete Registration'}</span>
+                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+                    
+                    <div className="mt-8 text-center border-t border-slate-800 pt-6">
+                        <p className="text-slate-500 text-xs">
+                            {mode === 'login' ? "New to the Maison?" : "Already hold an account?"}
+                            <button 
+                                onClick={() => {
+                                    setMode(mode === 'login' ? 'register' : 'login');
+                                    setError(null);
+                                    // Reset optional fields if switching to login to keep it clean
+                                    if(mode === 'register') {
+                                        setFormData(prev => ({...prev, email: prev.email, password: prev.password}));
+                                    }
+                                }}
+                                className="text-primary font-bold uppercase tracking-widest ml-2 hover:text-white transition-colors"
+                            >
+                                {mode === 'login' ? 'Join Now' : 'Sign In'}
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  );
+};
+
+export default ClientAuth;

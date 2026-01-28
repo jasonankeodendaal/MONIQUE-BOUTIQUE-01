@@ -32,6 +32,7 @@ export interface DiscountRule {
 
 export interface Review {
   id: string;
+  productId: string; // Foreign Key
   userName: string;
   rating: number; // 1-5
   comment: string;
@@ -51,9 +52,13 @@ export interface Product {
   specifications?: Record<string, string>; // Key-value pairs like Material, Fit, etc.
   media: MediaFile[]; 
   discountRules?: DiscountRule[];
-  reviews?: Review[];
+  // reviews removed for normalization
   createdAt: number;
   createdBy?: string;
+  
+  // Commerce
+  isDirectSale?: boolean;
+  stockQuantity?: number;
 }
 
 export interface ProductStats {
@@ -210,6 +215,16 @@ export interface SiteSettings {
   pinterestTagId?: string; // New
   amazonAssociateId?: string;
   webhookUrl?: string; // Zapier/Make
+
+  // Commerce & Payments
+  enableDirectSales: boolean;
+  currency: string;
+  yocoPublicKey: string;
+  payfastMerchantId: string;
+  payfastMerchantKey: string;
+  payfastSaltPassphrase: string;
+  zapierWebhookUrl: string;
+  bankDetails: string;
 }
 
 export interface PermissionNode {
@@ -238,7 +253,7 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 export interface TrainingModule {
   id: string;
   title: string;
-  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General' | 'Facebook' | 'YouTube' | 'LinkedIn' | 'Twitter' | 'Threads' | 'Snapchat' | 'Email';
+  platform: string;
   description: string;
   strategies: string[];
   actionItems: string[];
@@ -262,6 +277,64 @@ export interface StorageStats {
   mediaCount: number;
 }
 
+export interface CartItem extends Product {
+  quantity: number;
+}
+
+export interface OrderItem {
+  id: string;
+  orderId: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id: string;
+  userId?: string;
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: string;
+  total: number;
+  status: 'pending_payment' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  paymentMethod: 'yoco' | 'payfast' | 'manual_eft';
+  createdAt: number;
+  items?: OrderItem[];
+  // New Tracking Fields
+  courierName?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+}
+
+export interface UserAddress {
+  building?: string;
+  street: string;
+  suburb?: string;
+  city: string;
+  province: string;
+  postalCode: string;
+}
+
+export interface TrafficLog {
+  id?: string;
+  ip?: string;
+  city?: string;
+  device?: string;
+  timestamp: number;
+  source?: string;
+  page?: string;
+  type?: string;
+  text?: string;
+}
+
+export interface ProductEvent {
+  type: 'view' | 'click' | 'share';
+  productId: string;
+  timestamp: number;
+  userId?: string;
+}
+
 export interface SettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
@@ -273,6 +346,7 @@ export interface SettingsContextType {
   enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
   admins: AdminUser[];
   stats: ProductStats[];
+  orders: Order[]; // New
   // Actions
   refreshAllData: () => Promise<void>;
   updateData: (table: string, data: any) => Promise<boolean>;
@@ -289,4 +363,16 @@ export interface SettingsContextType {
   connectionHealth: { status: 'online' | 'offline', latency: number, message: string } | null;
   systemLogs: SystemLog[];
   storageStats: StorageStats;
+}
+
+export interface CartContextType {
+  cart: CartItem[];
+  addToCart: (product: Product, quantity: number) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  clearCart: () => void;
+  cartTotal: number;
+  itemCount: number;
+  isCartOpen: boolean;
+  toggleCart: () => void;
 }
