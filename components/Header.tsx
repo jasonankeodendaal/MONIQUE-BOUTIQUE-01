@@ -30,25 +30,22 @@ const Header: React.FC = () => {
     { name: settings.navContactLabel, path: '/contact' },
   ];
 
-  // Enable dark section (transparent header, white text) for Home and About pages
-  const isDarkSection = !scrolled && (location.pathname === '/' || location.pathname === '/about');
-
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+    <header className={`sticky top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out bg-white border-b border-slate-100 ${
       scrolled 
-        ? 'bg-white/95 backdrop-blur-xl border-b border-slate-200/50 py-3 shadow-sm' 
-        : 'bg-transparent py-5 md:py-8'
-    } ${isOpen ? 'bg-white border-b border-slate-200' : ''}`}>
+        ? 'py-3 shadow-sm' 
+        : 'py-5 md:py-8'
+    }`}>
       <nav className="max-w-7xl mx-auto px-5 sm:px-8">
         <div className="flex justify-between items-center">
           {/* Logo Section */}
-          <Link to="/" className={`flex items-center space-x-4 group ${location.pathname === '/' && !scrolled && !isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <Link to="/" className="flex items-center space-x-4 group opacity-100">
             <div className="relative">
               {settings.companyLogoUrl ? (
                 <img 
                   src={settings.companyLogoUrl} 
                   alt={settings.companyName} 
-                  className="h-12 md:h-20 w-auto object-contain group-hover:scale-105 transition-transform drop-shadow-sm" 
+                  className="h-12 md:h-16 w-auto object-contain group-hover:scale-105 transition-transform drop-shadow-sm" 
                 />
               ) : (
                 <div className="w-10 h-10 md:w-14 md:h-14 bg-slate-900 rounded-xl flex items-center justify-center text-white font-black text-lg md:text-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
@@ -57,14 +54,10 @@ const Header: React.FC = () => {
               )}
             </div>
             <div className={`flex flex-col -space-y-1 text-left ${settings.companyLogoUrl ? 'hidden md:flex' : 'flex'}`}>
-              <span className={`text-xl md:text-2xl font-serif font-bold tracking-tight transition-colors duration-300 ${
-                scrolled || isOpen || !isDarkSection ? 'text-slate-900' : 'text-white'
-              }`}>
+              <span className="text-xl md:text-2xl font-serif font-bold tracking-tight transition-colors duration-300 text-slate-900">
                 {settings.companyName}
               </span>
-              <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] ${
-                scrolled || isOpen || !isDarkSection ? 'text-primary' : 'text-primary/90'
-              }`}>
+              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-primary">
                 {settings.slogan || 'Boutique Curation'}
               </span>
             </div>
@@ -79,7 +72,7 @@ const Header: React.FC = () => {
                 className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-primary relative group ${
                   location.pathname === link.path 
                     ? 'text-primary' 
-                    : (scrolled || isOpen || !isDarkSection ? 'text-slate-500' : 'text-white/80')
+                    : 'text-slate-500'
                 }`}
               >
                 {link.name}
@@ -92,7 +85,7 @@ const Header: React.FC = () => {
             <div className="flex items-center pl-6 border-l border-slate-200/20 space-x-4">
               <Link
                 to={user ? "/account" : "/client-login"}
-                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                className="p-2 transition-colors relative text-slate-900 hover:text-primary"
                 title={user ? "My Account" : "Client Login"}
               >
                 <User size={22} />
@@ -100,7 +93,7 @@ const Header: React.FC = () => {
 
               <button
                 onClick={toggleCart}
-                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                className="p-2 transition-colors relative text-slate-900 hover:text-primary"
               >
                 <ShoppingBag size={22} />
                 {itemCount > 0 && (
@@ -116,14 +109,14 @@ const Header: React.FC = () => {
           <div className="md:hidden flex items-center gap-4">
             <Link
                 to={user ? "/account" : "/client-login"}
-                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                className="p-2 transition-colors relative text-slate-900 hover:text-primary"
             >
                 <User size={24} />
             </Link>
 
             <button
                 onClick={toggleCart}
-                className={`p-2 transition-colors relative ${scrolled || !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                className="p-2 transition-colors relative text-slate-900 hover:text-primary"
               >
                 <ShoppingBag size={24} />
                 {itemCount > 0 && (
@@ -135,9 +128,7 @@ const Header: React.FC = () => {
             
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`p-2 rounded-lg transition-colors ${
-                scrolled || isOpen || !isDarkSection ? 'text-slate-900' : 'text-white'
-              }`}
+              className="p-2 rounded-lg transition-colors text-slate-900"
             >
               {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { Mail, Lock, ArrowRight, User, ShoppingBag, ArrowLeft, Phone, MapPin, Building, Home, Globe } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, ShoppingBag, ArrowLeft, Phone, MapPin, Building, Home, Globe, Chrome } from 'lucide-react';
 import { useSettings } from '../App';
 
 const ClientAuth: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, user, isLocalMode } = useSettings();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectPath = searchParams.get('redirect') || '/';
@@ -28,8 +29,37 @@ const ClientAuth: React.FC = () => {
     postalCode: ''
   });
 
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(redirectPath);
+    }
+  }, [user, navigate, redirectPath]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleGoogleLogin = async () => {
+    if (isLocalMode) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // Redirect to current URL to preserve intent if possible, otherwise Supabase defaults to Site URL
+          redirectTo: window.location.href, 
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -143,6 +173,24 @@ const ClientAuth: React.FC = () => {
                            {error}
                         </div>
                     )}
+
+                    {/* Google Login Section */}
+                    <div className="mb-8">
+                      <button 
+                        onClick={handleGoogleLogin}
+                        disabled={loading || isLocalMode}
+                        className="w-full py-4 bg-white text-slate-900 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                      >
+                         <Chrome size={18} />
+                         <span>Continue with Google</span>
+                      </button>
+
+                      <div className="relative flex py-6 items-center">
+                        <div className="flex-grow border-t border-slate-800"></div>
+                        <span className="flex-shrink-0 mx-4 text-slate-600 text-[10px] font-bold uppercase tracking-widest">Or via Email</span>
+                        <div className="flex-grow border-t border-slate-800"></div>
+                      </div>
+                    </div>
 
                     <form onSubmit={handleAuth} className="space-y-6">
                         

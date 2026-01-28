@@ -45,33 +45,8 @@ const Hero: React.FC = () => {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-black">
-      {/* Floating Logo Top Left - Aligned with Content */}
-      <div className="absolute top-0 left-0 right-0 z-30">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-6">
-          <Link to="/" className="inline-flex items-center space-x-3 group">
-              <div className="relative">
-                {settings.companyLogoUrl ? (
-                  <img 
-                    src={settings.companyLogoUrl} 
-                    alt={settings.companyName} 
-                    className="h-10 md:h-12 w-auto object-contain transition-transform" 
-                  />
-                ) : (
-                  <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white font-black text-xs md:text-sm">
-                    {settings.companyLogo}
-                  </div>
-                )}
-              </div>
-              <div className={`flex flex-col -space-y-1 text-left`}>
-                <span className={`text-sm md:text-base font-serif font-bold tracking-tight text-white`}>
-                  {settings.companyName}
-                </span>
-              </div>
-          </Link>
-        </div>
-      </div>
-
+    <div className="relative h-[calc(100vh-80px)] w-full overflow-hidden bg-black">
+      {/* Slides */}
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -106,7 +81,7 @@ const Hero: React.FC = () => {
                 <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">Kasi Couture Exclusive</span>
               </div>
               
-              {/* FLUID TYPOGRAPHY: Clamps between 2.5rem and 9rem based on viewport width */}
+              {/* FLUID TYPOGRAPHY */}
               <h1 className="font-serif text-white mb-6 md:mb-8 leading-[1.1] md:leading-[0.85] tracking-tighter text-balance"
                   style={{ fontSize: 'clamp(2.5rem, 8vw, 9rem)' }}>
                 {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
