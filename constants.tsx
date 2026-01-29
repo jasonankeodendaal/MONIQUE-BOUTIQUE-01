@@ -327,8 +327,45 @@ END $$;`,
     ]
   },
   {
+    id: 'emailjs-config',
+    title: '7. EmailJS Configuration',
+    description: 'Configure your transactional emails. Copy the templates below into your EmailJS dashboard to enable professional notifications and auto-replies.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to EmailJS Dashboard > Email Templates.',
+      'Create a new template.',
+      'Click the "Source Code" icon (< >) in the editor toolbar.',
+      'Paste the specific HTML code provided below.',
+      'Save. Repeat for the second template.',
+      'Copy your Service ID, Template IDs, and Public Key to the "Integrations" tab in your Admin Panel.'
+    ],
+    code: `<!-- 1. ADMIN NOTIFICATION TEMPLATE (To You) -->
+<div style="font-family: sans-serif; color: #333;">
+  <h2 style="color: #D4AF37;">New Concierge Request</h2>
+  <p><strong>Client:</strong> {{name}}</p>
+  <p><strong>Email:</strong> {{email}}</p>
+  <p><strong>WhatsApp:</strong> {{whatsapp}}</p>
+  <hr style="border: 0; border-top: 1px solid #eee;">
+  <h3>{{subject}}</h3>
+  <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #D4AF37;">
+    {{message}}
+  </div>
+</div>
+
+<!-- 2. CLIENT AUTO-REPLY TEMPLATE (To User) -->
+<div style="font-family: 'Playfair Display', serif; text-align: center; color: #1e293b; padding: 40px;">
+  <h1 style="color: #D4AF37; text-transform: uppercase; letter-spacing: 2px;">Monique Boutique</h1>
+  <p style="font-size: 18px;">Dear {{name}},</p>
+  <p>We have received your inquiry regarding <strong>{{subject}}</strong>.</p>
+  <p>Our concierge team is reviewing your request and will be in touch shortly.</p>
+  <br>
+  <p style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Curating the Exceptional</p>
+</div>`,
+    codeLabel: 'HTML Email Templates'
+  },
+  {
     id: 'social-foundation',
-    title: '7. Traffic: Social Foundation',
+    title: '8. Traffic: Social Foundation',
     description: 'Before running ads, you need a strong organic presence. Instagram and TikTok are your primary traffic drivers.',
     illustrationId: 'rocket',
     subSteps: [
@@ -340,7 +377,7 @@ END $$;`,
   },
   {
     id: 'pinterest-engine',
-    title: '8. Traffic: Pinterest Search',
+    title: '9. Traffic: Pinterest Search',
     description: 'Pinterest is a long-term traffic engine. A single pin can drive traffic for years unlike a Tweet which lasts minutes.',
     illustrationId: 'rocket',
     subSteps: [
@@ -352,7 +389,7 @@ END $$;`,
   },
   {
     id: 'video-viral',
-    title: '9. Traffic: Short-Form Video',
+    title: '10. Traffic: Short-Form Video',
     description: 'Vertical video (Reels, TikTok, Shorts) is the most effective way to reach cold audiences today.',
     illustrationId: 'forge',
     subSteps: [
@@ -364,7 +401,7 @@ END $$;`,
   },
   {
     id: 'content-hooks',
-    title: '10. Content: The Hook Strategy',
+    title: '11. Content: The Hook Strategy',
     description: 'If they do not stop scrolling, they cannot buy. Your hook is the most critical part of your content.',
     illustrationId: 'rocket',
     subSteps: [
@@ -375,7 +412,7 @@ END $$;`,
   },
   {
     id: 'content-batching',
-    title: '11. Content: Batching & Consistency',
+    title: '12. Content: Batching & Consistency',
     description: 'Burnout kills affiliate businesses. Work smarter by creating content in batches.',
     illustrationId: 'forge',
     subSteps: [
@@ -387,7 +424,7 @@ END $$;`,
   },
   {
     id: 'content-ugc',
-    title: '12. Content: UGC & Authenticity',
+    title: '13. Content: UGC & Authenticity',
     description: 'User Generated Content (UGC) builds trust. People buy from people, not faceless brands.',
     illustrationId: 'rocket',
     subSteps: [
@@ -399,7 +436,7 @@ END $$;`,
   },
   {
     id: 'email-lead',
-    title: '13. Email: Lead Magnet',
+    title: '14. Email: Lead Magnet',
     description: 'Social media is rented land. Your email list is an asset you own. Give something away to capture emails.',
     illustrationId: 'rocket',
     subSteps: [
@@ -410,7 +447,7 @@ END $$;`,
   },
   {
     id: 'email-flow',
-    title: '14. Email: The Welcome Flow',
+    title: '15. Email: The Welcome Flow',
     description: 'Automate the relationship building. When they sign up, send value immediately.',
     illustrationId: 'forge',
     subSteps: [
@@ -422,7 +459,7 @@ END $$;`,
   },
   {
     id: 'email-news',
-    title: '15. Email: Weekly Curation',
+    title: '16. Email: Weekly Curation',
     description: 'Stay top of mind without being spammy. Send a weekly digest of what is trending.',
     illustrationId: 'rocket',
     subSteps: [
@@ -434,7 +471,7 @@ END $$;`,
   },
   {
     id: 'analytics-read',
-    title: '16. Intelligence: Data Reading',
+    title: '17. Intelligence: Data Reading',
     description: 'Stop guessing. Use the "Intelligence" tab in your Admin dashboard to pivot based on real data.',
     illustrationId: 'forge',
     subSteps: [
@@ -446,7 +483,7 @@ END $$;`,
   },
   {
     id: 'affiliate-diversify',
-    title: '17. Business: Network Diversification',
+    title: '18. Business: Network Diversification',
     description: 'Do not rely on one merchant. Expand your catalog with complementary programs.',
     illustrationId: 'rocket',
     subSteps: [
@@ -457,7 +494,7 @@ END $$;`,
   },
   {
     id: 'paid-scaling',
-    title: '18. Scale: Introduction to Ads',
+    title: '19. Scale: Introduction to Ads',
     description: 'Organic is free but slow. Paid ads are fast but cost money. Only scale what works organically.',
     illustrationId: 'forge',
     subSteps: [
@@ -469,7 +506,7 @@ END $$;`,
   },
   {
     id: 'team-building',
-    title: '19. Scale: Outsourcing',
+    title: '20. Scale: Outsourcing',
     description: 'You cannot do it all forever. Delegate low-value tasks to focus on strategy and creation.',
     illustrationId: 'rocket',
     subSteps: [
@@ -481,7 +518,7 @@ END $$;`,
   },
   {
     id: 'exit-strategy',
-    title: '20. Scale: The Brand Vision',
+    title: '21. Scale: The Brand Vision',
     description: 'Transition from "Affiliate Marketer" to "Brand Owner". Look at the long game.',
     illustrationId: 'forge',
     subSteps: [

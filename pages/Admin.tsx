@@ -1181,6 +1181,7 @@ const Admin: React.FC = () => {
                             <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
                             <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
                             <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
+                            <SettingField label="Google My Business URL" value={tempSettings.googleMyBusinessUrl || ''} onChange={v => updateTempSettings({ googleMyBusinessUrl: v })} />
                         </div>
                     </div>
                   </>

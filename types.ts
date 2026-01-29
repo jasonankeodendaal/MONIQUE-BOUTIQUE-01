@@ -118,6 +118,7 @@ export interface SiteSettings {
   contactPhone: string;
   whatsappNumber: string;
   address: string;
+  googleMyBusinessUrl?: string;
   socialLinks: SocialLink[];
 
   // Footer
