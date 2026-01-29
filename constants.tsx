@@ -1,4 +1,5 @@
 
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
@@ -109,7 +110,7 @@ export const GUIDE_STEPS = [
   {
     id: 'database',
     title: '2. Database Schema (SQL Engine)',
-    description: 'We need to define the structure of your data. This script creates all necessary tables (products, settings, orders, reviews) and sets up security policies.',
+    description: 'We need to define the structure of your data. This script creates all necessary tables (products, settings, orders, reviews) AND sets up the storage permissions for uploads.',
     illustrationId: 'forge',
     subSteps: [
       'In your Supabase Dashboard, look at the left sidebar icon menu.',
@@ -120,7 +121,7 @@ export const GUIDE_STEPS = [
       'Click the green "Run" button at the bottom right.',
       'Success Check: Go to "Table Editor" (grid icon) and ensure you see tables like "settings", "products", "reviews", etc.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.0 (Reviews Normalized)
+    code: `-- MASTER ARCHITECTURE SCRIPT v5.1 (Includes Storage Policies)
 
 -- 1. EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -226,7 +227,7 @@ ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
--- 4. POLICIES
+-- 4. POLICIES (DATABASE)
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
@@ -238,17 +239,15 @@ DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert orders') THEN CREATE POLICY "Public Insert orders" ON orders FOR INSERT WITH CHECK (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert order_items') THEN CREATE POLICY "Public Insert order_items" ON order_items FOR INSERT WITH CHECK (true); END IF;
     
-    -- Review Policies
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read reviews') THEN CREATE POLICY "Public Read reviews" ON reviews FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert reviews') THEN CREATE POLICY "Public Insert reviews" ON reviews FOR INSERT WITH CHECK (true); END IF;
 
-    -- Profiles
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read profiles') THEN CREATE POLICY "Public Read profiles" ON profiles FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users update own profile') THEN CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users insert own profile') THEN CREATE POLICY "Users insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id); END IF;
 END $$;
 
--- Admin Full Access
+-- Admin Full Access (Tables)
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon') THEN 
         CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
@@ -264,8 +263,28 @@ DO $$ BEGIN
         CREATE POLICY "Enable all for anon order_items" ON order_items FOR ALL USING (true);
         CREATE POLICY "Enable all for anon reviews" ON reviews FOR ALL USING (true);
     END IF;
+END $$;
+
+-- 5. STORAGE POLICIES (Fixes Upload Error)
+-- Ensure bucket exists (optional if created via UI, but good for completeness)
+INSERT INTO storage.buckets (id, name, public) VALUES ('media', 'media', true) ON CONFLICT (id) DO NOTHING;
+
+-- Allow public access to media bucket
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access Media') THEN 
+        CREATE POLICY "Public Access Media" ON storage.objects FOR SELECT USING ( bucket_id = 'media' ); 
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert Media') THEN 
+        CREATE POLICY "Public Insert Media" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'media' ); 
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Update Media') THEN 
+        CREATE POLICY "Public Update Media" ON storage.objects FOR UPDATE USING ( bucket_id = 'media' ); 
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Delete Media') THEN 
+        CREATE POLICY "Public Delete Media" ON storage.objects FOR DELETE USING ( bucket_id = 'media' ); 
+    END IF;
 END $$;`,
-    codeLabel: 'Full System SQL Script (v5.0)'
+    codeLabel: 'Full System SQL Script (v5.1)'
   },
   {
     id: 'storage',
@@ -278,8 +297,7 @@ END $$;`,
       'Name it exactly: "media" (lowercase, no spaces).',
       'Toggle "Public Bucket" to ON. This is crucial for images to display on your site.',
       'Click "Save".',
-      'Select the bucket "media" -> Configuration -> Policies.',
-      'Ensure "Give users access to all files" is selected or create a policy allowing SELECT, INSERT, UPDATE for role "anon".'
+      'Note: The SQL script in Step 2 has already applied the necessary permission policies for this bucket.'
     ]
   },
   {
@@ -531,6 +549,7 @@ END $$;`,
 ];
 
 export const TRAINING_MODULES: TrainingModule[] = [
+  // ... (unchanged content)
   // --- INSTAGRAM MASTERY ---
   {
     id: 'ig-bio',
