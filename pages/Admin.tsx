@@ -223,6 +223,9 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
+  // Safely handle null/undefined images
+  const safeImages = Array.isArray(images) ? images : [];
+
   const processFiles = async (incomingFiles: FileList | null) => {
     if (!incomingFiles) return;
     setUploading(true);
@@ -242,7 +245,7 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
            newUrls.push(compressedDataUrl);
         }
       }
-      onChange([...images, ...newUrls]);
+      onChange([...safeImages, ...newUrls]);
     } catch (err: any) { 
         console.error(err); 
         alert(`Upload Failed: ${err.message}. Ensure "media" bucket exists.`);
@@ -257,10 +260,10 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
           {uploading ? <Loader2 size={24} className="animate-spin text-primary" /> : <Plus className="text-slate-400 group-hover:text-white" size={24} />}
           <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
         </div>
-        {images.map((url, idx) => (
+        {safeImages.map((url, idx) => (
             <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
               <img src={url} className="w-full h-full object-cover" alt="preview" />
-              <button onClick={() => { const newImages = [...images]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
+              <button onClick={() => { const newImages = [...safeImages]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
             </div>
         ))}
       </div>
