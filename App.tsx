@@ -532,7 +532,23 @@ const App: React.FC = () => {
         appleIcon.href = settings.companyLogoUrl;
     }
 
-    // 5. Generate & Inject Dynamic Manifest
+    // 5. Update Open Graph Meta Tags Dynamically (For bookmarking/rich clients)
+    const updateMeta = (prop: string, content: string) => {
+        let meta = document.querySelector(`meta[property="${prop}"]`);
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.setAttribute('property', prop);
+            document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', content);
+    };
+
+    updateMeta('og:title', settings.companyName);
+    updateMeta('og:description', settings.slogan || settings.footerDescription);
+    if (settings.companyLogoUrl) updateMeta('og:image', settings.companyLogoUrl);
+    updateMeta('og:url', window.location.href);
+
+    // 6. Generate & Inject Dynamic Manifest
     const manifest = {
       name: settings.companyName,
       short_name: settings.companyName,
@@ -590,7 +606,7 @@ const App: React.FC = () => {
     }
 
     return () => URL.revokeObjectURL(manifestURL);
-  }, [settings.companyName, settings.companyLogoUrl, settings.primaryColor, settings.slogan]);
+  }, [settings.companyName, settings.companyLogoUrl, settings.primaryColor, settings.slogan, settings.footerDescription]);
 
   const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
     const newLog: SystemLog = {

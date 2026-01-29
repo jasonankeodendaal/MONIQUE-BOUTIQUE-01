@@ -6,8 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Dynamic theme-color will be injected by App.tsx -->
     <meta name="theme-color" content="#D4AF37" />
-    <title>Loading...</title>
-    <!-- Dynamic icons will be injected by App.tsx -->
+    
+    <!-- PRIMARY META TAGS -->
+    <title>Maison Portal</title>
+    <meta name="title" content="Maison Portal - Luxury Affiliate Bridge">
+    <meta name="description" content="A curated luxury wardrobe and affiliate bridge system.">
+
+    <!-- OPEN GRAPH / FACEBOOK / WHATSAPP -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://moniqueboutique.vercel.app/">
+    <meta property="og:title" content="Maison Portal">
+    <meta property="og:description" content="A curated luxury wardrobe and affiliate bridge system.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200">
+
+    <!-- TWITTER -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://moniqueboutique.vercel.app/">
+    <meta property="twitter:title" content="Maison Portal">
+    <meta property="twitter:description" content="A curated luxury wardrobe and affiliate bridge system.">
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1200">
+
+    <link rel="manifest" href="/manifest.json" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
@@ -87,7 +107,6 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          // Changed from '/sw.js' to './sw.js' to better handle subdirectory deployments and reduce 404s
           navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('SW active'))
             .catch(err => console.debug('SW registration skipped:', err.message));
