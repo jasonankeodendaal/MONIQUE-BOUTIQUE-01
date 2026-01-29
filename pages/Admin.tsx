@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, Order, OrderItem } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, Order, OrderItem, SaveStatus } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupabaseUrl } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -52,27 +52,34 @@ const AccessDenied: React.FC = () => (
   </div>
 );
 
-const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }> = ({ status }) => {
+const SaveIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
+  const { systemLogs } = useSettings();
   const [visible, setVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (status === 'saved' || status === 'error') {
       setVisible(true);
-      const timer = setTimeout(() => setVisible(false), 3000);
+      if (status === 'error') {
+          // Get the most recent error log
+          const latestError = systemLogs.find(l => l.type === 'ERROR');
+          setErrorMessage(latestError ? latestError.message : 'Check connection.');
+      }
+      const timer = setTimeout(() => setVisible(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [status]);
+  }, [status, systemLogs]);
 
   if (!visible) return null;
 
   return (
-    <div className={`fixed bottom-24 right-6 z-[100] ${status === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20`}>
-      <div className="p-2 bg-white/20 rounded-full">
+    <div className={`fixed bottom-24 right-6 z-[100] ${status === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20 max-w-sm`}>
+      <div className="p-2 bg-white/20 rounded-full flex-shrink-0">
         {status === 'error' ? <AlertOctagon size={24} /> : <CheckCircle2 size={24} />}
       </div>
-      <div>
-         <h4 className="font-bold text-sm uppercase tracking-widest">{status === 'error' ? 'Connection Error' : 'System Synced'}</h4>
-         <p className="text-[10px] opacity-90 font-medium">{status === 'error' ? 'Check cloud configuration.' : 'Changes successfully recorded.'}</p>
+      <div className="min-w-0">
+         <h4 className="font-bold text-sm uppercase tracking-widest">{status === 'error' ? 'Action Failed' : 'System Synced'}</h4>
+         <p className="text-[10px] opacity-90 font-medium truncate">{status === 'error' ? errorMessage : 'Changes successfully recorded.'}</p>
       </div>
     </div>
   );
@@ -162,9 +169,10 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
       } else {
         onChange(compressedDataUrl);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload failed", err);
-      alert("Upload failed.");
+      // More descriptive error
+      alert(`Upload Failed: ${err.message || 'Unknown error'}. Ensure the "media" bucket exists and is set to Public in Supabase.`);
     } finally {
       setUploading(false);
     }
@@ -235,7 +243,10 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
         }
       }
       onChange([...images, ...newUrls]);
-    } catch (err) { console.error(err); } finally { setUploading(false); }
+    } catch (err: any) { 
+        console.error(err); 
+        alert(`Upload Failed: ${err.message}. Ensure "media" bucket exists.`);
+    } finally { setUploading(false); }
   };
 
   return (
@@ -392,7 +403,11 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
                const res = await fetch(compressedDataUrl);
                const blob = await res.blob();
                const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-               try { const publicUrl = await uploadMedia(compressedFile, 'media'); if (publicUrl) result = publicUrl; } catch (err) { console.error("Upload failed", err); }
+               try { const publicUrl = await uploadMedia(compressedFile, 'media'); if (publicUrl) result = publicUrl; } catch (err: any) { 
+                   console.error("Upload failed", err); 
+                   alert(`Upload Error: ${err.message}. Check Bucket config.`);
+                   continue;
+               }
             }
             newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, size: file.size });
         } catch (e) { console.error("Processing failed", e); }
@@ -1211,7 +1226,7 @@ const Admin: React.FC = () => {
               </button>
            </div>
            <div className="flex items-center gap-2">
-              <span className="text-slate-600">Maison Portal v2.5.5</span>
+              <span className="text-slate-600">Maison Portal v2.5.6</span>
               <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
               <span className="text-slate-500">100% Secure Handshake</span>
            </div>

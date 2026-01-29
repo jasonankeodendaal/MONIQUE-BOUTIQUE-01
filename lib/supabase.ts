@@ -58,7 +58,7 @@ export async function upsertData(table: string, item: any) {
   const { error } = await supabase.from(table).upsert(cleanItem);
   if (error) {
     console.error(`Upsert error for ${table}:`, error);
-    throw error;
+    throw new Error(error.message || `Failed to update ${table}`);
   }
   return true;
 }
@@ -87,7 +87,10 @@ export async function uploadMedia(file: File, bucket = 'media') {
     .from(bucket)
     .upload(filePath, file);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Upload Error:', error);
+    throw new Error(error.message || 'Upload failed');
+  }
 
   const { data: publicUrl } = supabase.storage
     .from(bucket)
