@@ -313,216 +313,188 @@ END $$;`,
     codeLabel: '.env Variables'
   },
   {
-    id: 'github',
-    title: '6. Version Control (GitHub)',
-    description: 'Upload your code to GitHub. This is required for Vercel to automatically deploy your site.',
+    id: 'deploy',
+    title: '6. Global Deployment (Vercel)',
+    description: 'Launch your bridge page to the world. Vercel provides fast, secure hosting for React apps.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to GitHub.com and create a new repository named "affiliate-bridge".',
-      'Make it "Private" if you want to keep your code hidden.',
-      'In your local terminal, run: `git init`',
-      'Run: `git add .` (Stages all files)',
-      'Run: `git commit -m "Initial launch"`',
-      'Run: `git branch -M main`',
-      'Run: `git remote add origin https://github.com/yourusername/affiliate-bridge.git`',
-      'Run: `git push -u origin main`'
+      'Push your code to a GitHub repository.',
+      'Visit https://vercel.com and sign up/login.',
+      'Click "Add New..." > "Project" > Import from GitHub.',
+      'Select your repository.',
+      'Environment Variables: Copy the same Name/Value pairs from your local .env file (VITE_SUPABASE_URL, etc.).',
+      'Click "Deploy". Your site is now live!'
     ]
   },
   {
-    id: 'emailjs-account',
-    title: '7. EmailJS: Service Protocol',
-    description: 'EmailJS allows you to send emails directly from the frontend without a backend server.',
+    id: 'social-foundation',
+    title: '7. Traffic: Social Foundation',
+    description: 'Before running ads, you need a strong organic presence. Instagram and TikTok are your primary traffic drivers.',
     illustrationId: 'rocket',
     subSteps: [
-      'Register at EmailJS.com (Free tier is sufficient).',
-      'Click "Add New Service" -> Select "Gmail".',
-      'Connect your account and click "Create Service".',
-      'Copy the "Service ID" (e.g., service_z49d2). You will need this for the Site Settings.'
+      'Bio Optimization: Use a clear "I help X find Y" statement.',
+      'Link in Bio: Use your Bridge Page URL, never a raw affiliate link.',
+      'Highlights: Create specific highlights for "Reviews", "Try-Ons", and "Q&A".',
+      'Consistency: Commit to 1 Reel/TikTok and 3 Stories daily.'
     ]
   },
   {
-    id: 'emailjs-template',
-    title: '8. EmailJS: Template Engineering',
-    description: 'Design the auto-reply or notification email. We use dynamic variables like {{to_name}} to personalize it.',
+    id: 'pinterest-engine',
+    title: '8. Traffic: Pinterest Search',
+    description: 'Pinterest is a long-term traffic engine. A single pin can drive traffic for years unlike a Tweet which lasts minutes.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Business Account: Convert to a business account for analytics.',
+      'Rich Pins: Enable Rich Pins to show real-time product info.',
+      'Keywords: Use the Pinterest search bar to find what people are looking for (e.g., "Summer Wedding Guest Dress").',
+      'Boards: Create niche boards (e.g., "Boho Chic", "Office Wear") rather than generic "Fashion".'
+    ]
+  },
+  {
+    id: 'video-viral',
+    title: '9. Traffic: Short-Form Video',
+    description: 'Vertical video (Reels, TikTok, Shorts) is the most effective way to reach cold audiences today.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to "Email Templates" > "Create New Template".',
-      'Subject: `New Message from {{to_name}}`',
-      'Content: Use the HTML editor or standard text. Map variables: {{message}}, {{from_name}}, {{reply_to}}.',
-      'Click "Save". Copy the "Template ID" (e.g., template_8d7s).',
-      'Go to "Account" (Avatar) > "API Keys" -> Copy "Public Key".'
-    ],
-    code: EMAIL_TEMPLATE_HTML,
-    codeLabel: 'EmailJS HTML Template'
-  },
-  {
-    id: 'google-analytics',
-    title: '9. Marketing: Google Analytics (G4)',
-    description: 'Track user behavior, session duration, and geographical data.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Go to analytics.google.com and create an account.',
-      'Create a "Property". Select "Web" as the platform.',
-      'Enter your website name and URL (use your Vercel URL if you have it, or a placeholder).',
-      'You will get a "Measurement ID" starting with "G-".',
-      'Copy this ID. You will paste it into the "Integrations" tab in your Admin dashboard.'
+      'The 3-Second Rule: You must hook the viewer visually or verbally immediately.',
+      'Trending Audio: Use sounds with < 5k uses that are trending up.',
+      'Edutainment: Teach something (how to style) while entertaining.',
+      'Call to Action: Always end with "Link in bio to shop".'
     ]
   },
   {
-    id: 'meta-pixel',
-    title: '10. Marketing: Meta Pixel (Facebook)',
-    description: 'Essential for retargeting. If someone views a product but doesn\'t buy, you can show them ads later on Instagram.',
+    id: 'content-hooks',
+    title: '10. Content: The Hook Strategy',
+    description: 'If they do not stop scrolling, they cannot buy. Your hook is the most critical part of your content.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Visual Interrupts: Start with movement, a zoom, or a weird angle.',
+      'Text Hooks: "Stop buying expensive X", "You need to see this", "My secret weapon for..."',
+      'Negative Hooks: "Why I stopped wearing X" often performs better than positive ones.'
+    ]
+  },
+  {
+    id: 'content-batching',
+    title: '11. Content: Batching & Consistency',
+    description: 'Burnout kills affiliate businesses. Work smarter by creating content in batches.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to business.facebook.com > Events Manager.',
-      'Click "Connect Data Sources" > "Web".',
-      'Name your pixel "Bridge Page Pixel".',
-      'Select "Manual Install" (we handle the code injection).',
-      'Go to Settings and copy the "Dataset ID" (Pixel ID).',
-      'Paste this into the Admin dashboard.'
+      'Filming Day: Dedicate one day a week to film 10-15 videos.',
+      'Outfit Changes: Bring 5-10 outfits to a location to maximize output.',
+      'Drafts: Keep a folder of drafts for days you cannot film.',
+      'Repurposing: Post your TikToks to Reels and Shorts (remove watermark!).'
     ]
   },
   {
-    id: 'tiktok-pixel',
-    title: '11. Marketing: TikTok Monitoring',
-    description: 'TikTok is a high-conversion platform for affordable luxury and "dupes". Tracking here is vital.',
+    id: 'content-ugc',
+    title: '12. Content: UGC & Authenticity',
+    description: 'User Generated Content (UGC) builds trust. People buy from people, not faceless brands.',
     illustrationId: 'rocket',
     subSteps: [
-      'Go to ads.tiktok.com > Assets > Events.',
-      'Click "Web Events" > "Manage".',
-      'Click "Set Up Web Events" > "Manual Setup".',
-      'Name the pixel. Copy the "Pixel ID" shown at the top.',
-      'Paste into the Integrations tab.'
+      'Unboxing: Capture the raw excitement of opening a package.',
+      'Texture Shots: Close-ups of fabric and details.',
+      'Fail Compilation: Show what didn\'t fit. Honesty sells better than perfection.',
+      'Voiceovers: Use your voice to explain sizing and fit.'
     ]
   },
   {
-    id: 'pinterest-tag',
-    title: '12. Marketing: Pinterest Tag',
-    description: 'Pinterest users have high intent. This tag tracks when they view items or click your affiliate links.',
+    id: 'email-lead',
+    title: '13. Email: Lead Magnet',
+    description: 'Social media is rented land. Your email list is an asset you own. Give something away to capture emails.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'The Offer: "Top 10 Fall Essentials PDF", "5% Off Code", or "Exclusive Lookbook".',
+      'Placement: Add a popup or footer form on your Bridge Page.',
+      'Tech: Use EmailJS or integrate a provider like Mailchimp via webhook.'
+    ]
+  },
+  {
+    id: 'email-flow',
+    title: '14. Email: The Welcome Flow',
+    description: 'Automate the relationship building. When they sign up, send value immediately.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to ads.pinterest.com > Conversions.',
-      'Click "Tag Manager".',
-      'Copy the "Tag ID" (numeric string).',
-      'Paste into the Integrations tab.'
+      'Email 1 (Immediate): Deliver the lead magnet + Intro.',
+      'Email 2 (Day 1): Your "Why" / Brand Story / Value Proposition.',
+      'Email 3 (Day 3): Curated "Best Sellers" list linking to your site.',
+      'Email 4 (Day 7): "Did you see this?" (Highlight a specific collection).'
     ]
   },
   {
-    id: 'vercel-deploy',
-    title: '13. Deployment: Vercel Production',
-    description: 'Vercel is the gold standard for React hosting. It connects to GitHub and updates your site every time you save code.',
+    id: 'email-news',
+    title: '15. Email: Weekly Curation',
+    description: 'Stay top of mind without being spammy. Send a weekly digest of what is trending.',
     illustrationId: 'rocket',
     subSteps: [
-      'Go to Vercel.com and sign up with GitHub.',
-      'Click "Add New..." > "Project".',
-      'Select your "affiliate-bridge" repository.',
-      'Framework Preset: Vite (should be auto-detected).',
-      'Do NOT click Deploy yet. We need environment variables.'
+      'Format: "3 Things I Love This Week".',
+      'Personal Touch: Include 1 personal update to build connection.',
+      'Links: Link back to specific collections on your bridge page.',
+      'Consistency: Send at the same time every week (e.g., Sunday 10am).'
     ]
   },
   {
-    id: 'vercel-env',
-    title: '14. Deployment: Cloud Injectors',
-    description: 'We must tell the production server about Supabase. Local .env files are not uploaded for security.',
+    id: 'analytics-read',
+    title: '16. Intelligence: Data Reading',
+    description: 'Stop guessing. Use the "Intelligence" tab in your Admin dashboard to pivot based on real data.',
     illustrationId: 'forge',
     subSteps: [
-      'Expand the "Environment Variables" section in Vercel.',
-      'Key: `VITE_SUPABASE_URL`, Value: (Your Supabase URL).',
-      'Key: `VITE_SUPABASE_ANON_KEY`, Value: (Your Supabase Anon Key).',
-      'Click "Deploy". Wait for the confetti!',
-      'Your site is now live at `https://affiliate-bridge-xyz.vercel.app`.'
+      'Top Products: Identify what is getting views. Create more content around these items.',
+      'Traffic Sources: Double down on the platform driving the most clicks.',
+      'Bounce Rate: If high, improve your hero section or page load speed.',
+      'CTR: If views are high but clicks low, your "Why" or copy needs work.'
     ]
   },
   {
-    id: 'final-polish',
-    title: '15. Final Polish: Custom Domain',
-    description: 'A custom domain (e.g., moniqueboutique.com) increases trust by 80%.',
+    id: 'affiliate-diversify',
+    title: '17. Business: Network Diversification',
+    description: 'Do not rely on one merchant. Expand your catalog with complementary programs.',
     illustrationId: 'rocket',
     subSteps: [
-      'Buy a domain from Namecheap, GoDaddy, or Squarespace.',
-      'In Vercel, go to Project Settings > Domains.',
-      'Enter your domain name.',
-      'Vercel will give you "A Records" or "CNAME Records".',
-      'Log into your domain registrar and update the DNS records as shown.'
+      'Networks: Apply to Skimlinks, LTK, Amazon Associates, and ShareASale.',
+      'Categories: Add a "High End" vs "High Street" comparison category.',
+      'Negotiation: Once you have volume, email affiliate managers for higher commission rates.'
     ]
   },
   {
-    id: 'seo-config',
-    title: '16. SEO Optimization',
-    description: 'Make sure Google knows you exist. Configure your site metadata.',
+    id: 'paid-scaling',
+    title: '18. Scale: Introduction to Ads',
+    description: 'Organic is free but slow. Paid ads are fast but cost money. Only scale what works organically.',
     illustrationId: 'forge',
     subSteps: [
-      'In the Admin Dashboard > Site Editor > Brand.',
-      'Set a descriptive "Slogan" containing keywords (e.g., "Curated Luxury Fashion").',
-      'Ensure "Description" in Footer settings is keyword-rich.',
-      'Create a free account at Google Search Console.',
-      'Submit your sitemap (usually `yourdomain.com/sitemap.xml` if generated, or just request indexing of the home page).'
+      'Boost: Start by boosting your top-performing organic posts on Instagram ($5/day).',
+      'Targeting: Use "Engaged Shoppers" + [Your Niche Interest] (e.g., Zara, Vogue).',
+      'Retargeting: Show ads to people who visited your site but didn\'t click through.',
+      'ROAS: Watch your Return on Ad Spend closely. Aim for 3:1.'
     ]
   },
   {
-    id: 'pwa-check',
-    title: '17. PWA Validation',
-    description: 'Your site is a Progressive Web App. Users can install it on their phones like a native app.',
+    id: 'team-building',
+    title: '19. Scale: Outsourcing',
+    description: 'You cannot do it all forever. Delegate low-value tasks to focus on strategy and creation.',
     illustrationId: 'rocket',
     subSteps: [
-      'Open your site on Chrome (Desktop).',
-      'Open DevTools (F12) > Lighthouse tab.',
-      'Check "Progressive Web App" and run analysis.',
-      'Ensure you get a green checkmark. This confirms users can "Add to Home Screen".'
+      'Virtual Assistant (VA): Hire for DM management and community engagement.',
+      'Video Editor: Send raw footage to an editor to produce high-quality Reels.',
+      'Pinterest Manager: Outsource the daily pinning and keyword research.',
+      'Systems: Document everything you do in an SOP (Standard Operating Procedure).'
     ]
   },
   {
-    id: 'dns-config',
-    title: '18. Security Headers & DNS',
-    description: 'Prevent spoofing and improve delivery.',
+    id: 'exit-strategy',
+    title: '20. Scale: The Brand Vision',
+    description: 'Transition from "Affiliate Marketer" to "Brand Owner". Look at the long game.',
     illustrationId: 'forge',
     subSteps: [
-      'In Vercel Settings > Security.',
-      'Enable "Prevent Window Opener" and "Content Security Policy" if you are advanced.',
-      'Otherwise, just ensure HTTPS is forced (Vercel does this by default).'
-    ]
-  },
-  {
-    id: 'security-audit',
-    title: '19. Security & Access Audit',
-    description: 'Ensure only YOU can access the Admin panel.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'In Supabase > Authentication > Users.',
-      'Verify only your email is listed.',
-      'Go to your site `/admin` and ensure all "Edit" buttons work.',
-      'Test the "Logout" button.',
-      'Try to access `/admin` in Incognito mode to confirm it redirects to Login.'
-    ]
-  },
-  {
-    id: 'launch-protocol',
-    title: '20. Launch Protocol',
-    description: 'The final checklist before announcing to the world.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Test the Contact Form (check your email).',
-      'Test an Affiliate Link (click "Secure Acquisition" on a product).',
-      'Test the "Share" button on a product detail page.',
-      'Post your new link in your Instagram Bio and TikTok Profile.',
-      'Celebrate! You are now a digital asset owner.'
-    ]
-  },
-  {
-    id: 'payment-setup',
-    title: '21. Payment Setup Guide',
-    description: 'Your application supports three primary payment methods for Direct Sales: Yoco, PayFast, and Manual EFT. Below are the detailed steps to acquire the necessary API keys and credentials for each service.',
-    illustrationId: 'rocket',
-    subSteps: [
-      '1. Yoco (Card Payments): Sign up for a business account at portal.yoco.co.za. Navigate to Sell Online > Payment Gateway > API Keys. Copy the Public Key (starts with pk_test_ or pk_live_) and paste it into Site Editor > Integrations & Payments.',
-      '2. PayFast (EFT & Card): Register at payfast.co.za and verify your account. Go to Settings > Integration. Copy Merchant ID and Merchant Key. Set a Passphrase under Security. Enter these into your Admin Dashboard.',
-      '3. Manual EFT: In Admin > Site Editor > Integrations, scroll to Manual EFT. Enter your Bank Name, Account Holder, Account Number, Branch Code, and Reference Instructions in the Bank Details field. Save to display at checkout.'
+      'White Label: Launch your own product line using your audience data.',
+      'Brand Deals: Move from affiliate commissions to flat-fee sponsorships.',
+      'Community: Build a paid community or course teaching others your style.',
+      'Exit: Build the site\'s revenue to a point where it can be sold as an asset.'
     ]
   }
 ];
 
 export const TRAINING_MODULES: TrainingModule[] = [
-  // --- SOCIAL MEDIA ---
+  // --- INSTAGRAM MASTERY ---
   {
     id: 'ig-bio',
     title: '1. Instagram: Bio Architecture',
@@ -541,367 +513,541 @@ export const TRAINING_MODULES: TrainingModule[] = [
     icon: 'Instagram'
   },
   {
-    id: 'tiktok-hooks',
-    title: '2. TikTok: The 3-Second Hook',
-    platform: 'TikTok',
-    description: 'Stop the scroll immediately. If you do not grab attention in 3 seconds, the algorithm kills your reach.',
-    strategies: [
-      'Visual Interrupts: Start with movement or a sudden transition.',
-      'Text Overlays: Use "You won\'t believe this price" or "Amazon vs Reality" text bubbles.',
-      'Controversial Takes: "Unpopular opinion: This dupe is better than the original."'
-    ],
-    actionItems: [
-      'Film 3 videos using different visual hooks.',
-      'Test text-to-speech for the opening line.',
-      'Analyze watch time in analytics to see drop-off points.'
-    ],
-    icon: 'Video'
-  },
-  {
-    id: 'pinterest-seo',
-    title: '3. Pinterest: Visual Search Engine',
-    platform: 'Pinterest',
-    description: 'Pinterest is not social media; it is SEO with pictures. Pins live for months, not minutes.',
-    strategies: [
-      'Rich Pins: Enable Rich Pins to show real-time pricing and availability.',
-      'Vertical Verticals: Always use 9:16 aspect ratio images for maximum screen real estate.',
-      'Keyword Descriptions: Don\'t write "Cute dress". Write "Summer floral maxi dress for weddings".'
-    ],
-    actionItems: [
-      'Claim your website on Pinterest Business Hub.',
-      'Create a board specifically for "Bridge Page Favorites".',
-      'Design 5 pins using Canva templates.'
-    ],
-    icon: 'Pin'
-  },
-  {
     id: 'ig-stories',
-    title: '4. Instagram: Story Selling',
+    title: '2. Instagram: Stories That Sell',
     platform: 'Instagram',
-    description: 'Stories are where the loyal community buys. Use them for "low pressure" selling and behind-the-scenes.',
+    description: 'Stories are where retention happens. Build a relationship with your audience through behind-the-scenes content.',
     strategies: [
-      'Link Stickers: Place stickers near the thumb zone (bottom right) for easy clicking.',
-      'Polls & Questions: Warm up the algorithm by asking "This or That?" before dropping a link.',
-      'Countdown Timers: Create urgency for flash sales or limited stock drops.'
+      'The 4-Slide Rule: Hook, Value, Proof, CTA.',
+      'Polls & Stickers: Use interaction stickers to boost algorithmic ranking.',
+      'Link Stickers: Place link stickers in the "thumb zone" (bottom right).'
     ],
     actionItems: [
-      'Post a "This or That" fashion poll.',
-      'Share a raw, unedited video of a product unboxing.',
-      'Create a permanent "Shop" Highlight.'
+      'Post 3 stories today: Morning coffee, Outfit check, Product link.',
+      'Use a poll sticker to ask "This or That?".',
+      'Save your best selling stories to a Highlight.'
     ],
-    icon: 'Instagram'
+    icon: 'Aperture'
   },
   {
-    id: 'ugc-mastery',
-    title: '5. Social: UGC Mastery',
-    platform: 'Social',
-    description: 'User Generated Content feels authentic. Brands love it, and buyers trust it more than polished ads.',
+    id: 'ig-reels',
+    title: '3. Instagram: Reels Algorithm',
+    platform: 'Instagram',
+    description: 'Reels are the primary growth engine on Instagram currently. Reach non-followers effectively.',
     strategies: [
-      'Face-to-Camera: Talk to the lens like a friend on FaceTime.',
-      'Problem/Solution: Show a style struggle and how the product fixes it.',
-      'ASMR Unboxing: Focus on the sounds of packaging and textures.'
+      'Trending Audio: Use audios with < 10k uses that have an upward arrow.',
+      'Text Overlay: Place text within the 4:5 safe zone to avoid being cut off in the grid.',
+      'Looping: Create videos that loop seamlessly to increase watch time.'
     ],
     actionItems: [
-      'Film a "Get Ready With Me" (GRWM) featuring an affiliate product.',
-      'Create a video response to a comment asking "Where did you get that?".',
-      'Tag the brand in every post to get noticed.'
-    ],
-    icon: 'Video'
-  },
-  {
-    id: 'fb-community',
-    title: '6. Facebook: Group Power',
-    platform: 'Facebook',
-    description: 'Niche Facebook groups are goldmines for high-intent traffic. Think "Wedding Guests" or "Budget Decor".',
-    strategies: [
-      'Value First: Answer questions about styling before dropping a link.',
-      'Deal Alerts: Position your links as "Found a deal" rather than "Buy this".',
-      'Marketplace Cross-Post: List items on Marketplace that point to your bridge page.'
-    ],
-    actionItems: [
-      'Join 3 groups relevant to your niche.',
-      'Post a photo of an outfit asking for feedback (soft sell).',
-      'Reply to 5 posts offering styling advice.'
-    ],
-    icon: 'Facebook'
-  },
-  {
-    id: 'editing-capcut',
-    title: '7. Social: CapCut Editing',
-    platform: 'Social',
-    description: 'Editing determines retention. Use CapCut to create snappy, professional clips that keep viewers watching.',
-    strategies: [
-      'Match Cut: Transition between scenes on the beat of the music.',
-      'Auto-Captions: 80% of people watch without sound. Always caption.',
-      'Velocity Edits: Speed up boring parts, slow down the reveal.'
-    ],
-    actionItems: [
-      'Download CapCut.',
-      'Create a video using a trending CapCut template.',
-      'Add auto-captions to a talking-head video.'
+      'Find 3 trending audios.',
+      'Film a 7-second Reel pointing to text bubbles.',
+      'Post consistently at the same time for a week.'
     ],
     icon: 'Film'
   },
-
-  // --- MARKETPLACE ---
   {
-    id: 'amazon-assoc',
-    title: '8. Marketplace: Amazon Lists',
-    platform: 'Marketplace',
-    description: 'Amazon is the conversion king. Organize your finds into "Idea Lists" to increase basket size.',
+    id: 'ig-dm',
+    title: '4. Instagram: DM Automation',
+    platform: 'Instagram',
+    description: 'Convert comments into sales conversations automatically.',
     strategies: [
-      'Themed Lists: "Date Night", "Gym Essentials", "Home Office Setup".',
-      'Bounty Programs: Promote free trials (Prime, Audible) for easy fixed commissions.',
-      'Cookie Duration: Remember the 24-hour cookie. Get them to click daily.'
+      'Keyword Triggers: Tell users "Comment LINK" to get the product sent to their DMs.',
+      'ManyChat Basics: Set up a simple auto-reply flow.',
+      'Personal Touch: Send a voice note to new high-value followers.'
     ],
     actionItems: [
-      'Create an Amazon Idea List named "Monthly Favorites".',
-      'Add 10 items to the list.',
-      'Share the list link to your Instagram Story.'
+      'Set up a ManyChat account (free tier).',
+      'Create a trigger keyword for your latest post.',
+      'Test the automation with a friend.'
     ],
-    icon: 'ShoppingBag'
+    icon: 'MessageCircle'
   },
   {
-    id: 'ltk-optimization',
-    title: '9. Marketplace: LTK Strategy',
-    platform: 'Marketplace',
-    description: 'RewardStyle (LTK) is the premier fashion app. Optimize your images for the app\'s visual feed.',
+    id: 'ig-seo',
+    title: '5. Instagram: SEO & Hashtags',
+    platform: 'Instagram',
+    description: 'Stop relying on hashtags alone. Optimize your entire post for search.',
     strategies: [
-      'Clean Backgrounds: LTK users prefer bright, uncluttered aesthetics.',
-      'Exact Matches: Tag the exact item, not similar ones, to reduce returns.',
-      'Exclusive Content: Post looks to LTK that aren\'t on Instagram to drive app downloads.'
+      'Alt Text: Add descriptive alt text to your images before posting.',
+      'Caption Keywords: Write captions that include "Summer Dress" or "Office Outfit".',
+      'Hashtag Ladders: Mix broad (1M+), medium (500k), and niche (50k) tags.'
     ],
     actionItems: [
-      'Upload 3 looks to LTK.',
-      'Ensure all items are tagged "Exact".',
-      'Share your LTK profile link on other socials.'
-    ],
-    icon: 'Tag'
-  },
-  {
-    id: 'holiday-sales',
-    title: '10. Marketplace: Holiday Calendar',
-    platform: 'Marketplace',
-    description: 'Q4 (Oct-Dec) can make up 50% of your annual revenue. Plan content around key retail dates.',
-    strategies: [
-      'Black Friday Prep: Tease deals a week before they go live.',
-      'Gift Guides: "For Him", "For Mom", "Under $50".',
-      'Shipping Deadlines: Remind followers when the last day to order is.'
-    ],
-    actionItems: [
-      'Create a "Gift Guide" page on your bridge site.',
-      'Map out key dates: Black Friday, Cyber Monday, Valentine\'s.',
-      'Pre-write captions for sale days.'
-    ],
-    icon: 'Calendar'
-  },
-  {
-    id: 'compliance',
-    title: '11. Marketplace: Legal Compliance',
-    platform: 'Marketplace',
-    description: 'Avoid getting banned. You must disclose affiliate relationships clearly and conspicuously.',
-    strategies: [
-      'Clear Labels: Use #ad, #sponsored, or "Commissionable Link" on every post.',
-      'Above the Fold: Disclosures must be visible without clicking "more".',
-      'Statement: Ensure your bridge page has a dedicated Disclosure page.'
-    ],
-    actionItems: [
-      'Audit your last 10 posts for #ad tags.',
-      'Verify your bridge page has a visible Disclaimer link.',
-      'Read the Amazon Associates Operating Agreement.'
-    ],
-    icon: 'Shield'
-  },
-  {
-    id: 'shein-hacks',
-    title: '12. Marketplace: Shein & Fast Fashion',
-    platform: 'Marketplace',
-    description: 'Fast fashion relies on volume. Focus on "Hauls" and "Try-ons" to drive massive traffic.',
-    strategies: [
-      'Coupon Stacking: Always provide a discount code in your caption.',
-      'Sizing Guides: Be the expert on fit. "Size up" or "True to size" is valuable info.',
-      'Dupes: Explicitly compare expensive brands to the affordable alternative.'
-    ],
-    actionItems: [
-      'Film a "What I Ordered vs What I Got" video.',
-      'Create a collection called "Luxury Dupes".',
-      'Post a dedicated coupon code graphic.'
-    ],
-    icon: 'ShoppingBag'
-  },
-
-  // --- SEO ---
-  {
-    id: 'seo-keywords',
-    title: '13. SEO: Keyword Research',
-    platform: 'SEO',
-    description: 'Speak the language your customers type into Google. Don\'t guess; use data.',
-    strategies: [
-      'Long-Tail Keywords: Target "Red silk maxi dress for wedding guest" instead of "Red dress".',
-      'Google Suggest: Type a product into Google and see what auto-completes.',
-      'Answer the Public: Find out what questions people ask about specific fashion items.'
-    ],
-    actionItems: [
-      'List 10 keywords relevant to your niche.',
-      'Rename your product titles on the bridge page to include these keywords.',
-      'Update your page Slogan.'
+      'Research 10 keywords for your niche.',
+      'Update 3 old posts with Alt Text.',
+      'Create 3 hashtag groups in your notes app.'
     ],
     icon: 'Search'
   },
   {
-    id: 'seo-blogging',
-    title: '14. SEO: Micro-Blogging',
-    platform: 'SEO',
-    description: 'Google loves text. Add 300 words of description to your bridge page "About" or product sections.',
+    id: 'ig-collab',
+    title: '6. Instagram: Collab Posts',
+    platform: 'Instagram',
+    description: 'Double your reach by leveraging other accounts\' audiences.',
     strategies: [
-      'Storytelling: Weave the product into a lifestyle narrative.',
-      'Formatting: Use H1, H2, and bullet points to make text scannable.',
-      'Internal Linking: Link from your About page to your Collections page.'
+      'Brand Collabs: Tag the brand as a collaborator (if approved) or tag them in the photo.',
+      'Peer Collabs: Team up with a creator in a complementary niche.',
+      'Engagement Pods: Genuine support groups to boost initial engagement.'
     ],
     actionItems: [
-      'Expand your "About Me" section to 300+ words.',
-      'Write detailed descriptions for your top 3 products.',
-      'Add links between categories.'
+      'Identify 5 peers with similar follower counts.',
+      'Propose a "Style Swap" collab.',
+      'Tag the brands in your outfit photo.'
     ],
-    icon: 'FileText'
-  },
-  {
-    id: 'seo-images',
-    title: '15. SEO: Image Optimization',
-    platform: 'SEO',
-    description: 'Google Images drives traffic. Ensure your visuals are readable by search engines.',
-    strategies: [
-      'Alt Text: Describe the image for accessibility and SEO (e.g., "Woman wearing gold watch").',
-      'File Names: Upload files as `gold-watch.jpg`, not `IMG_9932.jpg`.',
-      'Compression: Fast loading images improve search rankings.'
-    ],
-    actionItems: [
-      'Rename your hero images before uploading.',
-      'Fill in the "Description" field for all products.',
-      'Run a speed test on your site.'
-    ],
-    icon: 'Image'
-  },
-  {
-    id: 'seo-backlinks',
-    title: '16. SEO: Building Authority',
-    platform: 'SEO',
-    description: 'Backlinks (other sites linking to you) tell Google you are trustworthy.',
-    strategies: [
-      'Guest Posting: Write style articles for smaller fashion blogs in exchange for a link.',
-      'Social Signals: Shares from Pinterest and Twitter count as social signals.',
-      'Press: Sign up for HARO (Help a Reporter Out) to give quotes on fashion trends.'
-    ],
-    actionItems: [
-      'Pin every product on your site to Pinterest.',
-      'Share your link on LinkedIn.',
-      'Reach out to one fashion blogger for a collab.'
-    ],
-    icon: 'Link'
-  },
-  {
-    id: 'seo-local',
-    title: '17. SEO: Local Visibility',
-    platform: 'SEO',
-    description: 'Even for online businesses, local SEO helps you dominate your immediate area.',
-    strategies: [
-      'Google My Business: Create a profile if you offer consulting.',
-      'Local Keywords: Use "Personal Stylist [City Name]" in your footer.',
-      'Map Embeds: Having a location on your Contact page builds trust.'
-    ],
-    actionItems: [
-      'Update your footer with your city and province.',
-      'Create a Google My Business profile.',
-      'Ask a local client for a review.'
-    ],
-    icon: 'MapPin'
+    icon: 'Users'
   },
 
-  // --- EMAIL MARKETING ---
+  // --- TIKTOK GROWTH ---
   {
-    id: 'email-welcome',
-    title: '18. Email: The Welcome Flow',
-    platform: 'Email',
-    description: 'The first email you send has the highest open rate. Make it count.',
+    id: 'tiktok-hooks',
+    title: '7. TikTok: The 3-Second Hook',
+    platform: 'TikTok',
+    description: 'Stop the scroll immediately. If you do not grab attention in 3 seconds, the algorithm kills your reach.',
     strategies: [
-      'Instant Value: Deliver the lead magnet (PDF, Discount) immediately.',
-      'Personal Intro: Introduce yourself and your style philosophy.',
-      'Expectation Setting: Tell them how often you will email them.'
+      'Visual Interrupts: Start with movement or a sudden transition.',
+      'Text Overlays: Use "You won\'t believe this price" or "Amazon vs Reality".',
+      'Controversial Takes: "Unpopular opinion: This dupe is better."'
     ],
     actionItems: [
-      'Draft a "Welcome to the Family" email.',
-      'Set up an auto-reply in EmailJS or your provider.',
-      'Add a "Subscribe" CTA to your homepage.'
+      'Film 3 videos using different visual hooks.',
+      'Test text-to-speech for the opening line.',
+      'Analyze watch time in analytics.'
     ],
-    icon: 'Mail'
+    icon: 'Zap'
   },
   {
-    id: 'email-segmentation',
-    title: '19. Email: Segmentation',
-    platform: 'Email',
-    description: 'Don\'t send everything to everyone. Group your subscribers to increase relevance.',
+    id: 'tiktok-audio',
+    title: '8. TikTok: Audio Strategy',
+    platform: 'TikTok',
+    description: 'Sound is half the experience on TikTok. Ride the waves of viral sounds.',
     strategies: [
-      'Interest Tags: Tag users who click on "Shoes" vs "Dresses".',
-      'Purchase History: Separate buyers from window shoppers.',
-      'Engagement: Resend campaigns to people who didn\'t open the first time.'
+      'Sound Sync: Edit your cuts to the beat of the music.',
+      'Original Audio: Create ASMR unboxing sounds.',
+      'Volume Mixing: Lower music to 10-20% when speaking.'
     ],
     actionItems: [
-      'Create two groups: "VIP Buyers" and "New Leads".',
-      'Send a targeted email to VIPs only.',
-      'Clean your list of inactive subscribers.'
+      'Save 5 sounds from your For You Page.',
+      'Create a video syncing 3 outfit changes to a beat.',
+      'Record an ASMR packaging video.'
+    ],
+    icon: 'Music'
+  },
+  {
+    id: 'tiktok-seo',
+    title: '9. TikTok: Search Optimization',
+    platform: 'TikTok',
+    description: 'TikTok is a search engine. Get found by people looking for specific items.',
+    strategies: [
+      'Screen Text: Put keywords on the screen for the first 3 seconds.',
+      'Spoken Keywords: Say the product name clearly in the video.',
+      'Caption Structure: "The best [Product] for [Problem] in 2024".'
+    ],
+    actionItems: [
+      'Search your niche keyword and see what auto-fills.',
+      'Create a video answering a specific search query.',
+      'Use 3-5 keywords in your caption.'
+    ],
+    icon: 'SearchCode'
+  },
+  {
+    id: 'tiktok-stitch',
+    title: '10. TikTok: Duet & Stitch',
+    platform: 'TikTok',
+    description: 'Piggyback on viral content to divert traffic to your page.',
+    strategies: [
+      'Reaction Videos: React to high-fashion runway fails or wins.',
+      'Add Value: Stitch a problem video with your product as the solution.',
+      'Blind Reacts: Genuine reactions to price reveals.'
+    ],
+    actionItems: [
+      'Find a viral fashion video posted in the last 24h.',
+      'Stitch it with your take.',
+      'Duet a "Get Ready With Me" adding commentary.'
+    ],
+    icon: 'Repeat'
+  },
+  {
+    id: 'tiktok-batch',
+    title: '11. Content Batching',
+    platform: 'TikTok',
+    description: 'Consistency is key. Film everything in one day to stay ahead.',
+    strategies: [
+      'Outfit Changes: Bring 5 outfits to one location.',
+      'Drafts Folder: Keep 10 videos in drafts for busy days.',
+      'Scripting: Write out your hooks before you turn on the camera.'
+    ],
+    actionItems: [
+      'Schedule a 2-hour filming block this Sunday.',
+      'Prepare 5 scripts.',
+      'Film and edit 5 videos to keep in drafts.'
+    ],
+    icon: 'Layers'
+  },
+  {
+    id: 'tiktok-live',
+    title: '12. TikTok: Going Live',
+    platform: 'TikTok',
+    description: 'Build deep connection and sell in real-time.',
+    strategies: [
+      'Q&A Session: Answer questions about sizing and fit.',
+      'Try-On Haul: Live unboxing and trying on new items.',
+      'Flash Sale: Exclusive discount codes for live viewers.'
+    ],
+    actionItems: [
+      'Announce a "Live Try-On" 24 hours in advance.',
+      'Go live for at least 30 minutes.',
+      'Have your products ready to show on camera.'
+    ],
+    icon: 'Radio'
+  },
+
+  // --- PINTEREST STRATEGY ---
+  {
+    id: 'pin-design',
+    title: '13. Pinterest: Pin Design',
+    platform: 'Pinterest',
+    description: 'Pinterest is a visual discovery engine. Your pins must be aesthetic and clear.',
+    strategies: [
+      'Vertical Aspect Ratio: Always use 2:3 (1000x1500px).',
+      'Text Overlay: Large, readable fonts with good contrast.',
+      'Branding: Subtle logo placement at the top or bottom.'
+    ],
+    actionItems: [
+      'Create 3 pin templates in Canva.',
+      'Design 5 pins for your top-performing product.',
+      'Test a video pin.'
+    ],
+    icon: 'Palette'
+  },
+  {
+    id: 'pin-seo',
+    title: '14. Pinterest: Keywords',
+    platform: 'Pinterest',
+    description: 'Target high-intent buyers searching for specific aesthetics.',
+    strategies: [
+      'Pinterest Trends: Use the native tool to find rising searches.',
+      'Board SEO: Name your boards "Summer Fashion" not "Stuff I like".',
+      'Description: Write full sentences containing keywords.'
+    ],
+    actionItems: [
+      'Rename your generic boards.',
+      'Write a keyword-rich description for your profile.',
+      'Research "OOTD" trends for the upcoming season.'
+    ],
+    icon: 'Hash'
+  },
+  {
+    id: 'pin-rich',
+    title: '15. Pinterest: Rich Pins',
+    platform: 'Pinterest',
+    description: 'Automatically pull metadata from your site to Pinterest.',
+    strategies: [
+      'Product Rich Pins: Show real-time pricing and availability.',
+      'Article Rich Pins: Show headline and author for blog posts.',
+      'Validation: Use the Pinterest Validator tool.'
+    ],
+    actionItems: [
+      'Apply for Rich Pins in Pinterest settings.',
+      'Verify your website claim.',
+      'Check if price updates reflect on your pins.'
+    ],
+    icon: 'Tag'
+  },
+  {
+    id: 'pin-group',
+    title: '16. Group Boards',
+    platform: 'Pinterest',
+    description: 'Leverage established communities to get your content seen.',
+    strategies: [
+      'Niche Boards: Join boards specific to "Affiliate Fashion".',
+      'Rules: Read and follow board rules strictly to avoid banning.',
+      'Reciprocity: Re-pin others\' content to maintain good standing.'
+    ],
+    actionItems: [
+      'Request to join 3 active group boards.',
+      'Pin your best content to these boards.',
+      'Engage with 5 other pins on the board.'
     ],
     icon: 'Users'
   },
   {
-    id: 'email-subject',
-    title: '20. Email: Subject Line Psychology',
-    platform: 'Email',
-    description: 'The subject line is the gatekeeper. If it fails, the email content doesn\'t matter.',
+    id: 'pin-idea',
+    title: '17. Idea Pins',
+    platform: 'Pinterest',
+    description: 'Pinterest\'s answer to Stories. Great for engagement.',
     strategies: [
-      'Curiosity Gap: "You won\'t believe what I found..."',
-      'Urgency: "Last chance for this dupe!"',
-      'Personalization: "Sarah, I picked this for you."'
+      'Multi-Page Content: Create a 5-page guide "How to Style...".',
+      'Video Integration: Use video on the first slide to grab attention.',
+      'Tagging: Tag products directly in the Idea Pin.'
     ],
     actionItems: [
-      'Write 10 subject lines for your next email.',
-      'A/B test two different subject lines.',
-      'Use an emoji in your next subject line.'
+      'Create an Idea Pin showing "3 Ways to Wear a White Shirt".',
+      'Tag the white shirt affiliate link.',
+      'Include a CTA on the last slide.'
+    ],
+    icon: 'Lightbulb'
+  },
+
+  // --- CONTENT CREATION ---
+  {
+    id: 'photo-mobile',
+    title: '18. Mobile Photography',
+    platform: 'Content',
+    description: 'You don\'t need a DSLR. Master your phone camera.',
+    strategies: [
+      'Lighting: Always face the window (natural light).',
+      'Grid Lines: Use the rule of thirds for composition.',
+      'Exposure Lock: Tap and hold to lock focus and exposure.'
+    ],
+    actionItems: [
+      'Clean your camera lens.',
+      'Take a flat-lay photo using window light.',
+      'Edit exposure and contrast in Lightroom Mobile.'
+    ],
+    icon: 'Smartphone'
+  },
+  {
+    id: 'video-capcut',
+    title: '19. Video Editing (CapCut)',
+    platform: 'Content',
+    description: 'The industry standard for short-form video editing.',
+    strategies: [
+      'Keyframes: Add subtle zooms to static shots.',
+      'Auto-Captions: Generate and style captions instantly.',
+      'Overlay: Add "picture-in-picture" for reaction videos.'
+    ],
+    actionItems: [
+      'Download CapCut.',
+      'Edit a raw video clip adding a zoom effect.',
+      'Export in 1080p/60fps.'
+    ],
+    icon: 'Scissors'
+  },
+  {
+    id: 'aesthetic',
+    title: '20. Curation & Aesthetic',
+    platform: 'Content',
+    description: 'A cohesive visual brand builds trust and recognition.',
+    strategies: [
+      'Color Palette: Stick to 3-4 core colors for your feed.',
+      'Filter Consistency: Use the same preset for all photos.',
+      'Mood Boarding: Plan your grid before you post.'
+    ],
+    actionItems: [
+      'Define your brand colors.',
+      'Create a mood board on Pinterest.',
+      'Archive posts that clash with your new aesthetic.'
+    ],
+    icon: 'Sparkles'
+  },
+  {
+    id: 'copywriting',
+    title: '21. Copywriting 101',
+    platform: 'Content',
+    description: 'Words that sell. Move people from "nice photo" to "must buy".',
+    strategies: [
+      'Benefit vs Feature: "100% Silk" (Feature) vs "Feels like water on skin" (Benefit).',
+      'Urgency: "Limited stock available".',
+      'Storytelling: "I wore this to..."'
+    ],
+    actionItems: [
+      'Rewrite a product description focusing on benefits.',
+      'Write 3 different captions for the same product.',
+      'Use power words like "Exclusive", "Secret", "Essential".'
     ],
     icon: 'PenTool'
   },
   {
-    id: 'email-newsletter',
-    title: '21. Email: The Weekly Roundup',
-    platform: 'Email',
-    description: 'Consistency builds trust. A weekly "Friday Faves" email keeps you top of mind.',
+    id: 'ugc',
+    title: '22. User Generated Content',
+    platform: 'Content',
+    description: 'Authenticity wins. Content that looks real performs better.',
     strategies: [
-      'Curated List: Share your top 5 clicks of the week.',
-      'Life Update: Share a small personal story to build connection.',
-      'Exclusive Codes: Share a discount code only available to subscribers.'
+      'Unboxing: Capture the raw excitement of opening a package.',
+      'Fail Compilation: Show what didn\'t fit (builds trust).',
+      'Texture Shots: Close-ups of fabric and details.'
     ],
     actionItems: [
-      'Design a simple newsletter template.',
-      'Schedule your first "Weekly Edit" email.',
-      'Include a "Forward to a Friend" link.'
+      'Film an unboxing of your latest order.',
+      'Take a macro shot of a fabric texture.',
+      'Share an honest review of a product flaw.'
     ],
-    icon: 'Calendar'
+    icon: 'Camera'
+  },
+
+  // --- TRAFFIC & CONVERSION ---
+  {
+    id: 'email-list',
+    title: '23. Building an Email List',
+    platform: 'Traffic',
+    description: 'You don\'t own your social followers. You own your email list.',
+    strategies: [
+      'Lead Magnet: Offer a "Free Style Guide" in exchange for email.',
+      'Newsletter: Weekly curation of top finds.',
+      'Welcome Sequence: Automated email delivering the freebie.'
+    ],
+    actionItems: [
+      'Sign up for an email provider (e.g., Mailchimp).',
+      'Create a simple landing page for signups.',
+      'Promote your newsletter on stories.'
+    ],
+    icon: 'Mail'
   },
   {
-    id: 'email-abandoned',
-    title: '22. Email: Re-engagement',
-    platform: 'Email',
-    description: 'Win back people who have gone quiet or clicked but didn\'t buy.',
+    id: 'bridge-funnel',
+    title: '24. The Bridge Page Funnel',
+    platform: 'Traffic',
+    description: 'Pre-frame the visitor before sending them to the retailer.',
     strategies: [
-      'The "Did you miss this?" email.',
-      'Offer a limited-time bonus styling tip.',
-      'Ask a question to provoke a reply.'
+      'Personal Review: "Why I bought this".',
+      'Context: Show how to style it.',
+      'Trust Badges: "Verified Affiliate".'
     ],
     actionItems: [
-      'Identify subscribers inactive for 60 days.',
-      'Send a "Are you still looking for [Item]?" email.',
-      'Offer a personal recommendation.'
+      'Ensure every product on your site has a personal note.',
+      'Check that your "About" page builds authority.',
+      'Test your outbound links.'
     ],
-    icon: 'RefreshCw'
+    icon: 'Layout'
+  },
+  {
+    id: 'follow-up',
+    title: '25. Follow-Up Sequences',
+    platform: 'Traffic',
+    description: 'The money is in the follow-up. Retarget interested prospects.',
+    strategies: [
+      'Value Emails: Send styling tips, not just sales links.',
+      'Seasonal Updates: "Fall Wardrobe Essentials".',
+      'Sale Alerts: Notify list when favorites drop in price.'
+    ],
+    actionItems: [
+      'Draft a "Weekly Favorites" email.',
+      'Set a calendar reminder to check for sales.',
+      'Segment your list by interest (e.g., Shoes vs Dresses).'
+    ],
+    icon: 'Repeat'
+  },
+  {
+    id: 'analytics',
+    title: '26. Analytics Deep Dive',
+    platform: 'Traffic',
+    description: 'Data driven decisions reduce wasted effort.',
+    strategies: [
+      'Click-Through Rate (CTR): Is your creative good?',
+      'Conversion Rate: Is your bridge page effective?',
+      'Traffic Source: Which platform is winning?'
+    ],
+    actionItems: [
+      'Review your site analytics weekly.',
+      'Identify your top 3 traffic sources.',
+      'Double down on the top performing content format.'
+    ],
+    icon: 'BarChart3'
+  },
+  {
+    id: 'link-bio',
+    title: '27. Link-in-Bio Optimization',
+    platform: 'Traffic',
+    description: 'Reduce friction. Make it easy to find what they saw.',
+    strategies: [
+      'Direct Links: "Shop my Feed" section.',
+      'Clear Categories: "Amazon Faves", "OOTD".',
+      'Visuals: Use thumbnails for links.'
+    ],
+    actionItems: [
+      'Audit your link-in-bio tool.',
+      'Remove broken or old links.',
+      'Add a "New Arrivals" button at the top.'
+    ],
+    icon: 'Link'
+  },
+
+  // --- BUSINESS MINDSET ---
+  {
+    id: 'mindset-abundance',
+    title: '28. Abundance Mindset',
+    platform: 'Business',
+    description: 'There is enough success for everyone. Competition is proof of demand.',
+    strategies: [
+      'Community vs Competition: Collaborate, don\'t envy.',
+      'Positive Affirmations: "I attract wealth".',
+      'Gratitude: Celebrate small wins.'
+    ],
+    actionItems: [
+      'Write down 3 things you are grateful for in your business.',
+      'Comment genuinely on a "competitor\'s" post.',
+      'Replace "I can\'t" with "How can I?".'
+    ],
+    icon: 'Sun'
+  },
+  {
+    id: 'time-mgmt',
+    title: '29. Time Management',
+    platform: 'Business',
+    description: 'Avoid burnout. Work smarter, not harder.',
+    strategies: [
+      'Pomodoro Technique: 25 min work, 5 min break.',
+      'Time Blocking: Dedicated hours for engagement vs creation.',
+      'Boundaries: No DMs after 8 PM.'
+    ],
+    actionItems: [
+      'Create a weekly schedule.',
+      'Turn off notifications during deep work blocks.',
+      'Take one full day off social media.'
+    ],
+    icon: 'Clock'
+  },
+  {
+    id: 'imposter-syndrome',
+    title: '30. Imposter Syndrome',
+    platform: 'Business',
+    description: 'You are worthy. Everyone starts at zero.',
+    strategies: [
+      'Evidence Log: Keep a folder of nice comments/results.',
+      'Keep Learning: Competence builds confidence.',
+      'Start Ugly: Better done than perfect.'
+    ],
+    actionItems: [
+      'Screenshot a nice comment and save it.',
+      'Post something "imperfect" today.',
+      'Read one chapter of a business book.'
+    ],
+    icon: 'Shield'
+  },
+  {
+    id: 'goals',
+    title: '31. Goal Setting',
+    platform: 'Business',
+    description: 'You can\'t hit a target you can\'t see.',
+    strategies: [
+      'SMART Goals: Specific, Measurable, Achievable, Relevant, Time-bound.',
+      'Vision Board: Visual representation of goals.',
+      'Reverse Engineering: Break big goals into daily tasks.'
+    ],
+    actionItems: [
+      'Set a revenue goal for this month.',
+      'Create a digital vision board for your phone wallpaper.',
+      'List 3 tasks for tomorrow that move the needle.'
+    ],
+    icon: 'Target'
+  },
+  {
+    id: 'finance',
+    title: '32. Financial Literacy',
+    platform: 'Business',
+    description: 'Treat it like a business, not a hobby.',
+    strategies: [
+      'Track Expenses: Software subscriptions, props, ads.',
+      'Reinvest: Put profit back into better gear or courses.',
+      'Taxes: Save a percentage of every payout.'
+    ],
+    actionItems: [
+      'Open a separate bank account for business.',
+      'Create a spreadsheet for monthly expenses.',
+      'Review your affiliate commission tiers.'
+    ],
+    icon: 'DollarSign'
   }
 ];
 
@@ -909,17 +1055,73 @@ export const TRAINING_MODULES: TrainingModule[] = [
 export const PERMISSION_TREE: PermissionNode[] = [
   {
     id: 'sales',
-    label: 'Sales & Enquiries',
-    description: 'Manage incoming leads and communications.',
+    label: 'Sales & Inbox',
+    description: 'Manage incoming client communications and orders.',
     children: [
-      { id: 'sales.view', label: 'View Enquiries' },
-      { id: 'sales.manage', label: 'Manage Status (Read/Unread)' },
-      { id: 'sales.orders', label: 'Manage Direct Orders' },
-      { id: 'sales.delete', label: 'Delete Enquiries' },
+      { id: 'sales.view', label: 'View Inbox' },
+      { id: 'sales.manage', label: 'Manage Enquiries (Reply/Status)' },
+      { id: 'sales.orders', label: 'View Orders' },
+      { id: 'sales.fulfillment', label: 'Manage Fulfillment (Tracking/Status)' },
       { id: 'sales.export', label: 'Export Data' }
     ]
   },
-  // ... (rest of permissions)
+  {
+    id: 'catalog',
+    label: 'Catalog & Products',
+    description: 'Manage the product database and inventory.',
+    children: [
+      { id: 'catalog.view', label: 'View Product List' },
+      { id: 'catalog.create', label: 'Add New Items' },
+      { id: 'catalog.edit', label: 'Edit Item Details' },
+      { id: 'catalog.delete', label: 'Delete Items' },
+      { id: 'catalog.direct_sales', label: 'Toggle Direct Sales' }
+    ]
+  },
+  {
+    id: 'content',
+    label: 'Content Management',
+    description: 'Manage hero visuals and department categories.',
+    children: [
+      { id: 'content.hero', label: 'Manage Hero Slides' },
+      { id: 'content.categories', label: 'Manage Categories & Depts' }
+    ]
+  },
+  {
+    id: 'site',
+    label: 'Site Configuration',
+    description: 'Control the look, feel, and technical setup of the bridge page.',
+    children: [
+      { id: 'site.editor', label: 'Access Canvas Editor (General)' },
+      { id: 'site.identity', label: 'Edit Identity (Logo/Colors)' },
+      { id: 'site.legal', label: 'Edit Legal Pages' },
+      { id: 'site.integrations', label: 'Manage Integrations & API Keys' }
+    ]
+  },
+  {
+    id: 'analytics',
+    label: 'Intelligence',
+    description: 'View performance metrics and insights.',
+    children: [
+      { id: 'analytics.view', label: 'View Analytics Dashboard' }
+    ]
+  },
+  {
+    id: 'team',
+    label: 'Team Administration',
+    description: 'Manage staff access.',
+    children: [
+      { id: 'team.view', label: 'View Staff List' },
+      { id: 'team.manage', label: 'Invite & Edit Admins' }
+    ]
+  },
+  {
+    id: 'system',
+    label: 'System',
+    description: 'Technical monitoring and logs.',
+    children: [
+      { id: 'system.view', label: 'View System Health & Logs' }
+    ]
+  }
 ];
 
 export const INITIAL_ADMINS: AdminUser[] = [

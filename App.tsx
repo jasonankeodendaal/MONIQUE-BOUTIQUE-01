@@ -16,7 +16,7 @@ import ClientDashboard from './pages/ClientDashboard';
 import Checkout from './pages/Checkout';
 import Legal from './pages/Legal';
 import CartDrawer from './components/CartDrawer';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order, TrafficLog } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, checkAndMigrate } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -425,6 +425,7 @@ const App: React.FC = () => {
 
   const productsRef = useRef(products);
   const statsRef = useRef(stats);
+  const sessionStartTime = useRef(Date.now());
 
   useEffect(() => { productsRef.current = products; }, [products]);
   useEffect(() => { statsRef.current = stats; }, [stats]);
@@ -771,15 +772,38 @@ const App: React.FC = () => {
     }
   };
 
-  const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
+  const logEvent = useCallback(async (
+    type: 'view' | 'click' | 'share' | 'system' | 'interaction', 
+    label: string, 
+    source: string = 'Direct',
+    extra?: { interactionType?: string }
+  ) => {
+    // UTM Capture
+    const params = new URLSearchParams(window.location.search);
+    const utmCampaign = params.get('utm_campaign') || undefined;
+    const utmMedium = params.get('utm_medium') || undefined;
+
+    // Scroll Depth
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollDepth = scrollHeight > 0 ? Math.round((window.scrollY / scrollHeight) * 100) : 0;
+
+    // Session Duration
+    const sessionDuration = Math.round((Date.now() - sessionStartTime.current) / 1000);
+
     const eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const newEvent = {
+    const newEvent: TrafficLog = {
       id: eventId,
       type: type || 'system',
       text: type === 'view' ? `Page View: ${label}` : label,
       time: new Date().toLocaleTimeString(),
       timestamp: Date.now(),
-      source: source || 'Direct'
+      source: source || 'Direct',
+      // Enhanced Telemetry
+      utmCampaign,
+      utmMedium,
+      scrollDepth,
+      sessionDuration,
+      interactionType: extra?.interactionType
     };
 
     if (isSupabaseConfigured) {

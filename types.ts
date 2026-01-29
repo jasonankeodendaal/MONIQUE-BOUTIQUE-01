@@ -326,6 +326,13 @@ export interface TrafficLog {
   page?: string;
   type?: string;
   text?: string;
+  time?: string; // Added to fix type error
+  // Enhanced Telemetry
+  utmCampaign?: string;
+  utmMedium?: string;
+  scrollDepth?: number;
+  sessionDuration?: number;
+  interactionType?: string;
 }
 
 export interface ProductEvent {
@@ -357,7 +364,12 @@ export interface SettingsContextType {
   isLocalMode: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
-  logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
+  logEvent: (
+    type: 'view' | 'click' | 'share' | 'system' | 'interaction', 
+    label: string, 
+    source?: string, 
+    extra?: { interactionType?: string }
+  ) => void;
   
   // Monitoring
   connectionHealth: { status: 'online' | 'offline', latency: number, message: string } | null;
