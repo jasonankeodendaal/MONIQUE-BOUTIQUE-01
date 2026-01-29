@@ -495,8 +495,44 @@ const App: React.FC = () => {
      return () => clearInterval(interval);
   }, []);
 
-  // --- DYNAMIC PWA MANIFEST SYSTEM ---
+  // --- DYNAMIC HEAD & PWA MANIFEST SYSTEM ---
   useEffect(() => {
+    // 1. Update Title
+    document.title = settings.companyName || 'Monique Boutique';
+
+    // 2. Update Favicon (Standard)
+    if (settings.companyLogoUrl) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = settings.companyLogoUrl;
+    }
+
+    // 3. Update Theme Color (Mobile Bars)
+    const primaryColor = settings.primaryColor || '#D4AF37';
+    let themeMeta = document.querySelector("meta[name='theme-color']");
+    if (!themeMeta) {
+        themeMeta = document.createElement('meta');
+        themeMeta.setAttribute('name', 'theme-color');
+        document.head.appendChild(themeMeta);
+    }
+    themeMeta.setAttribute('content', primaryColor);
+
+    // 4. Update Apple Touch Icon (iOS Home Screen)
+    if (settings.companyLogoUrl) {
+        let appleIcon = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement;
+        if (!appleIcon) {
+            appleIcon = document.createElement('link');
+            appleIcon.rel = 'apple-touch-icon';
+            document.head.appendChild(appleIcon);
+        }
+        appleIcon.href = settings.companyLogoUrl;
+    }
+
+    // 5. Generate & Inject Dynamic Manifest
     const manifest = {
       name: settings.companyName,
       short_name: settings.companyName,
@@ -506,17 +542,17 @@ const App: React.FC = () => {
       display: "standalone",
       orientation: "portrait-primary",
       background_color: "#FDFCFB",
-      theme_color: settings.primaryColor || "#D4AF37",
+      theme_color: primaryColor,
       icons: [
         {
           src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
-          sizes: "500x500", // Corrected size declaration for the provided image
+          sizes: "500x500", 
           type: "image/png",
           purpose: "any"
         },
         {
           src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
-          sizes: "192x192", // Kept for compatibility but using the same source (browser resizes)
+          sizes: "192x192", 
           type: "image/png",
           purpose: "maskable"
         }
@@ -554,7 +590,7 @@ const App: React.FC = () => {
     }
 
     return () => URL.revokeObjectURL(manifestURL);
-  }, [settings]);
+  }, [settings.companyName, settings.companyLogoUrl, settings.primaryColor, settings.slogan]);
 
   const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
     const newLog: SystemLog = {
@@ -911,22 +947,6 @@ const App: React.FC = () => {
     document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
     document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
   }, [settings.primaryColor]);
-
-  // Update document title and favicon based on settings
-  useEffect(() => {
-    document.title = settings.companyName || 'Monique Boutique';
-    
-    // Update Favicon dynamically
-    if (settings.companyLogoUrl) {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = settings.companyLogoUrl;
-    }
-  }, [settings.companyName, settings.companyLogoUrl]);
 
   return (
     <SettingsContext.Provider value={{ 
