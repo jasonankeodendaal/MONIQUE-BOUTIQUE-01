@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { LogIn, Mail, Lock, AlertCircle, Info, Chrome, ArrowRight } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Info, Chrome, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
@@ -107,6 +107,17 @@ const Login: React.FC = () => {
 
       {/* Right Side: Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16 relative">
+        {/* Back Button */}
+        <button 
+            onClick={() => navigate('/')}
+            className="absolute top-8 left-8 z-20 flex items-center gap-2 text-slate-500 hover:text-white transition-colors group"
+        >
+            <div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-primary/50 transition-all">
+                <ArrowLeft size={14} />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest">Return Home</span>
+        </button>
+
         {/* Mobile Background Effect */}
         <div className="absolute inset-0 lg:hidden overflow-hidden z-0">
            <div className="absolute top-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-primary/10 rounded-full blur-[100px]"></div>
