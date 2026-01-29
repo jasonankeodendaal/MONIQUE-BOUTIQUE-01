@@ -16,6 +16,8 @@ import {
   Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
 import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, Order, OrderItem, SaveStatus } from '../types';
 import { useSettings } from '../App';
@@ -482,6 +484,38 @@ const SimpleDonutChart = ({ data }: { data: { label: string, value: number, colo
 
 // --- ANALYTICS DASHBOARD ---
 const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[] }> = ({ trafficEvents, products, stats, orders, categories }) => {
+  const { settings } = useSettings();
+  
+  const generateReport = () => {
+    const doc = new jsPDF();
+    const activeOrders = orders.filter(o => o.status !== 'cancelled');
+    const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
+    const totalVisits = trafficEvents.length;
+    
+    doc.setFontSize(20);
+    doc.text(`${settings.companyName} - Performance Report`, 14, 22);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+    
+    doc.text(`Total Revenue: ${settings.currency} ${totalRevenue.toLocaleString()}`, 14, 40);
+    doc.text(`Total Orders: ${activeOrders.length}`, 14, 46);
+    doc.text(`Total Visits: ${totalVisits.toLocaleString()}`, 14, 52);
+    
+    // Top Products Table
+    const productData = products.map(p => {
+        const stat = stats.find(s => s.productId === p.id);
+        return [p.name, stat?.views || 0, stat?.clicks || 0, stat ? ((stat.clicks/stat.views)*100).toFixed(1)+'%' : '0%'];
+    }).sort((a,b) => (b[1] as number) - (a[1] as number)).slice(0, 10); // Top 10
+
+    autoTable(doc, {
+        startY: 60,
+        head: [['Product', 'Views', 'Clicks', 'CTR']],
+        body: productData,
+    });
+    
+    doc.save(`analytics_report_${Date.now()}.pdf`);
+  };
+
   const activeOrders = orders.filter(o => o.status !== 'cancelled');
   const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
   const totalOrders = orders.length;
@@ -546,7 +580,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6"><div><h2 className="text-3xl font-serif text-white">Intelligence Center</h2><p className="text-slate-400 text-sm">Real-time telemetry and performance analytics.</p></div><div className="flex gap-2"><button className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors">Last 7 Days</button><button onClick={() => window.location.reload()} className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white"><RefreshCcw size={16}/></button></div></div>
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6"><div><h2 className="text-3xl font-serif text-white">Intelligence Center</h2><p className="text-slate-400 text-sm">Real-time telemetry and performance analytics.</p></div><div className="flex gap-2"><button className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors">Last 7 Days</button><button onClick={generateReport} className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors flex items-center gap-2"><Download size={14}/> Report</button><button onClick={() => window.location.reload()} className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white"><RefreshCcw size={16}/></button></div></div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{metrics.map((m, i) => ( <div key={i} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-colors shadow-lg"><div className="flex justify-between items-start mb-4"><div className={`p-2.5 rounded-xl ${m.bg} ${m.color}`}><m.icon size={20} /></div><div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${m.negative ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>{m.negative ? <TrendingDown size={12}/> : <TrendingUp size={12}/>} {m.change}</div></div><div><h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">{m.value}</h4><p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{m.label}</p></div></div> ))}</div>
       
       <div className="grid lg:grid-cols-3 gap-6">
@@ -738,6 +772,113 @@ const Admin: React.FC = () => {
   const exportEnquiries = () => { if(!hasPermission('sales.export')) return; const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + enquiries.map(e => `${e.name},${e.email},${e.subject},"${e.message}",${new Date(e.createdAt).toLocaleDateString()}`).join("\n"); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "enquiries_export.csv"); document.body.appendChild(link); link.click(); };
   const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
 
+  // --- REPORTING ENGINE ---
+  const generateGlobalReport = () => {
+    const doc = new jsPDF();
+    const activeOrders = orders.filter(o => o.status !== 'cancelled');
+    const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
+    const vat = totalRevenue * (settings.vatRate ? settings.vatRate / 100 : 0.15);
+    const net = totalRevenue - vat;
+
+    doc.setFontSize(20);
+    doc.text(`${settings.companyName} - Financial Report`, 14, 22);
+    
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+    
+    // Summary Stats
+    doc.text(`Total Orders: ${activeOrders.length}`, 14, 40);
+    doc.text(`Gross Revenue: ${settings.currency} ${totalRevenue.toFixed(2)}`, 14, 46);
+    doc.text(`VAT (${settings.vatRate || 15}%): ${settings.currency} ${vat.toFixed(2)}`, 14, 52);
+    doc.text(`Net Revenue: ${settings.currency} ${net.toFixed(2)}`, 14, 58);
+
+    const tableData = activeOrders.map(order => [
+        new Date(order.createdAt).toLocaleDateString(),
+        order.id,
+        order.customerName,
+        order.paymentMethod,
+        order.total.toFixed(2)
+    ]);
+
+    autoTable(doc, {
+        startY: 65,
+        head: [['Date', 'Order ID', 'Customer', 'Method', 'Total']],
+        body: tableData,
+    });
+
+    doc.save(`global_report_${Date.now()}.pdf`);
+  };
+
+  const generateAffiliateReport = () => {
+    const doc = new jsPDF();
+    const affiliateOrders = orders.filter(o => o.affiliateId && o.status !== 'cancelled');
+    
+    // Group by affiliate
+    const affiliateStats: Record<string, { count: number, sales: number, commission: number }> = {};
+    
+    affiliateOrders.forEach(o => {
+        const aid = o.affiliateId!;
+        if (!affiliateStats[aid]) affiliateStats[aid] = { count: 0, sales: 0, commission: 0 };
+        affiliateStats[aid].count++;
+        affiliateStats[aid].sales += o.total;
+        affiliateStats[aid].commission += o.total * 0.10; // Assuming 10% commission
+    });
+
+    doc.setFontSize(20);
+    doc.text(`Affiliate Performance Report`, 14, 22);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+
+    const tableData = Object.entries(affiliateStats).map(([aid, stats]) => [
+        aid,
+        stats.count,
+        stats.sales.toFixed(2),
+        stats.commission.toFixed(2)
+    ]);
+
+    autoTable(doc, {
+        startY: 40,
+        head: [['Affiliate ID', 'Orders', 'Total Sales', 'Est. Commission (10%)']],
+        body: tableData,
+    });
+
+    doc.save(`affiliate_report_${Date.now()}.pdf`);
+  };
+
+  const generateUserReport = (admin: AdminUser) => {
+    const doc = new jsPDF();
+    // Assuming 'affiliateId' is not properly populated in mock, we'll simulate logic or use creator ID if products are tracked
+    // For now, if order system supports affiliateId, we use that.
+    const affiliateOrders = orders.filter(o => o.affiliateId === admin.id && o.status !== 'cancelled');
+    const totalSales = affiliateOrders.reduce((sum, o) => sum + o.total, 0);
+    const commission = totalSales * ((admin.commissionRate || 0) / 100);
+
+    doc.setFontSize(20);
+    doc.text(`Affiliate Report: ${admin.name}`, 14, 22);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
+    doc.text(`Commission Rate: ${admin.commissionRate || 0}%`, 14, 36);
+
+    doc.text(`Total Orders: ${affiliateOrders.length}`, 14, 46);
+    doc.text(`Total Sales Generated: ${settings.currency} ${totalSales.toFixed(2)}`, 14, 52);
+    doc.text(`Commission Earned: ${settings.currency} ${commission.toFixed(2)}`, 14, 58);
+
+    const tableData = affiliateOrders.map(o => [
+        new Date(o.createdAt).toLocaleDateString(),
+        o.id,
+        o.total.toFixed(2),
+        (o.total * ((admin.commissionRate || 0) / 100)).toFixed(2)
+    ]);
+
+    autoTable(doc, {
+        startY: 65,
+        head: [['Date', 'Order ID', 'Total', 'Commission']],
+        body: tableData,
+    });
+
+    doc.save(`affiliate_report_${admin.name.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
+  };
+
   const renderEnquiries = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
@@ -847,7 +988,16 @@ const Admin: React.FC = () => {
 
     return (
       <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
-         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Fulfillment</h2><p className="text-slate-400 text-sm">Manage orders, update logistics, and print invoices.</p></div><div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => ( <button key={f} onClick={() => setOrderFilter(f)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{f.replace('_', ' ')}</button> ))}</div></div>
+         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+            <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Fulfillment</h2><p className="text-slate-400 text-sm">Manage orders, update logistics, and print invoices.</p></div>
+            <div className="flex gap-2 w-full md:w-auto">
+                <button onClick={generateGlobalReport} className="flex-1 md:flex-none justify-center px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white transition-colors flex items-center gap-2 border border-slate-700"><FileText size={16}/> Financial Report</button>
+                <button onClick={generateAffiliateReport} className="flex-1 md:flex-none justify-center px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white transition-colors flex items-center gap-2 border border-slate-700"><Users size={16}/> Affiliate Report</button>
+            </div>
+         </div>
+         
+         <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">{['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => ( <button key={f} onClick={() => setOrderFilter(f)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{f.replace('_', ' ')}</button> ))}</div>
+         
          {selectedOrderIds.length > 0 && hasPermission('sales.fulfillment') && ( <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-primary text-slate-900 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10"><span className="text-xs font-bold">{selectedOrderIds.length} Selected</span><div className="h-4 w-px bg-slate-900/20"></div><button onClick={() => handleBulkStatusUpdate('processing')} className="text-[10px] font-black uppercase hover:text-white transition-colors">Mark Processing</button><button onClick={() => handleBulkStatusUpdate('shipped')} className="text-[10px] font-black uppercase hover:text-white transition-colors">Mark Shipped</button><button onClick={() => setSelectedOrderIds([])} className="p-1 rounded-full hover:bg-white/20"><X size={14}/></button></div> )}
          <div className="relative mb-6"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search orders by ID, name or email..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden"><table className="w-full text-left border-collapse"><thead><tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800"><th className="p-4 w-12 text-center"><input type="checkbox" className="rounded bg-slate-800 border-slate-700 text-primary focus:ring-0" onChange={(e) => setSelectedOrderIds(e.target.checked ? filteredOrders.map(o => o.id) : [])} checked={selectedOrderIds.length === filteredOrders.length && filteredOrders.length > 0} /></th><th className="p-4">Order ID</th><th className="p-4">Date</th><th className="p-4">Customer</th><th className="p-4">Status</th><th className="p-4 text-right">Total</th><th className="p-4 w-12"></th></tr></thead><tbody className="divide-y divide-slate-800">{filteredOrders.length === 0 ? ( <tr><td colSpan={7} className="p-8 text-center text-slate-500 text-sm">No orders found.</td></tr> ) : ( filteredOrders.map(order => ( <tr key={order.id} className="hover:bg-slate-800/30 transition-colors group cursor-pointer" onClick={() => { setViewingOrder(order); setTrackingInfo({ courier: order.courierName || '', tracking: order.trackingNumber || '' }); }}><td className="p-4 text-center" onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={selectedOrderIds.includes(order.id)} onChange={() => toggleOrderSelection(order.id)} className="rounded bg-slate-800 border-slate-700 text-primary focus:ring-0"/></td><td className="p-4 font-mono text-xs text-white">{order.id}</td><td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td><td className="p-4"><div className="flex flex-col"><span className="text-sm font-bold text-white">{order.customerName}</span><span className="text-[10px] text-slate-500">{order.customerEmail}</span></div></td><td className="p-4">{getStatusBadge(order.status)}</td><td className="p-4 text-right text-sm font-bold text-white">R {order.total.toLocaleString()}</td><td className="p-4 text-slate-500 group-hover:text-primary transition-colors"><ChevronRight size={16}/></td></tr> )) )}</tbody></table></div>
@@ -964,7 +1114,23 @@ const Admin: React.FC = () => {
                     <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
                  </div>
-                 <div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
+                 <div className="space-y-6 text-left">
+                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3>
+                    <div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} />
+                    
+                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Affiliate Configuration</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <SettingField label="Commission Rate (%)" value={adminData.commissionRate?.toString() || '0'} onChange={v => setAdminData({...adminData, commissionRate: parseFloat(v)})} type="number" />
+                        <SettingField label="Upload Limit" value={adminData.uploadLimit?.toString() || '0'} onChange={v => setAdminData({...adminData, uploadLimit: parseFloat(v)})} type="number" />
+                        <div className="col-span-2 space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Permissions</label>
+                            <div className="flex items-center gap-3 p-4 bg-slate-800 rounded-xl border border-slate-700">
+                                <input type="checkbox" checked={adminData.canUpload} onChange={e => setAdminData({...adminData, canUpload: e.target.checked})} className="w-5 h-5 accent-primary rounded cursor-pointer" />
+                                <span className="text-white text-sm font-bold">Can Upload Products</span>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
            </div>
@@ -984,7 +1150,7 @@ const Admin: React.FC = () => {
                         <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.role === 'owner' ? 'Full System' : `${a.permissions.length} modules`}</span></div>
                       </div>
                    </div>
-                   {hasPermission('team.manage') && <div className="flex gap-3 w-full md:w-auto flex-shrink-0"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={20}/></button></div>}
+                   {hasPermission('team.manage') && <div className="flex gap-3 w-full md:w-auto flex-shrink-0"><button onClick={() => generateUserReport(a)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all" title="Download Performance Report"><FileText size={20}/></button><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={20}/></button></div>}
                  </div>
                  );
                })}
@@ -1184,6 +1350,18 @@ const Admin: React.FC = () => {
                             )}
                         </div>
                     </div>
+                    
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6">
+                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Banknote size={16} /> Company Financials</h4>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <SettingField label="VAT Rate (%)" value={tempSettings.vatRate?.toString() || '15'} onChange={v => updateTempSettings({ vatRate: parseFloat(v) })} type="number" />
+                            <SettingField label="VAT Number" value={tempSettings.vatNumber || ''} onChange={v => updateTempSettings({ vatNumber: v })} />
+                            <SettingField label="Bank Name" value={tempSettings.bankName || ''} onChange={v => updateTempSettings({ bankName: v })} />
+                            <SettingField label="Account Number" value={tempSettings.accountNumber || ''} onChange={v => updateTempSettings({ accountNumber: v })} />
+                            <SettingField label="Branch Code" value={tempSettings.branchCode || ''} onChange={v => updateTempSettings({ branchCode: v })} />
+                        </div>
+                    </div>
+
                     <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6">
                         <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4>
                         <div className="space-y-4">
@@ -1229,7 +1407,7 @@ const Admin: React.FC = () => {
               </button>
            </div>
            <div className="flex items-center gap-2">
-              <span className="text-slate-600">Maison Portal v2.5.6</span>
+              <span className="text-slate-600">Maison Portal v2.5.7</span>
               <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
               <span className="text-slate-500">100% Secure Handshake</span>
            </div>

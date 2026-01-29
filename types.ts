@@ -226,6 +226,13 @@ export interface SiteSettings {
   payfastSaltPassphrase: string;
   zapierWebhookUrl: string;
   bankDetails: string;
+
+  // Financial Settings (New)
+  vatRate?: number;
+  vatNumber?: string;
+  bankName?: string;
+  accountNumber?: string;
+  branchCode?: string;
 }
 
 export interface PermissionNode {
@@ -247,6 +254,12 @@ export interface AdminUser {
   profileImage?: string;
   phone?: string;
   address?: string;
+  
+  // Affiliate/Creator Specifics (New)
+  commissionRate?: number;
+  totalEarnings?: number;
+  uploadLimit?: number;
+  canUpload?: boolean;
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -306,6 +319,9 @@ export interface Order {
   courierName?: string;
   trackingNumber?: string;
   trackingUrl?: string;
+  
+  // Affiliate Tracking (New)
+  affiliateId?: string;
 }
 
 export interface UserAddress {

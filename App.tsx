@@ -430,6 +430,15 @@ const App: React.FC = () => {
   useEffect(() => { productsRef.current = products; }, [products]);
   useEffect(() => { statsRef.current = stats; }, [stats]);
 
+  // Affiliate Tracking Logic
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('affiliate_ref', ref);
+    }
+  }, []);
+
   const performLogout = useCallback(async () => {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();

@@ -1,5 +1,4 @@
 
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
@@ -1191,7 +1190,11 @@ export const INITIAL_ADMINS: AdminUser[] = [
     createdAt: Date.now(),
     phone: '',
     address: 'Online HQ',
-    profileImage: ''
+    profileImage: '',
+    commissionRate: 0,
+    totalEarnings: 0,
+    uploadLimit: 1000,
+    canUpload: true
   }
 ];
 
@@ -1340,7 +1343,14 @@ export const INITIAL_SETTINGS: SiteSettings = {
   payfastMerchantKey: '',
   payfastSaltPassphrase: '',
   zapierWebhookUrl: '',
-  bankDetails: ''
+  bankDetails: '',
+
+  // Financial Defaults
+  vatRate: 15,
+  vatNumber: '',
+  bankName: '',
+  accountNumber: '',
+  branchCode: ''
 };
 
 export const INITIAL_CAROUSEL: CarouselSlide[] = [
