@@ -1212,10 +1212,10 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: 'Monique Boutique',
+  companyName: 'FINDARA Fashion-Tech-Home',
   slogan: 'Your Bridge to Global Style',
   companyLogo: 'MB',
-  companyLogoUrl: 'https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png',
+  companyLogoUrl: 'https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png',
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
@@ -1225,22 +1225,22 @@ export const INITIAL_SETTINGS: SiteSettings = {
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
-  contactEmail: 'moniqueboutique101@gmail.com',
-  contactPhone: '+27 76 836 0325',
-  whatsappNumber: '27768360325',
-  address: 'Mokopane, Limpopo, 0601',
+  contactEmail: 'contact@example.com',
+  contactPhone: '+27 00 000 0000',
+  whatsappNumber: '27000000000',
+  address: 'Online, South Africa',
   socialLinks: [
     { id: '1', name: 'Instagram', url: 'https://instagram.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
     { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }
   ],
 
-  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to Shein and global fashion trends.",
+  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to global fashion trends.",
   footerCopyrightText: "All rights reserved.",
 
   // Home Page Content
   homeHeroBadge: 'Affiliate Curator',
   homeAboutTitle: 'Me and My Story.',
-  homeAboutDescription: 'I built this bridge page to share my journey in affiliate marketing. Here I showcase my favorite finds from programs like Shein, offering you a personal look at the products I love and recommend.',
+  homeAboutDescription: 'I built this bridge page to share my journey in affiliate marketing. Here I showcase my favorite finds, offering you a personal look at the products I love and recommend.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Read My Story',
   homeCategorySectionTitle: 'Curated Departments',
@@ -1248,7 +1248,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   homeTrustSectionTitle: 'Why Shop Here',
   
   homeTrustItem1Title: 'Verified Affiliate',
-  homeTrustItem1Desc: 'Official partner with major global retailers like Shein.',
+  homeTrustItem1Desc: 'Official partner with major global retailers.',
   homeTrustItem1Icon: 'ShieldCheck', 
 
   homeTrustItem2Title: 'Personal Curation',
@@ -1276,11 +1276,11 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Monique',
+  aboutFounderName: 'Curator',
   aboutLocation: 'Online',
 
   aboutHistoryTitle: 'The Bridge System',
-  aboutHistoryBody: 'This website is more than just a store; it is a bridge page system designed to market various affiliate programs. My passion for fashion led me to partner with brands like Shein to bring you the best deals.\n\nHere you will find my personal reviews, styling tips, and direct links to purchase the items I love.',
+  aboutHistoryBody: 'This website is more than just a store; it is a bridge page system designed to market various affiliate programs. My passion for fashion led me to partner with top brands to bring you the best deals.\n\nHere you will find my personal reviews, styling tips, and direct links to purchase the items I love.',
   
   aboutMissionTitle: 'Marketing Mission',
   aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers.',

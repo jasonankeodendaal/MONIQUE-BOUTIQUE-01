@@ -1,7 +1,7 @@
 
 {
-  "name": "Maison Portal",
-  "short_name": "Maison",
+  "name": "FINDARA Fashion-Tech-Home",
+  "short_name": "FINDARA",
   "description": "Personal Luxury Wardrobe and Affiliate Bridge",
   "id": "/",
   "start_url": "/",
@@ -11,13 +11,13 @@
   "theme_color": "#D4AF37",
   "icons": [
     {
-      "src": "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
+      "src": "https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png",
       "sizes": "500x500",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
+      "src": "https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
