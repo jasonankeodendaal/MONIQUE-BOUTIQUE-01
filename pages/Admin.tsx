@@ -13,7 +13,7 @@ import {
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
   FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator, AlertCircle, RefreshCw, ShieldAlert, Binary
+  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator, AlertCircle, RefreshCw, ShieldAlert, Binary, Unlock, Coins as CoinsIcon
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -60,15 +60,42 @@ function predictNextValue(values: number[]): number {
 
 // --- SUB-COMPONENTS ---
 
-const CalculatorField: React.FC<{ label: string; value: number | string; onChange?: (val: string) => void; readOnly?: boolean; prefix?: string; suffix?: string; highlight?: boolean }> = ({ label, value, onChange, readOnly = false, prefix, suffix, highlight = false }) => (
-  <div className="flex items-center justify-between gap-4 py-2 border-b border-slate-800/50 group hover:bg-slate-800/20 transition-colors">
-    <label className={`text-[10px] font-bold uppercase tracking-widest w-5/12 text-left ${highlight ? 'text-primary' : 'text-slate-400'}`}>{label}</label>
+interface CalculatorFieldProps {
+  label: string;
+  value: number | string;
+  onChange?: (val: string) => void;
+  readOnly?: boolean;
+  prefix?: string;
+  suffix?: string;
+  highlight?: boolean;
+  error?: boolean;
+  tooltip?: string;
+}
+
+const CalculatorField: React.FC<CalculatorFieldProps> = ({ 
+  label, value, onChange, readOnly = false, prefix, suffix, highlight = false, error = false, tooltip 
+}) => (
+  <div className="flex items-center justify-between gap-4 py-2 border-b border-slate-800/50 group hover:bg-slate-800/20 transition-colors relative">
+    <label className={`text-[10px] font-bold uppercase tracking-widest w-5/12 text-left flex items-center gap-1 ${highlight ? 'text-primary' : 'text-slate-400'}`}>
+      {label}
+      {tooltip && (
+        <div className="group/tip relative">
+          <HelpCircle size={10} className="text-slate-600 cursor-help" />
+          <div className="absolute left-0 bottom-full mb-2 hidden group-hover/tip:block bg-slate-800 text-white text-[9px] p-2 rounded w-32 z-50 shadow-xl border border-slate-700">
+            {tooltip}
+          </div>
+        </div>
+      )}
+    </label>
     <div className="relative w-7/12 flex items-center">
       {prefix && <span className="absolute left-3 text-xs text-slate-500 font-mono z-10">{prefix}</span>}
       <input
         type="number"
         step="0.01"
-        className={`w-full bg-slate-950 border border-slate-700 rounded px-3 py-1.5 text-right text-xs font-mono text-white focus:border-primary focus:bg-slate-900 outline-none transition-all ${readOnly ? 'opacity-60 cursor-not-allowed bg-slate-900/50 border-slate-800 text-slate-300' : ''} ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-8' : ''}`}
+        className={`w-full bg-slate-950 border rounded px-3 py-1.5 text-right text-xs font-mono text-white focus:bg-slate-900 outline-none transition-all 
+          ${error ? 'border-red-500 focus:border-red-500 text-red-400' : 'border-slate-700 focus:border-primary'} 
+          ${readOnly ? 'opacity-60 cursor-not-allowed bg-slate-900/50 border-slate-800 text-slate-300' : ''} 
+          ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-8' : ''}`}
         value={value}
         onChange={e => onChange && onChange(e.target.value)}
         readOnly={readOnly}
@@ -841,49 +868,268 @@ const TrainingGrid: React.FC = () => {
 // --- MAIN ADMIN COMPONENT ---
 
 interface ERPState {
+  // Costs
   effectiveCost: number;
   averageCost: number;
   lastCost: number;
-  fixedMarkup: number;
+  costBasis: 'effective' | 'average' | 'last';
+
+  // Commission
+  commissionType: 'percentage' | 'fixed';
+  commissionPercent: number;
+  fixedCommission: number;
+
+  // Tax & Pricing
   taxRate: number;
   sellingPriceExcl: number;
   sellingPriceIncl: number;
-  fixedCommission: number;
+
+  // Logic
+  lockedField: 'price' | 'margin' | 'none';
+  currency: string;
 }
 
 const ERPPricingCalculator: React.FC<{
   state: ERPState;
-  onChange: (field: keyof ERPState, value: number) => void;
+  onChange: (field: keyof ERPState, value: any) => void;
   readOnly?: boolean;
 }> = ({ state, onChange, readOnly = false }) => {
+  
+  // Calculations
+  const baseCost = state[state.costBasis === 'effective' ? 'effectiveCost' : state.costBasis === 'last' ? 'lastCost' : 'averageCost'] || 0;
   const taxAmount = state.sellingPriceExcl * (state.taxRate / 100);
-  const grossProfit = state.sellingPriceExcl - state.effectiveCost;
-  const markupPercent = state.effectiveCost > 0 ? (grossProfit / state.effectiveCost) * 100 : 0;
+  const grossProfit = state.sellingPriceExcl - baseCost;
+  const markupPercent = baseCost > 0 ? (grossProfit / baseCost) * 100 : 0;
   const marginPercent = state.sellingPriceExcl > 0 ? (grossProfit / state.sellingPriceExcl) * 100 : 0;
+  const netProfit = grossProfit - state.fixedCommission;
+  const breakEvenPrice = baseCost + state.fixedCommission;
+
+  const exportCalculation = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Pricing Calculation Sheet", 14, 20);
+    
+    const data = [
+        ['Metric', 'Value'],
+        ['Cost Basis', state.costBasis.toUpperCase()],
+        ['Base Cost', `${state.currency} ${baseCost.toFixed(2)}`],
+        ['Selling Price (Excl)', `${state.currency} ${state.sellingPriceExcl.toFixed(2)}`],
+        ['Tax', `${state.currency} ${taxAmount.toFixed(2)}`],
+        ['Selling Price (Incl)', `${state.currency} ${state.sellingPriceIncl.toFixed(2)}`],
+        ['Commission', `${state.currency} ${state.fixedCommission.toFixed(2)}`],
+        ['Gross Profit', `${state.currency} ${grossProfit.toFixed(2)}`],
+        ['Net Profit', `${state.currency} ${netProfit.toFixed(2)}`],
+        ['Margin', `${marginPercent.toFixed(2)}%`],
+        ['Markup', `${markupPercent.toFixed(2)}%`],
+        ['Break Even', `${state.currency} ${breakEvenPrice.toFixed(2)}`]
+    ];
+
+    autoTable(doc, {
+        startY: 30,
+        head: [['Field', 'Value']],
+        body: data,
+    });
+    doc.save(`pricing_calc_${Date.now()}.pdf`);
+  };
+
+  const resetFields = () => {
+      onChange('sellingPriceExcl', 0);
+      onChange('effectiveCost', 0);
+      onChange('fixedCommission', 0);
+      onChange('commissionPercent', 0);
+  };
+
+  const isLowMargin = marginPercent < 15;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full min-w-0">
-      {/* Left Column: Costs & Tax */}
-      <div className="space-y-1">
-        <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3 border-b border-slate-800 pb-2">Cost & Tax Configuration</h5>
-        <CalculatorField label="Effective Cost" value={state.effectiveCost} onChange={v => onChange('effectiveCost', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" />
-        <CalculatorField label="Last Cost" value={state.lastCost} onChange={v => onChange('lastCost', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" />
-        <CalculatorField label="Average Cost" value={state.averageCost} onChange={v => onChange('averageCost', parseFloat(v) || 0)} readOnly={true} prefix="R" />
-        <div className="h-4"></div>
-        <CalculatorField label="Tax Rate (%)" value={state.taxRate} onChange={v => onChange('taxRate', parseFloat(v) || 0)} readOnly={readOnly} suffix="%" />
-        <CalculatorField label="Tax Amount" value={taxAmount.toFixed(2)} readOnly={true} prefix="R" />
+    <div className="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-[2rem] w-full min-w-0 shadow-xl space-y-8">
+      {/* Header Toolbar */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-slate-800">
+         <div className="flex items-center gap-4 w-full md:w-auto">
+            <select 
+                value={state.currency} 
+                onChange={(e) => onChange('currency', e.target.value)}
+                className="bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-lg px-3 py-2 outline-none focus:border-primary"
+            >
+                <option value="ZAR">ZAR (R)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+            </select>
+            <div className="h-6 w-px bg-slate-800"></div>
+            <button onClick={resetFields} className="text-slate-500 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-1 transition-colors"><RefreshCw size={12}/> Reset</button>
+         </div>
+         <button onClick={exportCalculation} className="w-full md:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-slate-700">
+            <Download size={14}/> Export PDF
+         </button>
       </div>
 
-      {/* Right Column: Pricing & Margins */}
-      <div className="space-y-1">
-        <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3 border-b border-slate-800 pb-2">Pricing & Profitability</h5>
-        <CalculatorField label="Selling (Excl)" value={state.sellingPriceExcl} onChange={v => onChange('sellingPriceExcl', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" highlight />
-        <CalculatorField label="Selling (Incl)" value={state.sellingPriceIncl} onChange={v => onChange('sellingPriceIncl', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" highlight />
-        <div className="h-4"></div>
-        <CalculatorField label="Gross Profit" value={grossProfit.toFixed(2)} readOnly={true} prefix="R" />
-        <CalculatorField label="Calc. Markup" value={markupPercent.toFixed(2)} readOnly={true} suffix="%" />
-        <CalculatorField label="Calc. Margin" value={marginPercent.toFixed(2)} readOnly={true} suffix="%" />
-        <CalculatorField label="Commission" value={state.fixedCommission} onChange={v => onChange('fixedCommission', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+        {/* Left Column: Inputs */}
+        <div className="space-y-8">
+            {/* Cost Section */}
+            <div className="space-y-4">
+                <div className="flex justify-between items-end mb-2">
+                    <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Tag size={12}/> Cost Configuration</h5>
+                    <div className="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
+                        {['effective', 'last', 'average'].map((basis) => (
+                            <button
+                                key={basis}
+                                onClick={() => onChange('costBasis', basis)}
+                                className={`px-3 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${state.costBasis === basis ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
+                            >
+                                {basis}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <CalculatorField 
+                        label="Effective Cost" 
+                        value={state.effectiveCost} 
+                        onChange={v => onChange('effectiveCost', parseFloat(v) || 0)} 
+                        prefix={state.currency} 
+                        readOnly={readOnly}
+                        highlight={state.costBasis === 'effective'}
+                        error={state.effectiveCost < 0}
+                    />
+                    <CalculatorField 
+                        label="Last Cost" 
+                        value={state.lastCost} 
+                        onChange={v => onChange('lastCost', parseFloat(v) || 0)} 
+                        prefix={state.currency}
+                        readOnly={readOnly}
+                        highlight={state.costBasis === 'last'}
+                    />
+                    <CalculatorField 
+                        label="Avg Cost" 
+                        value={state.averageCost} 
+                        onChange={v => onChange('averageCost', parseFloat(v) || 0)} 
+                        prefix={state.currency} 
+                        readOnly={true} // Usually system calculated
+                        highlight={state.costBasis === 'average'}
+                    />
+                </div>
+            </div>
+
+            {/* Commission Section */}
+            <div className="space-y-4">
+                <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><CoinsIcon size={12}/> Commission Structure</h5>
+                <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex gap-4">
+                        <div className="flex-1">
+                            <CalculatorField 
+                                label="Comm. %" 
+                                value={state.commissionPercent} 
+                                onChange={v => {
+                                    const val = parseFloat(v) || 0;
+                                    onChange('commissionPercent', val);
+                                    // Auto-calc fixed
+                                    onChange('fixedCommission', state.sellingPriceExcl * (val / 100));
+                                }} 
+                                suffix="%" 
+                                readOnly={readOnly}
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <CalculatorField 
+                                label="Fixed Amt" 
+                                value={state.fixedCommission.toFixed(2)} 
+                                onChange={v => {
+                                    const val = parseFloat(v) || 0;
+                                    onChange('fixedCommission', val);
+                                    // Auto-calc percent
+                                    if(state.sellingPriceExcl > 0) onChange('commissionPercent', (val / state.sellingPriceExcl) * 100);
+                                }} 
+                                prefix={state.currency} 
+                                readOnly={readOnly}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Right Column: Pricing & Results */}
+        <div className="space-y-8">
+            <div className="space-y-4">
+                <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Banknote size={12}/> Pricing Strategy</h5>
+                <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                       <button 
+                          onClick={() => onChange('lockedField', state.lockedField === 'price' ? 'none' : 'price')}
+                          className={`p-1.5 rounded-lg transition-colors ${state.lockedField === 'price' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-500 hover:text-white'}`}
+                          title={state.lockedField === 'price' ? "Price Locked (Margin fluctuates)" : "Lock Selling Price"}
+                       >
+                          {state.lockedField === 'price' ? <Lock size={12}/> : <Unlock size={12}/>}
+                       </button>
+                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Price Lock</span>
+                    </div>
+
+                    <CalculatorField 
+                        label="Selling (Excl)" 
+                        value={state.sellingPriceExcl.toFixed(2)} 
+                        onChange={v => onChange('sellingPriceExcl', parseFloat(v) || 0)} 
+                        readOnly={readOnly || state.lockedField === 'price'} 
+                        prefix={state.currency} 
+                        highlight 
+                    />
+                    
+                    <div className="py-2 flex items-center gap-2">
+                        <div className="h-px bg-slate-800 flex-grow"></div>
+                        <span className="text-[9px] font-mono text-slate-500">+ VAT ({state.taxRate}%)</span>
+                        <div className="h-px bg-slate-800 flex-grow"></div>
+                    </div>
+
+                    <CalculatorField 
+                        label="Selling (Incl)" 
+                        value={state.sellingPriceIncl.toFixed(2)} 
+                        onChange={v => onChange('sellingPriceIncl', parseFloat(v) || 0)} 
+                        readOnly={readOnly || state.lockedField === 'price'} 
+                        prefix={state.currency} 
+                        highlight 
+                        tooltip="Final Shelf Price including Tax"
+                    />
+                    
+                    <div className="pt-2">
+                       <CalculatorField label="Tax Rate" value={state.taxRate} onChange={v => onChange('taxRate', parseFloat(v) || 0)} suffix="%" readOnly={readOnly}/>
+                    </div>
+                </div>
+            </div>
+
+            {/* Results Grid */}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Gross Profit</div>
+                    <div className="text-lg font-mono text-white font-bold">{state.currency} {grossProfit.toFixed(2)}</div>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Net Profit</div>
+                    <div className={`text-lg font-mono font-bold ${netProfit < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {state.currency} {netProfit.toFixed(2)}
+                    </div>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50 relative overflow-hidden">
+                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1 flex items-center gap-1">
+                        Margin
+                        {isLowMargin && <AlertCircle size={10} className="text-red-500 animate-pulse"/>}
+                    </div>
+                    <div className={`text-lg font-mono font-bold ${isLowMargin ? 'text-red-400' : 'text-blue-400'}`}>
+                        {marginPercent.toFixed(2)}%
+                    </div>
+                    {isLowMargin && <div className="text-[8px] text-red-500 font-bold mt-1">BELOW THRESHOLD</div>}
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Markup</div>
+                    <div className="text-lg font-mono text-purple-400 font-bold">{markupPercent.toFixed(2)}%</div>
+                </div>
+            </div>
+            
+            <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex justify-between items-center text-xs">
+                <span className="text-slate-500 font-bold uppercase tracking-widest">Break Even Price</span>
+                <span className="text-white font-mono">{state.currency} {breakEvenPrice.toFixed(2)}</span>
+            </div>
+        </div>
       </div>
     </div>
   );
@@ -935,11 +1181,15 @@ const Admin: React.FC = () => {
     effectiveCost: 0,
     averageCost: 0,
     lastCost: 0,
-    fixedMarkup: 0,
+    costBasis: 'effective',
+    commissionType: 'percentage',
+    commissionPercent: 0,
+    fixedCommission: 0,
     taxRate: settings.vatRate || 15,
     sellingPriceExcl: 0,
     sellingPriceIncl: 0,
-    fixedCommission: 0
+    lockedField: 'none',
+    currency: 'ZAR'
   });
 
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
@@ -1022,32 +1272,71 @@ const Admin: React.FC = () => {
   const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
 
   // --- ERP LOGIC ENGINE ---
-  const handleErpChange = (field: keyof ERPState, value: number, isProductForm: boolean = false) => {
-    // Determine which state to update (Standalone tool or Product Form data)
-    let current = isProductForm 
+  const handleErpChange = (field: keyof ERPState, value: any, isProductForm: boolean = false) => {
+    // Current State Resolution
+    let state = isProductForm 
       ? {
           effectiveCost: productData.costPrice || 0,
           averageCost: 0,
           lastCost: 0,
-          fixedMarkup: 0,
+          costBasis: 'effective' as const, // Simplified for Product Form, usually manual input
+          commissionType: 'percentage' as const,
+          commissionPercent: 0,
+          fixedCommission: 0, // Not stored on product model currently
           taxRate: settings.vatRate || 15,
           sellingPriceExcl: (productData.price || 0) / (1 + (settings.vatRate || 15) / 100),
           sellingPriceIncl: productData.price || 0,
-          fixedCommission: 0
+          lockedField: 'none' as const,
+          currency: settings.currency || 'ZAR'
         } 
       : erpPricing;
 
-    // Apply Change
-    const newState = { ...current, [field]: value };
+    // Apply the update
+    const newState = { ...state, [field]: value };
+    
+    // Core Logic Variables
     const taxFactor = 1 + (newState.taxRate / 100);
+    const cost = newState.costBasis === 'effective' ? newState.effectiveCost : newState.costBasis === 'last' ? newState.lastCost : newState.averageCost;
 
-    // Recalculate Dependencies
+    // --- RECALCULATION LOGIC ---
     if (field === 'sellingPriceExcl') {
-      newState.sellingPriceIncl = value * taxFactor;
-    } else if (field === 'sellingPriceIncl') {
-      newState.sellingPriceExcl = value / taxFactor;
-    } else if (field === 'taxRate') {
-      newState.sellingPriceIncl = newState.sellingPriceExcl * (1 + value / 100);
+        // Price Excl Changed -> Update Incl
+        newState.sellingPriceIncl = value * taxFactor;
+        // Commission auto-update if % based
+        if(newState.commissionType === 'percentage') {
+            newState.fixedCommission = value * (newState.commissionPercent / 100);
+        }
+    } 
+    else if (field === 'sellingPriceIncl') {
+        // Price Incl Changed -> Update Excl
+        newState.sellingPriceExcl = value / taxFactor;
+        // Commission auto-update if % based
+        if(newState.commissionType === 'percentage') {
+            newState.fixedCommission = newState.sellingPriceExcl * (newState.commissionPercent / 100);
+        }
+    } 
+    else if (field === 'taxRate') {
+        // Tax Changed -> Update Incl based on Excl
+        newState.sellingPriceIncl = newState.sellingPriceExcl * (1 + value / 100);
+    }
+    else if (field === 'effectiveCost' || field === 'lastCost' || field === 'averageCost' || field === 'costBasis') {
+        // Cost Changed -> Check Locks
+        const newCost = newState.costBasis === 'effective' ? newState.effectiveCost : newState.costBasis === 'last' ? newState.lastCost : newState.averageCost;
+        
+        if (state.lockedField === 'price') {
+            // Price locked, Margin changes (no calc needed, margin is derived in render)
+        } else if (state.lockedField === 'margin') {
+            // Margin locked, Price must change
+            // Old Margin %
+            const oldCost = state.costBasis === 'effective' ? state.effectiveCost : state.costBasis === 'last' ? state.lastCost : state.averageCost;
+            const oldMargin = state.sellingPriceExcl > 0 ? (state.sellingPriceExcl - oldCost) / state.sellingPriceExcl : 0;
+            
+            // New Price = New Cost / (1 - Margin)
+            if (1 - oldMargin > 0) {
+                newState.sellingPriceExcl = newCost / (1 - oldMargin);
+                newState.sellingPriceIncl = newState.sellingPriceExcl * taxFactor;
+            }
+        }
     }
 
     // Update appropriate state
@@ -1055,7 +1344,7 @@ const Admin: React.FC = () => {
       setProductData(prev => ({
         ...prev,
         price: newState.sellingPriceIncl, // App uses Price as Incl
-        costPrice: newState.effectiveCost
+        costPrice: newState.effectiveCost // Mapping back
       }));
     } else {
       setErpPricing(newState);
@@ -1221,11 +1510,15 @@ const Admin: React.FC = () => {
                           effectiveCost: productData.costPrice || 0,
                           averageCost: 0,
                           lastCost: 0,
-                          fixedMarkup: 0,
+                          costBasis: 'effective',
+                          commissionType: 'percentage',
+                          commissionPercent: 0,
+                          fixedCommission: 0,
                           taxRate: settings.vatRate || 15,
                           sellingPriceExcl: (productData.price || 0) / (1 + (settings.vatRate || 15) / 100),
                           sellingPriceIncl: productData.price || 0,
-                          fixedCommission: 0
+                          lockedField: 'none',
+                          currency: settings.currency || 'ZAR'
                         }}
                         onChange={(f, v) => handleErpChange(f, v, true)}
                       />
