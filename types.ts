@@ -59,6 +59,7 @@ export interface Product {
   // Commerce
   isDirectSale?: boolean;
   stockQuantity?: number;
+  costPrice?: number;
 }
 
 export interface ProductStats {
@@ -228,6 +229,7 @@ export interface SiteSettings {
   bankDetails: string;
 
   // Financial Settings (New)
+  vatRegistered?: boolean; // New
   vatRate?: number;
   vatNumber?: string;
   bankName?: string;

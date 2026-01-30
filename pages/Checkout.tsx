@@ -184,6 +184,11 @@ const Checkout: React.FC = () => {
       localStorage.setItem('pending_order_shipping', JSON.stringify(shippingDetails));
   };
 
+  const vatRate = settings.vatRegistered ? (settings.vatRate || 15) : 0;
+  // If registered, calculate VAT portion from inclusive total. If not, VAT is 0.
+  const vatAmount = settings.vatRegistered ? (cartTotal - (cartTotal / (1 + vatRate / 100))) : 0;
+  const subTotalExcl = cartTotal - vatAmount;
+
   return (
     <div className="min-h-screen bg-[#FDFCFB] pt-32 md:pt-40 pb-20">
       <div className="max-w-6xl mx-auto px-6">
@@ -374,16 +379,22 @@ const Checkout: React.FC = () => {
 
                    <div className="space-y-3 pt-6 border-t border-white/10 relative z-10">
                       <div className="flex justify-between text-slate-400 text-sm">
-                         <span>Subtotal</span>
-                         <span>R {cartTotal.toLocaleString()}</span>
+                         <span>Subtotal (Excl. VAT)</span>
+                         <span>R {subTotalExcl.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                       </div>
                       <div className="flex justify-between text-slate-400 text-sm">
                          <span>Shipping</span>
                          <span className="text-green-400">Free</span>
                       </div>
+                      {settings.vatRegistered && (
+                          <div className="flex justify-between text-slate-400 text-sm">
+                             <span>VAT ({vatRate}%)</span>
+                             <span>R {vatAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                          </div>
+                      )}
                       <div className="flex justify-between text-xl font-bold pt-4 border-t border-white/10">
                          <span>Total</span>
-                         <span className="text-primary">R {cartTotal.toLocaleString()}</span>
+                         <span className="text-primary">R {cartTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                       </div>
                    </div>
 

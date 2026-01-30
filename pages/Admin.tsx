@@ -13,7 +13,7 @@ import {
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
   FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube
+  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -27,6 +27,24 @@ import emailjs from '@emailjs/browser';
 import { CustomIcons } from '../components/CustomIcons';
 
 // --- SUB-COMPONENTS ---
+
+const CalculatorField: React.FC<{ label: string; value: number | string; onChange?: (val: string) => void; readOnly?: boolean; prefix?: string; suffix?: string; highlight?: boolean }> = ({ label, value, onChange, readOnly = false, prefix, suffix, highlight = false }) => (
+  <div className="flex items-center justify-between gap-4 py-2 border-b border-slate-800/50 group hover:bg-slate-800/20 transition-colors">
+    <label className={`text-[10px] font-bold uppercase tracking-widest w-5/12 text-left ${highlight ? 'text-primary' : 'text-slate-400'}`}>{label}</label>
+    <div className="relative w-7/12 flex items-center">
+      {prefix && <span className="absolute left-3 text-xs text-slate-500 font-mono z-10">{prefix}</span>}
+      <input
+        type="number"
+        step="0.01"
+        className={`w-full bg-slate-950 border border-slate-700 rounded px-3 py-1.5 text-right text-xs font-mono text-white focus:border-primary focus:bg-slate-900 outline-none transition-all ${readOnly ? 'opacity-60 cursor-not-allowed bg-slate-900/50 border-slate-800 text-slate-300' : ''} ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-8' : ''}`}
+        value={value}
+        onChange={e => onChange && onChange(e.target.value)}
+        readOnly={readOnly}
+      />
+      {suffix && <span className="absolute right-3 text-xs text-slate-500 font-mono">{suffix}</span>}
+    </div>
+  </div>
+);
 
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-yellow-500/5 border border-yellow-500/20 p-5 md:p-6 rounded-3xl mb-8 flex gap-4 md:gap-5 items-start text-left animate-in fade-in slide-in-from-top-2">
@@ -63,7 +81,6 @@ const SaveIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
     if (status === 'saved' || status === 'error') {
       setVisible(true);
       if (status === 'error') {
-          // Get the most recent error log
           const latestError = systemLogs.find(l => l.type === 'ERROR');
           setErrorMessage(latestError ? latestError.message : 'Check connection.');
       }
@@ -98,389 +115,140 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
   </div>
 );
 
-// --- IMAGE COMPRESSION HELPER ---
-const compressImage = async (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    // Pass through non-images (videos) without compression
-    if (!file.type.startsWith('image/')) {
-       const reader = new FileReader();
-       reader.readAsDataURL(file);
-       reader.onload = (e) => resolve(e.target?.result as string);
-       reader.onerror = (e) => reject(e);
-       return;
-    }
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200;
-        const scaleSize = MAX_WIDTH / img.width;
-        
-        if (scaleSize < 1) {
-            canvas.width = MAX_WIDTH;
-            canvas.height = img.height * scaleSize;
-        } else {
-            canvas.width = img.width;
-            canvas.height = img.height;
-        }
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-            reject(new Error('Canvas context failed'));
-            return;
-        }
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        // Compress to JPEG 0.7
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-        resolve(dataUrl);
-      };
-      img.onerror = (err: any) => reject(err);
-    };
-    reader.onerror = (err) => reject(err);
-  });
-};
-
-const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    try {
-      const compressedDataUrl = await compressImage(file);
-      if (compressedDataUrl.length > 5 * 1024 * 1024) { 
-          alert("File is too large. Please use an image under 4MB.");
-          setUploading(false);
-          return;
-      }
-
-      if (isSupabaseConfigured) {
-        const res = await fetch(compressedDataUrl);
-        const blob = await res.blob();
-        const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-        const url = await uploadMedia(compressedFile, 'media');
-        if (url) onChange(url);
-      } else {
-        onChange(compressedDataUrl);
-      }
-    } catch (err: any) {
-      console.error("Upload failed", err);
-      // More descriptive error
-      alert(`Upload Failed: ${err.message || 'Unknown error'}. Ensure the "media" bucket exists and is set to Public in Supabase.`);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video');
-
-  return (
-    <div className="space-y-2 text-left w-full min-w-0">
-       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
-       <div 
-        onClick={() => !uploading && inputRef.current?.click()}
-        className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`}
-       >
-          {uploading ? (
-            <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center">
-               <Loader2 size={24} className="animate-spin mb-2" />
-               <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden">
-                 <div className="bg-primary h-full animate-[grow_2s_infinite]"></div>
-               </div>
-            </div>
-          ) : value ? (
-            <>
-              {isVideo ? (
-                 <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline />
-              ) : (
-                 <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" />
-              )}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold">
-                   <Edit2 size={16}/>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-               <ImageIcon size={24} className="mb-2 opacity-50" />
-               <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span>
-            </div>
-          )}
-          <input type="file" className="hidden" ref={inputRef} accept={accept} onChange={handleUpload} disabled={uploading} />
-       </div>
-    </div>
-  );
-};
-
-const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  // Safely handle null/undefined images
-  const safeImages = Array.isArray(images) ? images : [];
-
-  const processFiles = async (incomingFiles: FileList | null) => {
-    if (!incomingFiles) return;
-    setUploading(true);
-    const newUrls: string[] = [];
-    try {
-      for (let i = 0; i < incomingFiles.length; i++) {
-        const file = incomingFiles[i];
-        const compressedDataUrl = await compressImage(file);
-        if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large`); continue; }
-        if (isSupabaseConfigured) {
-          const res = await fetch(compressedDataUrl);
-          const blob = await res.blob();
-          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-          const url = await uploadMedia(compressedFile, 'media');
-          if (url) newUrls.push(url);
-        } else {
-           newUrls.push(compressedDataUrl);
-        }
-      }
-      onChange([...safeImages, ...newUrls]);
-    } catch (err: any) { 
-        console.error(err); 
-        alert(`Upload Failed: ${err.message}. Ensure "media" bucket exists.`);
-    } finally { setUploading(false); }
-  };
-
-  return (
-    <div className="space-y-4 text-left w-full min-w-0">
-      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
-        <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group">
-          {uploading ? <Loader2 size={24} className="animate-spin text-primary" /> : <Plus className="text-slate-400 group-hover:text-white" size={24} />}
-          <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
-        </div>
-        {safeImages.map((url, idx) => (
-            <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
-              <img src={url} className="w-full h-full object-cover" alt="preview" />
-              <button onClick={() => { const newImages = [...safeImages]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
-            </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: SocialLink[]) => void }> = ({ links, onChange }) => {
-  const handleUpdate = (id: string, field: keyof SocialLink, value: string) => {
-    onChange(links.map(link => link.id === id ? { ...link, [field]: value } : link));
-  };
-  return (
-    <div className="space-y-4 w-full min-w-0">
-      <div className="flex justify-between items-center mb-4">
-        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Social Profiles</label>
-        <button onClick={() => onChange([...links, { id: Date.now().toString(), name: 'New Platform', url: 'https://', iconUrl: '' }])} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1"><Plus size={12}/> Add</button>
-      </div>
-      <div className="space-y-3">
-        {links.map((link) => (
-          <div key={link.id} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 items-start">
-             <div className="flex-shrink-0"><SingleImageUploader label="" value={link.iconUrl} onChange={v => handleUpdate(link.id, 'iconUrl', v)} className="w-12 h-12 rounded-xl"/></div>
-             <div className="flex-grow grid grid-cols-2 gap-3 w-full">
-                <input type="text" value={link.name} onChange={e => handleUpdate(link.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Platform Name" />
-                <input type="text" value={link.url} onChange={e => handleUpdate(link.id, 'url', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Profile URL" />
-             </div>
-             <button onClick={() => onChange(links.filter(l => l.id !== link.id))} className="p-2 bg-slate-800 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => {
-  switch (id) {
-    case 'forge':
-      return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden min-w-0"><div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)]" /><div className="relative z-10 flex flex-col items-center"><div className="flex gap-4 mb-8"><div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-2xl rotate-[-12deg]"><FileCode size={32} /></div><div className="w-16 h-16 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-2xl rotate-[12deg]"><Terminal size={32} /></div></div><div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary w-2/3 animate-[shimmer_2s_infinite]" /></div></div></div>);
-    default:
-      return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center min-w-0"><Rocket className="text-slate-800 w-24 h-24" /></div>);
-  }
-};
-
-const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: string[]) => void; role: 'owner' | 'admin'; }> = ({ permissions, onChange, role }) => {
-  if (role === 'owner') return <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-bold text-center">Owners have full system access by default.</div>;
-  const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } };
-  const toggleGroup = (node: PermissionNode) => { const childIds = node.children?.map(c => c.id) || []; const allSelected = childIds.every(id => permissions.includes(id)); if (allSelected) { onChange(permissions.filter(p => !childIds.includes(p))); } else { const newPerms = [...permissions]; childIds.forEach(id => { if (!newPerms.includes(id)) newPerms.push(id); }); onChange(newPerms); } };
-  return (
-    <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div>
-  );
-};
-
-const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void }> = ({ selected, onSelect }) => {
-  const [search, setSearch] = useState(''); const [isOpen, setIsOpen] = useState(false); const [limit, setLimit] = useState(100);
-  const CUSTOM_KEYS = Object.keys(CustomIcons); const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { const val = (LucideIcons as any)[key]; return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); });
-  const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; const displayed = filtered.slice(0, limit); const SelectedIconComponent = CustomIcons[selected] || (LucideIcons as any)[selected] || LucideIcons.Package;
-  return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>);
-};
-
-const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
-  const { settings } = useSettings();
-  const [subject, setSubject] = useState(`Re: ${enquiry.subject}`);
-  const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`);
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const [sending, setSending] = useState(false); const [success, setSuccess] = useState(false); const [error, setError] = useState<string | null>(null);
-  const handleSend = async () => { const serviceId = settings.emailJsServiceId?.trim(); const templateId = settings.emailJsTemplateId?.trim(); const publicKey = settings.emailJsPublicKey?.trim(); if (!serviceId || !templateId || !publicKey) { setError("Email.js is not configured."); return; } setSending(true); setError(null); try { const fileLinks: string[] = []; if (attachments.length > 0) { if (!isSupabaseConfigured) throw new Error("Supabase is required for attachments."); for (const file of attachments) { const url = await uploadMedia(file, 'media'); if (url) fileLinks.push(`${file.name}: ${url}`); } } let finalMessage = message.replace(/\n/g, '<br>'); if (fileLinks.length > 0) finalMessage += `<br><br><strong>Attachments:</strong><br>${fileLinks.map(l => `<a href="${l.split(': ')[1]}">${l.split(': ')[0]}</a>`).join('<br>')}`; let logoUrl = settings.companyLogoUrl || ''; const productsHtml = ''; const socialsHtml = ''; const templateParams = { to_name: enquiry.name, to_email: enquiry.email, subject, message: finalMessage, reply_to: enquiry.email, company_name: settings.companyName, company_address: settings.address, company_website: window.location.origin, company_logo_url: logoUrl, products_html: productsHtml, socials_html: socialsHtml, year: new Date().getFullYear().toString() }; await emailjs.send(serviceId, templateId, templateParams, publicKey); setSuccess(true); setTimeout(onClose, 2000); } catch (err: any) { console.error('EmailJS Error:', err); setError(err.text || err.message); } finally { setSending(false); } };
-  if (success) return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"><div className="bg-white rounded-3xl p-10 text-center animate-in zoom-in"><div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-4"><CheckCircle size={40} /></div><h3 className="text-2xl font-bold text-slate-900">Email Sent!</h3></div></div>);
-  return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div className="p-6 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold flex items-center gap-3"><Reply size={20} className="text-primary"/> Reply to {enquiry.name}</h3><button onClick={onClose} className="text-slate-500 hover:text-white"><X size={24}/></button></div><div className="p-6 overflow-y-auto space-y-6 text-left">{error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">{error}</div>}<div className="space-y-4"><div className="grid grid-cols-2 gap-4"><SettingField label="To" value={enquiry.email} onChange={() => {}} type="text" /><SettingField label="Subject" value={subject} onChange={setSubject} /></div><SettingField label="Message (HTML Support Enabled)" value={message} onChange={setMessage} type="textarea" rows={12} /><div className="space-y-2 text-left"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Paperclip size={12}/> Attachments (Requires Storage)</label><input type="file" multiple onChange={e => e.target.files && setAttachments(Array.from(e.target.files))} className="block w-full text-xs text-slate-400 file:bg-slate-800 file:text-primary file:rounded-full file:border-0 file:py-2 file:px-4" /></div></div></div><div className="p-6 border-t border-slate-800 flex justify-end gap-3"><button onClick={onClose} className="px-6 py-3 rounded-xl text-slate-400 font-bold text-xs uppercase tracking-widest">Cancel</button><button onClick={handleSend} disabled={sending} className="px-8 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">{sending ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>} Send Email</button></div></div></div>);
-};
-
-const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
-const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => {
-  const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState('');
-  useEffect(() => { 
-    const baseText = `Check out the ${product.name} from ${settings.companyName}.`; 
-    const price = `Price: R ${product.price}`; 
-    const link = `${window.location.origin}/#/product/${product.id}`; 
-    const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; 
-    const discount = product.discountRules?.[0];
-    const discountText = discount ? (discount.type === 'percentage' ? `🔥 ${discount.value}% OFF` : `🔥 R${discount.value} OFF`) : '';
-
-    let generated = ''; 
-    switch(platform.id) { 
-        case 'instagram': 
-            generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n${discountText ? `${discountText}\n` : ''}\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; 
-            break; 
-        default: 
-            generated = `${product.name} is now available.\n\n${product.description.substring(0, 200)}...\n\n${discountText ? `${discountText}\n` : ''}${features}\n\nShop securely here: ${link}`; 
-    } 
-    setCustomText(generated); 
-  }, [platform, product, settings]);
-  const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-  
-  const handleShareBundle = async () => {
-    if (!navigator.share) {
-      alert("Sharing not supported on this device/browser. Please copy text and save image manually.");
-      return;
-    }
-    try {
-      const link = `${window.location.origin}/#/product/${product.id}`;
-      const shareData: any = { title: settings.companyName, text: customText, url: link };
-      if (product.media?.[0]?.url) {
-        try {
-          const response = await fetch(product.media[0].url);
-          const blob = await response.blob();
-          const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-             shareData.files = [file];
-          }
-        } catch (e) { console.warn("Could not bundle image for share", e); }
-      }
-      await navigator.share(shareData);
-    } catch (error) {
-      console.error('Error sharing', error);
-      alert("Device sharing failed. Please use 'Save Image' and 'Copy Text' manually.");
-    }
-  };
-
-  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>);
-};
-
-const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => {
-  const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-  return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>);
-};
-
-const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const processFiles = async (incomingFiles: FileList | null) => {
-    if (!incomingFiles) return;
-    setUploading(true);
-    const newFiles: MediaFile[] = [];
-    for (let i = 0; i < incomingFiles.length; i++) {
-        const file = incomingFiles[i];
-        try {
-            const compressedDataUrl = await compressImage(file);
-            if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large (>4MB)`); continue; }
-            let result = compressedDataUrl;
-            if (isSupabaseConfigured) {
-               const res = await fetch(compressedDataUrl);
-               const blob = await res.blob();
-               const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-               try { const publicUrl = await uploadMedia(compressedFile, 'media'); if (publicUrl) result = publicUrl; } catch (err: any) { 
-                   console.error("Upload failed", err); 
-                   alert(`Upload Error: ${err.message}. Check Bucket config.`);
-                   continue;
-               }
-            }
-            newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, size: file.size });
-        } catch (e) { console.error("Processing failed", e); }
-    }
-    onFilesChange(multiple ? [...files, ...newFiles] : newFiles);
-    setUploading(false);
-  };
-  return (
-    <div className="space-y-4 text-left w-full min-w-0">
-      <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]">
-        {uploading ? (
-           <div className="flex flex-col items-center">
-             <Loader2 size={24} className="animate-spin text-primary mb-2" />
-             <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div>
-             <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span>
-           </div>
-        ) : (
-           <>
-            <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} />
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p>
-           </>
-        )}
-        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
-      </div>
-      {files.length > 0 && (
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2">
-          {files.map(f => (
-            <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
-              {f.type.startsWith('video') ? ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div> ) : ( <img src={f.url} className="w-full h-full object-cover" alt="preview" /> )}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const IntegrationGuide: React.FC = () => (
-  <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left">
-     <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2"><Lightbulb size={16}/> Integration Setup Guide</h4>
-     <div className="space-y-4 text-xs text-slate-400">
-        <details className="group">
-          <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors"><Mail size={14} /> EmailJS (Forms)</summary>
-          <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p>
-            <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p>
-            <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p>
-            <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p>
-          </div>
-        </details>
-     </div>
-  </div>
-);
-
-// --- CHARTS ---
-// (Keeping existing Chart implementations compact)
+// --- CHARTS WITH TOOLTIPS ---
+// ... (Charts remain unchanged)
 const SimpleLineChart = ({ data, color, height = 120 }: { data: number[], color: string, height?: number }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  
   if (!data || data.length < 2) return <div className="h-full flex items-center justify-center text-xs text-slate-600 font-medium">Insufficient Data</div>;
-  const max = Math.max(...data, 1); const min = Math.min(...data); const range = max - min || 1;
-  const points = data.map((val, i) => { const x = (i / (data.length - 1)) * 100; const y = 100 - ((val - min) / range) * 80 - 10; return `${x},${y}`; }).join(' ');
-  return ( <div className="w-full relative overflow-hidden" style={{ height: `${height}px` }}><svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible"><line x1="0" y1="20" x2="100" y2="20" stroke="#334155" strokeWidth="0.1" strokeDasharray="2 2" /><line x1="0" y1="50" x2="100" y2="50" stroke="#334155" strokeWidth="0.1" strokeDasharray="2 2" /><line x1="0" y1="80" x2="100" y2="80" stroke="#334155" strokeWidth="0.1" strokeDasharray="2 2" /><defs><linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor={color} stopOpacity="0.2" /><stop offset="100%" stopColor={color} stopOpacity="0" /></linearGradient></defs><path d={`M0,100 L0,${100 - ((data[0]-min)/range)*80-10} ${points.split(' ').map(p => 'L'+p).join(' ')} L100,100 Z`} fill={`url(#grad-${color})`} stroke="none" /><polyline fill="none" stroke={color} strokeWidth="1.5" points={points} vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" /></svg></div> );
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const points = data.map((val, i) => { 
+      const x = (i / (data.length - 1)) * 100; 
+      const y = 100 - ((val - min) / range) * 80 - 10; 
+      return { x, y, val }; 
+  });
+  const pathData = points.map(p => `${p.x},${p.y}`).join(' ');
+
+  return (
+    <div className="w-full relative overflow-visible group" style={{ height: `${height}px` }}>
+        {hoveredIndex !== null && (
+            <div 
+                className="absolute z-20 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg border border-slate-700 transform -translate-x-1/2 -translate-y-full pointer-events-none transition-all"
+                style={{ 
+                    left: `${points[hoveredIndex].x}%`, 
+                    top: `${points[hoveredIndex].y}%`,
+                    marginTop: '-8px'
+                }}
+            >
+                {points[hoveredIndex].val}
+            </div>
+        )}
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+            <defs>
+                <linearGradient id={`grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+                    <stop offset="100%" stopColor={color} stopOpacity="0" />
+                </linearGradient>
+            </defs>
+            <path d={`M0,100 L0,${points[0].y} ${points.map(p => `L${p.x},${p.y}`).join(' ')} L100,100 Z`} fill={`url(#grad-${color})`} stroke="none" />
+            <polyline fill="none" stroke={color} strokeWidth="1.5" points={pathData} vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+            
+            {/* Interactive Points */}
+            {points.map((p, i) => (
+                <circle 
+                    key={i} 
+                    cx={p.x} 
+                    cy={p.y} 
+                    r="1.5" 
+                    fill={color} 
+                    className="hover:r-2 transition-all cursor-pointer"
+                    onMouseEnter={() => setHoveredIndex(i)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    vectorEffect="non-scaling-stroke"
+                    stroke="transparent"
+                    strokeWidth="10" 
+                />
+            ))}
+        </svg>
+    </div>
+  );
 };
-const SimpleBarChart = ({ data, color, showLabels = true }: { data: { label: string, value: number }[], color: string, showLabels?: boolean }) => { const max = Math.max(...data.map(d => d.value), 1); return ( <div className="flex items-end justify-between gap-2 h-full w-full">{data.map((d, i) => ( <div key={i} className="flex flex-col items-center flex-1 h-full justify-end group relative"><div className="w-full rounded-t-sm transition-all duration-500 hover:opacity-80 min-h-[4px]" style={{ height: `${(d.value / max) * 100}%`, backgroundColor: color }}><div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none font-bold">{d.value}</div></div>{showLabels && <span className="text-[8px] text-slate-500 mt-2 truncate w-full text-center font-medium uppercase tracking-wider">{d.label}</span>}</div> ))}</div> ); };
-const HorizontalBarChart = ({ data, color }: { data: { label: string, value: number }[], color: string }) => { const max = Math.max(...data.map(d => d.value), 1); return ( <div className="space-y-4 w-full">{data.map((d, i) => ( <div key={i} className="w-full group"><div className="flex justify-between text-[10px] text-slate-400 mb-1 font-medium"><span>{d.label}</span><span className="font-bold text-slate-300">{d.value}</span></div><div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 group-hover:brightness-125" style={{ width: `${(d.value / max) * 100}%`, backgroundColor: color }} /></div></div> ))}</div> ); };
+
+const SimpleBarChart = ({ data, color, showLabels = true }: { data: { label: string, value: number }[], color: string, showLabels?: boolean }) => {
+  const [hovered, setHovered] = useState<{idx: number, val: number} | null>(null);
+  const max = Math.max(...data.map(d => d.value), 1);
+
+  return (
+    <div className="flex items-end justify-between gap-2 h-full w-full relative">
+      {data.map((d, i) => (
+        <div 
+            key={i} 
+            className="flex flex-col items-center flex-1 h-full justify-end group relative"
+            onMouseEnter={() => setHovered({ idx: i, val: d.value })}
+            onMouseLeave={() => setHovered(null)}
+        >
+          {hovered?.idx === i && (
+             <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] py-1 px-2 rounded shadow-xl border border-slate-700 z-20 whitespace-nowrap font-bold animate-in fade-in zoom-in duration-200">
+                {d.value}
+             </div>
+          )}
+          <div 
+            className="w-full rounded-t-sm transition-all duration-300 hover:brightness-110 min-h-[4px]" 
+            style={{ 
+                height: `${(d.value / max) * 100}%`, 
+                backgroundColor: color,
+                opacity: hovered?.idx === i ? 1 : 0.8
+            }} 
+          />
+          {showLabels && (
+            <span className="text-[8px] text-slate-500 mt-2 truncate w-full text-center font-medium uppercase tracking-wider">
+                {d.label}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const HorizontalBarChart = ({ data, color }: { data: { label: string, value: number }[], color: string }) => { 
+    const max = Math.max(...data.map(d => d.value), 1); 
+    return ( 
+        <div className="space-y-4 w-full">
+            {data.map((d, i) => ( 
+                <div key={i} className="w-full group">
+                    <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-medium">
+                        <span>{d.label}</span>
+                        <span className="font-bold text-slate-300">{d.value}</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-1000 group-hover:brightness-125" style={{ width: `${(d.value / max) * 100}%`, backgroundColor: color }} />
+                    </div>
+                </div> 
+            ))}
+        </div> 
+    ); 
+};
+
 const SimpleDonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => { const total = data.reduce((acc, curr) => acc + curr.value, 0) || 1; let accumulated = 0; return ( <div className="relative w-32 h-32 mx-auto"><svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">{data.map((d, i) => { const percent = d.value / total; const dashArray = `${percent * 283} 283`; const dashOffset = -accumulated * 283; accumulated += percent; return ( <circle key={i} cx="50" cy="50" r="45" fill="transparent" stroke={d.color} strokeWidth="10" strokeDasharray={dashArray} strokeDashoffset={dashOffset} className="transition-all duration-500 hover:stroke-[12px]" /> ); })}</svg><div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-xl font-bold text-white">{total > 999 ? '1k+' : total}</span><span className="text-[8px] uppercase font-black text-slate-500 tracking-widest">Hits</span></div></div> ); };
+
+// (Re-declaring unchanged helper components to maintain file integrity)
+const compressImage = async (file: File): Promise<string> => { return new Promise((resolve, reject) => { if (!file.type.startsWith('image/')) { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => resolve(e.target?.result as string); reader.onerror = (e) => reject(e); return; } const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target?.result as string; img.onload = () => { const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const scaleSize = MAX_WIDTH / img.width; if (scaleSize < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize; } else { canvas.width = img.width; canvas.height = img.height; } const ctx = canvas.getContext('2d'); if (!ctx) { reject(new Error('Canvas context failed')); return; } ctx.drawImage(img, 0, 0, canvas.width, canvas.height); const dataUrl = canvas.toDataURL('image/jpeg', 0.7); resolve(dataUrl); }; img.onerror = (err: any) => reject(err); }; reader.onerror = (err) => reject(err); }); };
+const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => { const inputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploading(true); try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert("File is too large. Please use an image under 4MB."); setUploading(false); return; } if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); const url = await uploadMedia(compressedFile, 'media'); if (url) onChange(url); } else { onChange(compressedDataUrl); } } catch (err: any) { console.error("Upload failed", err); alert(`Upload Failed: ${err.message || 'Unknown error'}. Ensure the "media" bucket exists and is set to Public in Supabase.`); } finally { setUploading(false); } }; const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video'); return ( <div className="space-y-2 text-left w-full min-w-0"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label> <div onClick={() => !uploading && inputRef.current?.click()} className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`} > {uploading ? ( <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center"> <Loader2 size={24} className="animate-spin mb-2" /> <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden"> <div className="bg-primary h-full animate-[grow_2s_infinite]"></div> </div> </div> ) : value ? ( <> {isVideo ? ( <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline /> ) : ( <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" /> )} <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"> <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold"> <Edit2 size={16}/> </div> </div> </> ) : ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"> <ImageIcon size={24} className="mb-2 opacity-50" /> <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span> </div> )} <input type="file" className="hidden" ref={inputRef} accept={accept} onChange={handleUpload} disabled={uploading} /> </div> </div> ); };
+const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => { const fileInputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const safeImages = Array.isArray(images) ? images : []; const processFiles = async (incomingFiles: FileList | null) => { if (!incomingFiles) return; setUploading(true); const newUrls: string[] = []; try { for (let i = 0; i < incomingFiles.length; i++) { const file = incomingFiles[i]; const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large`); continue; } if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); const url = await uploadMedia(compressedFile, 'media'); if (url) newUrls.push(url); } else { newUrls.push(compressedDataUrl); } } onChange([...safeImages, ...newUrls]); } catch (err: any) { console.error(err); alert(`Upload Failed: ${err.message}. Ensure "media" bucket exists.`); } finally { setUploading(false); } }; return ( <div className="space-y-4 text-left w-full min-w-0"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label> <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3"> <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group"> {uploading ? <Loader2 size={24} className="animate-spin text-primary" /> : <Plus className="text-slate-400 group-hover:text-white" size={24} />} <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} /> </div> {safeImages.map((url, idx) => ( <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"> <img src={url} className="w-full h-full object-cover" alt="preview" /> <button onClick={() => { const newImages = [...safeImages]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button> </div> ))} </div> </div> ); };
+const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: SocialLink[]) => void }> = ({ links, onChange }) => { const handleUpdate = (id: string, field: keyof SocialLink, value: string) => { onChange(links.map(link => link.id === id ? { ...link, [field]: value } : link)); }; return ( <div className="space-y-4 w-full min-w-0"> <div className="flex justify-between items-center mb-4"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Social Profiles</label> <button onClick={() => onChange([...links, { id: Date.now().toString(), name: 'New Platform', url: 'https://', iconUrl: '' }])} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1"><Plus size={12}/> Add</button> </div> <div className="space-y-3"> {links.map((link) => ( <div key={link.id} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 items-start"> <div className="flex-shrink-0"><SingleImageUploader label="" value={link.iconUrl} onChange={v => handleUpdate(link.id, 'iconUrl', v)} className="w-12 h-12 rounded-xl"/></div> <div className="flex-grow grid grid-cols-2 gap-3 w-full"> <input type="text" value={link.name} onChange={e => handleUpdate(link.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Platform Name" /> <input type="text" value={link.url} onChange={e => handleUpdate(link.id, 'url', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Profile URL" /> </div> <button onClick={() => onChange(links.filter(l => l.id !== link.id))} className="p-2 bg-slate-800 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-colors"><Trash2 size={16} /></button> </div> ))} </div> </div> ); };
+const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => { switch (id) { case 'forge': return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden min-w-0"><div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)]" /><div className="relative z-10 flex flex-col items-center"><div className="flex gap-4 mb-8"><div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-2xl rotate-[-12deg]"><FileCode size={32} /></div><div className="w-16 h-16 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-2xl rotate-[12deg]"><Terminal size={32} /></div></div><div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary w-2/3 animate-[shimmer_2s_infinite]" /></div></div></div>); default: return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center min-w-0"><Rocket className="text-slate-800 w-24 h-24" /></div>); } };
+const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: string[]) => void; role: 'owner' | 'admin'; }> = ({ permissions, onChange, role }) => { if (role === 'owner') return <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-bold text-center">Owners have full system access by default.</div>; const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } }; const toggleGroup = (node: PermissionNode) => { const childIds = node.children?.map(c => c.id) || []; const allSelected = childIds.every(id => permissions.includes(id)); if (allSelected) { onChange(permissions.filter(p => !childIds.includes(p))); } else { const newPerms = [...permissions]; childIds.forEach(id => { if (!newPerms.includes(id)) newPerms.push(id); }); onChange(newPerms); } }; return ( <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div> ); };
+const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void }> = ({ selected, onSelect }) => { const [search, setSearch] = useState(''); const [isOpen, setIsOpen] = useState(false); const [limit, setLimit] = useState(100); const CUSTOM_KEYS = Object.keys(CustomIcons); const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { const val = (LucideIcons as any)[key]; return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); }); const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; const displayed = filtered.slice(0, limit); const SelectedIconComponent = CustomIcons[selected] || (LucideIcons as any)[selected] || LucideIcons.Package; return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>); };
+// ... (EmailReplyModal, AdGeneratorModal, CodeBlock, FileUploader, IntegrationGuide remain same)
+const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => { const { settings } = useSettings(); const [subject, setSubject] = useState(`Re: ${enquiry.subject}`); const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`); const [attachments, setAttachments] = useState<File[]>([]); const [sending, setSending] = useState(false); const [success, setSuccess] = useState(false); const [error, setError] = useState<string | null>(null); const handleSend = async () => { const serviceId = settings.emailJsServiceId?.trim(); const templateId = settings.emailJsTemplateId?.trim(); const publicKey = settings.emailJsPublicKey?.trim(); if (!serviceId || !templateId || !publicKey) { setError("Email.js is not configured."); return; } setSending(true); setError(null); try { const fileLinks: string[] = []; if (attachments.length > 0) { if (!isSupabaseConfigured) throw new Error("Supabase is required for attachments."); for (const file of attachments) { const url = await uploadMedia(file, 'media'); if (url) fileLinks.push(`${file.name}: ${url}`); } } let finalMessage = message.replace(/\n/g, '<br>'); if (fileLinks.length > 0) finalMessage += `<br><br><strong>Attachments:</strong><br>${fileLinks.map(l => `<a href="${l.split(': ')[1]}">${l.split(': ')[0]}</a>`).join('<br>')}`; let logoUrl = settings.companyLogoUrl || ''; const productsHtml = ''; const socialsHtml = ''; const templateParams = { to_name: enquiry.name, to_email: enquiry.email, subject, message: finalMessage, reply_to: enquiry.email, company_name: settings.companyName, company_address: settings.address, company_website: window.location.origin, company_logo_url: logoUrl, products_html: productsHtml, socials_html: socialsHtml, year: new Date().getFullYear().toString() }; await emailjs.send(serviceId, templateId, templateParams, publicKey); setSuccess(true); setTimeout(onClose, 2000); } catch (err: any) { console.error('EmailJS Error:', err); setError(err.text || err.message); } finally { setSending(false); } }; if (success) return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"><div className="bg-white rounded-3xl p-10 text-center animate-in zoom-in"><div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-4"><CheckCircle size={40} /></div><h3 className="text-2xl font-bold text-slate-900">Email Sent!</h3></div></div>); return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div className="p-6 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold flex items-center gap-3"><Reply size={20} className="text-primary"/> Reply to {enquiry.name}</h3><button onClick={onClose} className="text-slate-500 hover:text-white"><X size={24}/></button></div><div className="p-6 overflow-y-auto space-y-6 text-left">{error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">{error}</div>}<div className="space-y-4"><div className="grid grid-cols-2 gap-4"><SettingField label="To" value={enquiry.email} onChange={() => {}} type="text" /><SettingField label="Subject" value={subject} onChange={setSubject} /></div><SettingField label="Message (HTML Support Enabled)" value={message} onChange={setMessage} type="textarea" rows={12} /><div className="space-y-2 text-left"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Paperclip size={12}/> Attachments (Requires Storage)</label><input type="file" multiple onChange={e => e.target.files && setAttachments(Array.from(e.target.files))} className="block w-full text-xs text-slate-400 file:bg-slate-800 file:text-primary file:rounded-full file:border-0 file:py-2 file:px-4" /></div></div></div><div className="p-6 border-t border-slate-800 flex justify-end gap-3"><button onClick={onClose} className="px-6 py-3 rounded-xl text-slate-400 font-bold text-xs uppercase tracking-widest">Cancel</button><button onClick={handleSend} disabled={sending} className="px-8 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">{sending ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>} Send Email</button></div></div></div>); };
+const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
+const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState(''); useEffect(() => { const baseText = `Check out the ${product.name} from ${settings.companyName}.`; const price = `Price: R ${product.price}`; const link = `${window.location.origin}/#/product/${product.id}`; const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; const discount = product.discountRules?.[0]; const discountText = discount ? (discount.type === 'percentage' ? `🔥 ${discount.value}% OFF` : `🔥 R${discount.value} OFF`) : ''; let generated = ''; switch(platform.id) { case 'instagram': generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n${discountText ? `${discountText}\n` : ''}\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; break; default: generated = `${product.name} is now available.\n\n${product.description.substring(0, 200)}...\n\n${discountText ? `${discountText}\n` : ''}${features}\n\nShop securely here: ${link}`; } setCustomText(generated); }, [platform, product, settings]); const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); }; const handleShareBundle = async () => { if (!navigator.share) { alert("Sharing not supported on this device/browser. Please copy text and save image manually."); return; } try { const link = `${window.location.origin}/#/product/${product.id}`; const shareData: any = { title: settings.companyName, text: customText, url: link }; if (product.media?.[0]?.url) { try { const response = await fetch(product.media[0].url); const blob = await response.blob(); const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type }); if (navigator.canShare && navigator.canShare({ files: [file] })) { shareData.files = [file]; } } catch (e) { console.warn("Could not bundle image for share", e); } } await navigator.share(shareData); } catch (error) { console.error('Error sharing', error); alert("Device sharing failed. Please use 'Save Image' and 'Copy Text' manually."); } }; return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>); };
+const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => { const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); }; return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>); };
+const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => { const fileInputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const processFiles = async (incomingFiles: FileList | null) => { if (!incomingFiles) return; setUploading(true); const newFiles: MediaFile[] = []; for (let i = 0; i < incomingFiles.length; i++) { const file = incomingFiles[i]; try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large (>4MB)`); continue; } let result = compressedDataUrl; if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); try { const publicUrl = await uploadMedia(compressedFile, 'media'); if (publicUrl) result = publicUrl; } catch (err: any) { console.error("Upload failed", err); alert(`Upload Error: ${err.message}. Check Bucket config.`); continue; } } newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, size: file.size }); } catch (e) { console.error("Processing failed", e); } } onFilesChange(multiple ? [...files, ...newFiles] : newFiles); setUploading(false); }; return ( <div className="space-y-4 text-left w-full min-w-0"> <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]"> {uploading ? ( <div className="flex flex-col items-center"> <Loader2 size={24} className="animate-spin text-primary mb-2" /> <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div> <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span> </div> ) : ( <> <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} /> <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p> </> )} <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} /> </div> {files.length > 0 && ( <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2"> {files.map(f => ( <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"> {f.type.startsWith('video') ? ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div> ) : ( <img src={f.url} className="w-full h-full object-cover" alt="preview" /> )} <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"> <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button> </div> </div> ))} </div> )} </div> ); };
+const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left"> <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2"><Lightbulb size={16}/> Integration Setup Guide</h4> <div className="space-y-4 text-xs text-slate-400"> <details className="group"> <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors"><Mail size={14} /> EmailJS (Forms)</summary> <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2"> <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p> <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p> <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p> <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p> </div> </details> </div> </div> );
 
 // --- ANALYTICS DASHBOARD ---
 const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[] }> = ({ trafficEvents, products, stats, orders, categories }) => {
@@ -541,7 +309,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
   const maxCatViews = Math.max(...categoryMatrix.map(c => c.stats.views), 1);
   const maxCatClicks = Math.max(...categoryMatrix.map(c => c.stats.clicks), 1);
 
-  // --- NEW AGGREGATIONS ---
   const engagementStats = useMemo(() => {
     const eventsWithScroll = trafficEvents.filter(e => typeof e.scrollDepth === 'number');
     const avgScroll = eventsWithScroll.length ? Math.round(eventsWithScroll.reduce((a, b) => a + (b.scrollDepth || 0), 0) / eventsWithScroll.length) : 0;
@@ -648,7 +415,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
   );
 };
 
-// ... (SystemMonitor and TrainingGrid components remain essentially same, just added checks inside Admin component logic)
+// ... (SystemMonitor and TrainingGrid components remain essentially same)
 const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
    const [serverLoad, setServerLoad] = useState<number[]>(new Array(20).fill(20));
    const [apiRequestRate, setApiRequestRate] = useState<{label: string, value: number}[]>(['GET', 'POST', 'PUT', 'DEL'].map(l => ({ label: l, value: Math.floor(Math.random() * 50) + 10 })));
@@ -666,6 +433,55 @@ const TrainingGrid: React.FC = () => {
 };
 
 // --- MAIN ADMIN COMPONENT ---
+
+interface ERPState {
+  effectiveCost: number;
+  averageCost: number;
+  lastCost: number;
+  fixedMarkup: number;
+  taxRate: number;
+  sellingPriceExcl: number;
+  sellingPriceIncl: number;
+  fixedCommission: number;
+}
+
+const ERPPricingCalculator: React.FC<{
+  state: ERPState;
+  onChange: (field: keyof ERPState, value: number) => void;
+  readOnly?: boolean;
+}> = ({ state, onChange, readOnly = false }) => {
+  const taxAmount = state.sellingPriceExcl * (state.taxRate / 100);
+  const grossProfit = state.sellingPriceExcl - state.effectiveCost;
+  const markupPercent = state.effectiveCost > 0 ? (grossProfit / state.effectiveCost) * 100 : 0;
+  const marginPercent = state.sellingPriceExcl > 0 ? (grossProfit / state.sellingPriceExcl) * 100 : 0;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full min-w-0">
+      {/* Left Column: Costs & Tax */}
+      <div className="space-y-1">
+        <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3 border-b border-slate-800 pb-2">Cost & Tax Configuration</h5>
+        <CalculatorField label="Effective Cost" value={state.effectiveCost} onChange={v => onChange('effectiveCost', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" />
+        <CalculatorField label="Last Cost" value={state.lastCost} onChange={v => onChange('lastCost', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" />
+        <CalculatorField label="Average Cost" value={state.averageCost} onChange={v => onChange('averageCost', parseFloat(v) || 0)} readOnly={true} prefix="R" />
+        <div className="h-4"></div>
+        <CalculatorField label="Tax Rate (%)" value={state.taxRate} onChange={v => onChange('taxRate', parseFloat(v) || 0)} readOnly={readOnly} suffix="%" />
+        <CalculatorField label="Tax Amount" value={taxAmount.toFixed(2)} readOnly={true} prefix="R" />
+      </div>
+
+      {/* Right Column: Pricing & Margins */}
+      <div className="space-y-1">
+        <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3 border-b border-slate-800 pb-2">Pricing & Profitability</h5>
+        <CalculatorField label="Selling (Excl)" value={state.sellingPriceExcl} onChange={v => onChange('sellingPriceExcl', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" highlight />
+        <CalculatorField label="Selling (Incl)" value={state.sellingPriceIncl} onChange={v => onChange('sellingPriceIncl', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" highlight />
+        <div className="h-4"></div>
+        <CalculatorField label="Gross Profit" value={grossProfit.toFixed(2)} readOnly={true} prefix="R" />
+        <CalculatorField label="Calc. Markup" value={markupPercent.toFixed(2)} readOnly={true} suffix="%" />
+        <CalculatorField label="Calc. Margin" value={marginPercent.toFixed(2)} readOnly={true} suffix="%" />
+        <CalculatorField label="Commission" value={state.fixedCommission} onChange={v => onChange('fixedCommission', parseFloat(v) || 0)} readOnly={readOnly} prefix="R" />
+      </div>
+    </div>
+  );
+};
 
 const Admin: React.FC = () => {
   const { 
@@ -706,6 +522,19 @@ const Admin: React.FC = () => {
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [trackingInfo, setTrackingInfo] = useState({ courier: '', tracking: '' });
+  const [creatorFilter, setCreatorFilter] = useState('all');
+  
+  // New ERP Pricing State for Standalone Tool
+  const [erpPricing, setErpPricing] = useState<ERPState>({
+    effectiveCost: 0,
+    averageCost: 0,
+    lastCost: 0,
+    fixedMarkup: 0,
+    taxRate: settings.vatRate || 15,
+    sellingPriceExcl: 0,
+    sellingPriceIncl: 0,
+    fixedCommission: 0
+  });
 
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@kasicouture.com');
@@ -717,9 +546,23 @@ const Admin: React.FC = () => {
     return myAdminProfile?.permissions?.includes(perm) || false;
   };
 
-  const displayProducts = useMemo(() => isOwner ? products : products.filter(p => !p.createdBy || p.createdBy === userId), [products, isOwner, userId]);
-  const displayCategories = useMemo(() => isOwner ? categories : categories.filter(c => !c.createdBy || c.createdBy === userId), [categories, isOwner, userId]);
-  const displayHeroSlides = useMemo(() => isOwner ? heroSlides : heroSlides.filter(s => !s.createdBy || s.createdBy === userId), [heroSlides, isOwner, userId]);
+  const displayProducts = useMemo(() => {
+    if (!isOwner) return products.filter(p => p.createdBy === userId);
+    if (creatorFilter !== 'all') return products.filter(p => p.createdBy === creatorFilter);
+    return products;
+  }, [products, isOwner, userId, creatorFilter]);
+
+  const displayCategories = useMemo(() => {
+    if (!isOwner) return categories.filter(c => c.createdBy === userId);
+    if (creatorFilter !== 'all') return categories.filter(c => c.createdBy === creatorFilter);
+    return categories;
+  }, [categories, isOwner, userId, creatorFilter]);
+
+  const displayHeroSlides = useMemo(() => {
+    if (!isOwner) return heroSlides.filter(s => s.createdBy === userId);
+    if (creatorFilter !== 'all') return heroSlides.filter(s => s.createdBy === creatorFilter);
+    return heroSlides;
+  }, [heroSlides, isOwner, userId, creatorFilter]);
 
   useEffect(() => {
     if (showProductForm && productData.isDirectSale) {
@@ -772,7 +615,48 @@ const Admin: React.FC = () => {
   const exportEnquiries = () => { if(!hasPermission('sales.export')) return; const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + enquiries.map(e => `${e.name},${e.email},${e.subject},"${e.message}",${new Date(e.createdAt).toLocaleDateString()}`).join("\n"); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "enquiries_export.csv"); document.body.appendChild(link); link.click(); };
   const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
 
-  // --- REPORTING ENGINE ---
+  // --- ERP LOGIC ENGINE ---
+  const handleErpChange = (field: keyof ERPState, value: number, isProductForm: boolean = false) => {
+    // Determine which state to update (Standalone tool or Product Form data)
+    let current = isProductForm 
+      ? {
+          effectiveCost: productData.costPrice || 0,
+          averageCost: 0,
+          lastCost: 0,
+          fixedMarkup: 0,
+          taxRate: settings.vatRate || 15,
+          sellingPriceExcl: (productData.price || 0) / (1 + (settings.vatRate || 15) / 100),
+          sellingPriceIncl: productData.price || 0,
+          fixedCommission: 0
+        } 
+      : erpPricing;
+
+    // Apply Change
+    const newState = { ...current, [field]: value };
+    const taxFactor = 1 + (newState.taxRate / 100);
+
+    // Recalculate Dependencies
+    if (field === 'sellingPriceExcl') {
+      newState.sellingPriceIncl = value * taxFactor;
+    } else if (field === 'sellingPriceIncl') {
+      newState.sellingPriceExcl = value / taxFactor;
+    } else if (field === 'taxRate') {
+      newState.sellingPriceIncl = newState.sellingPriceExcl * (1 + value / 100);
+    }
+
+    // Update appropriate state
+    if (isProductForm) {
+      setProductData(prev => ({
+        ...prev,
+        price: newState.sellingPriceIncl, // App uses Price as Incl
+        costPrice: newState.effectiveCost
+      }));
+    } else {
+      setErpPricing(newState);
+    }
+  };
+
+  // ... (Reports remain unchanged)
   const generateGlobalReport = () => {
     const doc = new jsPDF();
     const activeOrders = orders.filter(o => o.status !== 'cancelled');
@@ -921,12 +805,41 @@ const Admin: React.FC = () => {
              <div className="space-y-6">
                 <SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} />
                 <SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} />
+                
+                {/* --- UPDATED ERP PRICING SECTION --- */}
+                <div className="col-span-1 md:col-span-2 space-y-4 pt-4 border-t border-slate-800">
+                   <h4 className="text-white font-bold flex items-center gap-2"><Banknote size={18} className="text-primary"/> Financial Engineering</h4>
+                   {productData.isDirectSale && (
+                      <ERPPricingCalculator 
+                        state={{
+                          effectiveCost: productData.costPrice || 0,
+                          averageCost: 0,
+                          lastCost: 0,
+                          fixedMarkup: 0,
+                          taxRate: settings.vatRate || 15,
+                          sellingPriceExcl: (productData.price || 0) / (1 + (settings.vatRate || 15) / 100),
+                          sellingPriceIncl: productData.price || 0,
+                          fixedCommission: 0
+                        }}
+                        onChange={(f, v) => handleErpChange(f, v, true)}
+                      />
+                   )}
+                   {!productData.isDirectSale && (
+                      <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-slate-500 text-xs">
+                         Enable Direct Sales below to access the full pricing calculator. For Affiliate items, simply enter the display price below.
+                         <div className="mt-4">
+                            <SettingField label="Display Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" />
+                         </div>
+                      </div>
+                   )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
-                   <SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" />
                    {productData.isDirectSale && (
                       <SettingField label="Stock Quantity" value={productData.stockQuantity?.toString() || '0'} onChange={v => setProductData({...productData, stockQuantity: parseInt(v) || 0})} type="number" />
                    )}
                 </div>
+                
                 {hasPermission('catalog.direct_sales') && (
                 <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-800 flex items-center justify-between">
                    <span className="text-white font-bold text-sm">Sell Directly on Site?</span>
@@ -953,6 +866,9 @@ const Admin: React.FC = () => {
           <AdminTip title="Inventory Management">Filter by department or keyword. Use the megaphone icon to generate shareable social assets instantly.</AdminTip>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
              <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search by name..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
+             {isOwner && (
+               <div className="relative min-w-[200px]"><Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><select value={creatorFilter} onChange={e => setCreatorFilter(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"><option value="all">All Creators</option>{admins.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} /></div>
+             )}
              <div className="relative min-w-[200px]"><Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><select value={productCatFilter} onChange={e => setProductCatFilter(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"><option value="all">All Departments</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} /></div>
           </div>
           <div className="grid gap-4">
@@ -1058,6 +974,22 @@ const Admin: React.FC = () => {
        )}
     </div>
   );
+
+  const renderPricingTool = () => {
+    return (
+      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
+        <div className="space-y-2 mb-8">
+          <h2 className="text-3xl font-serif text-white">Pricing Calculator</h2>
+          <p className="text-slate-400 text-sm">Professional estimation tool for margins, markups, and tax calculations.</p>
+        </div>
+        
+        <ERPPricingCalculator 
+          state={erpPricing} 
+          onChange={(f, v) => handleErpChange(f, v)} 
+        />
+      </div>
+    );
+  };
 
   const renderSiteEditor = () => (
      <div className="space-y-6 w-full max-w-7xl mx-auto text-left">
@@ -1212,6 +1144,7 @@ const Admin: React.FC = () => {
     { id: 'categories', label: 'Depts', icon: Layout, perm: 'content.categories' },
     { id: 'site_editor', label: 'Canvas', icon: Palette, perm: 'site.editor' },
     { id: 'team', label: 'Maison', icon: Users, perm: 'team.view' },
+    { id: 'pricing', label: 'Pricing Tool', icon: Calculator, perm: 'catalog.view' },
     { id: 'training', label: 'Training', icon: GraduationCap, perm: 'training.view' }, // Note: Add to tree or make default open
     { id: 'system', label: 'System', icon: Activity, perm: 'system.view' },
     { id: 'guide', label: 'Pilot', icon: Rocket, perm: 'system.view' } // Pilot restricted to system view or owner
@@ -1258,6 +1191,7 @@ const Admin: React.FC = () => {
         {activeTab === 'categories' && (hasPermission('content.categories') ? renderCategories() : <AccessDenied />)}
         {activeTab === 'site_editor' && (hasPermission('site.editor') ? renderSiteEditor() : <AccessDenied />)}
         {activeTab === 'team' && (hasPermission('team.view') ? renderTeam() : <AccessDenied />)}
+        {activeTab === 'pricing' && (hasPermission('catalog.view') ? renderPricingTool() : <AccessDenied />)}
         {activeTab === 'training' && <TrainingGrid />} 
         {activeTab === 'system' && (hasPermission('system.view') ? <SystemMonitor connectionHealth={connectionHealth} systemLogs={systemLogs} storageStats={storageStats} /> : <AccessDenied />)}
         {activeTab === 'guide' && (hasPermission('system.view') ? renderGuide() : <AccessDenied />)}
@@ -1354,6 +1288,12 @@ const Admin: React.FC = () => {
                     <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6">
                         <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Banknote size={16} /> Company Financials</h4>
                         <div className="grid md:grid-cols-2 gap-4">
+                            <div className="col-span-2 flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-700 mb-4">
+                                <span className="text-sm text-slate-300 font-bold">VAT Registered Company</span>
+                                <div onClick={() => updateTempSettings({ vatRegistered: !tempSettings.vatRegistered })} className={`w-12 h-6 rounded-full cursor-pointer transition-colors ${tempSettings.vatRegistered ? 'bg-primary' : 'bg-slate-700'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform mt-1 ml-1 ${tempSettings.vatRegistered ? 'translate-x-6' : ''}`}></div>
+                                </div>
+                            </div>
                             <SettingField label="VAT Rate (%)" value={tempSettings.vatRate?.toString() || '15'} onChange={v => updateTempSettings({ vatRate: parseFloat(v) })} type="number" />
                             <SettingField label="VAT Number" value={tempSettings.vatNumber || ''} onChange={v => updateTempSettings({ vatNumber: v })} />
                             <SettingField label="Bank Name" value={tempSettings.bankName || ''} onChange={v => updateTempSettings({ bankName: v })} />
