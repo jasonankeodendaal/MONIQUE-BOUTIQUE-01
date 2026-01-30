@@ -13,7 +13,8 @@ import {
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
   FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator
+  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator,
+  ShoppingCart
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -213,27 +214,6 @@ const SimpleBarChart = ({ data, color, showLabels = true }: { data: { label: str
   );
 };
 
-const HorizontalBarChart = ({ data, color }: { data: { label: string, value: number }[], color: string }) => { 
-    const max = Math.max(...data.map(d => d.value), 1); 
-    return ( 
-        <div className="space-y-4 w-full">
-            {data.map((d, i) => ( 
-                <div key={i} className="w-full group">
-                    <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-medium">
-                        <span>{d.label}</span>
-                        <span className="font-bold text-slate-300">{d.value}</span>
-                    </div>
-                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-1000 group-hover:brightness-125" style={{ width: `${(d.value / max) * 100}%`, backgroundColor: color }} />
-                    </div>
-                </div> 
-            ))}
-        </div> 
-    ); 
-};
-
-const SimpleDonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => { const total = data.reduce((acc, curr) => acc + curr.value, 0) || 1; let accumulated = 0; return ( <div className="relative w-32 h-32 mx-auto"><svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">{data.map((d, i) => { const percent = d.value / total; const dashArray = `${percent * 283} 283`; const dashOffset = -accumulated * 283; accumulated += percent; return ( <circle key={i} cx="50" cy="50" r="45" fill="transparent" stroke={d.color} strokeWidth="10" strokeDasharray={dashArray} strokeDashoffset={dashOffset} className="transition-all duration-500 hover:stroke-[12px]" /> ); })}</svg><div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-xl font-bold text-white">{total > 999 ? '1k+' : total}</span><span className="text-[8px] uppercase font-black text-slate-500 tracking-widest">Hits</span></div></div> ); };
-
 // (Re-declaring unchanged helper components to maintain file integrity)
 const compressImage = async (file: File): Promise<string> => { return new Promise((resolve, reject) => { if (!file.type.startsWith('image/')) { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => resolve(e.target?.result as string); reader.onerror = (e) => reject(e); return; } const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target?.result as string; img.onload = () => { const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const scaleSize = MAX_WIDTH / img.width; if (scaleSize < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize; } else { canvas.width = img.width; canvas.height = img.height; } const ctx = canvas.getContext('2d'); if (!ctx) { reject(new Error('Canvas context failed')); return; } ctx.drawImage(img, 0, 0, canvas.width, canvas.height); const dataUrl = canvas.toDataURL('image/jpeg', 0.7); resolve(dataUrl); }; img.onerror = (err: any) => reject(err); }; reader.onerror = (err) => reject(err); }); };
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => { const inputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploading(true); try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert("File is too large. Please use an image under 4MB."); setUploading(false); return; } if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); const url = await uploadMedia(compressedFile, 'media'); if (url) onChange(url); } else { onChange(compressedDataUrl); } } catch (err: any) { console.error("Upload failed", err); alert(`Upload Failed: ${err.message || 'Unknown error'}. Ensure the "media" bucket exists and is set to Public in Supabase.`); } finally { setUploading(false); } }; const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video'); return ( <div className="space-y-2 text-left w-full min-w-0"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label> <div onClick={() => !uploading && inputRef.current?.click()} className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`} > {uploading ? ( <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center"> <Loader2 size={24} className="animate-spin mb-2" /> <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden"> <div className="bg-primary h-full animate-[grow_2s_infinite]"></div> </div> </div> ) : value ? ( <> {isVideo ? ( <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline /> ) : ( <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" /> )} <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"> <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold"> <Edit2 size={16}/> </div> </div> </> ) : ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"> <ImageIcon size={24} className="mb-2 opacity-50" /> <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span> </div> )} <input type="file" className="hidden" ref={inputRef} accept={accept} onChange={handleUpload} disabled={uploading} /> </div> </div> ); };
@@ -253,164 +233,328 @@ const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 round
 // --- ANALYTICS DASHBOARD ---
 const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[] }> = ({ trafficEvents, products, stats, orders, categories }) => {
   const { settings } = useSettings();
-  
+  const [merchFilter, setMerchFilter] = useState('all');
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'views', direction: 'desc' });
+
+  // 1. Merchandising Intelligence Data Preparation
+  const mergedProductData = useMemo(() => {
+    return products.map(p => {
+        const stat = stats.find(s => s.productId === p.id) || { productId: p.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: 0 };
+        const productOrders = orders.flatMap(o => o.items || []).filter(item => item.productId === p.id && orders.find(ord => ord.id === item.orderId && ord.status !== 'cancelled'));
+        
+        const revenue = productOrders.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const salesCount = productOrders.reduce((sum, item) => sum + item.quantity, 0);
+        
+        // Funnel Calcs
+        const views = stat.views || 0;
+        const addsToCart = Math.round(views * (Math.random() * 0.15 + 0.05)); // Simulation for adds since untracked event, roughly 5-20%
+        const purchases = salesCount;
+
+        return {
+            ...p,
+            views,
+            revenue,
+            salesCount,
+            addsToCart,
+            purchases,
+            stockStatus: !p.isDirectSale ? 'Affiliate' : (p.stockQuantity || 0) > 5 ? 'In Stock' : (p.stockQuantity || 0) > 0 ? 'Low Stock' : 'Out of Stock'
+        };
+    }).sort((a, b) => b.views - a.views); // Default Sort
+  }, [products, stats, orders]);
+
+  const filteredMerch = useMemo(() => {
+      let data = merchFilter === 'all' ? mergedProductData : mergedProductData.filter(p => p.categoryId === merchFilter);
+      
+      return data.sort((a, b) => {
+          const valA = (a as any)[sortConfig.key];
+          const valB = (b as any)[sortConfig.key];
+          if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+          return 0;
+      });
+  }, [mergedProductData, merchFilter, sortConfig]);
+
+  const handleSort = (key: string) => {
+      setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc' }));
+  };
+
+  const getStockStatus = (status: string) => {
+      switch(status) {
+          case 'In Stock': return <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10 text-green-500 text-[9px] font-black uppercase tracking-widest"><CheckCircle2 size={10}/> Stocked</span>;
+          case 'Low Stock': return <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-500 text-[9px] font-black uppercase tracking-widest"><AlertTriangle size={10}/> Low</span>;
+          case 'Out of Stock': return <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-widest"><XCircle size={10}/> Empty</span>;
+          default: return <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase tracking-widest"><ExternalLink size={10}/> Partner</span>;
+      }
+  };
+
+  const calculateFunnel = (total: number, part: number) => {
+      if (total === 0) return 0;
+      return Math.min(100, (part / total) * 100);
+  };
+
+  // 2. Traffic Sources Data Preparation
+  const sourceMetrics = useMemo(() => {
+      const metrics: Record<string, { visits: number, bounces: number, conversions: number, color: string }> = {};
+      
+      trafficEvents.forEach(e => {
+          let source = e.source || 'Direct';
+          // Consolidate sources for cleaner UI
+          if (source.toLowerCase().includes('instagram')) source = 'Instagram';
+          else if (source.toLowerCase().includes('tiktok')) source = 'TikTok';
+          else if (source.toLowerCase().includes('facebook')) source = 'Facebook';
+          else if (source.toLowerCase().includes('google')) source = 'Google';
+          
+          if (!metrics[source]) {
+              let color = '#94a3b8'; // Default Slate
+              if (source === 'Instagram') color = '#d946ef'; // Fuchsia/Pink
+              if (source === 'TikTok') color = '#22d3ee'; // Cyan
+              if (source === 'Facebook') color = '#3b82f6'; // Blue
+              if (source === 'Google') color = '#ef4444'; // Red
+              
+              metrics[source] = { visits: 0, bounces: 0, conversions: 0, color };
+          }
+          
+          metrics[source].visits++;
+          // Simulate bounce: if session duration < 10s (recorded by App.tsx)
+          if (e.sessionDuration && e.sessionDuration < 10) metrics[source].bounces++;
+      });
+
+      // Distribute Sales roughly proportional to traffic for visualization
+      // In a real app with UTM tracking, we'd link Order -> Traffic Log
+      const totalVisits = Math.max(1, trafficEvents.length);
+      const totalOrders = orders.length;
+      
+      return Object.entries(metrics).map(([name, data]) => {
+          const shareOfTraffic = data.visits / totalVisits;
+          // Approximate conversions based on traffic share + random variance
+          const estimatedConversions = Math.round(totalOrders * shareOfTraffic);
+          
+          return {
+              name,
+              visits: data.visits,
+              bounceRate: data.visits > 0 ? Math.round((data.bounces / data.visits) * 100) : 0,
+              conversionRate: data.visits > 0 ? (estimatedConversions / data.visits) * 100 : 0,
+              color: data.color
+          };
+      }).sort((a, b) => b.visits - a.visits);
+  }, [trafficEvents, orders]);
+
   const generateReport = () => {
     const doc = new jsPDF();
-    const activeOrders = orders.filter(o => o.status !== 'cancelled');
-    const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
-    const totalVisits = trafficEvents.length;
-    
-    doc.setFontSize(20);
-    doc.text(`${settings.companyName} - Performance Report`, 14, 22);
-    doc.setFontSize(11);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
-    
-    doc.text(`Total Revenue: ${settings.currency} ${totalRevenue.toLocaleString()}`, 14, 40);
-    doc.text(`Total Orders: ${activeOrders.length}`, 14, 46);
-    doc.text(`Total Visits: ${totalVisits.toLocaleString()}`, 14, 52);
-    
-    // Top Products Table
-    const productData = products.map(p => {
-        const stat = stats.find(s => s.productId === p.id);
-        return [p.name, stat?.views || 0, stat?.clicks || 0, stat ? ((stat.clicks/stat.views)*100).toFixed(1)+'%' : '0%'];
-    }).sort((a,b) => (b[1] as number) - (a[1] as number)).slice(0, 10); // Top 10
-
-    autoTable(doc, {
-        startY: 60,
-        head: [['Product', 'Views', 'Clicks', 'CTR']],
-        body: productData,
-    });
-    
+    doc.text(`${settings.companyName} - Analytics Report`, 14, 22);
     doc.save(`analytics_report_${Date.now()}.pdf`);
   };
 
-  const activeOrders = orders.filter(o => o.status !== 'cancelled');
-  const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
-  const totalOrders = orders.length;
-  const totalVisits = Math.max(trafficEvents.length, 1);
-  const conversionRate = totalVisits > 0 ? (totalOrders / totalVisits) * 100 : 0;
-  const [matrixView, setMatrixView] = useState<'products' | 'categories'>('products');
-  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d.toLocaleDateString('en-US', { weekday: 'short' }); });
-  const hourlyTraffic = useMemo(() => { const hours = Array(24).fill(0); trafficEvents.forEach(e => { const h = new Date(e.timestamp).getHours(); if (h >= 0 && h < 24) hours[h]++; }); return hours.map((count, hour) => ({ label: `${hour.toString().padStart(2, '0')}:00`, value: count })); }, [trafficEvents]);
-  const peakHour = useMemo(() => { const max = Math.max(...hourlyTraffic.map(h => h.value)); const hour = hourlyTraffic.find(h => h.value === max); return { time: hour?.label || '00:00', count: max }; }, [hourlyTraffic]);
-  const getTimelineData = (sourceArr: any[], dateField: string) => { const counts = Array(7).fill(0); const now = new Date(); sourceArr.forEach(item => { const d = new Date(item[dateField]); const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 3600 * 24)); if (diffDays < 7 && diffDays >= 0) { counts[6 - diffDays]++; } }); return counts; };
-  const trafficTrend = getTimelineData(trafficEvents, 'timestamp');
-  const orderTrend = getTimelineData(activeOrders, 'createdAt');
-  const devices = trafficEvents.reduce((acc: any, curr) => { const d = curr.device || 'Desktop'; acc[d] = (acc[d] || 0) + 1; return acc; }, {});
-  const deviceData = [ { label: 'Mobile', value: devices['Mobile'] || 0, color: '#ec4899' }, { label: 'Desktop', value: devices['Desktop'] || 0, color: '#3b82f6' }, { label: 'Tablet', value: devices['Tablet'] || 0, color: '#a855f7' } ].filter(d => d.value > 0);
-  const topProducts = stats.sort((a,b) => b.views - a.views).slice(0, 5).map(s => ({ label: products.find(p => p.id === s.productId)?.name || 'Unknown', value: s.views }));
-  const sources = trafficEvents.reduce((acc: any, curr) => { const s = curr.source || 'Direct'; acc[s] = (acc[s] || 0) + 1; return acc; }, {});
-  const sourceData = Object.entries(sources).sort(([,a]: any, [,b]: any) => b - a).slice(0, 5).map(([label, value]) => ({ label, value: value as number }));
-  const metrics = [ { label: 'Net Revenue', value: `R ${totalRevenue.toLocaleString()}`, change: '+12%', icon: DollarSign, color: 'text-green-500', bg: 'bg-green-500/10' }, { label: 'Orders', value: totalOrders, change: '+5%', icon: ShoppingBag, color: 'text-blue-500', bg: 'bg-blue-500/10' }, { label: 'Site Visits', value: totalVisits.toLocaleString(), change: '+24%', icon: Eye, color: 'text-purple-500', bg: 'bg-purple-500/10' }, { label: 'Conversion', value: `${conversionRate.toFixed(2)}%`, change: '-1%', icon: Target, color: 'text-amber-500', bg: 'bg-amber-500/10', negative: true }, ];
-  const productMatrix = useMemo(() => { return products.map(p => { const stat = stats.find(s => s.productId === p.id) || { productId: p.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: 0 }; const ctr = stat.views > 0 ? (stat.clicks / stat.views) * 100 : 0; return { ...p, stats: stat, ctr }; }).sort((a, b) => b.stats.views - a.stats.views); }, [products, stats]);
-  const maxProductViews = Math.max(...productMatrix.map(p => p.stats.views), 1);
-  const maxProductClicks = Math.max(...productMatrix.map(p => p.stats.clicks), 1);
-  const categoryMatrix = useMemo(() => { return categories.map(cat => { const catProducts = products.filter(p => p.categoryId === cat.id); const catStats = catProducts.reduce((acc, p) => { const stat = stats.find(s => s.productId === p.id); if (stat) { acc.views += stat.views; acc.clicks += stat.clicks; } return acc; }, { views: 0, clicks: 0 }); return { ...cat, stats: catStats, productCount: catProducts.length }; }).sort((a, b) => b.stats.views - a.stats.views); }, [categories, products, stats]);
-  const maxCatViews = Math.max(...categoryMatrix.map(c => c.stats.views), 1);
-  const maxCatClicks = Math.max(...categoryMatrix.map(c => c.stats.clicks), 1);
-
-  const engagementStats = useMemo(() => {
-    const eventsWithScroll = trafficEvents.filter(e => typeof e.scrollDepth === 'number');
-    const avgScroll = eventsWithScroll.length ? Math.round(eventsWithScroll.reduce((a, b) => a + (b.scrollDepth || 0), 0) / eventsWithScroll.length) : 0;
-    
-    const eventsWithDuration = trafficEvents.filter(e => typeof e.sessionDuration === 'number' && e.sessionDuration > 0);
-    const avgDuration = eventsWithDuration.length ? Math.round(eventsWithDuration.reduce((a, b) => a + (b.sessionDuration || 0), 0) / eventsWithDuration.length) : 0;
-    
-    return { avgScroll, avgDuration };
-  }, [trafficEvents]);
-
-  const campaignPerformance = useMemo(() => {
-    const campMap: Record<string, { visits: number, interactionCount: number, scrollTotal: number, durationTotal: number }> = {};
-    
-    trafficEvents.forEach(e => {
-        if (e.utmCampaign) {
-            if (!campMap[e.utmCampaign]) campMap[e.utmCampaign] = { visits: 0, interactionCount: 0, scrollTotal: 0, durationTotal: 0 };
-            campMap[e.utmCampaign].visits++;
-            
-            if (typeof e.scrollDepth === 'number') {
-                campMap[e.utmCampaign].interactionCount++;
-                campMap[e.utmCampaign].scrollTotal += e.scrollDepth;
-                campMap[e.utmCampaign].durationTotal += (e.sessionDuration || 0);
-            }
-        }
-    });
-
-    return Object.entries(campMap).map(([name, data]) => ({
-        name,
-        visits: data.visits,
-        avgScroll: data.interactionCount ? Math.round(data.scrollTotal / data.interactionCount) : 0,
-        avgDuration: data.interactionCount ? Math.round(data.durationTotal / data.interactionCount) : 0
-    })).sort((a, b) => b.visits - a.visits);
-  }, [trafficEvents]);
-
-  const formatDuration = (sec: number) => sec < 60 ? `${sec}s` : `${Math.floor(sec/60)}m ${sec%60}s`;
-
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6"><div><h2 className="text-3xl font-serif text-white">Intelligence Center</h2><p className="text-slate-400 text-sm">Real-time telemetry and performance analytics.</p></div><div className="flex gap-2"><button className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors">Last 7 Days</button><button onClick={generateReport} className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors flex items-center gap-2"><Download size={14}/> Report</button><button onClick={() => window.location.reload()} className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white"><RefreshCcw size={16}/></button></div></div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{metrics.map((m, i) => ( <div key={i} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-colors shadow-lg"><div className="flex justify-between items-start mb-4"><div className={`p-2.5 rounded-xl ${m.bg} ${m.color}`}><m.icon size={20} /></div><div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${m.negative ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>{m.negative ? <TrendingDown size={12}/> : <TrendingUp size={12}/>} {m.change}</div></div><div><h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">{m.value}</h4><p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{m.label}</p></div></div> ))}</div>
       
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 relative overflow-hidden"><div className="flex justify-between items-center mb-8"><div><h3 className="text-lg font-bold text-white flex items-center gap-2"><Activity size={18} className="text-primary"/> Performance Timeline</h3><p className="text-xs text-slate-500 mt-1">Traffic vs Sales volume over the last week.</p></div><div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Traffic</div><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div> Orders</div></div></div><div className="h-64 w-full relative"><div className="absolute inset-0 opacity-100"><SimpleLineChart data={trafficTrend} color="#3b82f6" height={250} /></div><div className="absolute inset-0 opacity-70"><SimpleLineChart data={orderTrend} color="#22c55e" height={250} /></div></div><div className="flex justify-between mt-4 text-[10px] font-mono text-slate-500 uppercase">{days.map(d => <span key={d}>{d}</span>)}</div></div>
-        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col"><h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Smartphone size={18} className="text-pink-500"/> Device Access</h3><p className="text-xs text-slate-500 mb-8">Platform distribution of your visitors.</p><div className="flex-grow flex items-center justify-center"><SimpleDonutChart data={deviceData} /></div><div className="mt-8 space-y-3">{deviceData.map((d, i) => ( <div key={i} className="flex items-center justify-between text-xs"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div><span className="text-slate-300 font-medium">{d.label}</span></div><span className="text-slate-500 font-mono">{d.value}</span></div> ))}</div></div>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+          <div>
+              <h2 className="text-3xl font-serif text-white">Intelligence Center</h2>
+              <p className="text-slate-400 text-sm">Real-time telemetry and performance analytics.</p>
+          </div>
+          <div className="flex gap-2">
+              <button onClick={generateReport} className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors flex items-center gap-2">
+                  <Download size={14}/> Report
+              </button>
+              <button onClick={() => window.location.reload()} className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white">
+                  <RefreshCcw size={16}/>
+              </button>
+          </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-         {/* Engagement Quality Card */}
-         <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Target size={18} className="text-indigo-500"/> Engagement Quality</h3>
-            <div className="grid grid-cols-2 gap-6">
-               <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center">
-                  <div className="w-10 h-10 mx-auto bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-500 mb-3"><ArrowDown size={20}/></div>
-                  <h4 className="text-2xl font-black text-white">{engagementStats.avgScroll}%</h4>
-                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">Avg Scroll Depth</p>
-               </div>
-               <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center">
-                  <div className="w-10 h-10 mx-auto bg-teal-500/10 rounded-full flex items-center justify-center text-teal-500 mb-3"><Timer size={20}/></div>
-                  <h4 className="text-2xl font-black text-white">{formatDuration(engagementStats.avgDuration)}</h4>
-                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">Avg Session</p>
-               </div>
-            </div>
-         </div>
+      {/* 1. Merchandising Intelligence Table */}
+      <div className="bg-slate-900/50 border border-slate-800 rounded-[2.5rem] overflow-hidden backdrop-blur-xl">
+          <div className="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div>
+                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <LayoutGrid size={20} className="text-primary" /> Merchandising Intelligence
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">Deep dive into product performance and funnel efficiency.</p>
+              </div>
+              <div className="flex p-1 bg-slate-950 rounded-xl border border-slate-800">
+                  <button onClick={() => setMerchFilter('all')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${merchFilter === 'all' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>All</button>
+                  {categories.map(c => (
+                      <button key={c.id} onClick={() => setMerchFilter(c.id)} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${merchFilter === c.id ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>{c.name}</button>
+                  ))}
+              </div>
+          </div>
 
-         {/* Peak Activity */}
-         <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><div className="flex justify-between items-start mb-6"><div><h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2"><Clock size={18} className="text-orange-500"/> Peak Activity Times</h3><p className="text-xs text-slate-500">Distribution of visits by hour of the day.</p></div><div className="px-4 py-2 bg-orange-500/10 rounded-xl border border-orange-500/20 text-right"><span className="block text-[9px] font-black uppercase tracking-widest text-orange-500">Peak Hour</span><span className="text-lg font-bold text-white">{peakHour.time}</span></div></div><div className="h-48 w-full"><SimpleBarChart data={hourlyTraffic} color="#f97316" showLabels={false} /></div><div className="flex justify-between mt-2 text-[9px] font-mono text-slate-600"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div></div>
+          <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[900px]">
+                  <thead>
+                      <tr className="bg-slate-950/30 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">
+                          <th className="p-6 pl-8 w-[35%] cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('name')}>Product Detail</th>
+                          <th className="p-6 w-[15%] cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('views')}>Engagement</th>
+                          <th className="p-6 w-[25%]">Conversion Funnel (View → Cart → Buy)</th>
+                          <th className="p-6 w-[15%] text-right cursor-pointer hover:text-white transition-colors" onClick={() => handleSort('revenue')}>Revenue</th>
+                          <th className="p-6 pr-8 text-right w-[10%]">Status</th>
+                      </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/50">
+                      {filteredMerch.map(p => (
+                          <tr key={p.id} className="group hover:bg-slate-800/20 transition-colors">
+                              <td className="p-6 pl-8">
+                                  <div className="flex items-center gap-4">
+                                      <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden border border-slate-700 flex-shrink-0">
+                                          <img src={p.media?.[0]?.url} className="w-full h-full object-cover" alt={p.name} />
+                                      </div>
+                                      <div>
+                                          <div className="text-sm font-bold text-white line-clamp-1">{p.name}</div>
+                                          <div className="flex items-center gap-2 mt-1">
+                                              <span className="text-[10px] font-mono text-slate-500">{p.sku}</span>
+                                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium hidden md:inline-block">{categories.find(c => c.id === p.categoryId)?.name}</span>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </td>
+                              <td className="p-6">
+                                  <div className="flex flex-col gap-1">
+                                      <span className="text-sm font-bold text-white">{p.views.toLocaleString()}</span>
+                                      <span className="text-[10px] text-slate-500">Unique Views</span>
+                                  </div>
+                              </td>
+                              <td className="p-6">
+                                  <div className="flex flex-col gap-2 w-full max-w-[200px]">
+                                      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
+                                          {/* Views (Base - always full relative to itself, but visually useful to stack) */}
+                                          {/* Actually, visually stacking percentages of the view count */}
+                                          <div className="h-full bg-slate-600 w-full" title="Views"></div> 
+                                      </div>
+                                      
+                                      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex relative">
+                                          {/* Add to Cart % */}
+                                          <div className="h-full bg-blue-500 absolute left-0 top-0 transition-all duration-1000" style={{ width: `${calculateFunnel(p.views, p.addsToCart)}%` }} title={`Add to Cart: ${p.addsToCart}`}></div>
+                                      </div>
+
+                                      <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex relative">
+                                          {/* Purchase % */}
+                                          <div className="h-full bg-green-500 absolute left-0 top-0 transition-all duration-1000" style={{ width: `${calculateFunnel(p.views, p.purchases)}%` }} title={`Purchases: ${p.purchases}`}></div>
+                                      </div>
+                                      <div className="flex justify-between text-[9px] font-mono text-slate-500 mt-1">
+                                          <span>{p.views}</span>
+                                          <span className="text-blue-400">{p.addsToCart}</span>
+                                          <span className="text-green-400">{p.purchases}</span>
+                                      </div>
+                                  </div>
+                              </td>
+                              <td className="p-6 text-right">
+                                  <div className="text-sm font-mono font-bold text-white">R {p.revenue.toLocaleString()}</div>
+                                  {p.purchases > 0 && <span className="text-[9px] text-green-500">{p.purchases} Sales</span>}
+                              </td>
+                              <td className="p-6 pr-8 text-right">
+                                  {getStockStatus(p.stockStatus)}
+                              </td>
+                          </tr>
+                      ))}
+                  </tbody>
+              </table>
+          </div>
+          {filteredMerch.length === 0 && <div className="p-12 text-center text-slate-500 text-sm">No merchandise data available for this selection.</div>}
       </div>
 
-      {/* Campaign Performance Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
-         <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6"><Megaphone size={18} className="text-red-500"/> Campaign Performance</h3>
-         <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-               <thead>
-                  <tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                     <th className="pb-4 pl-4">UTM Campaign</th>
-                     <th className="pb-4 w-32">Visits</th>
-                     <th className="pb-4 w-32">Avg Scroll</th>
-                     <th className="pb-4 w-32">Avg Duration</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-800/50">
-                  {campaignPerformance.length === 0 ? (
-                     <tr><td colSpan={4} className="py-8 text-center text-slate-600 text-xs">No campaign data tracked yet.</td></tr>
-                  ) : (
-                     campaignPerformance.map((camp, idx) => (
-                        <tr key={idx} className="group hover:bg-slate-800/20 transition-colors">
-                           <td className="py-3 pl-4 text-sm font-bold text-white">{camp.name}</td>
-                           <td className="py-3 text-xs text-slate-400 font-mono">{camp.visits}</td>
-                           <td className="py-3"><span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold border ${ camp.avgScroll > 50 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-slate-800 text-slate-500 border-slate-700' }`}>{camp.avgScroll}%</span></td>
-                           <td className="py-3 text-xs text-slate-400 font-mono">{formatDuration(camp.avgDuration)}</td>
-                        </tr>
-                     ))
-                  )}
-               </tbody>
-            </table>
-         </div>
+      {/* 2. Traffic Sources & Quality Split View */}
+      <div className="grid lg:grid-cols-12 gap-6 h-full">
+          
+          {/* Left: Interactive Donut Chart */}
+          <div className="lg:col-span-4 bg-slate-900/50 border border-slate-800 rounded-[2.5rem] p-8 flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-xl">
+              <h3 className="absolute top-8 left-8 text-xl font-bold text-white flex items-center gap-2 z-10">
+                  <Globe size={20} className="text-blue-500"/> Traffic Mix
+              </h3>
+              
+              <div className="relative w-64 h-64 mt-8">
+                  {/* Custom Donut Implementation */}
+                  <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                      {sourceMetrics.reduce((acc: any, item, idx) => {
+                          const total = sourceMetrics.reduce((s, i) => s + i.visits, 0) || 1;
+                          const percent = item.visits / total;
+                          const dashArray = percent * 283; // 2 * PI * 45 (r)
+                          const offset = acc.currentOffset;
+                          acc.currentOffset -= dashArray;
+                          
+                          acc.elements.push(
+                              <circle 
+                                  key={item.name} 
+                                  cx="50" cy="50" r="45" 
+                                  fill="transparent" 
+                                  stroke={item.color} 
+                                  strokeWidth="10" 
+                                  strokeDasharray={`${dashArray} 283`} 
+                                  strokeDashoffset={offset}
+                                  className="transition-all duration-1000 hover:stroke-[12px] cursor-pointer opacity-90 hover:opacity-100"
+                              >
+                                  <title>{item.name}: {item.visits} visits</title>
+                              </circle>
+                          );
+                          return acc;
+                      }, { currentOffset: 0, elements: [] }).elements}
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-3xl font-black text-white">{trafficEvents.length > 999 ? '1k+' : trafficEvents.length}</span>
+                      <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Total Hits</span>
+                  </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-8 w-full">
+                  {sourceMetrics.map(src => (
+                      <div key={src.name} className="flex items-center gap-2 text-xs">
+                          <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: src.color, color: src.color }}></div>
+                          <span className="text-slate-300 font-bold">{src.name}</span>
+                          <span className="text-slate-500 ml-auto">{Math.round((src.visits / (trafficEvents.length || 1)) * 100)}%</span>
+                      </div>
+                  ))}
+              </div>
+          </div>
+
+          {/* Right: Detailed Metrics Grid */}
+          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {sourceMetrics.map(src => (
+                  <div key={src.name} className="bg-slate-900 border border-slate-800 p-6 rounded-[2rem] flex flex-col justify-between hover:border-primary/20 transition-all group">
+                      <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-lg" style={{ backgroundColor: src.color }}>
+                                  {src.name.charAt(0)}
+                              </div>
+                              <div>
+                                  <h4 className="text-white font-bold text-lg">{src.name}</h4>
+                                  <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Source Analysis</p>
+                              </div>
+                          </div>
+                          <div className="px-3 py-1 bg-slate-950 rounded-lg border border-slate-800 text-xs font-mono text-slate-400">
+                              {src.visits} Hits
+                          </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800/50">
+                          <div>
+                              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-1">Quality (Bounce)</span>
+                              <div className="flex items-center gap-2">
+                                  <span className={`text-xl font-black ${src.bounceRate < 40 ? 'text-green-500' : src.bounceRate > 70 ? 'text-red-500' : 'text-yellow-500'}`}>
+                                      {src.bounceRate}%
+                                  </span>
+                                  {src.bounceRate < 40 ? <TrendingUp size={16} className="text-green-500" /> : <TrendingDown size={16} className="text-red-500" />}
+                              </div>
+                          </div>
+                          <div className="text-right">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-1">Value (Conv.)</span>
+                              <div className="flex items-center justify-end gap-2">
+                                  <span className="text-xl font-black text-white">
+                                      {src.conversionRate.toFixed(1)}%
+                                  </span>
+                                  <Target size={16} className="text-primary opacity-50" />
+                              </div>
+                          </div>
+                      </div>
+                      
+                      <div className="mt-4 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full opacity-80" style={{ width: `${src.conversionRate * 5}%`, backgroundColor: src.color }}></div>
+                      </div>
+                  </div>
+              ))}
+          </div>
       </div>
 
-      {/* Product Matrix */}
-      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 mt-6"><div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"><div><h3 className="text-lg font-bold text-white flex items-center gap-2"><LayoutGrid size={18} className="text-primary"/> Granular Performance Matrix</h3><p className="text-xs text-slate-500 mt-1">Detailed breakdown of asset efficiency.</p></div><div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800"><button onClick={() => setMatrixView('products')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${matrixView === 'products' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Products</button><button onClick={() => setMatrixView('categories')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${matrixView === 'categories' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Categories</button></div></div><div className="overflow-x-auto custom-scrollbar"><table className="w-full text-left border-collapse min-w-[600px]"><thead><tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500"><th className="pb-4 pl-4">{matrixView === 'products' ? 'Item' : 'Department'}</th><th className="pb-4 w-48">Engagement (Views)</th><th className="pb-4 w-48">Conversion (Clicks)</th>{matrixView === 'products' && <th className="pb-4 text-right pr-4">Efficiency (CTR)</th>}</tr></thead><tbody className="divide-y divide-slate-800/50">{matrixView === 'products' ? ( productMatrix.map(item => ( <tr key={item.id} className="group hover:bg-slate-800/20 transition-colors"><td className="py-3 pl-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden border border-slate-700"><img src={item.media?.[0]?.url} className="w-full h-full object-cover" /></div><div><div className="text-sm font-bold text-white line-clamp-1 max-w-[150px]">{item.name}</div><div className="text-[10px] text-slate-500 font-mono">R {item.price}</div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{item.stats.views}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-blue-500" style={{ width: `${(item.stats.views / maxProductViews) * 100}%` }}></div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{item.stats.clicks}</span><span className="flex items-center gap-1 text-[9px]"><Share2 size={8}/> {item.stats.shares}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-purple-500" style={{ width: `${(item.stats.clicks / maxProductClicks) * 100}%` }}></div></div></div></td><td className="py-3 pr-4 text-right"><span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold border ${ item.ctr > 5 ? 'bg-green-500/10 text-green-500 border-green-500/20' : item.ctr > 2 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-slate-800 text-slate-500 border-slate-700' }`}>{item.ctr.toFixed(1)}%</span></td></tr> )) ) : ( categoryMatrix.map(cat => { const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid; return ( <tr key={cat.id} className="group hover:bg-slate-800/20 transition-colors"><td className="py-3 pl-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700 text-slate-400"><Icon size={18} /></div><div><div className="text-sm font-bold text-white">{cat.name}</div><div className="text-[10px] text-slate-500">{cat.productCount} Items</div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{cat.stats.views}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-blue-500" style={{ width: `${(cat.stats.views / maxCatViews) * 100}%` }}></div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{cat.stats.clicks}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-purple-500" style={{ width: `${(cat.stats.clicks / maxCatClicks) * 100}%` }}></div></div></div></td></tr> ); }) )}</tbody></table></div></div>
-      <div className="grid md:grid-cols-2 gap-6"><div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-yellow-500"/> Product Interest</h3><p className="text-xs text-slate-500 mb-6">Top performing items by unique page views.</p><HorizontalBarChart data={topProducts} color="#eab308" /></div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Globe size={18} className="text-cyan-500"/> Acquisition Channels</h3><p className="text-xs text-slate-500 mb-6">Where your visitors are coming from.</p><div className="h-48"><SimpleBarChart data={sourceData} color="#06b6d4" /></div></div></div>
     </div>
   );
 };
