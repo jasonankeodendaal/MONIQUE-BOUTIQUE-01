@@ -338,7 +338,7 @@ export interface UserAddress {
 export interface TrafficLog {
   id?: string;
   ip?: string;
-  city?: string;
+  city?: string; // Added city
   device?: string;
   timestamp: number;
   source?: string;

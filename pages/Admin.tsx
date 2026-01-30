@@ -26,6 +26,38 @@ import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 import { CustomIcons } from '../components/CustomIcons';
 
+// --- HELPER FUNCTIONS ---
+
+// Least Squares Linear Regression to predict the next value in a series
+function predictNextValue(values: number[]): number {
+  if (values.length === 0) return 0;
+  if (values.length === 1) return values[0];
+
+  const n = values.length;
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumXX = 0;
+
+  for (let i = 0; i < n; i++) {
+    const x = i; // Time step index
+    const y = values[i];
+    sumX += x;
+    sumY += y;
+    sumXY += x * y;
+    sumXX += x * x;
+  }
+
+  const denominator = n * sumXX - sumX * sumX;
+  if (denominator === 0) return values[n - 1]; // Fallback for zero variance in x (shouldn't happen with unique indices)
+
+  const slope = (n * sumXY - sumX * sumY) / denominator;
+  const intercept = (sumY - slope * sumX) / n;
+
+  // Predict y for x = n (the next index)
+  return slope * n + intercept;
+}
+
 // --- SUB-COMPONENTS ---
 
 const CalculatorField: React.FC<{ label: string; value: number | string; onChange?: (val: string) => void; readOnly?: boolean; prefix?: string; suffix?: string; highlight?: boolean }> = ({ label, value, onChange, readOnly = false, prefix, suffix, highlight = false }) => (
@@ -278,7 +310,6 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
 const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => { switch (id) { case 'forge': return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden min-w-0"><div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)]" /><div className="relative z-10 flex flex-col items-center"><div className="flex gap-4 mb-8"><div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-2xl rotate-[-12deg]"><FileCode size={32} /></div><div className="w-16 h-16 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-2xl rotate-[12deg]"><Terminal size={32} /></div></div><div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary w-2/3 animate-[shimmer_2s_infinite]" /></div></div></div>); default: return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center min-w-0"><Rocket className="text-slate-800 w-24 h-24" /></div>); } };
 const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: string[]) => void; role: 'owner' | 'admin'; }> = ({ permissions, onChange, role }) => { if (role === 'owner') return <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-bold text-center">Owners have full system access by default.</div>; const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } }; const toggleGroup = (node: PermissionNode) => { const childIds = node.children?.map(c => c.id) || []; const allSelected = childIds.every(id => permissions.includes(id)); if (allSelected) { onChange(permissions.filter(p => !childIds.includes(p))); } else { const newPerms = [...permissions]; childIds.forEach(id => { if (!newPerms.includes(id)) newPerms.push(id); }); onChange(newPerms); } }; return ( <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div> ); };
 const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void }> = ({ selected, onSelect }) => { const [search, setSearch] = useState(''); const [isOpen, setIsOpen] = useState(false); const [limit, setLimit] = useState(100); const CUSTOM_KEYS = Object.keys(CustomIcons); const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { const val = (LucideIcons as any)[key]; return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); }); const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; const displayed = filtered.slice(0, limit); const SelectedIconComponent = CustomIcons[selected] || (LucideIcons as any)[selected] || LucideIcons.Package; return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>); };
-// ... (EmailReplyModal, AdGeneratorModal, CodeBlock, FileUploader, IntegrationGuide remain same)
 const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => { const { settings } = useSettings(); const [subject, setSubject] = useState(`Re: ${enquiry.subject}`); const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`); const [attachments, setAttachments] = useState<File[]>([]); const [sending, setSending] = useState(false); const [success, setSuccess] = useState(false); const [error, setError] = useState<string | null>(null); const handleSend = async () => { const serviceId = settings.emailJsServiceId?.trim(); const templateId = settings.emailJsTemplateId?.trim(); const publicKey = settings.emailJsPublicKey?.trim(); if (!serviceId || !templateId || !publicKey) { setError("Email.js is not configured."); return; } setSending(true); setError(null); try { const fileLinks: string[] = []; if (attachments.length > 0) { if (!isSupabaseConfigured) throw new Error("Supabase is required for attachments."); for (const file of attachments) { const url = await uploadMedia(file, 'media'); if (url) fileLinks.push(`${file.name}: ${url}`); } } let finalMessage = message.replace(/\n/g, '<br>'); if (fileLinks.length > 0) finalMessage += `<br><br><strong>Attachments:</strong><br>${fileLinks.map(l => `<a href="${l.split(': ')[1]}">${l.split(': ')[0]}</a>`).join('<br>')}`; let logoUrl = settings.companyLogoUrl || ''; const productsHtml = ''; const socialsHtml = ''; const templateParams = { to_name: enquiry.name, to_email: enquiry.email, subject, message: finalMessage, reply_to: enquiry.email, company_name: settings.companyName, company_address: settings.address, company_website: window.location.origin, company_logo_url: logoUrl, products_html: productsHtml, socials_html: socialsHtml, year: new Date().getFullYear().toString() }; await emailjs.send(serviceId, templateId, templateParams, publicKey); setSuccess(true); setTimeout(onClose, 2000); } catch (err: any) { console.error('EmailJS Error:', err); setError(err.text || err.message); } finally { setSending(false); } }; if (success) return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"><div className="bg-white rounded-3xl p-10 text-center animate-in zoom-in"><div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-4"><CheckCircle size={40} /></div><h3 className="text-2xl font-bold text-slate-900">Email Sent!</h3></div></div>); return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div className="p-6 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold flex items-center gap-3"><Reply size={20} className="text-primary"/> Reply to {enquiry.name}</h3><button onClick={onClose} className="text-slate-500 hover:text-white"><X size={24}/></button></div><div className="p-6 overflow-y-auto space-y-6 text-left">{error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">{error}</div>}<div className="space-y-4"><div className="grid grid-cols-2 gap-4"><SettingField label="To" value={enquiry.email} onChange={() => {}} type="text" /><SettingField label="Subject" value={subject} onChange={setSubject} /></div><SettingField label="Message (HTML Support Enabled)" value={message} onChange={setMessage} type="textarea" rows={12} /><div className="space-y-2 text-left"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Paperclip size={12}/> Attachments (Requires Storage)</label><input type="file" multiple onChange={e => e.target.files && setAttachments(Array.from(e.target.files))} className="block w-full text-xs text-slate-400 file:bg-slate-800 file:text-primary file:rounded-full file:border-0 file:py-2 file:px-4" /></div></div></div><div className="p-6 border-t border-slate-800 flex justify-end gap-3"><button onClick={onClose} className="px-6 py-3 rounded-xl text-slate-400 font-bold text-xs uppercase tracking-widest">Cancel</button><button onClick={handleSend} disabled={sending} className="px-8 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">{sending ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>} Send Email</button></div></div></div>); };
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState(''); useEffect(() => { const baseText = `Check out the ${product.name} from ${settings.companyName}.`; const price = `Price: R ${product.price}`; const link = `${window.location.origin}/#/product/${product.id}`; const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; const discount = product.discountRules?.[0]; const discountText = discount ? (discount.type === 'percentage' ? `🔥 ${discount.value}% OFF` : `🔥 R${discount.value} OFF`) : ''; let generated = ''; switch(platform.id) { case 'instagram': generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n${discountText ? `${discountText}\n` : ''}\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; break; default: generated = `${product.name} is now available.\n\n${product.description.substring(0, 200)}...\n\n${discountText ? `${discountText}\n` : ''}${features}\n\nShop securely here: ${link}`; } setCustomText(generated); }, [platform, product, settings]); const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); }; const handleShareBundle = async () => { if (!navigator.share) { alert("Sharing not supported on this device/browser. Please copy text and save image manually."); return; } try { const link = `${window.location.origin}/#/product/${product.id}`; const shareData: any = { title: settings.companyName, text: customText, url: link }; if (product.media?.[0]?.url) { try { const response = await fetch(product.media[0].url); const blob = await response.blob(); const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type }); if (navigator.canShare && navigator.canShare({ files: [file] })) { shareData.files = [file]; } } catch (e) { console.warn("Could not bundle image for share", e); } } await navigator.share(shareData); } catch (error) { console.error('Error sharing', error); alert("Device sharing failed. Please use 'Save Image' and 'Copy Text' manually."); } }; return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>); };
@@ -394,13 +425,26 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
             const conversionRate = stat.views > 0 ? (salesCount / stat.views) * 100 : 0;
             const stockStatus = !product.isDirectSale ? 'N/A' : (product.stockQuantity || 0) === 0 ? 'Out' : (product.stockQuantity || 0) < 5 ? 'Low' : 'Good';
 
+            // --- NEW METRICS CALCULATIONS ---
+            const daysActive = Math.max(1, Math.ceil((Date.now() - (product.createdAt || Date.now())) / (86400000))); // Min 1 day
+            const avgDailySales = salesCount / daysActive;
+            
+            // Est. Days Left: If selling, calculate runway. If not selling but direct sale, practically infinite runway (stagnant).
+            const estDaysLeft = product.isDirectSale && avgDailySales > 0 
+                ? Math.round((product.stockQuantity || 0) / avgDailySales) 
+                : (product.isDirectSale && salesCount === 0 && (product.stockQuantity || 0) > 0 ? 999 : 0);
+
+            const potentialRevenue = (product.stockQuantity || 0) * product.price;
+
             return {
                 ...product,
                 stats: stat,
                 salesCount,
                 revenue,
                 conversionRate,
-                stockStatus
+                stockStatus,
+                estDaysLeft,
+                potentialRevenue
             };
         }).sort((a, b) => b.revenue - a.revenue); // Default sort by revenue
     }, [products, stats, orders]);
@@ -440,12 +484,14 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
             </div>
 
             <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse min-w-[700px]">
+                <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
                         <tr className="border-b border-slate-800 text-[9px] font-black uppercase tracking-widest text-slate-500">
                             <th className="pb-4 pl-4 w-1/3">Product Detail</th>
                             <th className="pb-4">Status</th>
                             <th className="pb-4 text-center">Funnel (View → Buy)</th>
+                            <th className="pb-4">Runway (Est.)</th>
+                            <th className="pb-4 text-right">Potential</th>
                             <th className="pb-4 text-right">Revenue</th>
                             <th className="pb-4 text-right pr-4">Conv. %</th>
                         </tr>
@@ -459,7 +505,20 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
                                             <img src={item.media?.[0]?.url} className="w-full h-full object-cover" loading="lazy" />
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="text-sm font-bold text-white line-clamp-1">{item.name}</div>
+                                            <div className="text-sm font-bold text-white line-clamp-1 flex items-center gap-2">
+                                                {item.name}
+                                                {/* HOT / COLD BADGES */}
+                                                {item.conversionRate > 2 && (
+                                                    <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-500 text-[8px] font-black uppercase rounded flex items-center gap-1 border border-orange-500/30">
+                                                        🔥 Hot
+                                                    </span>
+                                                )}
+                                                {item.conversionRate < 0.5 && item.stats.views > 50 && (
+                                                    <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-500 text-[8px] font-black uppercase rounded flex items-center gap-1 border border-blue-500/30">
+                                                        ❄️ Cold
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div className="text-[10px] text-slate-500 font-mono mt-0.5">{item.sku}</div>
                                         </div>
                                     </div>
@@ -496,6 +555,24 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
                                         </div>
                                     </div>
                                 </td>
+                                <td className="py-4">
+                                   {item.isDirectSale ? (
+                                     <div className="flex flex-col">
+                                       <span className="text-xs text-white font-bold">
+                                          {item.estDaysLeft >= 999 ? 'Stagnant' : item.estDaysLeft > 365 ? '> 1 Year' : `${item.estDaysLeft} Days`}
+                                       </span>
+                                       <span className="text-[9px] text-slate-500">Based on avg. sales</span>
+                                     </div>
+                                   ) : <span className="text-slate-600 text-xs">-</span>}
+                                </td>
+                                <td className="py-4 text-right">
+                                   {item.isDirectSale ? (
+                                     <div className="flex flex-col items-end">
+                                       <span className="text-xs text-slate-300 font-mono">R {item.potentialRevenue.toLocaleString()}</span>
+                                       <span className="text-[9px] text-slate-500">Unrealized</span>
+                                     </div>
+                                   ) : <span className="text-slate-600 text-xs">-</span>}
+                                </td>
                                 <td className="py-4 text-right font-mono text-xs text-white">
                                     R {item.revenue.toLocaleString()}
                                 </td>
@@ -520,6 +597,23 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
     const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
     const totalVisits = trafficEvents.length;
     
+    // FORECAST CALCULATION
+    const now = new Date();
+    // Generate data for last 30 days
+    const dailyRevenues = Array.from({length: 30}, (_, i) => {
+        const d = new Date();
+        d.setDate(now.getDate() - (29 - i));
+        const dayStart = d.setHours(0,0,0,0);
+        const dayEnd = d.setHours(23,59,59,999);
+        
+        return activeOrders
+            .filter(o => o.createdAt >= dayStart && o.createdAt <= dayEnd)
+            .reduce((sum, o) => sum + o.total, 0);
+    });
+
+    const nextDayRevenue = predictNextValue(dailyRevenues);
+    const forecast30Days = Math.max(0, nextDayRevenue * 30);
+
     doc.setFontSize(20);
     doc.text(`${settings.companyName} - Performance Report`, 14, 22);
     doc.setFontSize(11);
@@ -541,6 +635,24 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
         body: productData,
     });
     
+    // Executive Forecast Section
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    
+    doc.setFillColor(0, 0, 0); // Black background
+    doc.rect(14, finalY, 182, 25, 'F');
+    
+    doc.setTextColor(212, 175, 55); // Gold color
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text("EXECUTIVE FORECAST (30-DAY)", 20, finalY + 16);
+    
+    doc.setFontSize(16);
+    doc.text(`${settings.currency} ${forecast30Days.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 190, finalY + 16, { align: 'right' });
+    
+    // Reset defaults
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+
     doc.save(`analytics_report_${Date.now()}.pdf`);
   };
 
@@ -590,6 +702,19 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
     })).sort((a, b) => b.visits - a.visits);
   }, [trafficEvents]);
 
+  const topCities = useMemo(() => {
+    const cityMap: Record<string, number> = {};
+    trafficEvents.forEach(e => {
+        if (e.city) {
+            cityMap[e.city] = (cityMap[e.city] || 0) + 1;
+        }
+    });
+    return Object.entries(cityMap)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+  }, [trafficEvents]);
+
   const formatDuration = (sec: number) => sec < 60 ? `${sec}s` : `${Math.floor(sec/60)}m ${sec%60}s`;
 
   return (
@@ -622,34 +747,65 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><div className="flex justify-between items-start mb-6"><div><h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2"><Clock size={18} className="text-orange-500"/> Peak Activity Times</h3><p className="text-xs text-slate-500">Distribution of visits by hour of the day.</p></div><div className="px-4 py-2 bg-orange-500/10 rounded-xl border border-orange-500/20 text-right"><span className="block text-[9px] font-black uppercase tracking-widest text-orange-500">Peak Hour</span><span className="text-lg font-bold text-white">{peakHour.time}</span></div></div><div className="h-48 w-full"><SimpleBarChart data={hourlyTraffic} color="#f97316" showLabels={false} /></div><div className="flex justify-between mt-2 text-[9px] font-mono text-slate-600"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div></div>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
-         <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6"><Megaphone size={18} className="text-red-500"/> Campaign Performance</h3>
-         <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-               <thead>
-                  <tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                     <th className="pb-4 pl-4">UTM Campaign</th>
-                     <th className="pb-4 w-32">Visits</th>
-                     <th className="pb-4 w-32">Avg Scroll</th>
-                     <th className="pb-4 w-32">Avg Duration</th>
-                  </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-800/50">
-                  {campaignPerformance.length === 0 ? (
-                     <tr><td colSpan={4} className="py-8 text-center text-slate-600 text-xs">No campaign data tracked yet.</td></tr>
-                  ) : (
-                     campaignPerformance.map((camp, idx) => (
-                        <tr key={idx} className="group hover:bg-slate-800/20 transition-colors">
-                           <td className="py-3 pl-4 text-sm font-bold text-white">{camp.name}</td>
-                           <td className="py-3 text-xs text-slate-400 font-mono">{camp.visits}</td>
-                           <td className="py-3"><span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold border ${ camp.avgScroll > 50 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-slate-800 text-slate-500 border-slate-700' }`}>{camp.avgScroll}%</span></td>
-                           <td className="py-3 text-xs text-slate-400 font-mono">{formatDuration(camp.avgDuration)}</td>
-                        </tr>
-                     ))
-                  )}
-               </tbody>
-            </table>
-         </div>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
+           <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6"><Megaphone size={18} className="text-red-500"/> Campaign Performance</h3>
+           <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                 <thead>
+                    <tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                       <th className="pb-4 pl-4">UTM Campaign</th>
+                       <th className="pb-4 w-32">Visits</th>
+                       <th className="pb-4 w-32">Avg Scroll</th>
+                       <th className="pb-4 w-32">Avg Duration</th>
+                    </tr>
+                 </thead>
+                 <tbody className="divide-y divide-slate-800/50">
+                    {campaignPerformance.length === 0 ? (
+                       <tr><td colSpan={4} className="py-8 text-center text-slate-600 text-xs">No campaign data tracked yet.</td></tr>
+                    ) : (
+                       campaignPerformance.map((camp, idx) => (
+                          <tr key={idx} className="group hover:bg-slate-800/20 transition-colors">
+                             <td className="py-3 pl-4 text-sm font-bold text-white">{camp.name}</td>
+                             <td className="py-3 text-xs text-slate-400 font-mono">{camp.visits}</td>
+                             <td className="py-3"><span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold border ${ camp.avgScroll > 50 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-slate-800 text-slate-500 border-slate-700' }`}>{camp.avgScroll}%</span></td>
+                             <td className="py-3 text-xs text-slate-400 font-mono">{formatDuration(camp.avgDuration)}</td>
+                          </tr>
+                       ))
+                    )}
+                 </tbody>
+              </table>
+           </div>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6"><MapPin size={18} className="text-emerald-500"/> Top Cities</h3>
+            <div className="space-y-4">
+                {topCities.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-40 text-slate-500 opacity-50">
+                        <MapPin size={32} className="mb-2"/>
+                        <p className="text-xs">No geo data recorded.</p>
+                    </div>
+                ) : (
+                    topCities.map((city, idx) => (
+                        <div key={city.name} className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                                <div className="w-6 h-6 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-colors">
+                                    {idx + 1}
+                                </div>
+                                <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">{city.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(city.count / topCities[0].count) * 100}%` }}></div>
+                                </div>
+                                <span className="text-[10px] font-mono text-slate-500 w-6 text-right">{city.count}</span>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
       </div>
 
       {/* --- NEW MODULES --- */}
@@ -674,240 +830,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
 };
 
 // ... (TrainingGrid component remain essentially same)
-const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
-   const [pulse, setPulse] = useState<number[]>(new Array(20).fill(50));
-   const [termFilter, setTermFilter] = useState('ALL');
-   const [termSearch, setTermSearch] = useState('');
-   const [memoryUsage, setMemoryUsage] = useState<number>(0);
-   const [isTesting, setIsTesting] = useState(false);
-
-   // Heartbeat Simulation
-   useEffect(() => {
-     const interval = setInterval(() => {
-       setPulse(prev => {
-         const noise = Math.random() * 20 - 10;
-         const base = 50;
-         const newVal = Math.max(10, Math.min(90, base + noise));
-         return [...prev.slice(1), newVal];
-       });
-       
-       // Simulate Memory (if API not available)
-       if ((performance as any).memory) {
-          setMemoryUsage((performance as any).memory.usedJSHeapSize / 1024 / 1024);
-       } else {
-          setMemoryUsage(prev => Math.max(30, Math.min(120, prev + (Math.random() * 4 - 2))));
-       }
-     }, 1000);
-     return () => clearInterval(interval);
-   }, []);
-
-   const healthScore = useMemo(() => {
-      if (!connectionHealth) return 0;
-      let score = 100;
-      if (connectionHealth.status !== 'online') score -= 50;
-      if (connectionHealth.latency > 100) score -= 10;
-      if (connectionHealth.latency > 500) score -= 20;
-      
-      const recentLogs = systemLogs.slice(0, 20);
-      const errorCount = recentLogs.filter(l => l.type === 'ERROR').length;
-      score -= (errorCount * 5);
-      
-      return Math.max(0, score);
-   }, [connectionHealth, systemLogs]);
-
-   const filteredLogs = systemLogs.filter(log => {
-      const matchesSearch = log.message.toLowerCase().includes(termSearch.toLowerCase()) || log.type.toLowerCase().includes(termSearch.toLowerCase());
-      const matchesFilter = termFilter === 'ALL' || log.type === termFilter;
-      return matchesSearch && matchesFilter;
-   });
-
-   const handlePurgeCache = () => {
-      if (window.confirm("This will clear local storage and reload. Continue?")) {
-         localStorage.clear();
-         window.location.reload();
-      }
-   };
-
-   const handleTestLatency = async () => {
-      setIsTesting(true);
-      await measureConnection();
-      setTimeout(() => setIsTesting(false), 1000);
-   };
-
-   const exportLogs = () => {
-      const blob = new Blob([JSON.stringify(systemLogs, null, 2)], {type: "application/json"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `system_logs_${Date.now()}.json`;
-      a.click();
-   };
-
-   return ( 
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-      <div className="flex items-center justify-between mb-6">
-         <h2 className="text-3xl font-serif text-white flex items-center gap-3">
-            <Activity className="text-emerald-400 animate-pulse" size={28}/> 
-            System Diagnostics
-         </h2>
-         <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">NOC ONLINE</span>
-         </div>
-      </div>
-
-      {/* Metric Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-         {/* Health Index */}
-         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/30 transition-all">
-            <div className="flex justify-between items-start mb-4">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Health Index</h4>
-               <ShieldCheck size={16} className={healthScore > 80 ? 'text-emerald-500' : 'text-amber-500'} />
-            </div>
-            <div className="flex items-end gap-2">
-               <span className={`text-4xl font-mono font-bold ${healthScore > 80 ? 'text-white' : 'text-amber-400'}`}>{healthScore}%</span>
-               <span className="text-[10px] text-slate-500 mb-1">STABLE</span>
-            </div>
-            <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-               <div className={`h-full transition-all duration-1000 ${healthScore > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${healthScore}%` }}></div>
-            </div>
-         </div>
-
-         {/* Network Pulse */}
-         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-blue-500/30 transition-all">
-            <div className="flex justify-between items-start mb-2">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Network Pulse</h4>
-               <Wifi size={16} className="text-blue-500" />
-            </div>
-            <div className="h-12 w-full">
-               <SimpleLineChart data={pulse} color="#3b82f6" height={48} />
-            </div>
-            <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-400">
-               <span>LATENCY:</span>
-               <span className={connectionHealth?.latency > 200 ? 'text-red-400' : 'text-blue-400'}>{connectionHealth?.latency || 0}ms</span>
-            </div>
-         </div>
-
-         {/* Memory Usage */}
-         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all">
-            <div className="flex justify-between items-start mb-4">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Client Memory</h4>
-               <Cpu size={16} className="text-purple-500" />
-            </div>
-            <div className="text-2xl font-mono font-bold text-white mb-2">{memoryUsage.toFixed(1)} <span className="text-sm text-slate-500">MB</span></div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-               <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${Math.min(100, (memoryUsage / 200) * 100)}%` }}></div>
-            </div>
-         </div>
-
-         {/* Storage Anatomy */}
-         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-orange-500/30 transition-all">
-            <div className="flex justify-between items-start mb-4">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Storage Anatomy</h4>
-               <Database size={16} className="text-orange-500" />
-            </div>
-            <div className="text-xl font-mono font-bold text-white mb-2">{(storageStats.mediaSize / 1024 / 1024).toFixed(2)} MB</div>
-            <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-slate-800">
-               <div className="bg-blue-500 h-full" style={{ width: '20%' }} title="Database"></div>
-               <div className="bg-orange-500 h-full" style={{ width: '60%' }} title="Media"></div>
-               <div className="bg-slate-600 h-full" style={{ width: '20%' }} title="System"></div>
-            </div>
-            <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-mono">
-               <span>DB: 20%</span>
-               <span>MEDIA: 60%</span>
-            </div>
-         </div>
-      </div>
-
-      {/* Interactive Terminal */}
-      <div className="bg-black border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[400px]">
-         {/* Terminal Toolbar */}
-         <div className="bg-slate-900/50 border-b border-slate-800 p-3 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-               <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-               </div>
-               <div className="h-4 w-px bg-slate-800"></div>
-               <div className="flex gap-2">
-                  {['ALL', 'ERROR', 'SYNC', 'UPDATE'].map(t => (
-                     <button 
-                        key={t}
-                        onClick={() => setTermFilter(t)}
-                        className={`px-3 py-1 rounded text-[9px] font-bold font-mono transition-colors ${termFilter === t ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-                     >
-                        {t}
-                     </button>
-                  ))}
-               </div>
-            </div>
-            <div className="flex items-center gap-3">
-               <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-600" size={12}/>
-                  <input 
-                     type="text" 
-                     value={termSearch}
-                     onChange={e => setTermSearch(e.target.value)}
-                     placeholder="grep logs..."
-                     className="bg-slate-950 border border-slate-800 rounded-md pl-7 pr-3 py-1 text-[10px] text-emerald-500 font-mono outline-none focus:border-emerald-500/50 w-32 focus:w-48 transition-all"
-                  />
-               </div>
-               <button onClick={exportLogs} className="p-1.5 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
-                  <Download size={14}/>
-               </button>
-            </div>
-         </div>
-
-         {/* Log Output */}
-         <div className="flex-grow bg-[#0c0c0c] p-4 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">
-            {filteredLogs.length === 0 ? (
-               <div className="h-full flex flex-col items-center justify-center text-slate-700 opacity-50">
-                  <Terminal size={48} className="mb-4"/>
-                  <p>NO SIGNAL DETECTED</p>
-               </div>
-            ) : (
-               filteredLogs.map(log => (
-                  <div key={log.id} className="flex gap-3 hover:bg-white/5 p-0.5 rounded transition-colors group">
-                     <span className="text-slate-600 w-20 flex-shrink-0 select-none">[{new Date(log.timestamp).toLocaleTimeString([], {hour12: false})}]</span>
-                     <span className={`w-16 flex-shrink-0 font-bold ${
-                        log.type === 'ERROR' ? 'text-rose-500' : 
-                        log.type === 'SYNC' ? 'text-cyan-400' : 
-                        log.type === 'UPDATE' ? 'text-amber-400' : 'text-slate-400'
-                     }`}>{log.type}</span>
-                     <span className="text-slate-300 group-hover:text-white break-all">{log.message}</span>
-                  </div>
-               ))
-            )}
-            <div className="h-2"></div>
-            <div className="animate-pulse flex items-center gap-2 text-emerald-500/50">
-               <span>_</span>
-            </div>
-         </div>
-      </div>
-
-      {/* Diagnostics Controls */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-         <button onClick={handlePurgeCache} className="p-4 bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-red-400 transition-all group">
-            <Trash size={16} className="group-hover:rotate-12 transition-transform"/>
-            <span className="text-[10px] font-black uppercase tracking-widest">Purge Cache</span>
-         </button>
-         <button onClick={handleTestLatency} disabled={isTesting} className="p-4 bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-blue-400 transition-all group">
-            <RefreshCw size={16} className={`group-hover:rotate-180 transition-transform ${isTesting ? 'animate-spin' : ''}`}/>
-            <span className="text-[10px] font-black uppercase tracking-widest">{isTesting ? 'Pinging...' : 'Test Latency'}</span>
-         </button>
-         <div className="md:col-span-2 p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between px-6">
-            <div className="flex items-center gap-3">
-               <ShieldAlert size={16} className="text-emerald-500"/>
-               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Protocol</span>
-            </div>
-            <span className="text-xs font-mono text-emerald-400">ENCRYPTED (TLS 1.3)</span>
-         </div>
-      </div>
-    </div> 
-   );
-};
-
 const TrainingGrid: React.FC = () => {
    const [filter, setFilter] = useState('All');
    const categories = ['All', 'Social', 'Marketplace', 'SEO', 'Email'];
@@ -2013,65 +1935,38 @@ const Admin: React.FC = () => {
                                     <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform mt-1 ml-1 ${tempSettings.vatRegistered ? 'translate-x-6' : ''}`}></div>
                                 </div>
                             </div>
-                            <SettingField label="VAT Rate (%)" value={tempSettings.vatRate?.toString() || '15'} onChange={v => updateTempSettings({ vatRate: parseFloat(v) })} type="number" />
-                            <SettingField label="VAT Number" value={tempSettings.vatNumber || ''} onChange={v => updateTempSettings({ vatNumber: v })} />
-                            <SettingField label="Bank Name" value={tempSettings.bankName || ''} onChange={v => updateTempSettings({ bankName: v })} />
-                            <SettingField label="Account Number" value={tempSettings.accountNumber || ''} onChange={v => updateTempSettings({ accountNumber: v })} />
-                            <SettingField label="Branch Code" value={tempSettings.branchCode || ''} onChange={v => updateTempSettings({ branchCode: v })} />
-                        </div>
-                    </div>
+                            
+                            {tempSettings.vatRegistered && (
+                                <div className="col-span-2 grid md:grid-cols-2 gap-4 animate-in fade-in">
+                                    <SettingField label="VAT Rate (%)" value={tempSettings.vatRate?.toString() || '15'} onChange={v => updateTempSettings({ vatRate: parseFloat(v) })} type="number" />
+                                    <SettingField label="VAT Number" value={tempSettings.vatNumber || ''} onChange={v => updateTempSettings({ vatNumber: v })} />
+                                </div>
+                            )}
 
-                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-6">
-                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4>
-                        <div className="space-y-4">
-                            <SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} />
-                            <SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} />
-                            <SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} />
-                        </div>
-                    </div>
-                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                        <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4>
-                        <div className="space-y-4">
-                            <SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
-                            <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
-                            <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
-                            <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
-                            <SettingField label="Google My Business URL" value={tempSettings.googleMyBusinessUrl || ''} onChange={v => updateTempSettings({ googleMyBusinessUrl: v })} />
+                            <div className="col-span-2 pt-4 border-t border-slate-800 mt-4">
+                                <h5 className="text-xs font-black uppercase text-white tracking-widest mb-4 flex items-center gap-2">Banking Details</h5>
+                                <div className="space-y-4">
+                                    <SettingField label="Bank Name" value={tempSettings.bankName || ''} onChange={v => updateTempSettings({ bankName: v })} />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <SettingField label="Account Number" value={tempSettings.accountNumber || ''} onChange={v => updateTempSettings({ accountNumber: v })} />
+                                        <SettingField label="Branch Code" value={tempSettings.branchCode || ''} onChange={v => updateTempSettings({ branchCode: v })} />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                   </>
                )}
              </div>
-             <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4"><button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-colors shadow-lg shadow-primary/20">Publish Changes</button></div>
+             
+             {/* Drawer Footer Actions */}
+             <div className="flex gap-4 pt-8 border-t border-slate-800 mt-8 pb-20 md:pb-0">
+                <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 rounded-xl font-bold uppercase text-xs tracking-widest hover:brightness-110 shadow-lg shadow-primary/20 transition-all">Publish Changes</button>
+                <button onClick={() => setEditorDrawerOpen(false)} className="px-8 py-4 border border-slate-800 text-slate-400 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white">Cancel</button>
+             </div>
           </div>
         </div>
       )}
-
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/80 backdrop-blur-md border-t border-white/5 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-widest">
-           <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-slate-600'}`}></div>
-                 <span className="text-slate-500">Supabase: <span className={isSupabaseConfigured ? 'text-green-500' : 'text-slate-400'}>{isSupabaseConfigured ? 'Synced' : 'Local'}</span></span>
-              </div>
-              <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]' : 'bg-red-500 animate-ping shadow-[0_0_8px_#ef4444]'}`}></div>
-                 <span className="text-slate-500">Latency: <span className="text-white">{connectionHealth?.latency || 0}ms</span></span>
-              </div>
-           </div>
-           <div className="flex items-center gap-6">
-              <span className="text-slate-600">Session ID: <span className="text-white font-mono">{userId?.substring(0, 8) || 'LOCAL'}</span></span>
-              <button onClick={() => refreshAllData()} className="flex items-center gap-2 text-primary hover:text-white transition-colors">
-                 <RefreshCcw size={12} className={saveStatus === 'saving' ? 'animate-spin' : ''} /> Force Resync
-              </button>
-           </div>
-           <div className="flex items-center gap-2">
-              <span className="text-slate-600">Maison Portal v2.5.7</span>
-              <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
-              <span className="text-slate-500">100% Secure Handshake</span>
-           </div>
-        </div>
-      </footer>
     </div>
   );
 };

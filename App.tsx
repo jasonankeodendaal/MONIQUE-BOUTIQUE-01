@@ -269,7 +269,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
     
     const params = new URLSearchParams(window.location.search);
     const utmSource = params.get('utm_source') || params.get('source') || params.get('ref');
-    const referrer = document.referrer.toLowerCase();
     
     if (utmSource) {
       const cleanSource = utmSource.toLowerCase();
@@ -279,21 +278,26 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
       if (cleanSource.includes('instagram')) return 'Instagram';
       if (cleanSource.includes('facebook') || cleanSource.includes('fb')) return 'Facebook';
       if (cleanSource.includes('twitter') || cleanSource.includes('x')) return 'X (Twitter)';
+      if (cleanSource.includes('pinterest')) return 'Pinterest';
       return cleanSource.charAt(0).toUpperCase() + cleanSource.slice(1);
     }
 
-    if (referrer.includes('facebook') || referrer.includes('fb')) return 'Facebook';
-    if (referrer.includes('instagram')) return 'Instagram';
-    if (referrer.includes('tiktok')) return 'TikTok';
-    if (referrer.includes('pinterest')) return 'Pinterest';
-    if (referrer.includes('google')) return 'Google Search';
-    if (referrer.includes('twitter') || referrer.includes('t.co') || referrer.includes('x.com')) return 'X (Twitter)';
-    if (referrer.includes('linkedin')) return 'LinkedIn';
-    if (referrer.includes('whatsapp') || referrer.includes('wa.me')) return 'WhatsApp';
+    const referrer = document.referrer.toLowerCase();
+    
+    if (referrer.includes('tiktok.com')) return 'TikTok';
+    if (referrer.includes('instagram.com')) return 'Instagram';
+    if (referrer.includes('facebook.com') || referrer.includes('fb.com')) return 'Facebook';
+    if (referrer.includes('twitter.com') || referrer.includes('t.co') || referrer.includes('x.com')) return 'X (Twitter)';
+    if (referrer.includes('linkedin.com')) return 'LinkedIn';
+    if (referrer.includes('pinterest.com')) return 'Pinterest';
+    if (referrer.includes('youtube.com')) return 'YouTube';
+    if (referrer.includes('google.')) return 'Google Search';
+    if (referrer.includes('bing.com')) return 'Bing Search';
+    if (referrer.includes('whatsapp.com') || referrer.includes('wa.me')) return 'WhatsApp';
     
     if (referrer.length > 0) {
       try {
-        const url = new URL(referrer);
+        const url = new URL(document.referrer);
         return url.hostname.replace('www.', '');
       } catch (e) {
         return 'Referral';
@@ -336,6 +340,12 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
             if (data.error) return; 
+
+            // Save basic geo to session for immediate log access by subsequent events
+            if (data.city) {
+              sessionStorage.setItem('visitor_city', data.city);
+              sessionStorage.setItem('visitor_country', data.country_name);
+            }
 
             const visitData = {
                 ip: data.ip,
@@ -851,6 +861,9 @@ const App: React.FC = () => {
     // Session Duration
     const sessionDuration = Math.round((Date.now() - sessionStartTime.current) / 1000);
 
+    // City from Session (fetched by TrafficTracker)
+    const city = sessionStorage.getItem('visitor_city') || undefined;
+
     const eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newEvent: TrafficLog = {
       id: eventId,
@@ -859,6 +872,7 @@ const App: React.FC = () => {
       time: new Date().toLocaleTimeString(),
       timestamp: Date.now(),
       source: source || 'Direct',
+      city, // Added city
       // Enhanced Telemetry
       utmCampaign,
       utmMedium,
