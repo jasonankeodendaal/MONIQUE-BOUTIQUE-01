@@ -50,7 +50,8 @@ const Footer: React.FC = () => {
   const location = useLocation();
   const [showCreatorModal, setShowCreatorModal] = useState(false);
 
-  if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/client-login') return null;
+  // Updated: Allow footer on /admin, hide only on login/auth pages
+  if (location.pathname === '/login' || location.pathname === '/client-login') return null;
 
   return (
     <>
