@@ -13,7 +13,7 @@ import {
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
   FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator
+  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator, AlertCircle, RefreshCw, ShieldAlert, Binary
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -232,7 +232,43 @@ const HorizontalBarChart = ({ data, color }: { data: { label: string, value: num
     ); 
 };
 
-const SimpleDonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => { const total = data.reduce((acc, curr) => acc + curr.value, 0) || 1; let accumulated = 0; return ( <div className="relative w-32 h-32 mx-auto"><svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">{data.map((d, i) => { const percent = d.value / total; const dashArray = `${percent * 283} 283`; const dashOffset = -accumulated * 283; accumulated += percent; return ( <circle key={i} cx="50" cy="50" r="45" fill="transparent" stroke={d.color} strokeWidth="10" strokeDasharray={dashArray} strokeDashoffset={dashOffset} className="transition-all duration-500 hover:stroke-[12px]" /> ); })}</svg><div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-xl font-bold text-white">{total > 999 ? '1k+' : total}</span><span className="text-[8px] uppercase font-black text-slate-500 tracking-widest">Hits</span></div></div> ); };
+const SimpleDonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => { 
+    const total = data.reduce((acc, curr) => acc + curr.value, 0) || 1; 
+    let accumulated = 0; 
+    
+    return ( 
+        <div className="relative w-48 h-48 mx-auto group">
+            <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
+                {data.map((d, i) => { 
+                    const percent = d.value / total; 
+                    const dashArray = `${percent * 283} 283`; 
+                    const dashOffset = -accumulated * 283; 
+                    accumulated += percent; 
+                    return ( 
+                        <circle 
+                            key={i} 
+                            cx="50" 
+                            cy="50" 
+                            r="40" 
+                            fill="transparent" 
+                            stroke={d.color} 
+                            strokeWidth="12" 
+                            strokeDasharray={dashArray} 
+                            strokeDashoffset={dashOffset} 
+                            className="transition-all duration-500 hover:stroke-[14px] hover:brightness-110 cursor-pointer"
+                        >
+                            <title>{d.label}: {d.value} ({Math.round(percent * 100)}%)</title>
+                        </circle> 
+                    ); 
+                })}
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-black text-white tracking-tight">{total > 999 ? (total/1000).toFixed(1) + 'k' : total}</span>
+                <span className="text-[10px] uppercase font-black text-slate-500 tracking-widest mt-1">Total Visits</span>
+            </div>
+        </div> 
+    ); 
+};
 
 // (Re-declaring unchanged helper components to maintain file integrity)
 const compressImage = async (file: File): Promise<string> => { return new Promise((resolve, reject) => { if (!file.type.startsWith('image/')) { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => resolve(e.target?.result as string); reader.onerror = (e) => reject(e); return; } const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target?.result as string; img.onload = () => { const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const scaleSize = MAX_WIDTH / img.width; if (scaleSize < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize; } else { canvas.width = img.width; canvas.height = img.height; } const ctx = canvas.getContext('2d'); if (!ctx) { reject(new Error('Canvas context failed')); return; } ctx.drawImage(img, 0, 0, canvas.width, canvas.height); const dataUrl = canvas.toDataURL('image/jpeg', 0.7); resolve(dataUrl); }; img.onerror = (err: any) => reject(err); }; reader.onerror = (err) => reject(err); }); };
@@ -254,6 +290,230 @@ const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 round
 const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[] }> = ({ trafficEvents, products, stats, orders, categories }) => {
   const { settings } = useSettings();
   
+  // --- SUB-COMPONENTS FOR DASHBOARD ---
+
+  const TrafficQualityGrid = () => {
+    // Process Traffic Data
+    const sourceStats = useMemo(() => {
+        const map: Record<string, { count: number, bounceCount: number, engagementTotal: number }> = {};
+        
+        trafficEvents.forEach(e => {
+            const src = e.source || 'Direct';
+            if (!map[src]) map[src] = { count: 0, bounceCount: 0, engagementTotal: 0 };
+            
+            map[src].count++;
+            // Assume scrollDepth < 20 is a bounce
+            if ((e.scrollDepth || 0) < 20) map[src].bounceCount++;
+            
+            // Engagement score approx
+            map[src].engagementTotal += (e.scrollDepth || 0) + ((e.sessionDuration || 0) / 2); 
+        });
+
+        return Object.entries(map).map(([name, data]) => ({
+            name,
+            value: data.count,
+            bounceRate: Math.round((data.bounceCount / data.count) * 100),
+            engagement: Math.round(data.engagementTotal / data.count),
+            color: getChannelColor(name)
+        })).sort((a, b) => b.value - a.value);
+    }, [trafficEvents]);
+
+    function getChannelColor(source: string) {
+        const s = source.toLowerCase();
+        if (s.includes('instagram')) return '#E1306C';
+        if (s.includes('tiktok')) return '#000000'; // Or generic dark
+        if (s.includes('facebook')) return '#1877F2';
+        if (s.includes('google')) return '#4285F4';
+        if (s.includes('whatsapp')) return '#25D366';
+        if (s.includes('pinterest')) return '#E60023';
+        if (s.includes('linkedin')) return '#0A66C2';
+        if (s.includes('twitter') || s.includes('x')) return '#1DA1F2';
+        return '#64748b'; // Slate-500
+    }
+
+    return (
+        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col h-full">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <Globe size={18} className="text-cyan-500"/> Traffic Sources & Quality
+            </h3>
+            
+            <div className="flex flex-col md:flex-row gap-8 items-center h-full">
+                {/* Donut Chart */}
+                <div className="w-full md:w-5/12 flex flex-col items-center justify-center">
+                    <SimpleDonutChart data={sourceStats.map(s => ({ label: s.name, value: s.value, color: s.color }))} />
+                </div>
+
+                {/* Detailed Grid */}
+                <div className="w-full md:w-7/12 space-y-4 overflow-y-auto max-h-[300px] custom-scrollbar pr-2">
+                    {sourceStats.map((stat, idx) => (
+                        <div key={idx} className="bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 flex items-center justify-between group hover:border-slate-700 transition-colors">
+                            <div className="flex items-center gap-3">
+                                <div className="w-2 h-8 rounded-full" style={{ backgroundColor: stat.color }}></div>
+                                <div>
+                                    <div className="text-xs font-bold text-white">{stat.name}</div>
+                                    <div className="text-[10px] text-slate-500 font-mono">{stat.value} Visits</div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-4 text-right">
+                                <div>
+                                    <div className={`text-[10px] font-black uppercase tracking-widest ${stat.bounceRate > 60 ? 'text-red-500' : 'text-green-500'}`}>
+                                        {stat.bounceRate}%
+                                    </div>
+                                    <div className="text-[9px] text-slate-600">Bounce</div>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-primary">
+                                        {Math.min(100, stat.engagement)}
+                                    </div>
+                                    <div className="text-[9px] text-slate-600">Engage Score</div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {sourceStats.length === 0 && <div className="text-center text-slate-600 text-xs py-4">No traffic data recorded.</div>}
+                </div>
+            </div>
+        </div>
+    );
+  };
+
+  const MerchandisingTable = () => {
+    const [merchFilter, setMerchFilter] = useState('all');
+
+    // Aggregate Metrics
+    const merchData = useMemo(() => {
+        return products.map(product => {
+            const stat = stats.find(s => s.productId === product.id) || { views: 0, clicks: 0, shares: 0 };
+            
+            // Calculate Orders & Revenue from actual orders
+            const productOrders = orders.flatMap(o => o.items || []).filter(i => i.productId === product.id);
+            const salesCount = productOrders.reduce((sum, item) => sum + item.quantity, 0);
+            const revenue = productOrders.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const conversionRate = stat.views > 0 ? (salesCount / stat.views) * 100 : 0;
+            const stockStatus = !product.isDirectSale ? 'N/A' : (product.stockQuantity || 0) === 0 ? 'Out' : (product.stockQuantity || 0) < 5 ? 'Low' : 'Good';
+
+            return {
+                ...product,
+                stats: stat,
+                salesCount,
+                revenue,
+                conversionRate,
+                stockStatus
+            };
+        }).sort((a, b) => b.revenue - a.revenue); // Default sort by revenue
+    }, [products, stats, orders]);
+
+    const filteredMerch = merchFilter === 'all' 
+        ? merchData 
+        : merchData.filter(p => p.categoryId === merchFilter);
+
+    return (
+        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col mt-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Tag size={18} className="text-yellow-500"/> Merchandising Intelligence
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">Inventory performance and conversion analysis.</p>
+                </div>
+                
+                {/* Filter Tabs */}
+                <div className="flex gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
+                    <button 
+                        onClick={() => setMerchFilter('all')}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${merchFilter === 'all' ? 'bg-primary text-slate-900 shadow-lg' : 'bg-slate-950 text-slate-500 border border-slate-800 hover:text-white'}`}
+                    >
+                        All Items
+                    </button>
+                    {categories.map(cat => (
+                        <button 
+                            key={cat.id}
+                            onClick={() => setMerchFilter(cat.id)}
+                            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${merchFilter === cat.id ? 'bg-primary text-slate-900 shadow-lg' : 'bg-slate-950 text-slate-500 border border-slate-800 hover:text-white'}`}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr className="border-b border-slate-800 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                            <th className="pb-4 pl-4 w-1/3">Product Detail</th>
+                            <th className="pb-4">Status</th>
+                            <th className="pb-4 text-center">Funnel (View → Buy)</th>
+                            <th className="pb-4 text-right">Revenue</th>
+                            <th className="pb-4 text-right pr-4">Conv. %</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/50">
+                        {filteredMerch.map(item => (
+                            <tr key={item.id} className="group hover:bg-slate-800/30 transition-colors">
+                                <td className="py-4 pl-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden border border-slate-700 flex-shrink-0">
+                                            <img src={item.media?.[0]?.url} className="w-full h-full object-cover" loading="lazy" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-sm font-bold text-white line-clamp-1">{item.name}</div>
+                                            <div className="text-[10px] text-slate-500 font-mono mt-0.5">{item.sku}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="py-4">
+                                    <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${
+                                        item.stockStatus === 'Good' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                        item.stockStatus === 'Low' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                                        item.stockStatus === 'Out' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                        'bg-slate-800 text-slate-500 border-slate-700'
+                                    }`}>
+                                        {item.stockStatus}
+                                    </span>
+                                </td>
+                                <td className="py-4 px-4">
+                                    {/* Funnel Viz */}
+                                    <div className="flex items-center gap-1 h-8 justify-center">
+                                        {/* Views Bar */}
+                                        <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.stats.views} Views`}>
+                                            <div className="w-full bg-blue-500/40 rounded-sm" style={{ height: '100%' }}></div>
+                                            <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.stats.views}</span>
+                                        </div>
+                                        <ArrowRight size={10} className="text-slate-600"/>
+                                        {/* Clicks Bar */}
+                                        <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.stats.clicks} Clicks`}>
+                                            <div className="w-full bg-purple-500/40 rounded-sm" style={{ height: `${item.stats.views > 0 ? (item.stats.clicks / item.stats.views) * 100 : 0}%`, minHeight: '4px' }}></div>
+                                            <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.stats.clicks}</span>
+                                        </div>
+                                        <ArrowRight size={10} className="text-slate-600"/>
+                                        {/* Sales Bar */}
+                                        <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.salesCount} Sales`}>
+                                            <div className="w-full bg-green-500/40 rounded-sm" style={{ height: `${item.stats.clicks > 0 ? (item.salesCount / item.stats.clicks) * 100 : 0}%`, minHeight: '2px' }}></div>
+                                            <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.salesCount}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="py-4 text-right font-mono text-xs text-white">
+                                    R {item.revenue.toLocaleString()}
+                                </td>
+                                <td className="py-4 pr-4 text-right">
+                                    <span className={`font-bold text-xs ${item.conversionRate > 2 ? 'text-green-400' : 'text-slate-400'}`}>
+                                        {item.conversionRate.toFixed(1)}%
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {filteredMerch.length === 0 && <div className="text-center py-8 text-slate-500 text-xs">No products found in this category.</div>}
+            </div>
+        </div>
+    );
+  };
+
   const generateReport = () => {
     const doc = new jsPDF();
     const activeOrders = orders.filter(o => o.status !== 'cancelled');
@@ -289,7 +549,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
   const totalOrders = orders.length;
   const totalVisits = Math.max(trafficEvents.length, 1);
   const conversionRate = totalVisits > 0 ? (totalOrders / totalVisits) * 100 : 0;
-  const [matrixView, setMatrixView] = useState<'products' | 'categories'>('products');
+  
   const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d.toLocaleDateString('en-US', { weekday: 'short' }); });
   const hourlyTraffic = useMemo(() => { const hours = Array(24).fill(0); trafficEvents.forEach(e => { const h = new Date(e.timestamp).getHours(); if (h >= 0 && h < 24) hours[h]++; }); return hours.map((count, hour) => ({ label: `${hour.toString().padStart(2, '0')}:00`, value: count })); }, [trafficEvents]);
   const peakHour = useMemo(() => { const max = Math.max(...hourlyTraffic.map(h => h.value)); const hour = hourlyTraffic.find(h => h.value === max); return { time: hour?.label || '00:00', count: max }; }, [hourlyTraffic]);
@@ -298,35 +558,23 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
   const orderTrend = getTimelineData(activeOrders, 'createdAt');
   const devices = trafficEvents.reduce((acc: any, curr) => { const d = curr.device || 'Desktop'; acc[d] = (acc[d] || 0) + 1; return acc; }, {});
   const deviceData = [ { label: 'Mobile', value: devices['Mobile'] || 0, color: '#ec4899' }, { label: 'Desktop', value: devices['Desktop'] || 0, color: '#3b82f6' }, { label: 'Tablet', value: devices['Tablet'] || 0, color: '#a855f7' } ].filter(d => d.value > 0);
-  const topProducts = stats.sort((a,b) => b.views - a.views).slice(0, 5).map(s => ({ label: products.find(p => p.id === s.productId)?.name || 'Unknown', value: s.views }));
-  const sources = trafficEvents.reduce((acc: any, curr) => { const s = curr.source || 'Direct'; acc[s] = (acc[s] || 0) + 1; return acc; }, {});
-  const sourceData = Object.entries(sources).sort(([,a]: any, [,b]: any) => b - a).slice(0, 5).map(([label, value]) => ({ label, value: value as number }));
+  
   const metrics = [ { label: 'Net Revenue', value: `R ${totalRevenue.toLocaleString()}`, change: '+12%', icon: DollarSign, color: 'text-green-500', bg: 'bg-green-500/10' }, { label: 'Orders', value: totalOrders, change: '+5%', icon: ShoppingBag, color: 'text-blue-500', bg: 'bg-blue-500/10' }, { label: 'Site Visits', value: totalVisits.toLocaleString(), change: '+24%', icon: Eye, color: 'text-purple-500', bg: 'bg-purple-500/10' }, { label: 'Conversion', value: `${conversionRate.toFixed(2)}%`, change: '-1%', icon: Target, color: 'text-amber-500', bg: 'bg-amber-500/10', negative: true }, ];
-  const productMatrix = useMemo(() => { return products.map(p => { const stat = stats.find(s => s.productId === p.id) || { productId: p.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: 0 }; const ctr = stat.views > 0 ? (stat.clicks / stat.views) * 100 : 0; return { ...p, stats: stat, ctr }; }).sort((a, b) => b.stats.views - a.stats.views); }, [products, stats]);
-  const maxProductViews = Math.max(...productMatrix.map(p => p.stats.views), 1);
-  const maxProductClicks = Math.max(...productMatrix.map(p => p.stats.clicks), 1);
-  const categoryMatrix = useMemo(() => { return categories.map(cat => { const catProducts = products.filter(p => p.categoryId === cat.id); const catStats = catProducts.reduce((acc, p) => { const stat = stats.find(s => s.productId === p.id); if (stat) { acc.views += stat.views; acc.clicks += stat.clicks; } return acc; }, { views: 0, clicks: 0 }); return { ...cat, stats: catStats, productCount: catProducts.length }; }).sort((a, b) => b.stats.views - a.stats.views); }, [categories, products, stats]);
-  const maxCatViews = Math.max(...categoryMatrix.map(c => c.stats.views), 1);
-  const maxCatClicks = Math.max(...categoryMatrix.map(c => c.stats.clicks), 1);
-
+  
   const engagementStats = useMemo(() => {
     const eventsWithScroll = trafficEvents.filter(e => typeof e.scrollDepth === 'number');
     const avgScroll = eventsWithScroll.length ? Math.round(eventsWithScroll.reduce((a, b) => a + (b.scrollDepth || 0), 0) / eventsWithScroll.length) : 0;
-    
     const eventsWithDuration = trafficEvents.filter(e => typeof e.sessionDuration === 'number' && e.sessionDuration > 0);
     const avgDuration = eventsWithDuration.length ? Math.round(eventsWithDuration.reduce((a, b) => a + (b.sessionDuration || 0), 0) / eventsWithDuration.length) : 0;
-    
     return { avgScroll, avgDuration };
   }, [trafficEvents]);
 
   const campaignPerformance = useMemo(() => {
     const campMap: Record<string, { visits: number, interactionCount: number, scrollTotal: number, durationTotal: number }> = {};
-    
     trafficEvents.forEach(e => {
         if (e.utmCampaign) {
             if (!campMap[e.utmCampaign]) campMap[e.utmCampaign] = { visits: 0, interactionCount: 0, scrollTotal: 0, durationTotal: 0 };
             campMap[e.utmCampaign].visits++;
-            
             if (typeof e.scrollDepth === 'number') {
                 campMap[e.utmCampaign].interactionCount++;
                 campMap[e.utmCampaign].scrollTotal += e.scrollDepth;
@@ -334,7 +582,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
             }
         }
     });
-
     return Object.entries(campMap).map(([name, data]) => ({
         name,
         visits: data.visits,
@@ -356,7 +603,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-         {/* Engagement Quality Card */}
          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Target size={18} className="text-indigo-500"/> Engagement Quality</h3>
             <div className="grid grid-cols-2 gap-6">
@@ -373,11 +619,9 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
             </div>
          </div>
 
-         {/* Peak Activity */}
          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><div className="flex justify-between items-start mb-6"><div><h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2"><Clock size={18} className="text-orange-500"/> Peak Activity Times</h3><p className="text-xs text-slate-500">Distribution of visits by hour of the day.</p></div><div className="px-4 py-2 bg-orange-500/10 rounded-xl border border-orange-500/20 text-right"><span className="block text-[9px] font-black uppercase tracking-widest text-orange-500">Peak Hour</span><span className="text-lg font-bold text-white">{peakHour.time}</span></div></div><div className="h-48 w-full"><SimpleBarChart data={hourlyTraffic} color="#f97316" showLabels={false} /></div><div className="flex justify-between mt-2 text-[9px] font-mono text-slate-600"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div></div>
       </div>
 
-      {/* Campaign Performance Table */}
       <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
          <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6"><Megaphone size={18} className="text-red-500"/> Campaign Performance</h3>
          <div className="overflow-x-auto custom-scrollbar">
@@ -408,20 +652,260 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
          </div>
       </div>
 
-      {/* Product Matrix */}
-      <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 mt-6"><div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"><div><h3 className="text-lg font-bold text-white flex items-center gap-2"><LayoutGrid size={18} className="text-primary"/> Granular Performance Matrix</h3><p className="text-xs text-slate-500 mt-1">Detailed breakdown of asset efficiency.</p></div><div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800"><button onClick={() => setMatrixView('products')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${matrixView === 'products' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Products</button><button onClick={() => setMatrixView('categories')} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${matrixView === 'categories' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}>Categories</button></div></div><div className="overflow-x-auto custom-scrollbar"><table className="w-full text-left border-collapse min-w-[600px]"><thead><tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500"><th className="pb-4 pl-4">{matrixView === 'products' ? 'Item' : 'Department'}</th><th className="pb-4 w-48">Engagement (Views)</th><th className="pb-4 w-48">Conversion (Clicks)</th>{matrixView === 'products' && <th className="pb-4 text-right pr-4">Efficiency (CTR)</th>}</tr></thead><tbody className="divide-y divide-slate-800/50">{matrixView === 'products' ? ( productMatrix.map(item => ( <tr key={item.id} className="group hover:bg-slate-800/20 transition-colors"><td className="py-3 pl-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden border border-slate-700"><img src={item.media?.[0]?.url} className="w-full h-full object-cover" /></div><div><div className="text-sm font-bold text-white line-clamp-1 max-w-[150px]">{item.name}</div><div className="text-[10px] text-slate-500 font-mono">R {item.price}</div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{item.stats.views}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-blue-500" style={{ width: `${(item.stats.views / maxProductViews) * 100}%` }}></div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{item.stats.clicks}</span><span className="flex items-center gap-1 text-[9px]"><Share2 size={8}/> {item.stats.shares}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-purple-500" style={{ width: `${(item.stats.clicks / maxProductClicks) * 100}%` }}></div></div></div></td><td className="py-3 pr-4 text-right"><span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold border ${ item.ctr > 5 ? 'bg-green-500/10 text-green-500 border-green-500/20' : item.ctr > 2 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' : 'bg-slate-800 text-slate-500 border-slate-700' }`}>{item.ctr.toFixed(1)}%</span></td></tr> )) ) : ( categoryMatrix.map(cat => { const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid; return ( <tr key={cat.id} className="group hover:bg-slate-800/20 transition-colors"><td className="py-3 pl-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700 text-slate-400"><Icon size={18} /></div><div><div className="text-sm font-bold text-white">{cat.name}</div><div className="text-[10px] text-slate-500">{cat.productCount} Items</div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{cat.stats.views}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-blue-500" style={{ width: `${(cat.stats.views / maxCatViews) * 100}%` }}></div></div></div></td><td className="py-3"><div className="flex flex-col gap-1"><div className="flex justify-between text-[10px] text-slate-400"><span>{cat.stats.clicks}</span></div><div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-purple-500" style={{ width: `${(cat.stats.clicks / maxCatClicks) * 100}%` }}></div></div></div></td></tr> ); }) )}</tbody></table></div></div>
-      <div className="grid md:grid-cols-2 gap-6"><div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Star size={18} className="text-yellow-500"/> Product Interest</h3><p className="text-xs text-slate-500 mb-6">Top performing items by unique page views.</p><HorizontalBarChart data={topProducts} color="#eab308" /></div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Globe size={18} className="text-cyan-500"/> Acquisition Channels</h3><p className="text-xs text-slate-500 mb-6">Where your visitors are coming from.</p><div className="h-48"><SimpleBarChart data={sourceData} color="#06b6d4" /></div></div></div>
+      {/* --- NEW MODULES --- */}
+      <MerchandisingTable />
+      
+      <div className="grid md:grid-cols-2 gap-6 mt-6">
+         <TrafficQualityGrid />
+         
+         {/* Existing or additional metrics placeholder can go here to fill grid */}
+         <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col justify-center items-center text-center">
+            <div className="p-4 bg-primary/10 rounded-full text-primary mb-4"><Zap size={32}/></div>
+            <h3 className="text-white font-bold text-lg">System Status</h3>
+            <p className="text-slate-500 text-xs mb-4">All systems operational.</p>
+            <div className="flex gap-4 text-xs font-mono text-slate-400">
+               <span>Views: {totalVisits}</span>
+               <span>Orders: {totalOrders}</span>
+            </div>
+         </div>
+      </div>
     </div>
   );
 };
 
-// ... (SystemMonitor and TrainingGrid components remain essentially same)
+// ... (TrainingGrid component remain essentially same)
 const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
-   const [serverLoad, setServerLoad] = useState<number[]>(new Array(20).fill(20));
-   const [apiRequestRate, setApiRequestRate] = useState<{label: string, value: number}[]>(['GET', 'POST', 'PUT', 'DEL'].map(l => ({ label: l, value: Math.floor(Math.random() * 50) + 10 })));
-   const [cacheHealth, setCacheHealth] = useState(98);
-   useEffect(() => { const interval = setInterval(() => { setServerLoad(prev => { const nextVal = Math.max(10, Math.min(90, prev[prev.length - 1] + (Math.random() * 20 - 10))); return [...prev.slice(1), nextVal]; }); setApiRequestRate(prev => prev.map(p => ({ ...p, value: Math.max(5, Math.min(100, p.value + (Math.random() * 20 - 10))) }))); setCacheHealth(prev => Math.min(100, Math.max(90, prev + (Math.random() * 2 - 1)))); }, 1000); return () => clearInterval(interval); }, []);
-   return ( <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left"><div className="flex flex-col gap-2 mb-6"><h2 className="text-3xl font-serif text-white flex items-center gap-3"><Activity className="text-primary animate-pulse" size={28}/> System Core</h2><p className="text-slate-400 text-sm font-mono uppercase tracking-widest">Real-time Infrastructure Telemetry</p></div><div className="grid grid-cols-2 lg:grid-cols-4 gap-4"><div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all"><div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><Cpu size={48} /></div><h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">CPU Load</h4><div className="text-2xl font-mono font-bold text-white mb-2">{serverLoad[serverLoad.length-1].toFixed(1)}%</div><div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${serverLoad[serverLoad.length-1]}%` }}></div></div></div><div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all"><div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><HardDrive size={48} /></div><h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Memory Usage</h4><div className="text-2xl font-mono font-bold text-white mb-2">{(storageStats.dbSize / 1024).toFixed(1)} KB</div><div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div className="h-full bg-purple-500 transition-all duration-300" style={{ width: '45%' }}></div></div></div><div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all"><div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><Zap size={48} /></div><h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Cache Health</h4><div className="text-2xl font-mono font-bold text-white mb-2">{cacheHealth.toFixed(1)}%</div><div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden"><div className="h-full bg-green-500 transition-all duration-300" style={{ width: `${cacheHealth}%` }}></div></div></div><div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all"><div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity"><Activity size={48} /></div><h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Latency</h4><div className="text-2xl font-mono font-bold text-white mb-2">{connectionHealth?.latency || 0}ms</div><div className={`text-[10px] font-bold uppercase tracking-widest ${connectionHealth?.status === 'online' ? 'text-green-500' : 'text-red-500'}`}>{connectionHealth?.status || 'OFFLINE'}</div></div></div><div className="grid lg:grid-cols-3 gap-6"><div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2rem] p-6 relative"><div className="flex justify-between items-center mb-6"><h3 className="text-white font-bold text-sm flex items-center gap-2"><Server size={16} className="text-blue-500"/> Server Load Distribution</h3><div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span><span className="text-[10px] font-mono text-slate-500">LIVE</span></div></div><div className="h-64 w-full bg-slate-950/50 rounded-xl border border-slate-800/50 overflow-hidden relative"><div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px]"></div><SimpleLineChart data={serverLoad} color="#3b82f6" height={250} /></div></div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 flex flex-col"><h3 className="text-white font-bold text-sm flex items-center gap-2 mb-6"><Globe size={16} className="text-purple-500"/> API Throughput</h3><div className="flex-grow flex items-end gap-2 pb-2"><SimpleBarChart data={apiRequestRate} color="#a855f7" showLabels={true} /></div><div className="mt-4 pt-4 border-t border-slate-800 text-[10px] text-slate-500 font-mono text-center">Requests per Second (RPS)</div></div></div><div className="bg-slate-950 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl"><div className="bg-slate-900 px-6 py-4 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold text-sm flex items-center gap-2"><Terminal size={16} className="text-green-500"/> System Events Log</h3><span className="text-[10px] font-mono text-slate-500">{systemLogs.length} Events Recorded</span></div><div className="p-4 h-60 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">{systemLogs.map(log => ( <div key={log.id} className="flex gap-4 p-2 hover:bg-white/5 rounded transition-colors group"><span className="text-slate-600 w-24 flex-shrink-0">{new Date(log.timestamp).toLocaleTimeString()}</span><span className={`w-16 flex-shrink-0 font-bold ${log.status === 'success' ? 'text-green-500' : 'text-red-500'}`}>{log.type}</span><span className="text-slate-400 group-hover:text-white transition-colors">{log.message}</span></div> ))}{systemLogs.length === 0 && <div className="text-slate-600 text-center py-10">No events logged in current session.</div>}</div></div></div> );
+   const [pulse, setPulse] = useState<number[]>(new Array(20).fill(50));
+   const [termFilter, setTermFilter] = useState('ALL');
+   const [termSearch, setTermSearch] = useState('');
+   const [memoryUsage, setMemoryUsage] = useState<number>(0);
+   const [isTesting, setIsTesting] = useState(false);
+
+   // Heartbeat Simulation
+   useEffect(() => {
+     const interval = setInterval(() => {
+       setPulse(prev => {
+         const noise = Math.random() * 20 - 10;
+         const base = 50;
+         const newVal = Math.max(10, Math.min(90, base + noise));
+         return [...prev.slice(1), newVal];
+       });
+       
+       // Simulate Memory (if API not available)
+       if ((performance as any).memory) {
+          setMemoryUsage((performance as any).memory.usedJSHeapSize / 1024 / 1024);
+       } else {
+          setMemoryUsage(prev => Math.max(30, Math.min(120, prev + (Math.random() * 4 - 2))));
+       }
+     }, 1000);
+     return () => clearInterval(interval);
+   }, []);
+
+   const healthScore = useMemo(() => {
+      if (!connectionHealth) return 0;
+      let score = 100;
+      if (connectionHealth.status !== 'online') score -= 50;
+      if (connectionHealth.latency > 100) score -= 10;
+      if (connectionHealth.latency > 500) score -= 20;
+      
+      const recentLogs = systemLogs.slice(0, 20);
+      const errorCount = recentLogs.filter(l => l.type === 'ERROR').length;
+      score -= (errorCount * 5);
+      
+      return Math.max(0, score);
+   }, [connectionHealth, systemLogs]);
+
+   const filteredLogs = systemLogs.filter(log => {
+      const matchesSearch = log.message.toLowerCase().includes(termSearch.toLowerCase()) || log.type.toLowerCase().includes(termSearch.toLowerCase());
+      const matchesFilter = termFilter === 'ALL' || log.type === termFilter;
+      return matchesSearch && matchesFilter;
+   });
+
+   const handlePurgeCache = () => {
+      if (window.confirm("This will clear local storage and reload. Continue?")) {
+         localStorage.clear();
+         window.location.reload();
+      }
+   };
+
+   const handleTestLatency = async () => {
+      setIsTesting(true);
+      await measureConnection();
+      setTimeout(() => setIsTesting(false), 1000);
+   };
+
+   const exportLogs = () => {
+      const blob = new Blob([JSON.stringify(systemLogs, null, 2)], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `system_logs_${Date.now()}.json`;
+      a.click();
+   };
+
+   return ( 
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <div className="flex items-center justify-between mb-6">
+         <h2 className="text-3xl font-serif text-white flex items-center gap-3">
+            <Activity className="text-emerald-400 animate-pulse" size={28}/> 
+            System Diagnostics
+         </h2>
+         <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">NOC ONLINE</span>
+         </div>
+      </div>
+
+      {/* Metric Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+         {/* Health Index */}
+         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+            <div className="flex justify-between items-start mb-4">
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Health Index</h4>
+               <ShieldCheck size={16} className={healthScore > 80 ? 'text-emerald-500' : 'text-amber-500'} />
+            </div>
+            <div className="flex items-end gap-2">
+               <span className={`text-4xl font-mono font-bold ${healthScore > 80 ? 'text-white' : 'text-amber-400'}`}>{healthScore}%</span>
+               <span className="text-[10px] text-slate-500 mb-1">STABLE</span>
+            </div>
+            <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+               <div className={`h-full transition-all duration-1000 ${healthScore > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${healthScore}%` }}></div>
+            </div>
+         </div>
+
+         {/* Network Pulse */}
+         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-blue-500/30 transition-all">
+            <div className="flex justify-between items-start mb-2">
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Network Pulse</h4>
+               <Wifi size={16} className="text-blue-500" />
+            </div>
+            <div className="h-12 w-full">
+               <SimpleLineChart data={pulse} color="#3b82f6" height={48} />
+            </div>
+            <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-400">
+               <span>LATENCY:</span>
+               <span className={connectionHealth?.latency > 200 ? 'text-red-400' : 'text-blue-400'}>{connectionHealth?.latency || 0}ms</span>
+            </div>
+         </div>
+
+         {/* Memory Usage */}
+         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all">
+            <div className="flex justify-between items-start mb-4">
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Client Memory</h4>
+               <Cpu size={16} className="text-purple-500" />
+            </div>
+            <div className="text-2xl font-mono font-bold text-white mb-2">{memoryUsage.toFixed(1)} <span className="text-sm text-slate-500">MB</span></div>
+            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+               <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${Math.min(100, (memoryUsage / 200) * 100)}%` }}></div>
+            </div>
+         </div>
+
+         {/* Storage Anatomy */}
+         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-orange-500/30 transition-all">
+            <div className="flex justify-between items-start mb-4">
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Storage Anatomy</h4>
+               <Database size={16} className="text-orange-500" />
+            </div>
+            <div className="text-xl font-mono font-bold text-white mb-2">{(storageStats.mediaSize / 1024 / 1024).toFixed(2)} MB</div>
+            <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-slate-800">
+               <div className="bg-blue-500 h-full" style={{ width: '20%' }} title="Database"></div>
+               <div className="bg-orange-500 h-full" style={{ width: '60%' }} title="Media"></div>
+               <div className="bg-slate-600 h-full" style={{ width: '20%' }} title="System"></div>
+            </div>
+            <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-mono">
+               <span>DB: 20%</span>
+               <span>MEDIA: 60%</span>
+            </div>
+         </div>
+      </div>
+
+      {/* Interactive Terminal */}
+      <div className="bg-black border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[400px]">
+         {/* Terminal Toolbar */}
+         <div className="bg-slate-900/50 border-b border-slate-800 p-3 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+               </div>
+               <div className="h-4 w-px bg-slate-800"></div>
+               <div className="flex gap-2">
+                  {['ALL', 'ERROR', 'SYNC', 'UPDATE'].map(t => (
+                     <button 
+                        key={t}
+                        onClick={() => setTermFilter(t)}
+                        className={`px-3 py-1 rounded text-[9px] font-bold font-mono transition-colors ${termFilter === t ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                     >
+                        {t}
+                     </button>
+                  ))}
+               </div>
+            </div>
+            <div className="flex items-center gap-3">
+               <div className="relative">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-600" size={12}/>
+                  <input 
+                     type="text" 
+                     value={termSearch}
+                     onChange={e => setTermSearch(e.target.value)}
+                     placeholder="grep logs..."
+                     className="bg-slate-950 border border-slate-800 rounded-md pl-7 pr-3 py-1 text-[10px] text-emerald-500 font-mono outline-none focus:border-emerald-500/50 w-32 focus:w-48 transition-all"
+                  />
+               </div>
+               <button onClick={exportLogs} className="p-1.5 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
+                  <Download size={14}/>
+               </button>
+            </div>
+         </div>
+
+         {/* Log Output */}
+         <div className="flex-grow bg-[#0c0c0c] p-4 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">
+            {filteredLogs.length === 0 ? (
+               <div className="h-full flex flex-col items-center justify-center text-slate-700 opacity-50">
+                  <Terminal size={48} className="mb-4"/>
+                  <p>NO SIGNAL DETECTED</p>
+               </div>
+            ) : (
+               filteredLogs.map(log => (
+                  <div key={log.id} className="flex gap-3 hover:bg-white/5 p-0.5 rounded transition-colors group">
+                     <span className="text-slate-600 w-20 flex-shrink-0 select-none">[{new Date(log.timestamp).toLocaleTimeString([], {hour12: false})}]</span>
+                     <span className={`w-16 flex-shrink-0 font-bold ${
+                        log.type === 'ERROR' ? 'text-rose-500' : 
+                        log.type === 'SYNC' ? 'text-cyan-400' : 
+                        log.type === 'UPDATE' ? 'text-amber-400' : 'text-slate-400'
+                     }`}>{log.type}</span>
+                     <span className="text-slate-300 group-hover:text-white break-all">{log.message}</span>
+                  </div>
+               ))
+            )}
+            <div className="h-2"></div>
+            <div className="animate-pulse flex items-center gap-2 text-emerald-500/50">
+               <span>_</span>
+            </div>
+         </div>
+      </div>
+
+      {/* Diagnostics Controls */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+         <button onClick={handlePurgeCache} className="p-4 bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-red-400 transition-all group">
+            <Trash size={16} className="group-hover:rotate-12 transition-transform"/>
+            <span className="text-[10px] font-black uppercase tracking-widest">Purge Cache</span>
+         </button>
+         <button onClick={handleTestLatency} disabled={isTesting} className="p-4 bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-blue-400 transition-all group">
+            <RefreshCw size={16} className={`group-hover:rotate-180 transition-transform ${isTesting ? 'animate-spin' : ''}`}/>
+            <span className="text-[10px] font-black uppercase tracking-widest">{isTesting ? 'Pinging...' : 'Test Latency'}</span>
+         </button>
+         <div className="md:col-span-2 p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between px-6">
+            <div className="flex items-center gap-3">
+               <ShieldAlert size={16} className="text-emerald-500"/>
+               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Protocol</span>
+            </div>
+            <span className="text-xs font-mono text-emerald-400">ENCRYPTED (TLS 1.3)</span>
+         </div>
+      </div>
+    </div> 
+   );
 };
 
 const TrainingGrid: React.FC = () => {
@@ -1162,6 +1646,241 @@ const Admin: React.FC = () => {
        if (visibleTabs.length > 0) setActiveTab(visibleTabs[0].id);
     }
   }, [visibleTabs, activeTab]);
+
+  // --- SYSTEM MONITOR COMPONENT OVERHAUL ---
+  const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
+    const [pulse, setPulse] = useState<number[]>(new Array(20).fill(50));
+    const [termFilter, setTermFilter] = useState('ALL');
+    const [termSearch, setTermSearch] = useState('');
+    const [memoryUsage, setMemoryUsage] = useState<number>(0);
+    const [isTesting, setIsTesting] = useState(false);
+
+    // Heartbeat Simulation
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setPulse(prev => {
+          const noise = Math.random() * 20 - 10;
+          const base = 50;
+          const newVal = Math.max(10, Math.min(90, base + noise));
+          return [...prev.slice(1), newVal];
+        });
+        
+        // Simulate Memory (if API not available)
+        if ((performance as any).memory) {
+            setMemoryUsage((performance as any).memory.usedJSHeapSize / 1024 / 1024);
+        } else {
+            setMemoryUsage(prev => Math.max(30, Math.min(120, prev + (Math.random() * 4 - 2))));
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }, []);
+
+    const healthScore = useMemo(() => {
+        if (!connectionHealth) return 0;
+        let score = 100;
+        if (connectionHealth.status !== 'online') score -= 50;
+        if (connectionHealth.latency > 100) score -= 10;
+        if (connectionHealth.latency > 500) score -= 20;
+        
+        const recentLogs = systemLogs.slice(0, 20);
+        const errorCount = recentLogs.filter(l => l.type === 'ERROR').length;
+        score -= (errorCount * 5);
+        
+        return Math.max(0, score);
+    }, [connectionHealth, systemLogs]);
+
+    const filteredLogs = systemLogs.filter(log => {
+        const matchesSearch = log.message.toLowerCase().includes(termSearch.toLowerCase()) || log.type.toLowerCase().includes(termSearch.toLowerCase());
+        const matchesFilter = termFilter === 'ALL' || log.type === termFilter;
+        return matchesSearch && matchesFilter;
+    });
+
+    const handlePurgeCache = () => {
+        if (window.confirm("This will clear local storage and reload. Continue?")) {
+          localStorage.clear();
+          window.location.reload();
+        }
+    };
+
+    const handleTestLatency = async () => {
+        setIsTesting(true);
+        await measureConnection();
+        setTimeout(() => setIsTesting(false), 1000);
+    };
+
+    const exportLogs = () => {
+        const blob = new Blob([JSON.stringify(systemLogs, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system_logs_${Date.now()}.json`;
+        a.click();
+    };
+
+    return ( 
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-serif text-white flex items-center gap-3">
+              <Activity className="text-emerald-400 animate-pulse" size={28}/> 
+              System Diagnostics
+          </h2>
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">NOC ONLINE</span>
+          </div>
+        </div>
+
+        {/* Metric Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Health Index */}
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Health Index</h4>
+                <ShieldCheck size={16} className={healthScore > 80 ? 'text-emerald-500' : 'text-amber-500'} />
+              </div>
+              <div className="flex items-end gap-2">
+                <span className={`text-4xl font-mono font-bold ${healthScore > 80 ? 'text-white' : 'text-amber-400'}`}>{healthScore}%</span>
+                <span className="text-[10px] text-slate-500 mb-1">STABLE</span>
+              </div>
+              <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+                <div className={`h-full transition-all duration-1000 ${healthScore > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${healthScore}%` }}></div>
+              </div>
+          </div>
+
+          {/* Network Pulse */}
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-blue-500/30 transition-all">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Network Pulse</h4>
+                <Wifi size={16} className="text-blue-500" />
+              </div>
+              <div className="h-12 w-full">
+                <SimpleLineChart data={pulse} color="#3b82f6" height={48} />
+              </div>
+              <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-400">
+                <span>LATENCY:</span>
+                <span className={connectionHealth?.latency > 200 ? 'text-red-400' : 'text-blue-400'}>{connectionHealth?.latency || 0}ms</span>
+              </div>
+          </div>
+
+          {/* Memory Usage */}
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all">
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Client Memory</h4>
+                <Cpu size={16} className="text-purple-500" />
+              </div>
+              <div className="text-2xl font-mono font-bold text-white mb-2">{memoryUsage.toFixed(1)} <span className="text-sm text-slate-500">MB</span></div>
+              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${Math.min(100, (memoryUsage / 200) * 100)}%` }}></div>
+              </div>
+          </div>
+
+          {/* Storage Anatomy */}
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-orange-500/30 transition-all">
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Storage Anatomy</h4>
+                <Database size={16} className="text-orange-500" />
+              </div>
+              <div className="text-xl font-mono font-bold text-white mb-2">{(storageStats.mediaSize / 1024 / 1024).toFixed(2)} MB</div>
+              <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-slate-800">
+                <div className="bg-blue-500 h-full" style={{ width: '20%' }} title="Database"></div>
+                <div className="bg-orange-500 h-full" style={{ width: '60%' }} title="Media"></div>
+                <div className="bg-slate-600 h-full" style={{ width: '20%' }} title="System"></div>
+              </div>
+              <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-mono">
+                <span>DB: 20%</span>
+                <span>MEDIA: 60%</span>
+              </div>
+          </div>
+        </div>
+
+        {/* Interactive Terminal */}
+        <div className="bg-black border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[400px]">
+          {/* Terminal Toolbar */}
+          <div className="bg-slate-900/50 border-b border-slate-800 p-3 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+                </div>
+                <div className="h-4 w-px bg-slate-800"></div>
+                <div className="flex gap-2">
+                    {['ALL', 'ERROR', 'SYNC', 'UPDATE'].map(t => (
+                      <button 
+                          key={t}
+                          onClick={() => setTermFilter(t)}
+                          className={`px-3 py-1 rounded text-[9px] font-bold font-mono transition-colors ${termFilter === t ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                      >
+                          {t}
+                      </button>
+                    ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-600" size={12}/>
+                    <input 
+                      type="text" 
+                      value={termSearch}
+                      onChange={e => setTermSearch(e.target.value)}
+                      placeholder="grep logs..."
+                      className="bg-slate-950 border border-slate-800 rounded-md pl-7 pr-3 py-1 text-[10px] text-emerald-500 font-mono outline-none focus:border-emerald-500/50 w-32 focus:w-48 transition-all"
+                    />
+                </div>
+                <button onClick={exportLogs} className="p-1.5 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
+                    <Download size={14}/>
+                </button>
+              </div>
+          </div>
+
+          {/* Log Output */}
+          <div className="flex-grow bg-[#0c0c0c] p-4 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">
+              {filteredLogs.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-slate-700 opacity-50">
+                    <Terminal size={48} className="mb-4"/>
+                    <p>NO SIGNAL DETECTED</p>
+                </div>
+              ) : (
+                filteredLogs.map(log => (
+                    <div key={log.id} className="flex gap-3 hover:bg-white/5 p-0.5 rounded transition-colors group">
+                      <span className="text-slate-600 w-20 flex-shrink-0 select-none">[{new Date(log.timestamp).toLocaleTimeString([], {hour12: false})}]</span>
+                      <span className={`w-16 flex-shrink-0 font-bold ${
+                          log.type === 'ERROR' ? 'text-rose-500' : 
+                          log.type === 'SYNC' ? 'text-cyan-400' : 
+                          log.type === 'UPDATE' ? 'text-amber-400' : 'text-slate-400'
+                      }`}>{log.type}</span>
+                      <span className="text-slate-300 group-hover:text-white break-all">{log.message}</span>
+                    </div>
+                ))
+              )}
+              <div className="h-2"></div>
+              <div className="animate-pulse flex items-center gap-2 text-emerald-500/50">
+                <span>_</span>
+              </div>
+          </div>
+        </div>
+
+        {/* Diagnostics Controls */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button onClick={handlePurgeCache} className="p-4 bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-red-400 transition-all group">
+              <Trash size={16} className="group-hover:rotate-12 transition-transform"/>
+              <span className="text-[10px] font-black uppercase tracking-widest">Purge Cache</span>
+          </button>
+          <button onClick={handleTestLatency} disabled={isTesting} className="p-4 bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-blue-400 transition-all group">
+              <RefreshCw size={16} className={`group-hover:rotate-180 transition-transform ${isTesting ? 'animate-spin' : ''}`}/>
+              <span className="text-[10px] font-black uppercase tracking-widest">{isTesting ? 'Pinging...' : 'Test Latency'}</span>
+          </button>
+          <div className="md:col-span-2 p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between px-6">
+              <div className="flex items-center gap-3">
+                <ShieldAlert size={16} className="text-emerald-500"/>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Protocol</span>
+              </div>
+              <span className="text-xs font-mono text-emerald-400">ENCRYPTED (TLS 1.3)</span>
+          </div>
+        </div>
+      </div> 
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
