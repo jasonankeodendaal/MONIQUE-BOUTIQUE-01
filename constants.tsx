@@ -120,7 +120,7 @@ export const GUIDE_STEPS = [
       'Click the green "Run" button at the bottom right.',
       'Success Check: Go to "Table Editor" (grid icon) and ensure you see tables like "settings", "products", "reviews", etc.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.1 (Includes Storage Policies)
+    code: `-- MASTER ARCHITECTURE SCRIPT v5.2 (Fixes Admin Columns)
 
 -- 1. EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -167,7 +167,31 @@ CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
-CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
+
+-- UPDATED ADMIN USERS TABLE
+CREATE TABLE IF NOT EXISTS admin_users (
+  id TEXT PRIMARY KEY, 
+  name TEXT, 
+  email TEXT, 
+  role TEXT, 
+  permissions TEXT[], 
+  "createdAt" BIGINT, 
+  "lastActive" BIGINT, 
+  "profileImage" TEXT, 
+  phone TEXT, 
+  address TEXT,
+  "commissionRate" NUMERIC DEFAULT 0,
+  "totalEarnings" NUMERIC DEFAULT 0,
+  "uploadLimit" INTEGER DEFAULT 0,
+  "canUpload" BOOLEAN DEFAULT false
+);
+
+-- MIGRATION FOR EXISTING TABLES
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "commissionRate" NUMERIC DEFAULT 0;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "totalEarnings" NUMERIC DEFAULT 0;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "uploadLimit" INTEGER DEFAULT 0;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "canUpload" BOOLEAN DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 
@@ -209,7 +233,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 ALTER TABLE orders 
 ADD COLUMN IF NOT EXISTS "courierName" TEXT,
 ADD COLUMN IF NOT EXISTS "trackingNumber" TEXT,
-ADD COLUMN IF NOT EXISTS "trackingUrl" TEXT;
+ADD COLUMN IF NOT EXISTS "trackingUrl" TEXT,
+ADD COLUMN IF NOT EXISTS "affiliateId" TEXT;
 
 -- 3. PERMISSIONS (ROW LEVEL SECURITY)
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
@@ -283,7 +308,7 @@ DO $$ BEGIN
         CREATE POLICY "Public Delete Media" ON storage.objects FOR DELETE USING ( bucket_id = 'media' ); 
     END IF;
 END $$;`,
-    codeLabel: 'Full System SQL Script (v5.1)'
+    codeLabel: 'Full System SQL Script (v5.2)'
   },
   {
     id: 'storage',
@@ -1175,6 +1200,14 @@ export const PERMISSION_TREE: PermissionNode[] = [
     description: 'Technical monitoring and logs.',
     children: [
       { id: 'system.view', label: 'View System Health & Logs' }
+    ]
+  },
+  {
+    id: 'training',
+    label: 'Training & Academy',
+    description: 'Access educational materials.',
+    children: [
+        { id: 'training.view', label: 'View Academy' }
     ]
   }
 ];
