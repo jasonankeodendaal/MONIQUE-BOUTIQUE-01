@@ -147,8 +147,15 @@ const Checkout: React.FC = () => {
 
   const handleYocoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!window.YocoSDK) {
-        setError("Payment gateway initializing...");
+    
+    // Check if SDK is available
+    if (typeof window.YocoSDK === 'undefined') {
+        setError("Payment gateway SDK not loaded. Please check your internet connection.");
+        return;
+    }
+
+    if (!settings.yocoPublicKey) {
+        setError("Payment configuration missing. Please contact support.");
         return;
     }
     
@@ -174,7 +181,7 @@ const Checkout: React.FC = () => {
             }
         });
     } catch (err: any) {
-        setError(err.message);
+        setError(err.message || "Payment initialization failed.");
         setIsProcessing(false);
     }
   };

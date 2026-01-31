@@ -109,7 +109,7 @@ export const GUIDE_STEPS = [
   {
     id: 'database',
     title: '2. Database Schema (SQL Engine)',
-    description: 'We need to define the structure of your data. This script creates all necessary tables (products, settings, orders, reviews) AND sets up the storage permissions for uploads.',
+    description: 'We need to define the structure of your data. This script creates specific tables for public content and protected secrets.',
     illustrationId: 'forge',
     subSteps: [
       'In your Supabase Dashboard, look at the left sidebar icon menu.',
@@ -118,15 +118,15 @@ export const GUIDE_STEPS = [
       'Copy the entire SQL block provided below.',
       'Paste it into the editor window.',
       'Click the green "Run" button at the bottom right.',
-      'Success Check: Go to "Table Editor" (grid icon) and ensure you see tables like "settings", "products", "reviews", etc.'
+      'Success Check: Go to "Table Editor" and ensure you see tables like "public_settings", "private_secrets", etc.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.2 (Fixes Admin Columns)
+    code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Secure Config Separation)
 
 -- 1. EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. TABLES
-CREATE TABLE IF NOT EXISTS settings (
+-- 2. CONTENT TABLES (Public Read)
+CREATE TABLE IF NOT EXISTS public_settings (
   id TEXT PRIMARY KEY DEFAULT 'global',
   "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
   "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
@@ -149,18 +149,30 @@ CREATE TABLE IF NOT EXISTS settings (
   "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
   "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
+  -- Publicly Needed Keys (Client-side ops)
   "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
-  "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT,
+  "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "pinterestTagId" TEXT,
   "enableDirectSales" BOOLEAN DEFAULT false, "currency" TEXT DEFAULT 'ZAR', 
-  "yocoPublicKey" TEXT, "payfastMerchantId" TEXT, "payfastMerchantKey" TEXT, "payfastSaltPassphrase" TEXT,
-  "zapierWebhookUrl" TEXT, "bankDetails" TEXT
+  "yocoPublicKey" TEXT, "payfastMerchantId" TEXT, "payfastMerchantKey" TEXT,
+  "bankDetails" TEXT,
+  "vatRegistered" BOOLEAN DEFAULT false, "vatRate" NUMERIC, "vatNumber" TEXT,
+  "bankName" TEXT, "accountNumber" TEXT, "branchCode" TEXT
 );
 
+-- 3. SECRETS TABLE (Admin Only)
+CREATE TABLE IF NOT EXISTS private_secrets (
+  id TEXT PRIMARY KEY DEFAULT 'global',
+  "payfastSaltPassphrase" TEXT, 
+  "zapierWebhookUrl" TEXT,
+  "webhookUrl" TEXT
+);
+
+-- 4. CORE DATA TABLES
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT,
   "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB,
   media JSONB, "discountRules" JSONB, "createdAt" BIGINT, "createdBy" TEXT,
-  "isDirectSale" BOOLEAN DEFAULT false, "stockQuantity" INTEGER DEFAULT 0
+  "isDirectSale" BOOLEAN DEFAULT false, "stockQuantity" INTEGER DEFAULT 0, "costPrice" NUMERIC DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
@@ -168,47 +180,21 @@ CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
 
--- UPDATED ADMIN USERS TABLE
 CREATE TABLE IF NOT EXISTS admin_users (
   id TEXT PRIMARY KEY, 
-  name TEXT, 
-  email TEXT, 
-  role TEXT, 
-  permissions TEXT[], 
-  "createdAt" BIGINT, 
-  "lastActive" BIGINT, 
-  "profileImage" TEXT, 
-  phone TEXT, 
-  address TEXT,
-  "commissionRate" NUMERIC DEFAULT 0,
-  "totalEarnings" NUMERIC DEFAULT 0,
-  "uploadLimit" INTEGER DEFAULT 0,
-  "canUpload" BOOLEAN DEFAULT false
+  name TEXT, email TEXT, role TEXT, permissions TEXT[], 
+  "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT,
+  "commissionRate" NUMERIC DEFAULT 0, "totalEarnings" NUMERIC DEFAULT 0, "uploadLimit" INTEGER DEFAULT 0, "canUpload" BOOLEAN DEFAULT false
 );
 
--- MIGRATION FOR EXISTING TABLES
-ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "commissionRate" NUMERIC DEFAULT 0;
-ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "totalEarnings" NUMERIC DEFAULT 0;
-ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "uploadLimit" INTEGER DEFAULT 0;
-ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "canUpload" BOOLEAN DEFAULT false;
-
-CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
+CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT, city TEXT, "utmCampaign" TEXT, "utmMedium" TEXT, "scrollDepth" INTEGER, "sessionDuration" INTEGER, "interactionType" TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
+CREATE TABLE IF NOT EXISTS reviews (id TEXT PRIMARY KEY, "productId" TEXT REFERENCES products(id) ON DELETE CASCADE, "userName" TEXT, rating INTEGER, comment TEXT, "createdAt" BIGINT);
 
--- REVIEWS (NEW)
-CREATE TABLE IF NOT EXISTS reviews (
-  id TEXT PRIMARY KEY,
-  "productId" TEXT REFERENCES products(id) ON DELETE CASCADE,
-  "userName" TEXT,
-  rating INTEGER,
-  comment TEXT,
-  "createdAt" BIGINT
-);
-
--- COMMERCE TABLES
 CREATE TABLE IF NOT EXISTS orders (
   id TEXT PRIMARY KEY, "userId" TEXT, "customerName" TEXT, "customerEmail" TEXT, "shippingAddress" TEXT,
-  total NUMERIC, status TEXT, "paymentMethod" TEXT, "createdAt" BIGINT
+  total NUMERIC, status TEXT, "paymentMethod" TEXT, "createdAt" BIGINT,
+  "courierName" TEXT, "trackingNumber" TEXT, "trackingUrl" TEXT, "affiliateId" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
@@ -216,28 +202,14 @@ CREATE TABLE IF NOT EXISTS order_items (
   "productId" TEXT, "productName" TEXT, quantity INTEGER, price NUMERIC
 );
 
--- PROFILES & TRACKING
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-  "fullName" TEXT,
-  phone TEXT,
-  building TEXT,
-  street TEXT,
-  suburb TEXT,
-  city TEXT,
-  province TEXT,
-  "postalCode" TEXT,
-  "updatedAt" BIGINT
+  "fullName" TEXT, phone TEXT, building TEXT, street TEXT, suburb TEXT, city TEXT, province TEXT, "postalCode" TEXT, "updatedAt" BIGINT
 );
 
-ALTER TABLE orders 
-ADD COLUMN IF NOT EXISTS "courierName" TEXT,
-ADD COLUMN IF NOT EXISTS "trackingNumber" TEXT,
-ADD COLUMN IF NOT EXISTS "trackingUrl" TEXT,
-ADD COLUMN IF NOT EXISTS "affiliateId" TEXT;
-
--- 3. PERMISSIONS (ROW LEVEL SECURITY)
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+-- 5. RLS & POLICIES
+ALTER TABLE public_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE private_secrets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
@@ -246,69 +218,65 @@ ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
--- 4. POLICIES (DATABASE)
 DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
+    -- Public Read Access
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON public_settings FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read categories') THEN CREATE POLICY "Public Read categories" ON categories FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read subcategories') THEN CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read hero_slides') THEN CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read reviews') THEN CREATE POLICY "Public Read reviews" ON reviews FOR SELECT USING (true); END IF;
+    
+    -- Public Write (Safe Tables)
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert enquiries') THEN CREATE POLICY "Public Insert enquiries" ON enquiries FOR INSERT WITH CHECK (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert reviews') THEN CREATE POLICY "Public Insert reviews" ON reviews FOR INSERT WITH CHECK (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert traffic_logs') THEN CREATE POLICY "Public Insert traffic_logs" ON traffic_logs FOR INSERT WITH CHECK (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert orders') THEN CREATE POLICY "Public Insert orders" ON orders FOR INSERT WITH CHECK (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert order_items') THEN CREATE POLICY "Public Insert order_items" ON order_items FOR INSERT WITH CHECK (true); END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read reviews') THEN CREATE POLICY "Public Read reviews" ON reviews FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert reviews') THEN CREATE POLICY "Public Insert reviews" ON reviews FOR INSERT WITH CHECK (true); END IF;
 
+    -- Private Secrets (Auth/Admin Only)
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated Read Secrets') THEN CREATE POLICY "Authenticated Read Secrets" ON private_secrets FOR SELECT USING (auth.role() = 'authenticated'); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated Update Secrets') THEN CREATE POLICY "Authenticated Update Secrets" ON private_secrets FOR UPDATE USING (auth.role() = 'authenticated'); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated Insert Secrets') THEN CREATE POLICY "Authenticated Insert Secrets" ON private_secrets FOR INSERT WITH CHECK (auth.role() = 'authenticated'); END IF;
+
+    -- Profiles (User Own)
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read profiles') THEN CREATE POLICY "Public Read profiles" ON profiles FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users update own profile') THEN CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users insert own profile') THEN CREATE POLICY "Users insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id); END IF;
 END $$;
 
--- Admin Full Access (Tables)
+-- Admin Full Access (Allow anon for setup/local, use Service Role in prod ideally or stricter policies)
+-- For this simplified template, we allow All on All tables for anon to facilitate initial setup, 
+-- but in production you should restrict DELETE/UPDATE on core tables to authenticated users.
 DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon') THEN 
-        CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon categories" ON categories FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon subcategories" ON subcategories FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon hero_slides" ON hero_slides FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon admin_users" ON admin_users FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon traffic_logs" ON traffic_logs FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon product_stats" ON product_stats FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon order_items" ON order_items FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon reviews" ON reviews FOR ALL USING (true);
-    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon public_settings') THEN CREATE POLICY "Enable all for anon public_settings" ON public_settings FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon products') THEN CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon categories') THEN CREATE POLICY "Enable all for anon categories" ON categories FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon subcategories') THEN CREATE POLICY "Enable all for anon subcategories" ON subcategories FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon hero_slides') THEN CREATE POLICY "Enable all for anon hero_slides" ON hero_slides FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon enquiries') THEN CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon admin_users') THEN CREATE POLICY "Enable all for anon admin_users" ON admin_users FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon traffic_logs') THEN CREATE POLICY "Enable all for anon traffic_logs" ON traffic_logs FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon product_stats') THEN CREATE POLICY "Enable all for anon product_stats" ON product_stats FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon orders') THEN CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon order_items') THEN CREATE POLICY "Enable all for anon order_items" ON order_items FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon reviews') THEN CREATE POLICY "Enable all for anon reviews" ON reviews FOR ALL USING (true); END IF;
 END $$;
 
--- 5. STORAGE POLICIES (Fixes Upload Error)
--- Ensure bucket exists (optional if created via UI, but good for completeness)
+-- 6. STORAGE
 INSERT INTO storage.buckets (id, name, public) VALUES ('media', 'media', true) ON CONFLICT (id) DO NOTHING;
-
--- Allow public access to media bucket
 DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access Media') THEN 
-        CREATE POLICY "Public Access Media" ON storage.objects FOR SELECT USING ( bucket_id = 'media' ); 
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert Media') THEN 
-        CREATE POLICY "Public Insert Media" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'media' ); 
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Update Media') THEN 
-        CREATE POLICY "Public Update Media" ON storage.objects FOR UPDATE USING ( bucket_id = 'media' ); 
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Delete Media') THEN 
-        CREATE POLICY "Public Delete Media" ON storage.objects FOR DELETE USING ( bucket_id = 'media' ); 
-    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access Media') THEN CREATE POLICY "Public Access Media" ON storage.objects FOR SELECT USING ( bucket_id = 'media' ); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert Media') THEN CREATE POLICY "Public Insert Media" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'media' ); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Update Media') THEN CREATE POLICY "Public Update Media" ON storage.objects FOR UPDATE USING ( bucket_id = 'media' ); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Delete Media') THEN CREATE POLICY "Public Delete Media" ON storage.objects FOR DELETE USING ( bucket_id = 'media' ); END IF;
 END $$;`,
-    codeLabel: 'Full System SQL Script (v5.2)'
+    codeLabel: 'Full System SQL Script (v6.0)'
   },
   {
     id: 'storage',
@@ -753,7 +721,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
     platform: 'TikTok',
     description: 'Consistency is key. Film everything in one day to stay ahead.',
     strategies: [
-      'Outfit Changes: Bring 5 outfits to one location.',
+      'Outfit Changes: Bring 5 outfits to a location.',
       'Drafts Folder: Keep 10 videos in drafts for busy days.',
       'Scripting: Write out your hooks before you turn on the camera.'
     ],

@@ -380,6 +380,7 @@ export interface SettingsContextType {
   // System State
   user: any;
   loadingAuth: boolean;
+  isDataLoaded: boolean; // Indicates if initial data fetch is complete
   isLocalMode: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;

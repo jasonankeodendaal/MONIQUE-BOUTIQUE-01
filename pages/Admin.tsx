@@ -49,12 +49,11 @@ function predictNextValue(values: number[]): number {
   }
 
   const denominator = n * sumXX - sumX * sumX;
-  if (denominator === 0) return values[n - 1]; // Fallback for zero variance in x (shouldn't happen with unique indices)
+  if (denominator === 0) return values[n - 1]; 
 
   const slope = (n * sumXY - sumX * sumY) / denominator;
   const intercept = (sumY - slope * sumX) / n;
 
-  // Predict y for x = n (the next index)
   return slope * n + intercept;
 }
 
@@ -175,7 +174,6 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
 );
 
 // --- CHARTS WITH TOOLTIPS ---
-// ... (Charts remain unchanged)
 const SimpleLineChart = ({ data, color, height = 120 }: { data: number[], color: string, height?: number }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   
@@ -213,8 +211,6 @@ const SimpleLineChart = ({ data, color, height = 120 }: { data: number[], color:
             </defs>
             <path d={`M0,100 L0,${points[0].y} ${points.map(p => `L${p.x},${p.y}`).join(' ')} L100,100 Z`} fill={`url(#grad-${color})`} stroke="none" />
             <polyline fill="none" stroke={color} strokeWidth="1.5" points={pathData} vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-            
-            {/* Interactive Points */}
             {points.map((p, i) => (
                 <circle 
                     key={i} 
@@ -272,29 +268,9 @@ const SimpleBarChart = ({ data, color, showLabels = true }: { data: { label: str
   );
 };
 
-const HorizontalBarChart = ({ data, color }: { data: { label: string, value: number }[], color: string }) => { 
-    const max = Math.max(...data.map(d => d.value), 1); 
-    return ( 
-        <div className="space-y-4 w-full">
-            {data.map((d, i) => ( 
-                <div key={i} className="w-full group">
-                    <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-medium">
-                        <span>{d.label}</span>
-                        <span className="font-bold text-slate-300">{d.value}</span>
-                    </div>
-                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-1000 group-hover:brightness-125" style={{ width: `${(d.value / max) * 100}%`, backgroundColor: color }} />
-                    </div>
-                </div> 
-            ))}
-        </div> 
-    ); 
-};
-
 const SimpleDonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => { 
     const total = data.reduce((acc, curr) => acc + curr.value, 0) || 1; 
     let accumulated = 0; 
-    
     return ( 
         <div className="relative w-48 h-48 mx-auto group">
             <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
@@ -329,27 +305,37 @@ const SimpleDonutChart = ({ data }: { data: { label: string, value: number, colo
     ); 
 };
 
-// (Re-declaring unchanged helper components to maintain file integrity)
+// --- FILE HANDLERS ---
 const compressImage = async (file: File): Promise<string> => { return new Promise((resolve, reject) => { if (!file.type.startsWith('image/')) { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => resolve(e.target?.result as string); reader.onerror = (e) => reject(e); return; } const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target?.result as string; img.onload = () => { const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const scaleSize = MAX_WIDTH / img.width; if (scaleSize < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize; } else { canvas.width = img.width; canvas.height = img.height; } const ctx = canvas.getContext('2d'); if (!ctx) { reject(new Error('Canvas context failed')); return; } ctx.drawImage(img, 0, 0, canvas.width, canvas.height); const dataUrl = canvas.toDataURL('image/jpeg', 0.7); resolve(dataUrl); }; img.onerror = (err: any) => reject(err); }; reader.onerror = (err) => reject(err); }); };
+
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => { const inputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploading(true); try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert("File is too large. Please use an image under 4MB."); setUploading(false); return; } if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); const url = await uploadMedia(compressedFile, 'media'); if (url) onChange(url); } else { onChange(compressedDataUrl); } } catch (err: any) { console.error("Upload failed", err); alert(`Upload Failed: ${err.message || 'Unknown error'}. Ensure the "media" bucket exists and is set to Public in Supabase.`); } finally { setUploading(false); } }; const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video'); return ( <div className="space-y-2 text-left w-full min-w-0"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label> <div onClick={() => !uploading && inputRef.current?.click()} className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`} > {uploading ? ( <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center"> <Loader2 size={24} className="animate-spin mb-2" /> <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden"> <div className="bg-primary h-full animate-[grow_2s_infinite]"></div> </div> </div> ) : value ? ( <> {isVideo ? ( <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline /> ) : ( <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" /> )} <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"> <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold"> <Edit2 size={16}/> </div> </div> </> ) : ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"> <ImageIcon size={24} className="mb-2 opacity-50" /> <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span> </div> )} <input type="file" className="hidden" ref={inputRef} accept={accept} onChange={handleUpload} disabled={uploading} /> </div> </div> ); };
+
 const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => { const fileInputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const safeImages = Array.isArray(images) ? images : []; const processFiles = async (incomingFiles: FileList | null) => { if (!incomingFiles) return; setUploading(true); const newUrls: string[] = []; try { for (let i = 0; i < incomingFiles.length; i++) { const file = incomingFiles[i]; const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large`); continue; } if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); const url = await uploadMedia(compressedFile, 'media'); if (url) newUrls.push(url); } else { newUrls.push(compressedDataUrl); } } onChange([...safeImages, ...newUrls]); } catch (err: any) { console.error(err); alert(`Upload Failed: ${err.message}. Ensure "media" bucket exists.`); } finally { setUploading(false); } }; return ( <div className="space-y-4 text-left w-full min-w-0"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label> <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3"> <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group"> {uploading ? <Loader2 size={24} className="animate-spin text-primary" /> : <Plus className="text-slate-400 group-hover:text-white" size={24} />} <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} /> </div> {safeImages.map((url, idx) => ( <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"> <img src={url} className="w-full h-full object-cover" alt="preview" /> <button onClick={() => { const newImages = [...safeImages]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button> </div> ))} </div> </div> ); };
+
 const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: SocialLink[]) => void }> = ({ links, onChange }) => { const handleUpdate = (id: string, field: keyof SocialLink, value: string) => { onChange(links.map(link => link.id === id ? { ...link, [field]: value } : link)); }; return ( <div className="space-y-4 w-full min-w-0"> <div className="flex justify-between items-center mb-4"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Social Profiles</label> <button onClick={() => onChange([...links, { id: Date.now().toString(), name: 'New Platform', url: 'https://', iconUrl: '' }])} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1"><Plus size={12}/> Add</button> </div> <div className="space-y-3"> {links.map((link) => ( <div key={link.id} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 items-start"> <div className="flex-shrink-0"><SingleImageUploader label="" value={link.iconUrl} onChange={v => handleUpdate(link.id, 'iconUrl', v)} className="w-12 h-12 rounded-xl"/></div> <div className="flex-grow grid grid-cols-2 gap-3 w-full"> <input type="text" value={link.name} onChange={e => handleUpdate(link.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Platform Name" /> <input type="text" value={link.url} onChange={e => handleUpdate(link.id, 'url', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Profile URL" /> </div> <button onClick={() => onChange(links.filter(l => l.id !== link.id))} className="p-2 bg-slate-800 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-colors"><Trash2 size={16} /></button> </div> ))} </div> </div> ); };
+
 const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => { switch (id) { case 'forge': return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden min-w-0"><div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)]" /><div className="relative z-10 flex flex-col items-center"><div className="flex gap-4 mb-8"><div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-2xl rotate-[-12deg]"><FileCode size={32} /></div><div className="w-16 h-16 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-2xl rotate-[12deg]"><Terminal size={32} /></div></div><div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary w-2/3 animate-[shimmer_2s_infinite]" /></div></div></div>); default: return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center min-w-0"><Rocket className="text-slate-800 w-24 h-24" /></div>); } };
+
 const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: string[]) => void; role: 'owner' | 'admin'; }> = ({ permissions, onChange, role }) => { if (role === 'owner') return <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-bold text-center">Owners have full system access by default.</div>; const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } }; const toggleGroup = (node: PermissionNode) => { const childIds = node.children?.map(c => c.id) || []; const allSelected = childIds.every(id => permissions.includes(id)); if (allSelected) { onChange(permissions.filter(p => !childIds.includes(p))); } else { const newPerms = [...permissions]; childIds.forEach(id => { if (!newPerms.includes(id)) newPerms.push(id); }); onChange(newPerms); } }; return ( <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div> ); };
+
 const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void }> = ({ selected, onSelect }) => { const [search, setSearch] = useState(''); const [isOpen, setIsOpen] = useState(false); const [limit, setLimit] = useState(100); const CUSTOM_KEYS = Object.keys(CustomIcons); const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { const val = (LucideIcons as any)[key]; return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); }); const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; const displayed = filtered.slice(0, limit); const SelectedIconComponent = CustomIcons[selected] || (LucideIcons as any)[selected] || LucideIcons.Package; return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>); };
+
 const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => { const { settings } = useSettings(); const [subject, setSubject] = useState(`Re: ${enquiry.subject}`); const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`); const [attachments, setAttachments] = useState<File[]>([]); const [sending, setSending] = useState(false); const [success, setSuccess] = useState(false); const [error, setError] = useState<string | null>(null); const handleSend = async () => { const serviceId = settings.emailJsServiceId?.trim(); const templateId = settings.emailJsTemplateId?.trim(); const publicKey = settings.emailJsPublicKey?.trim(); if (!serviceId || !templateId || !publicKey) { setError("Email.js is not configured."); return; } setSending(true); setError(null); try { const fileLinks: string[] = []; if (attachments.length > 0) { if (!isSupabaseConfigured) throw new Error("Supabase is required for attachments."); for (const file of attachments) { const url = await uploadMedia(file, 'media'); if (url) fileLinks.push(`${file.name}: ${url}`); } } let finalMessage = message.replace(/\n/g, '<br>'); if (fileLinks.length > 0) finalMessage += `<br><br><strong>Attachments:</strong><br>${fileLinks.map(l => `<a href="${l.split(': ')[1]}">${l.split(': ')[0]}</a>`).join('<br>')}`; let logoUrl = settings.companyLogoUrl || ''; const productsHtml = ''; const socialsHtml = ''; const templateParams = { to_name: enquiry.name, to_email: enquiry.email, subject, message: finalMessage, reply_to: enquiry.email, company_name: settings.companyName, company_address: settings.address, company_website: window.location.origin, company_logo_url: logoUrl, products_html: productsHtml, socials_html: socialsHtml, year: new Date().getFullYear().toString() }; await emailjs.send(serviceId, templateId, templateParams, publicKey); setSuccess(true); setTimeout(onClose, 2000); } catch (err: any) { console.error('EmailJS Error:', err); setError(err.text || err.message); } finally { setSending(false); } }; if (success) return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"><div className="bg-white rounded-3xl p-10 text-center animate-in zoom-in"><div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-4"><CheckCircle size={40} /></div><h3 className="text-2xl font-bold text-slate-900">Email Sent!</h3></div></div>); return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div className="p-6 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold flex items-center gap-3"><Reply size={20} className="text-primary"/> Reply to {enquiry.name}</h3><button onClick={onClose} className="text-slate-500 hover:text-white"><X size={24}/></button></div><div className="p-6 overflow-y-auto space-y-6 text-left">{error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">{error}</div>}<div className="space-y-4"><div className="grid grid-cols-2 gap-4"><SettingField label="To" value={enquiry.email} onChange={() => {}} type="text" /><SettingField label="Subject" value={subject} onChange={setSubject} /></div><SettingField label="Message (HTML Support Enabled)" value={message} onChange={setMessage} type="textarea" rows={12} /><div className="space-y-2 text-left"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Paperclip size={12}/> Attachments (Requires Storage)</label><input type="file" multiple onChange={e => e.target.files && setAttachments(Array.from(e.target.files))} className="block w-full text-xs text-slate-400 file:bg-slate-800 file:text-primary file:rounded-full file:border-0 file:py-2 file:px-4" /></div></div></div><div className="p-6 border-t border-slate-800 flex justify-end gap-3"><button onClick={onClose} className="px-6 py-3 rounded-xl text-slate-400 font-bold text-xs uppercase tracking-widest">Cancel</button><button onClick={handleSend} disabled={sending} className="px-8 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">{sending ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>} Send Email</button></div></div></div>); };
+
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
+
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState(''); useEffect(() => { const baseText = `Check out the ${product.name} from ${settings.companyName}.`; const price = `Price: R ${product.price}`; const link = `${window.location.origin}/#/product/${product.id}`; const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; const discount = product.discountRules?.[0]; const discountText = discount ? (discount.type === 'percentage' ? `🔥 ${discount.value}% OFF` : `🔥 R${discount.value} OFF`) : ''; let generated = ''; switch(platform.id) { case 'instagram': generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n${discountText ? `${discountText}\n` : ''}\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; break; default: generated = `${product.name} is now available.\n\n${product.description.substring(0, 200)}...\n\n${discountText ? `${discountText}\n` : ''}${features}\n\nShop securely here: ${link}`; } setCustomText(generated); }, [platform, product, settings]); const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); }; const handleShareBundle = async () => { if (!navigator.share) { alert("Sharing not supported on this device/browser. Please copy text and save image manually."); return; } try { const link = `${window.location.origin}/#/product/${product.id}`; const shareData: any = { title: settings.companyName, text: customText, url: link }; if (product.media?.[0]?.url) { try { const response = await fetch(product.media[0].url); const blob = await response.blob(); const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type }); if (navigator.canShare && navigator.canShare({ files: [file] })) { shareData.files = [file]; } } catch (e) { console.warn("Could not bundle image for share", e); } } await navigator.share(shareData); } catch (error) { console.error('Error sharing', error); alert("Device sharing failed. Please use 'Save Image' and 'Copy Text' manually."); } }; return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>); };
+
 const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => { const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); }; return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>); };
+
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => { const fileInputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const processFiles = async (incomingFiles: FileList | null) => { if (!incomingFiles) return; setUploading(true); const newFiles: MediaFile[] = []; for (let i = 0; i < incomingFiles.length; i++) { const file = incomingFiles[i]; try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large (>4MB)`); continue; } let result = compressedDataUrl; if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); try { const publicUrl = await uploadMedia(compressedFile, 'media'); if (publicUrl) result = publicUrl; } catch (err: any) { console.error("Upload failed", err); alert(`Upload Error: ${err.message}. Check Bucket config.`); continue; } } newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, size: file.size }); } catch (e) { console.error("Processing failed", e); } } onFilesChange(multiple ? [...files, ...newFiles] : newFiles); setUploading(false); }; return ( <div className="space-y-4 text-left w-full min-w-0"> <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]"> {uploading ? ( <div className="flex flex-col items-center"> <Loader2 size={24} className="animate-spin text-primary mb-2" /> <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div> <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span> </div> ) : ( <> <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} /> <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p> </> )} <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} /> </div> {files.length > 0 && ( <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2"> {files.map(f => ( <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"> {f.type.startsWith('video') ? ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div> ) : ( <img src={f.url} className="w-full h-full object-cover" alt="preview" /> )} <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"> <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button> </div> </div> ))} </div> )} </div> ); };
+
 const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left"> <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2"><Lightbulb size={16}/> Integration Setup Guide</h4> <div className="space-y-4 text-xs text-slate-400"> <details className="group"> <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors"><Mail size={14} /> EmailJS (Forms)</summary> <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2"> <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p> <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p> <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p> <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p> </div> </details> </div> </div> );
 
 // --- ANALYTICS DASHBOARD ---
 const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[] }> = ({ trafficEvents, products, stats, orders, categories }) => {
   const { settings } = useSettings();
   
-  // --- SUB-COMPONENTS FOR DASHBOARD ---
-
   const TrafficQualityGrid = () => {
     // Process Traffic Data
     const sourceStats = useMemo(() => {
@@ -360,10 +346,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
             if (!map[src]) map[src] = { count: 0, bounceCount: 0, engagementTotal: 0 };
             
             map[src].count++;
-            // Assume scrollDepth < 20 is a bounce
             if ((e.scrollDepth || 0) < 20) map[src].bounceCount++;
-            
-            // Engagement score approx
             map[src].engagementTotal += (e.scrollDepth || 0) + ((e.sessionDuration || 0) / 2); 
         });
 
@@ -379,14 +362,14 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
     function getChannelColor(source: string) {
         const s = source.toLowerCase();
         if (s.includes('instagram')) return '#E1306C';
-        if (s.includes('tiktok')) return '#000000'; // Or generic dark
+        if (s.includes('tiktok')) return '#000000';
         if (s.includes('facebook')) return '#1877F2';
         if (s.includes('google')) return '#4285F4';
         if (s.includes('whatsapp')) return '#25D366';
         if (s.includes('pinterest')) return '#E60023';
         if (s.includes('linkedin')) return '#0A66C2';
         if (s.includes('twitter') || s.includes('x')) return '#1DA1F2';
-        return '#64748b'; // Slate-500
+        return '#64748b'; 
     }
 
     return (
@@ -396,12 +379,10 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
             </h3>
             
             <div className="flex flex-col md:flex-row gap-8 items-center h-full">
-                {/* Donut Chart */}
                 <div className="w-full md:w-5/12 flex flex-col items-center justify-center">
                     <SimpleDonutChart data={sourceStats.map(s => ({ label: s.name, value: s.value, color: s.color }))} />
                 </div>
 
-                {/* Detailed Grid */}
                 <div className="w-full md:w-7/12 space-y-4 overflow-y-auto max-h-[300px] custom-scrollbar pr-2">
                     {sourceStats.map((stat, idx) => (
                         <div key={idx} className="bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 flex items-center justify-between group hover:border-slate-700 transition-colors">
@@ -439,12 +420,10 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
   const MerchandisingTable = () => {
     const [merchFilter, setMerchFilter] = useState('all');
 
-    // Aggregate Metrics
     const merchData = useMemo(() => {
         return products.map(product => {
             const stat = stats.find(s => s.productId === product.id) || { views: 0, clicks: 0, shares: 0 };
             
-            // Calculate Orders & Revenue from actual orders
             const productOrders = orders.flatMap(o => o.items || []).filter(i => i.productId === product.id);
             const salesCount = productOrders.reduce((sum, item) => sum + item.quantity, 0);
             const revenue = productOrders.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -452,11 +431,9 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
             const conversionRate = stat.views > 0 ? (salesCount / stat.views) * 100 : 0;
             const stockStatus = !product.isDirectSale ? 'N/A' : (product.stockQuantity || 0) === 0 ? 'Out' : (product.stockQuantity || 0) < 5 ? 'Low' : 'Good';
 
-            // --- NEW METRICS CALCULATIONS ---
-            const daysActive = Math.max(1, Math.ceil((Date.now() - (product.createdAt || Date.now())) / (86400000))); // Min 1 day
+            const daysActive = Math.max(1, Math.ceil((Date.now() - (product.createdAt || Date.now())) / (86400000))); 
             const avgDailySales = salesCount / daysActive;
             
-            // Est. Days Left: If selling, calculate runway. If not selling but direct sale, practically infinite runway (stagnant).
             const estDaysLeft = product.isDirectSale && avgDailySales > 0 
                 ? Math.round((product.stockQuantity || 0) / avgDailySales) 
                 : (product.isDirectSale && salesCount === 0 && (product.stockQuantity || 0) > 0 ? 999 : 0);
@@ -473,7 +450,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
                 estDaysLeft,
                 potentialRevenue
             };
-        }).sort((a, b) => b.revenue - a.revenue); // Default sort by revenue
+        }).sort((a, b) => b.revenue - a.revenue); 
     }, [products, stats, orders]);
 
     const filteredMerch = merchFilter === 'all' 
@@ -490,7 +467,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
                     <p className="text-xs text-slate-500 mt-1">Inventory performance and conversion analysis.</p>
                 </div>
                 
-                {/* Filter Tabs */}
                 <div className="flex gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
                     <button 
                         onClick={() => setMerchFilter('all')}
@@ -534,7 +510,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
                                         <div className="min-w-0">
                                             <div className="text-sm font-bold text-white line-clamp-1 flex items-center gap-2">
                                                 {item.name}
-                                                {/* HOT / COLD BADGES */}
                                                 {item.conversionRate > 2 && (
                                                     <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-500 text-[8px] font-black uppercase rounded flex items-center gap-1 border border-orange-500/30">
                                                         🔥 Hot
@@ -561,21 +536,17 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
                                     </span>
                                 </td>
                                 <td className="py-4 px-4">
-                                    {/* Funnel Viz */}
                                     <div className="flex items-center gap-1 h-8 justify-center">
-                                        {/* Views Bar */}
                                         <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.stats.views} Views`}>
                                             <div className="w-full bg-blue-500/40 rounded-sm" style={{ height: '100%' }}></div>
                                             <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.stats.views}</span>
                                         </div>
                                         <ArrowRight size={10} className="text-slate-600"/>
-                                        {/* Clicks Bar */}
                                         <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.stats.clicks} Clicks`}>
                                             <div className="w-full bg-purple-500/40 rounded-sm" style={{ height: `${item.stats.views > 0 ? (item.stats.clicks / item.stats.views) * 100 : 0}%`, minHeight: '4px' }}></div>
                                             <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.stats.clicks}</span>
                                         </div>
                                         <ArrowRight size={10} className="text-slate-600"/>
-                                        {/* Sales Bar */}
                                         <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.salesCount} Sales`}>
                                             <div className="w-full bg-green-500/40 rounded-sm" style={{ height: `${item.stats.clicks > 0 ? (item.salesCount / item.stats.clicks) * 100 : 0}%`, minHeight: '2px' }}></div>
                                             <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.salesCount}</span>
@@ -624,9 +595,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
     const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
     const totalVisits = trafficEvents.length;
     
-    // FORECAST CALCULATION
     const now = new Date();
-    // Generate data for last 30 days
     const dailyRevenues = Array.from({length: 30}, (_, i) => {
         const d = new Date();
         d.setDate(now.getDate() - (29 - i));
@@ -650,11 +619,10 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
     doc.text(`Total Orders: ${activeOrders.length}`, 14, 46);
     doc.text(`Total Visits: ${totalVisits.toLocaleString()}`, 14, 52);
     
-    // Top Products Table
     const productData = products.map(p => {
         const stat = stats.find(s => s.productId === p.id);
         return [p.name, stat?.views || 0, stat?.clicks || 0, stat ? ((stat.clicks/stat.views)*100).toFixed(1)+'%' : '0%'];
-    }).sort((a,b) => (b[1] as number) - (a[1] as number)).slice(0, 10); // Top 10
+    }).sort((a,b) => (b[1] as number) - (a[1] as number)).slice(0, 10); 
 
     autoTable(doc, {
         startY: 60,
@@ -662,24 +630,18 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
         body: productData,
     });
     
-    // Executive Forecast Section
     const finalY = (doc as any).lastAutoTable.finalY + 10;
-    
-    doc.setFillColor(0, 0, 0); // Black background
+    doc.setFillColor(0, 0, 0);
     doc.rect(14, finalY, 182, 25, 'F');
-    
-    doc.setTextColor(212, 175, 55); // Gold color
+    doc.setTextColor(212, 175, 55);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.text("EXECUTIVE FORECAST (30-DAY)", 20, finalY + 16);
-    
     doc.setFontSize(16);
     doc.text(`${settings.currency} ${forecast30Days.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 190, finalY + 16, { align: 'right' });
     
-    // Reset defaults
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
-
     doc.save(`analytics_report_${Date.now()}.pdf`);
   };
 
@@ -835,13 +797,11 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
         </div>
       </div>
 
-      {/* --- NEW MODULES --- */}
       <MerchandisingTable />
       
       <div className="grid md:grid-cols-2 gap-6 mt-6">
          <TrafficQualityGrid />
          
-         {/* Existing or additional metrics placeholder can go here to fill grid */}
          <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col justify-center items-center text-center">
             <div className="p-4 bg-primary/10 rounded-full text-primary mb-4"><Zap size={32}/></div>
             <h3 className="text-white font-bold text-lg">System Status</h3>
@@ -856,7 +816,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; 
   );
 };
 
-// ... (TrainingGrid component remain essentially same)
 const TrainingGrid: React.FC = () => {
    const [filter, setFilter] = useState('All');
    const categories = ['All', 'Social', 'Marketplace', 'SEO', 'Email'];
@@ -868,23 +827,16 @@ const TrainingGrid: React.FC = () => {
 // --- MAIN ADMIN COMPONENT ---
 
 interface ERPState {
-  // Costs
   effectiveCost: number;
   averageCost: number;
   lastCost: number;
   costBasis: 'effective' | 'average' | 'last';
-
-  // Commission
   commissionType: 'percentage' | 'fixed';
   commissionPercent: number;
   fixedCommission: number;
-
-  // Tax & Pricing
   taxRate: number;
   sellingPriceExcl: number;
   sellingPriceIncl: number;
-
-  // Logic
   lockedField: 'price' | 'margin' | 'none';
   currency: string;
 }
@@ -894,8 +846,6 @@ const ERPPricingCalculator: React.FC<{
   onChange: (field: keyof ERPState, value: any) => void;
   readOnly?: boolean;
 }> = ({ state, onChange, readOnly = false }) => {
-  
-  // Calculations
   const baseCost = state[state.costBasis === 'effective' ? 'effectiveCost' : state.costBasis === 'last' ? 'lastCost' : 'averageCost'] || 0;
   const taxAmount = state.sellingPriceExcl * (state.taxRate / 100);
   const grossProfit = state.sellingPriceExcl - baseCost;
@@ -908,7 +858,6 @@ const ERPPricingCalculator: React.FC<{
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.text("Pricing Calculation Sheet", 14, 20);
-    
     const data = [
         ['Metric', 'Value'],
         ['Cost Basis', state.costBasis.toUpperCase()],
@@ -923,12 +872,7 @@ const ERPPricingCalculator: React.FC<{
         ['Markup', `${markupPercent.toFixed(2)}%`],
         ['Break Even', `${state.currency} ${breakEvenPrice.toFixed(2)}`]
     ];
-
-    autoTable(doc, {
-        startY: 30,
-        head: [['Field', 'Value']],
-        body: data,
-    });
+    autoTable(doc, { startY: 30, head: [['Field', 'Value']], body: data });
     doc.save(`pricing_calc_${Date.now()}.pdf`);
   };
 
@@ -943,7 +887,6 @@ const ERPPricingCalculator: React.FC<{
 
   return (
     <div className="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-[2rem] w-full min-w-0 shadow-xl space-y-8">
-      {/* Header Toolbar */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-slate-800">
          <div className="flex items-center gap-4 w-full md:w-auto">
             <select 
@@ -965,9 +908,7 @@ const ERPPricingCalculator: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-        {/* Left Column: Inputs */}
         <div className="space-y-8">
-            {/* Cost Section */}
             <div className="space-y-4">
                 <div className="flex justify-between items-end mb-2">
                     <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Tag size={12}/> Cost Configuration</h5>
@@ -1006,13 +947,12 @@ const ERPPricingCalculator: React.FC<{
                         value={state.averageCost} 
                         onChange={v => onChange('averageCost', parseFloat(v) || 0)} 
                         prefix={state.currency} 
-                        readOnly={true} // Usually system calculated
+                        readOnly={true} 
                         highlight={state.costBasis === 'average'}
                     />
                 </div>
             </div>
 
-            {/* Commission Section */}
             <div className="space-y-4">
                 <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><CoinsIcon size={12}/> Commission Structure</h5>
                 <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 space-y-2">
@@ -1024,7 +964,6 @@ const ERPPricingCalculator: React.FC<{
                                 onChange={v => {
                                     const val = parseFloat(v) || 0;
                                     onChange('commissionPercent', val);
-                                    // Auto-calc fixed
                                     onChange('fixedCommission', state.sellingPriceExcl * (val / 100));
                                 }} 
                                 suffix="%" 
@@ -1038,7 +977,6 @@ const ERPPricingCalculator: React.FC<{
                                 onChange={v => {
                                     const val = parseFloat(v) || 0;
                                     onChange('fixedCommission', val);
-                                    // Auto-calc percent
                                     if(state.sellingPriceExcl > 0) onChange('commissionPercent', (val / state.sellingPriceExcl) * 100);
                                 }} 
                                 prefix={state.currency} 
@@ -1050,7 +988,6 @@ const ERPPricingCalculator: React.FC<{
             </div>
         </div>
 
-        {/* Right Column: Pricing & Results */}
         <div className="space-y-8">
             <div className="space-y-4">
                 <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Banknote size={12}/> Pricing Strategy</h5>
@@ -1097,7 +1034,6 @@ const ERPPricingCalculator: React.FC<{
                 </div>
             </div>
 
-            {/* Results Grid */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
                     <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Gross Profit</div>
@@ -1135,7 +1071,230 @@ const ERPPricingCalculator: React.FC<{
   );
 };
 
-const Admin: React.FC = () => {
+const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
+    const [pulse, setPulse] = useState<number[]>(new Array(20).fill(50));
+    const [termFilter, setTermFilter] = useState('ALL');
+    const [termSearch, setTermSearch] = useState('');
+    const [memoryUsage, setMemoryUsage] = useState<number>(0);
+    const [isTesting, setIsTesting] = useState(false);
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setPulse(prev => {
+          const noise = Math.random() * 20 - 10;
+          const base = 50;
+          const newVal = Math.max(10, Math.min(90, base + noise));
+          return [...prev.slice(1), newVal];
+        });
+        
+        if ((performance as any).memory) {
+            setMemoryUsage((performance as any).memory.usedJSHeapSize / 1024 / 1024);
+        } else {
+            setMemoryUsage(prev => Math.max(30, Math.min(120, prev + (Math.random() * 4 - 2))));
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }, []);
+
+    const healthScore = useMemo(() => {
+        if (!connectionHealth) return 0;
+        let score = 100;
+        if (connectionHealth.status !== 'online') score -= 50;
+        if (connectionHealth.latency > 100) score -= 10;
+        if (connectionHealth.latency > 500) score -= 20;
+        
+        const recentLogs = systemLogs.slice(0, 20);
+        const errorCount = recentLogs.filter(l => l.type === 'ERROR').length;
+        score -= (errorCount * 5);
+        
+        return Math.max(0, score);
+    }, [connectionHealth, systemLogs]);
+
+    const filteredLogs = systemLogs.filter(log => {
+        const matchesSearch = log.message.toLowerCase().includes(termSearch.toLowerCase()) || log.type.toLowerCase().includes(termSearch.toLowerCase());
+        const matchesFilter = termFilter === 'ALL' || log.type === termFilter;
+        return matchesSearch && matchesFilter;
+    });
+
+    const handlePurgeCache = () => {
+        if (window.confirm("This will clear local storage and reload. Continue?")) {
+          localStorage.clear();
+          window.location.reload();
+        }
+    };
+
+    const handleTestLatency = async () => {
+        setIsTesting(true);
+        await measureConnection();
+        setTimeout(() => setIsTesting(false), 1000);
+    };
+
+    const exportLogs = () => {
+        const blob = new Blob([JSON.stringify(systemLogs, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system_logs_${Date.now()}.json`;
+        a.click();
+    };
+
+    return ( 
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-3xl font-serif text-white flex items-center gap-3">
+              <Activity className="text-emerald-400 animate-pulse" size={28}/> 
+              System Diagnostics
+          </h2>
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">NOC ONLINE</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Health Index</h4>
+                <ShieldCheck size={16} className={healthScore > 80 ? 'text-emerald-500' : 'text-amber-500'} />
+              </div>
+              <div className="flex items-end gap-2">
+                <span className={`text-4xl font-mono font-bold ${healthScore > 80 ? 'text-white' : 'text-amber-400'}`}>{healthScore}%</span>
+                <span className="text-[10px] text-slate-500 mb-1">STABLE</span>
+              </div>
+              <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+                <div className={`h-full transition-all duration-1000 ${healthScore > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${healthScore}%` }}></div>
+              </div>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-blue-500/30 transition-all">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Network Pulse</h4>
+                <Wifi size={16} className="text-blue-500" />
+              </div>
+              <div className="h-12 w-full">
+                <SimpleLineChart data={pulse} color="#3b82f6" height={48} />
+              </div>
+              <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-400">
+                <span>LATENCY:</span>
+                <span className={connectionHealth?.latency > 200 ? 'text-red-400' : 'text-blue-400'}>{connectionHealth?.latency || 0}ms</span>
+              </div>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all">
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Client Memory</h4>
+                <Cpu size={16} className="text-purple-500" />
+              </div>
+              <div className="text-2xl font-mono font-bold text-white mb-2">{memoryUsage.toFixed(1)} <span className="text-sm text-slate-500">MB</span></div>
+              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${Math.min(100, (memoryUsage / 200) * 100)}%` }}></div>
+              </div>
+          </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-orange-500/30 transition-all">
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Storage Anatomy</h4>
+                <Database size={16} className="text-orange-500" />
+              </div>
+              <div className="text-xl font-mono font-bold text-white mb-2">{(storageStats.mediaSize / 1024 / 1024).toFixed(2)} MB</div>
+              <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-slate-800">
+                <div className="bg-blue-500 h-full" style={{ width: '20%' }} title="Database"></div>
+                <div className="bg-orange-500 h-full" style={{ width: '60%' }} title="Media"></div>
+                <div className="bg-slate-600 h-full" style={{ width: '20%' }} title="System"></div>
+              </div>
+              <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-mono">
+                <span>DB: 20%</span>
+                <span>MEDIA: 60%</span>
+              </div>
+          </div>
+        </div>
+
+        <div className="bg-black border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[400px]">
+          <div className="bg-slate-900/50 border-b border-slate-800 p-3 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+                </div>
+                <div className="h-4 w-px bg-slate-800"></div>
+                <div className="flex gap-2">
+                    {['ALL', 'ERROR', 'SYNC', 'UPDATE'].map(t => (
+                      <button 
+                          key={t}
+                          onClick={() => setTermFilter(t)}
+                          className={`px-3 py-1 rounded text-[9px] font-bold font-mono transition-colors ${termFilter === t ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                      >
+                          {t}
+                      </button>
+                    ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-600" size={12}/>
+                    <input 
+                      type="text" 
+                      value={termSearch}
+                      onChange={e => setTermSearch(e.target.value)}
+                      placeholder="grep logs..."
+                      className="bg-slate-950 border border-slate-800 rounded-md pl-7 pr-3 py-1 text-[10px] text-emerald-500 font-mono outline-none focus:border-emerald-500/50 w-32 focus:w-48 transition-all"
+                    />
+                </div>
+                <button onClick={exportLogs} className="p-1.5 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
+                    <Download size={14}/>
+                </button>
+              </div>
+          </div>
+
+          <div className="flex-grow bg-[#0c0c0c] p-4 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">
+              {filteredLogs.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-slate-700 opacity-50">
+                    <Terminal size={48} className="mb-4"/>
+                    <p>NO SIGNAL DETECTED</p>
+                </div>
+              ) : (
+                filteredLogs.map(log => (
+                    <div key={log.id} className="flex gap-3 hover:bg-white/5 p-0.5 rounded transition-colors group">
+                      <span className="text-slate-600 w-20 flex-shrink-0 select-none">[{new Date(log.timestamp).toLocaleTimeString([], {hour12: false})}]</span>
+                      <span className={`w-16 flex-shrink-0 font-bold ${
+                          log.type === 'ERROR' ? 'text-rose-500' : 
+                          log.type === 'SYNC' ? 'text-cyan-400' : 
+                          log.type === 'UPDATE' ? 'text-amber-400' : 'text-slate-400'
+                      }`}>{log.type}</span>
+                      <span className="text-slate-300 group-hover:text-white break-all">{log.message}</span>
+                    </div>
+                ))
+              )}
+              <div className="h-2"></div>
+              <div className="animate-pulse flex items-center gap-2 text-emerald-500/50">
+                <span>_</span>
+              </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button onClick={handlePurgeCache} className="p-4 bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-red-400 transition-all group">
+              <Trash size={16} className="group-hover:rotate-12 transition-transform"/>
+              <span className="text-[10px] font-black uppercase tracking-widest">Purge Cache</span>
+          </button>
+          <button onClick={handleTestLatency} disabled={isTesting} className="p-4 bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-blue-400 transition-all group">
+              <RefreshCw size={16} className={`group-hover:rotate-180 transition-transform ${isTesting ? 'animate-spin' : ''}`}/>
+              <span className="text-[10px] font-black uppercase tracking-widest">{isTesting ? 'Pinging...' : 'Test Latency'}</span>
+          </button>
+          <div className="md:col-span-2 p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between px-6">
+              <div className="flex items-center gap-3">
+                <ShieldAlert size={16} className="text-emerald-500"/>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Protocol</span>
+              </div>
+              <span className="text-xs font-mono text-emerald-400">ENCRYPTED (TLS 1.3)</span>
+          </div>
+        </div>
+      </div> 
+    );
+  };
+
+  const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats, orders,
@@ -1143,7 +1302,6 @@ const Admin: React.FC = () => {
   } = useSettings();
   
   const navigate = useNavigate();
-  // State for internal admin logic
   const [activeTab, setActiveTab] = useState('enquiries');
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
   const [activeEditorSection, setActiveEditorSection] = useState<string | null>(null);
@@ -1176,7 +1334,6 @@ const Admin: React.FC = () => {
   const [trackingInfo, setTrackingInfo] = useState({ courier: '', tracking: '' });
   const [creatorFilter, setCreatorFilter] = useState('all');
   
-  // New ERP Pricing State for Standalone Tool
   const [erpPricing, setErpPricing] = useState<ERPState>({
     effectiveCost: 0,
     averageCost: 0,
@@ -1196,7 +1353,6 @@ const Admin: React.FC = () => {
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@kasicouture.com');
   const userId = user?.id;
 
-  // --- PERMISSION CHECKER ---
   const hasPermission = (perm: string) => {
     if (isLocalMode || isOwner) return true;
     return myAdminProfile?.permissions?.includes(perm) || false;
@@ -1271,18 +1427,16 @@ const Admin: React.FC = () => {
   const exportEnquiries = () => { if(!hasPermission('sales.export')) return; const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + enquiries.map(e => `${e.name},${e.email},${e.subject},"${e.message}",${new Date(e.createdAt).toLocaleDateString()}`).join("\n"); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "enquiries_export.csv"); document.body.appendChild(link); link.click(); };
   const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
 
-  // --- ERP LOGIC ENGINE ---
   const handleErpChange = (field: keyof ERPState, value: any, isProductForm: boolean = false) => {
-    // Current State Resolution
     let state = isProductForm 
       ? {
           effectiveCost: productData.costPrice || 0,
           averageCost: 0,
           lastCost: 0,
-          costBasis: 'effective' as const, // Simplified for Product Form, usually manual input
+          costBasis: 'effective' as const, 
           commissionType: 'percentage' as const,
           commissionPercent: 0,
-          fixedCommission: 0, // Not stored on product model currently
+          fixedCommission: 0,
           taxRate: settings.vatRate || 15,
           sellingPriceExcl: (productData.price || 0) / (1 + (settings.vatRate || 15) / 100),
           sellingPriceIncl: productData.price || 0,
@@ -1291,47 +1445,23 @@ const Admin: React.FC = () => {
         } 
       : erpPricing;
 
-    // Apply the update
     const newState = { ...state, [field]: value };
-    
-    // Core Logic Variables
     const taxFactor = 1 + (newState.taxRate / 100);
     const cost = newState.costBasis === 'effective' ? newState.effectiveCost : newState.costBasis === 'last' ? newState.lastCost : newState.averageCost;
 
-    // --- RECALCULATION LOGIC ---
     if (field === 'sellingPriceExcl') {
-        // Price Excl Changed -> Update Incl
         newState.sellingPriceIncl = value * taxFactor;
-        // Commission auto-update if % based
-        if(newState.commissionType === 'percentage') {
-            newState.fixedCommission = value * (newState.commissionPercent / 100);
-        }
-    } 
-    else if (field === 'sellingPriceIncl') {
-        // Price Incl Changed -> Update Excl
+        if(newState.commissionType === 'percentage') newState.fixedCommission = value * (newState.commissionPercent / 100);
+    } else if (field === 'sellingPriceIncl') {
         newState.sellingPriceExcl = value / taxFactor;
-        // Commission auto-update if % based
-        if(newState.commissionType === 'percentage') {
-            newState.fixedCommission = newState.sellingPriceExcl * (newState.commissionPercent / 100);
-        }
-    } 
-    else if (field === 'taxRate') {
-        // Tax Changed -> Update Incl based on Excl
+        if(newState.commissionType === 'percentage') newState.fixedCommission = newState.sellingPriceExcl * (newState.commissionPercent / 100);
+    } else if (field === 'taxRate') {
         newState.sellingPriceIncl = newState.sellingPriceExcl * (1 + value / 100);
-    }
-    else if (field === 'effectiveCost' || field === 'lastCost' || field === 'averageCost' || field === 'costBasis') {
-        // Cost Changed -> Check Locks
+    } else if (field === 'effectiveCost' || field === 'lastCost' || field === 'averageCost' || field === 'costBasis') {
         const newCost = newState.costBasis === 'effective' ? newState.effectiveCost : newState.costBasis === 'last' ? newState.lastCost : newState.averageCost;
-        
-        if (state.lockedField === 'price') {
-            // Price locked, Margin changes (no calc needed, margin is derived in render)
-        } else if (state.lockedField === 'margin') {
-            // Margin locked, Price must change
-            // Old Margin %
+        if (state.lockedField === 'margin') {
             const oldCost = state.costBasis === 'effective' ? state.effectiveCost : state.costBasis === 'last' ? state.lastCost : state.averageCost;
             const oldMargin = state.sellingPriceExcl > 0 ? (state.sellingPriceExcl - oldCost) / state.sellingPriceExcl : 0;
-            
-            // New Price = New Cost / (1 - Margin)
             if (1 - oldMargin > 0) {
                 newState.sellingPriceExcl = newCost / (1 - oldMargin);
                 newState.sellingPriceIncl = newState.sellingPriceExcl * taxFactor;
@@ -1339,19 +1469,17 @@ const Admin: React.FC = () => {
         }
     }
 
-    // Update appropriate state
     if (isProductForm) {
       setProductData(prev => ({
         ...prev,
-        price: newState.sellingPriceIncl, // App uses Price as Incl
-        costPrice: newState.effectiveCost // Mapping back
+        price: newState.sellingPriceIncl, 
+        costPrice: newState.effectiveCost
       }));
     } else {
       setErpPricing(newState);
     }
   };
 
-  // ... (Reports remain unchanged)
   const generateGlobalReport = () => {
     const doc = new jsPDF();
     const activeOrders = orders.filter(o => o.status !== 'cancelled');
@@ -1361,11 +1489,8 @@ const Admin: React.FC = () => {
 
     doc.setFontSize(20);
     doc.text(`${settings.companyName} - Financial Report`, 14, 22);
-    
     doc.setFontSize(11);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
-    
-    // Summary Stats
     doc.text(`Total Orders: ${activeOrders.length}`, 14, 40);
     doc.text(`Gross Revenue: ${settings.currency} ${totalRevenue.toFixed(2)}`, 14, 46);
     doc.text(`VAT (${settings.vatRate || 15}%): ${settings.currency} ${vat.toFixed(2)}`, 14, 52);
@@ -1379,20 +1504,13 @@ const Admin: React.FC = () => {
         order.total.toFixed(2)
     ]);
 
-    autoTable(doc, {
-        startY: 65,
-        head: [['Date', 'Order ID', 'Customer', 'Method', 'Total']],
-        body: tableData,
-    });
-
+    autoTable(doc, { startY: 65, head: [['Date', 'Order ID', 'Customer', 'Method', 'Total']], body: tableData });
     doc.save(`global_report_${Date.now()}.pdf`);
   };
 
   const generateAffiliateReport = () => {
     const doc = new jsPDF();
     const affiliateOrders = orders.filter(o => o.affiliateId && o.status !== 'cancelled');
-    
-    // Group by affiliate
     const affiliateStats: Record<string, { count: number, sales: number, commission: number }> = {};
     
     affiliateOrders.forEach(o => {
@@ -1400,7 +1518,7 @@ const Admin: React.FC = () => {
         if (!affiliateStats[aid]) affiliateStats[aid] = { count: 0, sales: 0, commission: 0 };
         affiliateStats[aid].count++;
         affiliateStats[aid].sales += o.total;
-        affiliateStats[aid].commission += o.total * 0.10; // Assuming 10% commission
+        affiliateStats[aid].commission += o.total * 0.10; 
     });
 
     doc.setFontSize(20);
@@ -1415,19 +1533,12 @@ const Admin: React.FC = () => {
         stats.commission.toFixed(2)
     ]);
 
-    autoTable(doc, {
-        startY: 40,
-        head: [['Affiliate ID', 'Orders', 'Total Sales', 'Est. Commission (10%)']],
-        body: tableData,
-    });
-
+    autoTable(doc, { startY: 40, head: [['Affiliate ID', 'Orders', 'Total Sales', 'Est. Commission (10%)']], body: tableData });
     doc.save(`affiliate_report_${Date.now()}.pdf`);
   };
 
   const generateUserReport = (admin: AdminUser) => {
     const doc = new jsPDF();
-    // Assuming 'affiliateId' is not properly populated in mock, we'll simulate logic or use creator ID if products are tracked
-    // For now, if order system supports affiliateId, we use that.
     const affiliateOrders = orders.filter(o => o.affiliateId === admin.id && o.status !== 'cancelled');
     const totalSales = affiliateOrders.reduce((sum, o) => sum + o.total, 0);
     const commission = totalSales * ((admin.commissionRate || 0) / 100);
@@ -1437,7 +1548,6 @@ const Admin: React.FC = () => {
     doc.setFontSize(11);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
     doc.text(`Commission Rate: ${admin.commissionRate || 0}%`, 14, 36);
-
     doc.text(`Total Orders: ${affiliateOrders.length}`, 14, 46);
     doc.text(`Total Sales Generated: ${settings.currency} ${totalSales.toFixed(2)}`, 14, 52);
     doc.text(`Commission Earned: ${settings.currency} ${commission.toFixed(2)}`, 14, 58);
@@ -1449,12 +1559,7 @@ const Admin: React.FC = () => {
         (o.total * ((admin.commissionRate || 0) / 100)).toFixed(2)
     ]);
 
-    autoTable(doc, {
-        startY: 65,
-        head: [['Date', 'Order ID', 'Total', 'Commission']],
-        body: tableData,
-    });
-
+    autoTable(doc, { startY: 65, head: [['Date', 'Order ID', 'Total', 'Commission']], body: tableData });
     doc.save(`affiliate_report_${admin.name.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
   };
 
@@ -1501,7 +1606,6 @@ const Admin: React.FC = () => {
                 <SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} />
                 <SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} />
                 
-                {/* --- UPDATED ERP PRICING SECTION --- */}
                 <div className="col-span-1 md:col-span-2 space-y-4 pt-4 border-t border-slate-800">
                    <h4 className="text-white font-bold flex items-center gap-2"><Banknote size={18} className="text-primary"/> Financial Engineering</h4>
                    {productData.isDirectSale && (
@@ -1833,7 +1937,6 @@ const Admin: React.FC = () => {
      </div>
   );
 
-  // Dynamic Tabs based on permissions
   const ADMIN_TABS = [
     { id: 'enquiries', label: 'Inbox', icon: Inbox, perm: 'sales.view' },
     { id: 'orders', label: 'Orders', icon: ShoppingBag, perm: 'sales.orders' },
@@ -1844,258 +1947,21 @@ const Admin: React.FC = () => {
     { id: 'site_editor', label: 'Canvas', icon: Palette, perm: 'site.editor' },
     { id: 'team', label: 'Maison', icon: Users, perm: 'team.view' },
     { id: 'pricing', label: 'Pricing Tool', icon: Calculator, perm: 'catalog.view' },
-    { id: 'training', label: 'Training', icon: GraduationCap, perm: 'training.view' }, // Note: Add to tree or make default open
+    { id: 'training', label: 'Training', icon: GraduationCap, perm: 'training.view' }, 
     { id: 'system', label: 'System', icon: Activity, perm: 'system.view' },
-    { id: 'guide', label: 'Pilot', icon: Rocket, perm: 'system.view' } // Pilot restricted to system view or owner
+    { id: 'guide', label: 'Pilot', icon: Rocket, perm: 'system.view' } 
   ];
 
   const visibleTabs = useMemo(() => ADMIN_TABS.filter(t => 
-    // Training/Guide could be open to all admins, or specific perm. For now, check perm.
     t.id === 'training' ? true : hasPermission(t.perm)
-  ), [myAdminProfile, user]); // Re-evaluate when user changes
+  ), [myAdminProfile, user]); 
 
-  // Auto-switch tab if current one is forbidden
   useEffect(() => {
     const currentTabObj = ADMIN_TABS.find(t => t.id === activeTab);
     if (currentTabObj && currentTabObj.id !== 'training' && !hasPermission(currentTabObj.perm)) {
        if (visibleTabs.length > 0) setActiveTab(visibleTabs[0].id);
     }
   }, [visibleTabs, activeTab]);
-
-  // --- SYSTEM MONITOR COMPONENT OVERHAUL ---
-  const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
-    const [pulse, setPulse] = useState<number[]>(new Array(20).fill(50));
-    const [termFilter, setTermFilter] = useState('ALL');
-    const [termSearch, setTermSearch] = useState('');
-    const [memoryUsage, setMemoryUsage] = useState<number>(0);
-    const [isTesting, setIsTesting] = useState(false);
-
-    // Heartbeat Simulation
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setPulse(prev => {
-          const noise = Math.random() * 20 - 10;
-          const base = 50;
-          const newVal = Math.max(10, Math.min(90, base + noise));
-          return [...prev.slice(1), newVal];
-        });
-        
-        // Simulate Memory (if API not available)
-        if ((performance as any).memory) {
-            setMemoryUsage((performance as any).memory.usedJSHeapSize / 1024 / 1024);
-        } else {
-            setMemoryUsage(prev => Math.max(30, Math.min(120, prev + (Math.random() * 4 - 2))));
-        }
-      }, 1000);
-      return () => clearInterval(interval);
-    }, []);
-
-    const healthScore = useMemo(() => {
-        if (!connectionHealth) return 0;
-        let score = 100;
-        if (connectionHealth.status !== 'online') score -= 50;
-        if (connectionHealth.latency > 100) score -= 10;
-        if (connectionHealth.latency > 500) score -= 20;
-        
-        const recentLogs = systemLogs.slice(0, 20);
-        const errorCount = recentLogs.filter(l => l.type === 'ERROR').length;
-        score -= (errorCount * 5);
-        
-        return Math.max(0, score);
-    }, [connectionHealth, systemLogs]);
-
-    const filteredLogs = systemLogs.filter(log => {
-        const matchesSearch = log.message.toLowerCase().includes(termSearch.toLowerCase()) || log.type.toLowerCase().includes(termSearch.toLowerCase());
-        const matchesFilter = termFilter === 'ALL' || log.type === termFilter;
-        return matchesSearch && matchesFilter;
-    });
-
-    const handlePurgeCache = () => {
-        if (window.confirm("This will clear local storage and reload. Continue?")) {
-          localStorage.clear();
-          window.location.reload();
-        }
-    };
-
-    const handleTestLatency = async () => {
-        setIsTesting(true);
-        await measureConnection();
-        setTimeout(() => setIsTesting(false), 1000);
-    };
-
-    const exportLogs = () => {
-        const blob = new Blob([JSON.stringify(systemLogs, null, 2)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `system_logs_${Date.now()}.json`;
-        a.click();
-    };
-
-    return ( 
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-serif text-white flex items-center gap-3">
-              <Activity className="text-emerald-400 animate-pulse" size={28}/> 
-              System Diagnostics
-          </h2>
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">NOC ONLINE</span>
-          </div>
-        </div>
-
-        {/* Metric Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Health Index */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/30 transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Health Index</h4>
-                <ShieldCheck size={16} className={healthScore > 80 ? 'text-emerald-500' : 'text-amber-500'} />
-              </div>
-              <div className="flex items-end gap-2">
-                <span className={`text-4xl font-mono font-bold ${healthScore > 80 ? 'text-white' : 'text-amber-400'}`}>{healthScore}%</span>
-                <span className="text-[10px] text-slate-500 mb-1">STABLE</span>
-              </div>
-              <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-                <div className={`h-full transition-all duration-1000 ${healthScore > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${healthScore}%` }}></div>
-              </div>
-          </div>
-
-          {/* Network Pulse */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-blue-500/30 transition-all">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Network Pulse</h4>
-                <Wifi size={16} className="text-blue-500" />
-              </div>
-              <div className="h-12 w-full">
-                <SimpleLineChart data={pulse} color="#3b82f6" height={48} />
-              </div>
-              <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-400">
-                <span>LATENCY:</span>
-                <span className={connectionHealth?.latency > 200 ? 'text-red-400' : 'text-blue-400'}>{connectionHealth?.latency || 0}ms</span>
-              </div>
-          </div>
-
-          {/* Memory Usage */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Client Memory</h4>
-                <Cpu size={16} className="text-purple-500" />
-              </div>
-              <div className="text-2xl font-mono font-bold text-white mb-2">{memoryUsage.toFixed(1)} <span className="text-sm text-slate-500">MB</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${Math.min(100, (memoryUsage / 200) * 100)}%` }}></div>
-              </div>
-          </div>
-
-          {/* Storage Anatomy */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-orange-500/30 transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Storage Anatomy</h4>
-                <Database size={16} className="text-orange-500" />
-              </div>
-              <div className="text-xl font-mono font-bold text-white mb-2">{(storageStats.mediaSize / 1024 / 1024).toFixed(2)} MB</div>
-              <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-slate-800">
-                <div className="bg-blue-500 h-full" style={{ width: '20%' }} title="Database"></div>
-                <div className="bg-orange-500 h-full" style={{ width: '60%' }} title="Media"></div>
-                <div className="bg-slate-600 h-full" style={{ width: '20%' }} title="System"></div>
-              </div>
-              <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-mono">
-                <span>DB: 20%</span>
-                <span>MEDIA: 60%</span>
-              </div>
-          </div>
-        </div>
-
-        {/* Interactive Terminal */}
-        <div className="bg-black border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[400px]">
-          {/* Terminal Toolbar */}
-          <div className="bg-slate-900/50 border-b border-slate-800 p-3 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-                </div>
-                <div className="h-4 w-px bg-slate-800"></div>
-                <div className="flex gap-2">
-                    {['ALL', 'ERROR', 'SYNC', 'UPDATE'].map(t => (
-                      <button 
-                          key={t}
-                          onClick={() => setTermFilter(t)}
-                          className={`px-3 py-1 rounded text-[9px] font-bold font-mono transition-colors ${termFilter === t ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-                      >
-                          {t}
-                      </button>
-                    ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-600" size={12}/>
-                    <input 
-                      type="text" 
-                      value={termSearch}
-                      onChange={e => setTermSearch(e.target.value)}
-                      placeholder="grep logs..."
-                      className="bg-slate-950 border border-slate-800 rounded-md pl-7 pr-3 py-1 text-[10px] text-emerald-500 font-mono outline-none focus:border-emerald-500/50 w-32 focus:w-48 transition-all"
-                    />
-                </div>
-                <button onClick={exportLogs} className="p-1.5 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
-                    <Download size={14}/>
-                </button>
-              </div>
-          </div>
-
-          {/* Log Output */}
-          <div className="flex-grow bg-[#0c0c0c] p-4 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">
-              {filteredLogs.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-700 opacity-50">
-                    <Terminal size={48} className="mb-4"/>
-                    <p>NO SIGNAL DETECTED</p>
-                </div>
-              ) : (
-                filteredLogs.map(log => (
-                    <div key={log.id} className="flex gap-3 hover:bg-white/5 p-0.5 rounded transition-colors group">
-                      <span className="text-slate-600 w-20 flex-shrink-0 select-none">[{new Date(log.timestamp).toLocaleTimeString([], {hour12: false})}]</span>
-                      <span className={`w-16 flex-shrink-0 font-bold ${
-                          log.type === 'ERROR' ? 'text-rose-500' : 
-                          log.type === 'SYNC' ? 'text-cyan-400' : 
-                          log.type === 'UPDATE' ? 'text-amber-400' : 'text-slate-400'
-                      }`}>{log.type}</span>
-                      <span className="text-slate-300 group-hover:text-white break-all">{log.message}</span>
-                    </div>
-                ))
-              )}
-              <div className="h-2"></div>
-              <div className="animate-pulse flex items-center gap-2 text-emerald-500/50">
-                <span>_</span>
-              </div>
-          </div>
-        </div>
-
-        {/* Diagnostics Controls */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button onClick={handlePurgeCache} className="p-4 bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-red-400 transition-all group">
-              <Trash size={16} className="group-hover:rotate-12 transition-transform"/>
-              <span className="text-[10px] font-black uppercase tracking-widest">Purge Cache</span>
-          </button>
-          <button onClick={handleTestLatency} disabled={isTesting} className="p-4 bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-blue-400 transition-all group">
-              <RefreshCw size={16} className={`group-hover:rotate-180 transition-transform ${isTesting ? 'animate-spin' : ''}`}/>
-              <span className="text-[10px] font-black uppercase tracking-widest">{isTesting ? 'Pinging...' : 'Test Latency'}</span>
-          </button>
-          <div className="md:col-span-2 p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between px-6">
-              <div className="flex items-center gap-3">
-                <ShieldAlert size={16} className="text-emerald-500"/>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Protocol</span>
-              </div>
-              <span className="text-xs font-mono text-emerald-400">ENCRYPTED (TLS 1.3)</span>
-          </div>
-        </div>
-      </div> 
-    );
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
@@ -2274,7 +2140,6 @@ const Admin: React.FC = () => {
                )}
              </div>
              
-             {/* Drawer Footer Actions */}
              <div className="flex gap-4 pt-8 border-t border-slate-800 mt-8 pb-20 md:pb-0">
                 <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 rounded-xl font-bold uppercase text-xs tracking-widest hover:brightness-110 shadow-lg shadow-primary/20 transition-all">Publish Changes</button>
                 <button onClick={() => setEditorDrawerOpen(false)} className="px-8 py-4 border border-slate-800 text-slate-400 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white">Cancel</button>

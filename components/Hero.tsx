@@ -84,10 +84,16 @@ const Hero: React.FC = () => {
               {/* FLUID TYPOGRAPHY */}
               <h1 className="font-serif text-white mb-6 md:mb-8 leading-[1.1] md:leading-[0.85] tracking-tighter text-balance"
                   style={{ fontSize: 'clamp(2.5rem, 8vw, 9rem)' }}>
-                {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
-                <span className="text-primary italic font-light lowercase">
-                  {slide.title.split(' ').slice(-1)}
-                </span>
+                {slide.title.includes(' ') ? (
+                  <>
+                    {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
+                    <span className="text-primary italic font-light lowercase">
+                      {slide.title.split(' ').slice(-1)}
+                    </span>
+                  </>
+                ) : (
+                  slide.title
+                )}
               </h1>
               
               <p className="text-base md:text-xl text-white/70 md:text-white/60 mb-8 md:mb-12 max-w-xs md:max-w-md font-light leading-relaxed text-balance">

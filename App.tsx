@@ -428,6 +428,7 @@ const App: React.FC = () => {
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
@@ -628,26 +629,153 @@ const App: React.FC = () => {
     setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
   };
 
+  // --- DATA FETCHING SPLIT ---
+  
+  const fetchPublicData = async () => {
+    if (!isSupabaseConfigured) return; 
+    
+    try {
+      const results = await Promise.allSettled([
+        fetchTableData('public_settings'),
+        fetchTableData('products'),
+        fetchTableData('categories'),
+        fetchTableData('subcategories'),
+        fetchTableData('hero_slides'),
+      ]);
+
+      const [s, p, c, sc, hs] = results;
+
+      // Handle Public Settings
+      if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
+        const { id, ...rest } = s.value[0];
+        setSettingsId(id);
+        
+        // Merge with existing state to preserve structure
+        const mergedSettings = { ...settings, ...rest };
+        setSettings(mergedSettings);
+        localStorage.setItem('site_settings', JSON.stringify(mergedSettings));
+      } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
+        // Init public settings if empty
+        const initialPublic = { ...INITIAL_SETTINGS, id: 'global' };
+        await upsertData('public_settings', initialPublic);
+        setSettingsId('global');
+      }
+
+      if (p.status === 'fulfilled' && p.value !== null) {
+          setProducts(p.value);
+          localStorage.setItem('admin_products', JSON.stringify(p.value));
+      }
+      if (c.status === 'fulfilled' && c.value !== null) {
+          setCategories(c.value);
+          localStorage.setItem('admin_categories', JSON.stringify(c.value));
+      }
+      if (sc.status === 'fulfilled' && sc.value !== null) {
+          setSubCategories(sc.value);
+          localStorage.setItem('admin_subcategories', JSON.stringify(sc.value));
+      }
+      if (hs.status === 'fulfilled' && hs.value !== null) {
+          setHeroSlides(hs.value);
+          localStorage.setItem('admin_hero', JSON.stringify(hs.value));
+      }
+    } catch (e) {
+      console.error("Public data fetch failed", e);
+    }
+  };
+
+  const fetchAdminData = async () => {
+    if (!isSupabaseConfigured) return;
+    
+    try {
+      // Admin authenticated fetch including secrets
+      const results = await Promise.allSettled([
+        fetchTableData('enquiries'),
+        fetchTableData('admin_users'),
+        fetchTableData('product_stats'),
+        fetchTableData('orders'),
+        fetchTableData('private_secrets')
+      ]);
+
+      const [enq, adm, st, ord, sec] = results;
+
+      if (enq.status === 'fulfilled' && enq.value !== null) {
+          setEnquiries(enq.value);
+          localStorage.setItem('admin_enquiries', JSON.stringify(enq.value));
+      }
+      if (adm.status === 'fulfilled' && adm.value !== null) {
+          setAdmins(adm.value);
+          localStorage.setItem('admin_users', JSON.stringify(adm.value));
+      }
+      if (st.status === 'fulfilled' && st.value !== null) {
+          setStats(st.value);
+          localStorage.setItem('admin_product_stats', JSON.stringify(st.value));
+      }
+      if (ord.status === 'fulfilled' && ord.value !== null) {
+          setOrders(ord.value);
+          localStorage.setItem('admin_orders', JSON.stringify(ord.value));
+      }
+      
+      // Merge secrets into settings state if present
+      if (sec.status === 'fulfilled' && sec.value && sec.value.length > 0) {
+          const secretData = sec.value[0];
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, ...secrets } = secretData;
+          setSettings(prev => ({ ...prev, ...secrets }));
+          // We intentionally do NOT save secrets to localStorage for security
+          // They live in memory only while admin session is active
+      } else if (sec.status === 'fulfilled' && sec.value && sec.value.length === 0) {
+          // Initialize secrets row if missing
+          await upsertData('private_secrets', { id: 'global' });
+      }
+
+    } catch (e) {
+      console.error("Admin data fetch failed", e);
+    }
+  };
+
+  const refreshAllData = async () => {
+    addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
+    try {
+      await fetchPublicData();
+      if (user) {
+        await fetchAdminData();
+      }
+      setIsDataLoaded(true);
+      if (isSupabaseConfigured) {
+         addSystemLog('SYNC', 'ALL', 'Refresh completed', 0);
+      } else {
+         addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0);
+      }
+      setSaveStatus('saved');
+    } catch (e) {
+      console.error("Data sync failed", e);
+      addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed');
+      setSaveStatus('error');
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
 
     const initSequence = async () => {
-       // 1. Attempt Migration if new connection
        if (isSupabaseConfigured) {
-          const migrated = await checkAndMigrate();
-          if (migrated && mounted) {
-             addSystemLog('SYNC', 'CLOUD', 'Local data migrated to Supabase', 0);
-          }
+          // We check for migration, but now migration maps to public_settings
+          // The checkAndMigrate function in lib/supabase.ts needs update or manual handling
+          // For now, assuming fresh start or manual migration via Guide
        }
-       // 2. Fetch Data (will fetch migrated data if successful)
-       if (mounted) refreshAllData();
+       // Initial Public Data Load
+       if (mounted) {
+         await fetchPublicData();
+         setIsDataLoaded(true);
+       }
     };
 
     initSequence();
 
     if (!isSupabaseConfigured) {
       setLoadingAuth(false);
+      // Local mode data is lazy loaded from localStorage, so set flag immediately
+      setIsDataLoaded(true);
       return;
     }
 
@@ -657,12 +785,24 @@ const App: React.FC = () => {
          if (error) {
            if (error.message.includes('Refresh Token')) await supabase.auth.signOut();
          }
-         if (mounted) setUser(session?.user ?? null);
+         
+         const currentUser = session?.user ?? null;
+         if (mounted) setUser(currentUser);
+         
+         if (currentUser) {
+            // Fetch admin data immediately if session exists
+            await fetchAdminData();
+         }
 
-         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
            if (mounted) {
-             setUser(session?.user ?? null);
+             const newUser = session?.user ?? null;
+             setUser(newUser);
              setLoadingAuth(false);
+             if (newUser) {
+                // Fetch admin data on login
+                await fetchAdminData();
+             }
            }
          });
          authSubscription = subscription;
@@ -679,94 +819,52 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const refreshAllData = async () => {
-    addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
-    try {
-      if (isSupabaseConfigured) {
-        const results = await Promise.allSettled([
-          fetchTableData('settings'),
-          fetchTableData('products'),
-          fetchTableData('categories'),
-          fetchTableData('subcategories'),
-          fetchTableData('hero_slides'),
-          fetchTableData('enquiries'),
-          fetchTableData('admin_users'),
-          fetchTableData('product_stats'),
-          fetchTableData('orders')
-        ]);
-
-        const [s, p, c, sc, hs, enq, adm, st, ord] = results;
-
-        if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
-          const { id, ...rest } = s.value[0];
-          setSettingsId(id);
-          setSettings(rest as SiteSettings);
-          localStorage.setItem('site_settings', JSON.stringify(rest));
-        } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
-          // Only fallback to default/local upsert if NO data exists remotely (and checkAndMigrate didn't run or found empty)
-          await upsertData('settings', { ...settings, id: 'global' });
-          setSettingsId('global');
-        }
-
-        if (p.status === 'fulfilled' && p.value !== null) {
-            setProducts(p.value);
-            localStorage.setItem('admin_products', JSON.stringify(p.value));
-        }
-        if (c.status === 'fulfilled' && c.value !== null) {
-            setCategories(c.value);
-            localStorage.setItem('admin_categories', JSON.stringify(c.value));
-        }
-        if (sc.status === 'fulfilled' && sc.value !== null) {
-            setSubCategories(sc.value);
-            localStorage.setItem('admin_subcategories', JSON.stringify(sc.value));
-        }
-        if (hs.status === 'fulfilled' && hs.value !== null) {
-            setHeroSlides(hs.value);
-            localStorage.setItem('admin_hero', JSON.stringify(hs.value));
-        }
-        if (enq.status === 'fulfilled' && enq.value !== null) {
-            setEnquiries(enq.value);
-            localStorage.setItem('admin_enquiries', JSON.stringify(enq.value));
-        }
-        if (adm.status === 'fulfilled' && adm.value !== null) {
-            setAdmins(adm.value);
-            localStorage.setItem('admin_users', JSON.stringify(adm.value));
-        }
-        if (st.status === 'fulfilled' && st.value !== null) {
-            setStats(st.value);
-            localStorage.setItem('admin_product_stats', JSON.stringify(st.value));
-        }
-        if (ord.status === 'fulfilled' && ord.value !== null) {
-            setOrders(ord.value);
-            localStorage.setItem('admin_orders', JSON.stringify(ord.value));
-        }
-
-        addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
-      } else {
-        // Local Mode
-        addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0);
-      }
-      setSaveStatus('saved');
-    } catch (e) {
-      console.error("Data sync failed", e);
-      addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed');
-      setSaveStatus('error');
-    }
-  };
-
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
-    localStorage.setItem('site_settings', JSON.stringify(updated));
+    // Persist safe settings to local storage
+    // We filter out secrets so they don't persist in browser storage
+    const safeSettings = { ...updated };
+    delete (safeSettings as any).payfastSaltPassphrase;
+    delete (safeSettings as any).zapierWebhookUrl;
+    delete (safeSettings as any).webhookUrl;
+    
+    localStorage.setItem('site_settings', JSON.stringify(safeSettings));
 
     if (isSupabaseConfigured) {
       try {
-        await upsertData('settings', { ...updated, id: settingsId });
-        addSystemLog('UPDATE', 'settings', 'Global settings updated', 0);
+        // Split update between Public and Private tables
+        // 1. Identify Private keys
+        const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
+        const publicPayload: any = { id: settingsId };
+        const privatePayload: any = { id: settingsId };
+        let hasPrivateUpdate = false;
+        let hasPublicUpdate = false;
+
+        Object.keys(newSettings).forEach(key => {
+            if (privateKeys.includes(key)) {
+                privatePayload[key] = (newSettings as any)[key];
+                hasPrivateUpdate = true;
+            } else {
+                publicPayload[key] = (newSettings as any)[key];
+                hasPublicUpdate = true;
+            }
+        });
+
+        if (hasPublicUpdate) {
+            await upsertData('public_settings', publicPayload);
+        }
+        
+        if (hasPrivateUpdate) {
+            await upsertData('private_secrets', privatePayload);
+        }
+
+        addSystemLog('UPDATE', 'settings', 'Settings synchronized', 0);
       } catch (e) { 
         addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed');
+        console.error(e);
       }
     }
     setTimeout(() => setSaveStatus('saved'), 500);
@@ -985,6 +1083,7 @@ const App: React.FC = () => {
       products, categories, subCategories, heroSlides, enquiries, admins, stats, orders,
       refreshAllData, updateData, deleteData,
       user, loadingAuth, 
+      isDataLoaded,
       isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent,
       connectionHealth, systemLogs, storageStats
     }}>

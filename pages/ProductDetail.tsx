@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Loader2 } from 'lucide-react';
 import { useSettings } from '../App';
 import { useCart } from '../context/CartContext';
 import { Review, Product } from '../types';
@@ -10,7 +10,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { settings, products, categories, updateData, logEvent } = useSettings();
+  const { settings, products, categories, updateData, logEvent, isDataLoaded } = useSettings();
   const { addToCart } = useCart();
   
   const product = products.find((p: Product) => p.id === id);
@@ -218,6 +218,17 @@ const ProductDetail: React.FC = () => {
       { name: 'Email', icon: Mail, color: 'bg-slate-100', text: 'text-slate-900', url: `mailto:?subject=${encodeURIComponent(product?.name || '')}&body=${encodeURIComponent(fullText)}` },
     ];
   }, [product, sharePayload]);
+
+  if (!isDataLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFCFB]">
+        <div className="flex flex-col items-center gap-4">
+           <Loader2 className="animate-spin text-slate-900" size={32} />
+           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 animate-pulse">Loading Collection...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
