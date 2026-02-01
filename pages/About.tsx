@@ -23,6 +23,9 @@ const About: React.FC = () => {
 
   // Get random or top 3 products for the "Essentials" section
   const curatorEssentials = products.slice(0, 3);
+  
+  // Safe string handling
+  const heroTitle = settings.aboutHeroTitle || "My Story.";
 
   return (
     <div className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
@@ -45,7 +48,7 @@ const About: React.FC = () => {
               </div>
               
               <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-10 text-balance" style={{ fontSize: 'clamp(3.5rem, 10vw, 8.5rem)' }}>
-                  {settings.aboutHeroTitle.split(' ').map((word, i) => (
+                  {heroTitle.split(' ').map((word, i) => (
                       <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block" : "block"}>{word}</span>
                   ))}
               </h1>

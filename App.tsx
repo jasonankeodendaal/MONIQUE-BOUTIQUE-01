@@ -657,7 +657,15 @@ const App: React.FC = () => {
         setSettingsId(id);
         
         // Merge with existing state to preserve structure
-        const mergedSettings = { ...settings, ...rest };
+        // FIX: Prevent nulls from DB overwriting valid defaults
+        const mergedSettings = { ...settings };
+        Object.keys(rest).forEach(key => {
+            const val = (rest as any)[key];
+            if (val !== null) {
+                (mergedSettings as any)[key] = val;
+            }
+        });
+        
         setSettings(mergedSettings);
         localStorage.setItem('site_settings', JSON.stringify(mergedSettings));
       } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {

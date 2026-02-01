@@ -27,6 +27,9 @@ const Products: React.FC = () => {
       : [settings.productsHeroImage];
   }, [settings.productsHeroImage, settings.productsHeroImages]);
 
+  // Safe Title
+  const heroTitle = settings.productsHeroTitle || "Affiliate Catalog";
+
   useEffect(() => {
     if (heroImages.length <= 1) return;
     const interval = setInterval(() => {
@@ -123,8 +126,8 @@ const Products: React.FC = () => {
           <div className="max-w-3xl">
             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.5em] text-primary mb-4 block">The Collective Catalog</span>
             <h1 className="text-3xl md:text-[5rem] font-serif text-white mb-4 md:mb-6 tracking-tighter leading-none">
-              {settings.productsHeroTitle.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
-              <span className="italic font-light text-primary drop-shadow-sm">{settings.productsHeroTitle.split(' ').slice(-1)}</span>
+              {heroTitle.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
+              <span className="italic font-light text-primary drop-shadow-sm">{heroTitle.split(' ').slice(-1)}</span>
             </h1>
             <p className="text-white/80 text-xs md:text-xl font-light leading-relaxed max-w-xl">
               {settings.productsHeroSubtitle}
