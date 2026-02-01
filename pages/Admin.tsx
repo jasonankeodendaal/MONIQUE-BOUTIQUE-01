@@ -420,11 +420,154 @@ const SimpleDonutChart = ({ data }: { data: { label: string, value: number, colo
 // --- FILE HANDLERS ---
 const compressImage = async (file: File): Promise<string> => { return new Promise((resolve, reject) => { if (!file.type.startsWith('image/')) { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => resolve(e.target?.result as string); reader.onerror = (e) => reject(e); return; } const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target?.result as string; img.onload = () => { const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const scaleSize = MAX_WIDTH / img.width; if (scaleSize < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize; } else { canvas.width = img.width; canvas.height = img.height; } const ctx = canvas.getContext('2d'); if (!ctx) { reject(new Error('Canvas context failed')); return; } ctx.drawImage(img, 0, 0, canvas.width, canvas.height); const dataUrl = canvas.toDataURL('image/jpeg', 0.7); resolve(dataUrl); }; img.onerror = (err: any) => reject(err); }; reader.onerror = (err) => reject(err); }); };
 
-const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => { const inputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploading(true); try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert("File is too large. Please use an image under 4MB."); setUploading(false); return; } if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); const url = await uploadMedia(compressedFile, 'media'); if (url) onChange(url); } else { onChange(compressedDataUrl); } } catch (err: any) { console.error("Upload failed", err); alert(`Upload Failed: ${err.message || 'Unknown error'}. Ensure the "media" bucket exists and is set to Public in Supabase.`); } finally { setUploading(false); } }; const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video'); return ( <div className="space-y-2 text-left w-full min-w-0"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label> <div onClick={() => !uploading && inputRef.current?.click()} className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`} > {uploading ? ( <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center"> <Loader2 size={24} className="animate-spin mb-2" /> <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden"> <div className="bg-primary h-full animate-[grow_2s_infinite]"></div> </div> </div> ) : value ? ( <> {isVideo ? ( <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline /> ) : ( <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" /> )} <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"> <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold"> <Edit2 size={16}/> </div> </div> </> ) : ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"> <ImageIcon size={24} className="mb-2 opacity-50" /> <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span> </div> )} <input type="file" className="hidden" ref={inputRef} accept={accept} onChange={handleUpload} disabled={uploading} /> </div> </div> ); };
+const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const compressedDataUrl = await compressImage(file);
+      if (compressedDataUrl.length > 5 * 1024 * 1024) {
+        alert("File is too large. Please use an image under 4MB.");
+        setUploading(false);
+        return;
+      }
+      if (isSupabaseConfigured) {
+        const res = await fetch(compressedDataUrl);
+        const blob = await res.blob();
+        const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+        const url = await uploadMedia(compressedFile, 'media');
+        if (url) onChange(url);
+      } else {
+        onChange(compressedDataUrl);
+      }
+    } catch (err: any) {
+      console.error("Upload failed", err);
+      alert(`Upload Failed: ${err.message || 'Unknown error'}. Ensure the "media" bucket exists and is set to Public in Supabase.`);
+    } finally {
+      setUploading(false);
+    }
+  };
+  const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video');
+  
+  return (
+    <div className="space-y-2 text-left w-full min-w-0">
+      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
+      <div onClick={() => !uploading && inputRef.current?.click()} className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`} >
+        {uploading ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center">
+            <Loader2 size={24} className="animate-spin mb-2" />
+            <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden">
+              <div className="bg-primary h-full animate-[grow_2s_infinite]"></div>
+            </div>
+          </div>
+        ) : value ? (
+          <>
+            {isVideo ? (
+              <video src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" autoPlay muted loop playsInline />
+            ) : (
+              <img src={value} className="w-full h-full object-cover opacity-80 group-hover:opacity-40 transition-opacity" alt="preview" />
+            )}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold">
+                <Edit2 size={16}/>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
+            <ImageIcon size={24} className="mb-2 opacity-50" />
+            <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span>
+          </div>
+        )}
+        <input type="file" className="hidden" ref={inputRef} accept={accept} onChange={handleUpload} disabled={uploading} />
+      </div>
+    </div>
+  );
+};
 
-const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => { const fileInputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const safeImages = Array.isArray(images) ? images : []; const processFiles = async (incomingFiles: FileList | null) => { if (!incomingFiles) return; setUploading(true); const newUrls: string[] = []; try { for (let i = 0; i < incomingFiles.length; i++) { const file = incomingFiles[i]; const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large`); continue; } if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); const url = await uploadMedia(compressedFile, 'media'); if (url) newUrls.push(url); } else { newUrls.push(compressedDataUrl); } } onChange([...safeImages, ...newUrls]); } catch (err: any) { console.error(err); alert(`Upload Failed: ${err.message}. Ensure "media" bucket exists.`); } finally { setUploading(false); } }; return ( <div className="space-y-4 text-left w-full min-w-0"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label> <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3"> <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group"> {uploading ? <Loader2 size={24} className="animate-spin text-primary" /> : <Plus className="text-slate-400 group-hover:text-white" size={24} />} <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} /> </div> {safeImages.map((url, idx) => ( <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"> <img src={url} className="w-full h-full object-cover" alt="preview" /> <button onClick={() => { const newImages = [...safeImages]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button> </div> ))} </div> </div> ); };
+const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const safeImages = Array.isArray(images) ? images : [];
+  
+  const processFiles = async (incomingFiles: FileList | null) => {
+    if (!incomingFiles) return;
+    setUploading(true);
+    const newUrls: string[] = [];
+    try {
+      for (let i = 0; i < incomingFiles.length; i++) {
+        const file = incomingFiles[i];
+        const compressedDataUrl = await compressImage(file);
+        if (compressedDataUrl.length > 5 * 1024 * 1024) {
+          alert(`Skipped ${file.name}: Too large`);
+          continue;
+        }
+        if (isSupabaseConfigured) {
+          const res = await fetch(compressedDataUrl);
+          const blob = await res.blob();
+          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+          const url = await uploadMedia(compressedFile, 'media');
+          if (url) newUrls.push(url);
+        } else {
+          newUrls.push(compressedDataUrl);
+        }
+      }
+      onChange([...safeImages, ...newUrls]);
+    } catch (err: any) {
+      console.error(err);
+      alert(`Upload Failed: ${err.message}. Ensure "media" bucket exists.`);
+    } finally {
+      setUploading(false);
+    }
+  };
 
-const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: SocialLink[]) => void }> = ({ links, onChange }) => { const handleUpdate = (id: string, field: keyof SocialLink, value: string) => { onChange(links.map(link => link.id === id ? { ...link, [field]: value } : link)); }; return ( <div className="space-y-4 w-full min-w-0"> <div className="flex justify-between items-center mb-4"> <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Social Profiles</label> <button onClick={() => onChange([...links, { id: Date.now().toString(), name: 'New Platform', url: 'https://', iconUrl: '' }])} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1"><Plus size={12}/> Add</button> </div> <div className="space-y-3"> {links.map((link) => ( <div key={link.id} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 items-start"> <div className="flex-shrink-0"><SingleImageUploader label="" value={link.iconUrl} onChange={v => handleUpdate(link.id, 'iconUrl', v)} className="w-12 h-12 rounded-xl"/></div> <div className="flex-grow grid grid-cols-2 gap-3 w-full"> <input type="text" value={link.name} onChange={e => handleUpdate(link.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Platform Name" /> <input type="text" value={link.url} onChange={e => handleUpdate(link.id, 'url', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Profile URL" /> </div> <button onClick={() => onChange(links.filter(l => l.id !== link.id))} className="p-2 bg-slate-800 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-colors"><Trash2 size={16} /></button> </div> ))} </div> </div> ); };
+  return (
+    <div className="space-y-4 text-left w-full min-w-0">
+      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+        <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group">
+          {uploading ? <Loader2 size={24} className="animate-spin text-primary" /> : <Plus className="text-slate-400 group-hover:text-white" size={24} />}
+          <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
+        </div>
+        {safeImages.map((url, idx) => (
+          <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
+            <img src={url} className="w-full h-full object-cover" alt="preview" />
+            <button onClick={() => { const newImages = [...safeImages]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: SocialLink[]) => void }> = ({ links, onChange }) => {
+  const handleUpdate = (id: string, field: keyof SocialLink, value: string) => {
+    onChange(links.map(link => link.id === id ? { ...link, [field]: value } : link));
+  };
+  return (
+    <div className="space-y-4 w-full min-w-0">
+      <div className="flex justify-between items-center mb-4">
+        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Social Profiles</label>
+        <button onClick={() => onChange([...links, { id: Date.now().toString(), name: 'New Platform', url: 'https://', iconUrl: '' }])} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1"><Plus size={12}/> Add</button>
+      </div>
+      <div className="space-y-3">
+        {links.map((link) => (
+          <div key={link.id} className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 items-start">
+            <div className="flex-shrink-0"><SingleImageUploader label="" value={link.iconUrl} onChange={v => handleUpdate(link.id, 'iconUrl', v)} className="w-12 h-12 rounded-xl"/></div>
+            <div className="flex-grow grid grid-cols-2 gap-3 w-full">
+              <input type="text" value={link.name} onChange={e => handleUpdate(link.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Platform Name" />
+              <input type="text" value={link.url} onChange={e => handleUpdate(link.id, 'url', e.target.value)} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white outline-none focus:border-primary" placeholder="Profile URL" />
+            </div>
+            <button onClick={() => onChange(links.filter(l => l.id !== link.id))} className="p-2 bg-slate-800 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => { switch (id) { case 'forge': return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden min-w-0"><div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)]" /><div className="relative z-10 flex flex-col items-center"><div className="flex gap-4 mb-8"><div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-2xl rotate-[-12deg]"><FileCode size={32} /></div><div className="w-16 h-16 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-2xl rotate-[12deg]"><Terminal size={32} /></div></div><div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary w-2/3 animate-[shimmer_2s_infinite]" /></div></div></div>); default: return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center min-w-0"><Rocket className="text-slate-800 w-24 h-24" /></div>); } };
 
@@ -438,9 +581,107 @@ const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color
 
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState(''); useEffect(() => { const baseText = `Check out the ${product.name} from ${settings.companyName}.`; const price = `Price: R ${product.price}`; const link = `${window.location.origin}/#/product/${product.id}`; const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; const discount = product.discountRules?.[0]; const discountText = discount ? (discount.type === 'percentage' ? `🔥 ${discount.value}% OFF` : `🔥 R${discount.value} OFF`) : ''; let generated = ''; switch(platform.id) { case 'instagram': generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n${discountText ? `${discountText}\n` : ''}\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; break; default: generated = `${product.name} is now available.\n\n${product.description.substring(0, 200)}...\n\n${discountText ? `${discountText}\n` : ''}${features}\n\nShop securely here: ${link}`; } setCustomText(generated); }, [platform, product, settings]); const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); }; const handleShareBundle = async () => { if (!navigator.share) { alert("Sharing not supported on this device/browser. Please copy text and save image manually."); return; } try { const link = `${window.location.origin}/#/product/${product.id}`; const shareData: any = { title: settings.companyName, text: customText, url: link }; if (product.media?.[0]?.url) { try { const response = await fetch(product.media[0].url); const blob = await response.blob(); const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type }); if (navigator.canShare && navigator.canShare({ files: [file] })) { shareData.files = [file]; } } catch (e) { console.warn("Could not bundle image for share", e); } } await navigator.share(shareData); } catch (error) { console.error('Error sharing', error); alert("Device sharing failed. Please use 'Save Image' and 'Copy Text' manually."); } }; return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>); };
 
-const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => { const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); }; return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div><div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>); };
+// Corrected CodeBlock Component
+const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => { 
+  const [copied, setCopied] = useState(false); 
+  const copyToClipboard = () => { 
+    navigator.clipboard.writeText(code); 
+    setCopied(true); 
+    setTimeout(() => setCopied(false), 2000); 
+  }; 
+  return (
+    <div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">
+        {label && (
+            <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2">
+                <Terminal size={12}/>{label}
+            </div>
+        )}
+        <div className="absolute top-8 right-4 z-10">
+            <button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+            </button>
+        </div>
+        <pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full">
+            <code>{code}</code>
+        </pre>
+    </div>
+  ); 
+};
 
-const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => { const fileInputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const processFiles = async (incomingFiles: FileList | null) => { if (!incomingFiles) return; setUploading(true); const newFiles: MediaFile[] = []; for (let i = 0; i < incomingFiles.length; i++) { const file = incomingFiles[i]; try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large (>4MB)`); continue; } let result = compressedDataUrl; if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); try { const publicUrl = await uploadMedia(compressedFile, 'media'); if (publicUrl) result = publicUrl; } catch (err: any) { console.error("Upload failed", err); alert(`Upload Error: ${err.message}. Check Bucket config.`); continue; } } newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, size: file.size }); } catch (e) { console.error("Processing failed", e); } } onFilesChange(multiple ? [...files, ...newFiles] : newFiles); setUploading(false); }; return ( <div className="space-y-4 text-left w-full min-w-0"> <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]"> {uploading ? ( <div className="flex flex-col items-center"> <Loader2 size={24} className="animate-spin text-primary mb-2" /> <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div> <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span> </div> ) : ( <> <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} /> <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p> </> )} <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} /> </div> {files.length > 0 && ( <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2"> {files.map(f => ( <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"> {f.type.startsWith('video') ? ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div> ) : ( <img src={f.url} className="w-full h-full object-cover" alt="preview" /> )} <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"> <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button> </div> </div> ))} </div> )} </div> ); };
+const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const processFiles = async (incomingFiles: FileList | null) => {
+    if (!incomingFiles) return;
+    setUploading(true);
+    const newFiles: MediaFile[] = [];
+    for (let i = 0; i < incomingFiles.length; i++) {
+      const file = incomingFiles[i];
+      try {
+        const compressedDataUrl = await compressImage(file);
+        if (compressedDataUrl.length > 5 * 1024 * 1024) {
+          alert(`Skipped ${file.name}: Too large (>4MB)`);
+          continue;
+        }
+        let result = compressedDataUrl;
+        if (isSupabaseConfigured) {
+          const res = await fetch(compressedDataUrl);
+          const blob = await res.blob();
+          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+          try {
+            const publicUrl = await uploadMedia(compressedFile, 'media');
+            if (publicUrl) result = publicUrl;
+          } catch (err: any) {
+            console.error("Upload failed", err);
+            alert(`Upload Error: ${err.message}. Check Bucket config.`);
+            continue;
+          }
+        }
+        newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, size: file.size });
+      } catch (e) {
+        console.error("Processing failed", e);
+      }
+    }
+    onFilesChange(multiple ? [...files, ...newFiles] : newFiles);
+    setUploading(false);
+  };
+
+  return (
+    <div className="space-y-4 text-left w-full min-w-0">
+      <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]">
+        {uploading ? (
+          <div className="flex flex-col items-center">
+            <Loader2 size={24} className="animate-spin text-primary mb-2" />
+            <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div>
+            <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span>
+          </div>
+        ) : (
+          <>
+            <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} />
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p>
+          </>
+        )}
+        <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
+      </div>
+      {files.length > 0 && (
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2">
+          {files.map(f => (
+            <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
+              {f.type.startsWith('video') ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
+              ) : (
+                <img src={f.url} className="w-full h-full object-cover" alt="preview" />
+              )}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left"> <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2"><Lightbulb size={16}/> Integration Setup Guide</h4> <div className="space-y-4 text-xs text-slate-400"> <details className="group"> <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors"><Mail size={14} /> EmailJS (Forms)</summary> <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2"> <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p> <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p> <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p> <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p> </div> </details> </div> </div> );
 
