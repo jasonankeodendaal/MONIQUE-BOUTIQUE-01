@@ -379,7 +379,154 @@ END $$;`,
 </div>`,
     codeLabel: 'HTML Email Templates'
   },
-  // ... (Social steps)
+  {
+    id: 'seo-meta',
+    title: '8. SEO Meta Tags & Branding',
+    description: 'Optimize your site for search engines by customizing the global meta tags in the "Identity" section of the Site Editor.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Go to Admin > Canvas > Identity.',
+      'Ensure your Company Name and Slogan are keyword-rich.',
+      'Upload a high-quality OG Image (Open Graph) which appears when you share your link on social media.',
+      'The system automatically injects these into the <head> of your site.'
+    ]
+  },
+  {
+    id: 'sitemap',
+    title: '9. Sitemap Submission',
+    description: 'Help Google index your pages faster.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Your site automatically generates pages for /products, /about, etc.',
+      'If using Vercel, a sitemap.xml is often auto-generated if configured, or you can use a free tool like xml-sitemaps.com for your live URL.',
+      'Download the XML and upload it to your public/ folder if needed (for custom implementations).'
+    ]
+  },
+  {
+    id: 'gsc',
+    title: '10. Google Search Console',
+    description: 'The command center for your organic search presence.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Sign up for Google Search Console.',
+      'Add your property (your Vercel domain).',
+      'Verify ownership using the HTML tag method (add the code to index.html or via the Site Editor if supported later).',
+      'Submit your sitemap URL.'
+    ]
+  },
+  {
+    id: 'social-handles',
+    title: '11. Secure Social Handles',
+    description: 'Brand consistency is key. Ensure your handle is the same across all platforms.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Secure the exact match for your "Company Name" on Instagram, TikTok, Pinterest, and Facebook.',
+      'Use the same profile picture (your logo) on all accounts.',
+      'Add your bridge page URL to the bio of every single account.'
+    ]
+  },
+  {
+    id: 'content-post',
+    title: '12. First Journal Entry',
+    description: 'Content drives traffic. Write your first blog post to establish authority.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to Admin > Journal.',
+      'Write an article titled "Top 5 Essentials for [Current Season]".',
+      'Embed links to your products within the content.',
+      'Share this article link on your social media stories.'
+    ]
+  },
+  {
+    id: 'influencer',
+    title: '13. Micro-Influencer Outreach',
+    description: 'You don\'t need millions of followers. You need engagement.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Identify 10 accounts with 5k-50k followers in your niche.',
+      'Engage with their content for a week (genuine comments).',
+      'Send a DM offering a feature on your "Journal" or a reciprocal shoutout.',
+      'Do not ask for a sale immediately.'
+    ]
+  },
+  {
+    id: 'email-marketing',
+    title: '14. Email Marketing Setup',
+    description: 'The money is in the list. Start collecting emails immediately.',
+    illustrationId: 'forge',
+    subSteps: [
+      'The system has a built-in subscriber capture popup.',
+      'Export your subscribers from Admin > Audience.',
+      'Import them into Mailchimp or ConvertKit.',
+      'Set up a "Welcome Sequence" automated email for new joiners.'
+    ]
+  },
+  {
+    id: 'cart-recovery',
+    title: '15. Abandoned Cart Strategy',
+    description: 'Recover lost sales manually until you scale.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Monitor your "Orders" tab for "Pending Payment" status.',
+      'If an order sits for 24 hours, use the "Reply" or email function to send a friendly reminder.',
+      'Offer assistance or a small discount code to close the sale.'
+    ]
+  },
+  {
+    id: 'retargeting',
+    title: '16. Retargeting Pixels',
+    description: 'Show ads to people who already visited your site.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to Admin > Canvas > Integrations.',
+      'Add your Meta (Facebook) Pixel ID.',
+      'Add your TikTok Pixel ID.',
+      'Even if you aren\'t running ads yet, this builds your audience data for later.'
+    ]
+  },
+  {
+    id: 'ab-testing',
+    title: '17. A/B Testing Headlines',
+    description: 'Optimize your conversion rate.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Change your Home Hero "Title" and "CTA" every week.',
+      'Check the Analytics dashboard to see if your "Visits" or "Clicks" improved.',
+      'Keep the winner and try a new variation.'
+    ]
+  },
+  {
+    id: 'affiliate-network',
+    title: '18. Join Premium Networks',
+    description: 'Expand your catalog with high-ticket items.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Apply to networks like Skimlinks, LTK (RewardStyle), or Amazon Associates.',
+      'Once approved, replace your product "Affiliate Links" with these tracking links to earn commissions.'
+    ]
+  },
+  {
+    id: 'audit',
+    title: '19. Quarterly Performance Audit',
+    description: 'Review what is working.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Check Admin > Insights > Top Products.',
+      'Remove products with 0 views/clicks to keep your store fresh.',
+      'Double down on the category that gets the most traffic.'
+    ]
+  },
+  {
+    id: 'scale',
+    title: '20. Scale & Automate',
+    description: 'The final frontier.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Hire a Virtual Assistant (VA) to add products and manage the Admin panel.',
+      'Create a "Team" account for them in Admin > Maison.',
+      'Focus your time on content creation and strategy while the system runs itself.'
+    ]
+  }
 ];
 
 // ... (TRAINING_MODULES, PERMISSION_TREE, INITIAL_ADMINS, INITIAL_ENQUIRIES unchanged)
