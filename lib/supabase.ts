@@ -164,9 +164,34 @@ export async function checkAndMigrate(): Promise<boolean> {
 
     console.log("Empty remote DB detected. Migrating local data...");
 
-    // 2. Migration Map: LocalStorage Key -> Supabase Table
+    // 2. Handle Settings Migration (Split Public/Private)
+    const localSettings = localStorage.getItem('site_settings');
+    let migrated = false;
+
+    if (localSettings) {
+        const data = JSON.parse(localSettings);
+        const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
+        const publicPayload: any = { ...data, id: 'global' };
+        const privatePayload: any = { id: 'global' };
+
+        privateKeys.forEach(k => {
+            if (k in publicPayload) {
+                privatePayload[k] = publicPayload[k];
+                delete publicPayload[k];
+            }
+        });
+
+        const { error: pubErr } = await supabase.from('public_settings').upsert(publicPayload);
+        const { error: privErr } = await supabase.from('private_secrets').upsert(privatePayload);
+        
+        if (!pubErr && !privErr) {
+            console.log("Migrated settings.");
+            migrated = true;
+        }
+    }
+
+    // 3. Migration Map: LocalStorage Key -> Supabase Table
     const migrationMap = [
-      { table: 'public_settings', key: 'site_settings', transform: (d: any) => ({ ...d, id: 'global' }) },
       { table: 'products', key: 'admin_products' },
       { table: 'categories', key: 'admin_categories' },
       { table: 'subcategories', key: 'admin_subcategories' },
@@ -178,9 +203,7 @@ export async function checkAndMigrate(): Promise<boolean> {
       { table: 'subscribers', key: 'admin_subscribers' }
     ];
 
-    let migrated = false;
-
-    // 3. Perform Migration
+    // 4. Perform Migration for other tables
     for (const m of migrationMap) {
       const local = localStorage.getItem(m.key);
       if (local) {
@@ -188,8 +211,6 @@ export async function checkAndMigrate(): Promise<boolean> {
         if (!Array.isArray(data)) data = [data]; // Settings might be object, others array
         
         if (data.length > 0) {
-          if (m.transform) data = data.map(m.transform);
-          
           const { error: upError } = await supabase.from(m.table).upsert(data);
           
           if (!upError) {

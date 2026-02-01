@@ -670,8 +670,20 @@ const App: React.FC = () => {
         localStorage.setItem('site_settings', JSON.stringify(mergedSettings));
       } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
         // Init public settings if empty
-        const initialPublic = { ...INITIAL_SETTINGS, id: 'global' };
+        // FIX: Separate private keys to prevent schema error on public_settings table
+        const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
+        const initialPublic: any = { ...INITIAL_SETTINGS, id: 'global' };
+        const initialPrivate: any = { id: 'global' };
+
+        privateKeys.forEach(k => {
+            if (k in initialPublic) {
+                initialPrivate[k] = initialPublic[k];
+                delete initialPublic[k];
+            }
+        });
+
         await upsertData('public_settings', initialPublic);
+        await upsertData('private_secrets', initialPrivate);
         setSettingsId('global');
       }
 
