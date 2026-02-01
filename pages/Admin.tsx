@@ -213,7 +213,6 @@ const SmartPricingSimulator: React.FC<{
   );
 };
 
-// ... [Other components: AdminTip, AccessDenied, SaveIndicator, SettingField remain the same]
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-yellow-500/5 border border-yellow-500/20 p-5 md:p-6 rounded-3xl mb-8 flex gap-4 md:gap-5 items-start text-left animate-in fade-in slide-in-from-top-2">
     <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-600 flex-shrink-0"><Lightbulb size={18} /></div>
@@ -257,10 +256,9 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
   </div>
 );
 
-// ... [Chart Components remain the same]
 const SimpleLineChart = ({ data, color, height = 120 }: { data: number[], color: string, height?: number }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const safeData = (!data || data.length === 0) ? [0, 0] : (data.length === 1 ? [data[0], data[0]] : data);
+  const safeData = (!data || !Array.isArray(data) || data.length === 0) ? [0, 0] : (data.length === 1 ? [data[0], data[0]] : data);
   const max = Math.max(...safeData, 1);
   const min = Math.min(...safeData);
   const range = max - min || 1;
@@ -292,10 +290,11 @@ const SimpleLineChart = ({ data, color, height = 120 }: { data: number[], color:
 
 const SimpleBarChart = ({ data, color, showLabels = true }: { data: { label: string, value: number }[], color: string, showLabels?: boolean }) => {
   const [hovered, setHovered] = useState<{idx: number, val: number} | null>(null);
-  const max = Math.max(...data.map(d => d.value), 1);
+  const safeData = Array.isArray(data) ? data : [];
+  const max = Math.max(...safeData.map(d => d.value), 1);
   return (
     <div className="flex items-end justify-between gap-1 h-full w-full relative">
-      {data.length === 0 ? <div className="w-full text-center text-xs text-slate-600">No Data</div> : data.map((d, i) => (
+      {safeData.length === 0 ? <div className="w-full text-center text-xs text-slate-600">No Data</div> : safeData.map((d, i) => (
         <div key={i} className="flex flex-col items-center flex-1 h-full justify-end group relative" onMouseEnter={() => setHovered({ idx: i, val: d.value })} onMouseLeave={() => setHovered(null)}>
           {hovered?.idx === i && <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] py-1 px-2 rounded shadow-xl border border-slate-700 z-20 whitespace-nowrap font-bold animate-in fade-in zoom-in duration-200">{d.value}</div>}
           <div className="w-full rounded-t-sm transition-all duration-300 hover:brightness-110 min-h-[4px]" style={{ height: `${(d.value / max) * 100}%`, backgroundColor: color, opacity: hovered?.idx === i ? 1 : 0.8 }} />
@@ -307,12 +306,13 @@ const SimpleBarChart = ({ data, color, showLabels = true }: { data: { label: str
 };
 
 const SimpleDonutChart = ({ data }: { data: { label: string, value: number, color: string }[] }) => { 
-    const total = data.reduce((acc, curr) => acc + curr.value, 0) || 1; 
+    const safeData = Array.isArray(data) ? data : [];
+    const total = safeData.reduce((acc, curr) => acc + curr.value, 0) || 1; 
     let accumulated = 0; 
     return ( 
         <div className="relative w-48 h-48 mx-auto group">
             <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-                {data.length === 0 ? <circle cx="50" cy="50" r="40" stroke="#334155" strokeWidth="12" fill="none" /> : data.map((d, i) => { 
+                {safeData.length === 0 ? <circle cx="50" cy="50" r="40" stroke="#334155" strokeWidth="12" fill="none" /> : safeData.map((d, i) => { 
                     const percent = d.value / total; 
                     const dashArray = `${percent * 283} 283`; 
                     const dashOffset = -accumulated * 283; 
@@ -360,11 +360,15 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
   );
 };
 
-const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => {
+const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images, onChange, label }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const safeImages = Array.isArray(images) ? images : [];
+
   const processFiles = async (incomingFiles: FileList | null) => {
-    if (!incomingFiles) return; setUploading(true); const newUrls: string[] = [];
+    if (!incomingFiles) return; 
+    setUploading(true); 
+    const newUrls: string[] = [];
     try {
       for (let i = 0; i < incomingFiles.length; i++) {
         const file = incomingFiles[i]; const compressedDataUrl = await compressImage(file);
@@ -373,7 +377,7 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
           const url = await uploadMedia(compressedFile, 'media'); if (url) newUrls.push(url);
         } else { newUrls.push(compressedDataUrl); }
       }
-      onChange([...images, ...newUrls]);
+      onChange([...safeImages, ...newUrls]);
     } catch (err: any) { alert(`Upload Failed`); } finally { setUploading(false); }
   };
   return (
@@ -381,7 +385,7 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
         <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex items-center justify-center cursor-pointer bg-slate-900/30">{uploading ? <Loader2 size={24} className="animate-spin text-primary"/> : <Plus size={24} className="text-slate-400"/>}<input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} /></div>
-        {images.map((url, idx) => ( <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"><img src={url} className="w-full h-full object-cover"/><button onClick={() => { const newImages = [...images]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded text-white opacity-0 group-hover:opacity-100"><X size={12}/></button></div>))}
+        {safeImages.map((url, idx) => ( <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"><img src={url} className="w-full h-full object-cover"/><button onClick={() => { const newImages = [...safeImages]; newImages.splice(idx, 1); onChange(newImages); }} className="absolute top-1 right-1 p-1 bg-red-500 rounded text-white opacity-0 group-hover:opacity-100"><X size={12}/></button></div>))}
       </div>
     </div>
   );
@@ -399,7 +403,7 @@ const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => { switch (id) {
 const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: string[]) => void; role: 'owner' | 'admin'; }> = ({ permissions, onChange, role }) => { 
     if (role === 'owner') return <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs font-bold text-center">Owners have full system access.</div>; 
     const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } }; 
-    return ( <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><span className="text-white font-bold text-sm">{group.label}</span><button onClick={() => onChange(isAllSelected ? permissions.filter(p => !childIds.includes(p)) : [...permissions, ...childIds.filter(i => !permissions.includes(i))])} className="text-[10px] font-black uppercase text-primary">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>{isSelected ? <CheckSquare size={16} className="text-primary"/> : <Square size={16}/>}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div> ); 
+    return ( <div className="space-y-6">{PERMISSION_TREE?.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><span className="text-white font-bold text-sm">{group.label}</span><button onClick={() => onChange(isAllSelected ? permissions.filter(p => !childIds.includes(p)) : [...permissions, ...childIds.filter(i => !permissions.includes(i))])} className="text-[10px] font-black uppercase text-primary">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400'}`}>{isSelected ? <CheckSquare size={16} className="text-primary"/> : <Square size={16}/>}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div> ); 
 };
 
 const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void }> = ({ selected, onSelect }) => { 
@@ -433,7 +437,7 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
       }
       newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type, size: file.size });
     }
-    onFilesChange(multiple ? [...files, ...newFiles] : newFiles); setUploading(false);
+    onFilesChange(multiple ? [...(files || []), ...newFiles] : newFiles); setUploading(false);
   };
   return (<div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]">{uploading ? <Loader2 size={24} className="animate-spin text-primary"/> : <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} />}<input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} /></div>);
 };
