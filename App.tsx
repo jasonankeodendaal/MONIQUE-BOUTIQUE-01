@@ -1070,15 +1070,15 @@ const App: React.FC = () => {
   }, [logEvent]);
 
   useEffect(() => {
-    if (user && isSupabaseConfigured && admins.length > 0) {
+    if (user && isSupabaseConfigured) {
       const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
       if (!existingAdmin) {
         const newAdmin: AdminUser = {
           id: user.id,
           email: user.email || '',
           name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin',
-          role: 'admin',
-          permissions: [],
+          role: admins.length === 0 ? 'owner' : 'admin',
+          permissions: admins.length === 0 ? ['*'] : [],
           createdAt: Date.now(),
           lastActive: Date.now()
         };

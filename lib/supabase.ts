@@ -112,7 +112,7 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
     // We add a count and head to make it lightweight, but we use a filter to prevent caching
     // The filter 'id' 'neq' 'zero' is just a dummy logic to force a lookup
     const { error } = await supabase
-        .from('settings')
+        .from('public_settings')
         .select('id', { count: 'exact', head: true })
         .limit(1);
 
@@ -145,7 +145,7 @@ export async function checkAndMigrate(): Promise<boolean> {
   try {
     // 1. Check if remote DB is empty (using settings table as indicator)
     const { count, error } = await supabase
-      .from('settings')
+      .from('public_settings')
       .select('*', { count: 'exact', head: true });
 
     if (error || (count !== null && count > 0)) {
@@ -156,7 +156,7 @@ export async function checkAndMigrate(): Promise<boolean> {
 
     // 2. Migration Map: LocalStorage Key -> Supabase Table
     const migrationMap = [
-      { table: 'settings', key: 'site_settings', transform: (d: any) => ({ ...d, id: 'global' }) },
+      { table: 'public_settings', key: 'site_settings', transform: (d: any) => ({ ...d, id: 'global' }) },
       { table: 'products', key: 'admin_products' },
       { table: 'categories', key: 'admin_categories' },
       { table: 'subcategories', key: 'admin_subcategories' },
