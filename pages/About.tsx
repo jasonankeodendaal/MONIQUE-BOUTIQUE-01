@@ -1,13 +1,14 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { Target, Users, Award, Star, Quote, Sparkles, MapPin, Calendar, Heart, ArrowRight, ShoppingBag, Milestone } from 'lucide-react';
+import { Target, Users, Award, Star, Quote, Sparkles, MapPin, Calendar, Heart, ArrowRight, ShoppingBag, Milestone, MessageCircle } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
 const About: React.FC = () => {
   const { settings, products } = useSettings();
+  const navigate = useNavigate();
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -31,31 +32,31 @@ const About: React.FC = () => {
     <div className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
       {/* Editorial Hero Spread */}
-      <div className="relative min-h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-screen relative overflow-hidden">
+      <div className="relative min-h-[90vh] w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
+        <div className="w-full lg:w-1/2 h-[50vh] lg:h-auto relative overflow-hidden">
            <img 
             src={settings.aboutMainImage} 
             alt={settings.aboutFounderName} 
             className="w-full h-full object-cover scale-105 animate-kenburns"
            />
-           <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-950/40 lg:to-slate-950"></div>
+           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-slate-950/90 lg:to-slate-950"></div>
+           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950 lg:hidden"></div>
         </div>
         
-        <div className="w-full lg:w-1/2 flex items-center p-8 md:p-24 relative z-10">
+        <div className="w-full lg:w-1/2 flex items-center p-8 md:p-24 relative z-10 -mt-20 lg:mt-0">
            <div className="max-w-2xl text-left">
-              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.5em] mb-12 border border-primary/20">
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.5em] mb-8 lg:mb-12 border border-primary/20 backdrop-blur-md">
                   <Sparkles size={14}/> The Creative Vision
               </div>
               
-              <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-10 text-balance" style={{ fontSize: 'clamp(3.5rem, 10vw, 8.5rem)' }}>
+              <h1 className="font-serif text-white leading-[0.9] tracking-tighter mb-8 lg:mb-10 text-balance" style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}>
                   {heroTitle.split(' ').map((word, i) => (
                       <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block" : "block"}>{word}</span>
                   ))}
               </h1>
 
-              <div className="relative mb-12 pl-12">
-                 <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary/40 to-transparent"></div>
-                 <p className="text-xl md:text-2xl text-slate-400 font-light leading-relaxed italic text-pretty">
+              <div className="relative mb-12 pl-8 lg:pl-12 border-l border-primary/30">
+                 <p className="text-xl md:text-3xl text-slate-300 font-light leading-relaxed italic text-pretty">
                     "{settings.aboutHeroSubtitle}"
                  </p>
               </div>
@@ -66,7 +67,7 @@ const About: React.FC = () => {
                     <span className="text-lg font-serif text-white">{settings.aboutEstablishedYear}</span>
                  </div>
                  <div className="flex flex-col border-l border-white/10 pl-8">
-                    <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Curation Origin</span>
+                    <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Base</span>
                     <span className="text-lg font-serif text-white">{settings.aboutLocation}</span>
                  </div>
                  <div className="flex flex-col border-l border-white/10 pl-8">
@@ -119,7 +120,7 @@ const About: React.FC = () => {
                    {settings.aboutHistoryTitle}
                 </h3>
                 
-                <div className="columns-1 md:columns-2 gap-12 text-slate-500 font-light leading-loose text-lg text-pretty mb-20">
+                <div className="prose prose-lg prose-slate text-slate-500 font-light leading-loose text-lg text-pretty mb-20 max-w-none">
                     <div className="whitespace-pre-wrap first-letter:text-7xl first-letter:font-serif first-letter:font-bold first-letter:text-slate-900 first-letter:float-left first-letter:mr-6 first-letter:mt-1">
                         {settings.aboutHistoryBody}
                     </div>
@@ -128,21 +129,21 @@ const About: React.FC = () => {
                 {/* --- JOURNEY TIMELINE --- */}
                 <div className="mb-24 relative pl-8 border-l-2 border-slate-100">
                    <div className="absolute top-0 -left-[9px] w-4 h-4 rounded-full bg-primary border-4 border-white shadow-lg"></div>
-                   <div className="space-y-12">
-                      <div className="relative">
+                   <div className="space-y-16">
+                      <div className="relative group">
                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">{settings.aboutEstablishedYear}</span>
-                         <h4 className="text-2xl font-serif text-slate-900 mb-2">Inception</h4>
+                         <h4 className="text-2xl font-serif text-slate-900 mb-2 group-hover:text-primary transition-colors">Inception</h4>
                          <p className="text-slate-500 leading-relaxed font-light">Founded in {settings.aboutLocation} with a vision to curate global style.</p>
                       </div>
-                      <div className="relative">
-                         <div className="absolute top-2 -left-[41px] w-4 h-4 rounded-full bg-slate-200 border-4 border-white"></div>
-                         <h4 className="text-2xl font-serif text-slate-900 mb-2">Expansion</h4>
+                      <div className="relative group">
+                         <div className="absolute top-2 -left-[41px] w-4 h-4 rounded-full bg-slate-200 border-4 border-white group-hover:bg-primary transition-colors"></div>
+                         <h4 className="text-2xl font-serif text-slate-900 mb-2 group-hover:text-primary transition-colors">Expansion</h4>
                          <p className="text-slate-500 leading-relaxed font-light">Connecting with premium affiliate partners to broaden the collection.</p>
                       </div>
-                      <div className="relative">
-                         <div className="absolute top-2 -left-[41px] w-4 h-4 rounded-full bg-slate-900 border-4 border-white"></div>
+                      <div className="relative group">
+                         <div className="absolute top-2 -left-[41px] w-4 h-4 rounded-full bg-slate-900 border-4 border-white group-hover:bg-primary transition-colors"></div>
                          <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 block">Today</span>
-                         <h4 className="text-2xl font-serif text-slate-900 mb-2">Global Bridge</h4>
+                         <h4 className="text-2xl font-serif text-slate-900 mb-2 group-hover:text-primary transition-colors">Global Bridge</h4>
                          <p className="text-slate-500 leading-relaxed font-light">Serving a community of fashion-forward individuals worldwide.</p>
                       </div>
                    </div>
@@ -205,6 +206,22 @@ const About: React.FC = () => {
                 )}
             </div>
         </div>
+      </section>
+
+      {/* Contact Bridge */}
+      <section className="py-24 bg-primary/5 border-t border-primary/10">
+         <div className="max-w-4xl mx-auto px-6 text-center">
+            <h3 className="text-4xl font-serif text-slate-900 mb-6">Let's Connect</h3>
+            <p className="text-slate-500 mb-10 max-w-lg mx-auto font-light leading-relaxed">
+               Whether you have questions about sizing, affiliate partnerships, or just want to say hello, I'd love to hear from you.
+            </p>
+            <button 
+               onClick={() => navigate('/contact')}
+               className="inline-flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-xs tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-xl hover:shadow-2xl active:scale-95"
+            >
+               <MessageCircle size={18}/> Contact Concierge
+            </button>
+         </div>
       </section>
 
       {/* Trust & Transparency Block */}

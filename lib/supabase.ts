@@ -43,7 +43,13 @@ export async function fetchTableData(table: string) {
   }
   const { data, error } = await supabase.from(table).select('*');
   if (error) {
-    console.error(`Fetch error for ${table}:`, error);
+    // Specifically handle the Infinite Recursion error which is common when RLS policies reference themselves
+    if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+       console.error(`CRITICAL: Database Recursion Error on table '${table}'.`);
+       console.warn("ACTION REQUIRED: Go to Admin > Pilot > Database Schema and run the updated SQL script to repair your policies.");
+    } else {
+       console.error(`Fetch error for ${table}:`, error);
+    }
     return null;
   }
   return data || [];
@@ -128,6 +134,10 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
 
     return { status: 'online', latency, message: 'Supabase Sync Active' };
   } catch (err: any) {
+    // Detect recursion error even in health check
+    if (err.code === '42P17' || err.message?.includes('infinite recursion')) {
+       return { status: 'offline', latency: 0, message: 'CRITICAL: DB Recursion Error. Run Repair Script.' };
+    }
     console.warn("Connection check failed:", err.message);
     return { status: 'offline', latency: 0, message: 'Cloud connection failed' };
   }

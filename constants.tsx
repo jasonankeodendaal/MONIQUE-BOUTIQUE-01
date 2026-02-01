@@ -108,8 +108,8 @@ export const GUIDE_STEPS = [
   },
   {
     id: 'database',
-    title: '2. Database Schema (SQL Engine)',
-    description: 'We need to define the structure of your data. This script creates specific tables for public content and protected secrets.',
+    title: '2. Database Schema (Repair & Setup)',
+    description: 'This script defines your data structure. It includes a "Safety Flush" to remove any corrupted or recursive security policies before creating clean ones.',
     illustrationId: 'forge',
     subSteps: [
       'In your Supabase Dashboard, look at the left sidebar icon menu.',
@@ -118,14 +118,27 @@ export const GUIDE_STEPS = [
       'Copy the entire SQL block provided below.',
       'Paste it into the editor window.',
       'Click the green "Run" button at the bottom right.',
-      'Success Check: Go to "Table Editor" and ensure you see tables like "public_settings", "private_secrets", etc.'
+      'Success Check: Look for "Success. No rows returned" in the results area.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v6.1 (Added Subscribers)
+    code: `-- MASTER ARCHITECTURE & REPAIR SCRIPT v7.0
+-- Includes Policy Flush to fix "Infinite Recursion" errors.
 
 -- 1. EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. CONTENT TABLES (Public Read)
+-- 2. SAFETY FLUSH (Drop existing policies to prevent recursion)
+DO $$ 
+DECLARE 
+    r RECORD; 
+BEGIN 
+    -- Loop through all policies on public tables and drop them
+    FOR r IN SELECT schemaname, tablename, policyname FROM pg_policies WHERE schemaname = 'public' 
+    LOOP 
+        EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', r.policyname, r.schemaname, r.tablename); 
+    END LOOP; 
+END $$;
+
+-- 3. TABLE DEFINITIONS
 CREATE TABLE IF NOT EXISTS public_settings (
   id TEXT PRIMARY KEY DEFAULT 'global',
   "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
@@ -149,7 +162,6 @@ CREATE TABLE IF NOT EXISTS public_settings (
   "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
   "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
-  -- Publicly Needed Keys (Client-side ops)
   "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "pinterestTagId" TEXT,
   "enableDirectSales" BOOLEAN DEFAULT false, "currency" TEXT DEFAULT 'ZAR', 
@@ -159,7 +171,6 @@ CREATE TABLE IF NOT EXISTS public_settings (
   "bankName" TEXT, "accountNumber" TEXT, "branchCode" TEXT
 );
 
--- 3. SECRETS TABLE (Admin Only)
 CREATE TABLE IF NOT EXISTS private_secrets (
   id TEXT PRIMARY KEY DEFAULT 'global',
   "payfastSaltPassphrase" TEXT, 
@@ -167,7 +178,6 @@ CREATE TABLE IF NOT EXISTS private_secrets (
   "webhookUrl" TEXT
 );
 
--- 4. CORE DATA TABLES
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT,
   "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB,
@@ -209,7 +219,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   "fullName" TEXT, phone TEXT, building TEXT, street TEXT, suburb TEXT, city TEXT, province TEXT, "postalCode" TEXT, "updatedAt" BIGINT
 );
 
--- 5. RLS & POLICIES
+-- 4. RLS ENABLING
 ALTER TABLE public_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE private_secrets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
@@ -227,62 +237,55 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscribers ENABLE ROW LEVEL SECURITY;
 
-DO $$ BEGIN
-    -- Public Read Access
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON public_settings FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read categories') THEN CREATE POLICY "Public Read categories" ON categories FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read subcategories') THEN CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read hero_slides') THEN CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read reviews') THEN CREATE POLICY "Public Read reviews" ON reviews FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read articles') THEN CREATE POLICY "Public Read articles" ON articles FOR SELECT USING (true); END IF;
-    
-    -- Public Write (Safe Tables)
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert enquiries') THEN CREATE POLICY "Public Insert enquiries" ON enquiries FOR INSERT WITH CHECK (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert reviews') THEN CREATE POLICY "Public Insert reviews" ON reviews FOR INSERT WITH CHECK (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert traffic_logs') THEN CREATE POLICY "Public Insert traffic_logs" ON traffic_logs FOR INSERT WITH CHECK (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert orders') THEN CREATE POLICY "Public Insert orders" ON orders FOR INSERT WITH CHECK (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert order_items') THEN CREATE POLICY "Public Insert order_items" ON order_items FOR INSERT WITH CHECK (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert subscribers') THEN CREATE POLICY "Public Insert subscribers" ON subscribers FOR INSERT WITH CHECK (true); END IF;
+-- 5. CLEAN NON-RECURSIVE POLICIES
+-- These policies use 'USING (true)' to ensure no recursion loops occur during initial setup.
+-- For production, you may replace 'true' with proper auth checks, but ensure you do not query the table itself.
 
-    -- Private Secrets (Auth/Admin Only)
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated Read Secrets') THEN CREATE POLICY "Authenticated Read Secrets" ON private_secrets FOR SELECT USING (auth.role() = 'authenticated'); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated Update Secrets') THEN CREATE POLICY "Authenticated Update Secrets" ON private_secrets FOR UPDATE USING (auth.role() = 'authenticated'); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated Insert Secrets') THEN CREATE POLICY "Authenticated Insert Secrets" ON private_secrets FOR INSERT WITH CHECK (auth.role() = 'authenticated'); END IF;
+-- Public Read
+CREATE POLICY "Public Read settings" ON public_settings FOR SELECT USING (true);
+CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
+CREATE POLICY "Public Read categories" ON categories FOR SELECT USING (true);
+CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true);
+CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "Public Read reviews" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Public Read articles" ON articles FOR SELECT USING (true);
 
-    -- Profiles (User Own)
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read profiles') THEN CREATE POLICY "Public Read profiles" ON profiles FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users update own profile') THEN CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users insert own profile') THEN CREATE POLICY "Users insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id); END IF;
-END $$;
+-- Admin Full Access (Simplified to prevent recursion)
+CREATE POLICY "Enable all for anon public_settings" ON public_settings FOR ALL USING (true);
+CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
+CREATE POLICY "Enable all for anon categories" ON categories FOR ALL USING (true);
+CREATE POLICY "Enable all for anon subcategories" ON subcategories FOR ALL USING (true);
+CREATE POLICY "Enable all for anon hero_slides" ON hero_slides FOR ALL USING (true);
+CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
+CREATE POLICY "Enable all for anon admin_users" ON admin_users FOR ALL USING (true);
+CREATE POLICY "Enable all for anon traffic_logs" ON traffic_logs FOR ALL USING (true);
+CREATE POLICY "Enable all for anon product_stats" ON product_stats FOR ALL USING (true);
+CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true);
+CREATE POLICY "Enable all for anon order_items" ON order_items FOR ALL USING (true);
+CREATE POLICY "Enable all for anon reviews" ON reviews FOR ALL USING (true);
+CREATE POLICY "Enable all for anon articles" ON articles FOR ALL USING (true);
+CREATE POLICY "Enable all for anon subscribers" ON subscribers FOR ALL USING (true);
 
--- Admin Full Access (Allow anon for setup/local, use Service Role in prod ideally or stricter policies)
-DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon public_settings') THEN CREATE POLICY "Enable all for anon public_settings" ON public_settings FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon products') THEN CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon categories') THEN CREATE POLICY "Enable all for anon categories" ON categories FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon subcategories') THEN CREATE POLICY "Enable all for anon subcategories" ON subcategories FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon hero_slides') THEN CREATE POLICY "Enable all for anon hero_slides" ON hero_slides FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon enquiries') THEN CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon admin_users') THEN CREATE POLICY "Enable all for anon admin_users" ON admin_users FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon traffic_logs') THEN CREATE POLICY "Enable all for anon traffic_logs" ON traffic_logs FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon product_stats') THEN CREATE POLICY "Enable all for anon product_stats" ON product_stats FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon orders') THEN CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon order_items') THEN CREATE POLICY "Enable all for anon order_items" ON order_items FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon reviews') THEN CREATE POLICY "Enable all for anon reviews" ON reviews FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon articles') THEN CREATE POLICY "Enable all for anon articles" ON articles FOR ALL USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon subscribers') THEN CREATE POLICY "Enable all for anon subscribers" ON subscribers FOR ALL USING (true); END IF;
-END $$;
+-- Private Secrets (Auth Only)
+CREATE POLICY "Authenticated Read Secrets" ON private_secrets FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated Update Secrets" ON private_secrets FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Authenticated Insert Secrets" ON private_secrets FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- User Profiles
+CREATE POLICY "Public Read profiles" ON profiles FOR SELECT USING (true);
+CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- 6. STORAGE
 INSERT INTO storage.buckets (id, name, public) VALUES ('media', 'media', true) ON CONFLICT (id) DO NOTHING;
+-- Storage policies are handled via Storage UI or separate SQL if needed, usually defaults are fine if bucket is Public.
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access Media') THEN CREATE POLICY "Public Access Media" ON storage.objects FOR SELECT USING ( bucket_id = 'media' ); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert Media') THEN CREATE POLICY "Public Insert Media" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'media' ); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Update Media') THEN CREATE POLICY "Public Update Media" ON storage.objects FOR UPDATE USING ( bucket_id = 'media' ); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Delete Media') THEN CREATE POLICY "Public Delete Media" ON storage.objects FOR DELETE USING ( bucket_id = 'media' ); END IF;
 END $$;`,
-    codeLabel: 'Full System SQL Script (v6.1)'
+    codeLabel: 'Full System Repair Script (v7.0)'
   },
   {
     id: 'storage',
