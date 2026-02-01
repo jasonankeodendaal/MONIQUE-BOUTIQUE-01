@@ -39,6 +39,16 @@ export interface Review {
   createdAt: number;
 }
 
+export interface Article {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  date: number;
+  author: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -335,6 +345,12 @@ export interface UserAddress {
   postalCode: string;
 }
 
+export interface Subscriber {
+  id: string;
+  email: string;
+  createdAt: number;
+}
+
 export interface TrafficLog {
   id?: string;
   ip?: string;
@@ -369,8 +385,10 @@ export interface SettingsContextType {
   categories: Category[];
   subCategories: SubCategory[];
   heroSlides: CarouselSlide[];
+  articles: Article[]; // Added articles
   enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
   admins: AdminUser[];
+  subscribers: Subscriber[];
   stats: ProductStats[];
   orders: Order[]; // New
   // Actions

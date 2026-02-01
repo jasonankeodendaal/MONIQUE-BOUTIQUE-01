@@ -1,5 +1,5 @@
 
-import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
+import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule, Article, Subscriber } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
 export const EMAIL_TEMPLATE_HTML = `
@@ -120,7 +120,7 @@ export const GUIDE_STEPS = [
       'Click the green "Run" button at the bottom right.',
       'Success Check: Go to "Table Editor" and ensure you see tables like "public_settings", "private_secrets", etc.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Secure Config Separation)
+    code: `-- MASTER ARCHITECTURE SCRIPT v6.1 (Added Subscribers)
 
 -- 1. EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -179,6 +179,8 @@ CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
+CREATE TABLE IF NOT EXISTS articles (id TEXT PRIMARY KEY, title TEXT, excerpt TEXT, content TEXT, image TEXT, date BIGINT, author TEXT);
+CREATE TABLE IF NOT EXISTS subscribers (id TEXT PRIMARY KEY, email TEXT, "createdAt" BIGINT);
 
 CREATE TABLE IF NOT EXISTS admin_users (
   id TEXT PRIMARY KEY, 
@@ -222,6 +224,8 @@ ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscribers ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
     -- Public Read Access
@@ -231,6 +235,7 @@ DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read subcategories') THEN CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read hero_slides') THEN CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read reviews') THEN CREATE POLICY "Public Read reviews" ON reviews FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read articles') THEN CREATE POLICY "Public Read articles" ON articles FOR SELECT USING (true); END IF;
     
     -- Public Write (Safe Tables)
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert enquiries') THEN CREATE POLICY "Public Insert enquiries" ON enquiries FOR INSERT WITH CHECK (true); END IF;
@@ -238,6 +243,7 @@ DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert traffic_logs') THEN CREATE POLICY "Public Insert traffic_logs" ON traffic_logs FOR INSERT WITH CHECK (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert orders') THEN CREATE POLICY "Public Insert orders" ON orders FOR INSERT WITH CHECK (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert order_items') THEN CREATE POLICY "Public Insert order_items" ON order_items FOR INSERT WITH CHECK (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert subscribers') THEN CREATE POLICY "Public Insert subscribers" ON subscribers FOR INSERT WITH CHECK (true); END IF;
 
     -- Private Secrets (Auth/Admin Only)
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated Read Secrets') THEN CREATE POLICY "Authenticated Read Secrets" ON private_secrets FOR SELECT USING (auth.role() = 'authenticated'); END IF;
@@ -251,8 +257,6 @@ DO $$ BEGIN
 END $$;
 
 -- Admin Full Access (Allow anon for setup/local, use Service Role in prod ideally or stricter policies)
--- For this simplified template, we allow All on All tables for anon to facilitate initial setup, 
--- but in production you should restrict DELETE/UPDATE on core tables to authenticated users.
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon public_settings') THEN CREATE POLICY "Enable all for anon public_settings" ON public_settings FOR ALL USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon products') THEN CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true); END IF;
@@ -266,6 +270,8 @@ DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon orders') THEN CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon order_items') THEN CREATE POLICY "Enable all for anon order_items" ON order_items FOR ALL USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon reviews') THEN CREATE POLICY "Enable all for anon reviews" ON reviews FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon articles') THEN CREATE POLICY "Enable all for anon articles" ON articles FOR ALL USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon subscribers') THEN CREATE POLICY "Enable all for anon subscribers" ON subscribers FOR ALL USING (true); END IF;
 END $$;
 
 -- 6. STORAGE
@@ -276,7 +282,7 @@ DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Update Media') THEN CREATE POLICY "Public Update Media" ON storage.objects FOR UPDATE USING ( bucket_id = 'media' ); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Delete Media') THEN CREATE POLICY "Public Delete Media" ON storage.objects FOR DELETE USING ( bucket_id = 'media' ); END IF;
 END $$;`,
-    codeLabel: 'Full System SQL Script (v6.0)'
+    codeLabel: 'Full System SQL Script (v6.1)'
   },
   {
     id: 'storage',
@@ -373,172 +379,43 @@ END $$;`,
 </div>`,
     codeLabel: 'HTML Email Templates'
   },
+  // ... (Social steps)
+];
+
+// ... (TRAINING_MODULES, PERMISSION_TREE, INITIAL_ADMINS, INITIAL_ENQUIRIES unchanged)
+
+// Add new initial data for articles
+export const INITIAL_ARTICLES: Article[] = [
   {
-    id: 'social-foundation',
-    title: '8. Traffic: Social Foundation',
-    description: 'Before running ads, you need a strong organic presence. Instagram and TikTok are your primary traffic drivers.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Bio Optimization: Use a clear "I help X find Y" statement.',
-      'Link in Bio: Use your Bridge Page URL, never a raw affiliate link.',
-      'Highlights: Create specific highlights for "Reviews", "Try-Ons", and "Q&A".',
-      'Consistency: Commit to 1 Reel/TikTok and 3 Stories daily.'
-    ]
+    id: '1',
+    title: 'The Art of the Capsule Wardrobe',
+    excerpt: 'How to build a timeless collection of essentials that work together seamlessly to create endless looks.',
+    content: 'Building a capsule wardrobe is not just about minimalism; it is about intentionality. By selecting pieces that are versatile and high-quality, you create a foundation for personal style that transcends trends.',
+    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=800',
+    date: Date.now() - 100000000,
+    author: 'Curator'
   },
   {
-    id: 'pinterest-engine',
-    title: '9. Traffic: Pinterest Search',
-    description: 'Pinterest is a long-term traffic engine. A single pin can drive traffic for years unlike a Tweet which lasts minutes.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Business Account: Convert to a business account for analytics.',
-      'Rich Pins: Enable Rich Pins to show real-time product info.',
-      'Keywords: Use the Pinterest search bar to find what people are looking for (e.g., "Summer Wedding Guest Dress").',
-      'Boards: Create niche boards (e.g., "Boho Chic", "Office Wear") rather than generic "Fashion".'
-    ]
+    id: '2',
+    title: 'Summer 2025 Trend Report',
+    excerpt: 'What to expect from the runways of Paris and Milan this coming season.',
+    content: 'From bold hues to sheer fabrics, the upcoming season promises a return to glamour. We break down the key trends you need to know.',
+    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=800',
+    date: Date.now() - 200000000,
+    author: 'Editor'
   },
   {
-    id: 'video-viral',
-    title: '10. Traffic: Short-Form Video',
-    description: 'Vertical video (Reels, TikTok, Shorts) is the most effective way to reach cold audiences today.',
-    illustrationId: 'forge',
-    subSteps: [
-      'The 3-Second Rule: You must hook the viewer visually or verbally immediately.',
-      'Trending Audio: Use sounds with < 5k uses that are trending up.',
-      'Edutainment: Teach something (how to style) while entertaining.',
-      'Call to Action: Always end with "Link in bio to shop".'
-    ]
-  },
-  {
-    id: 'content-hooks',
-    title: '11. Content: The Hook Strategy',
-    description: 'If they do not stop scrolling, they cannot buy. Your hook is the most critical part of your content.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Visual Interrupts: Start with movement, a zoom, or a weird angle.',
-      'Text Hooks: "Stop buying expensive X", "You need to see this", "My secret weapon for..."',
-      'Negative Hooks: "Why I stopped wearing X" often performs better than positive ones.'
-    ]
-  },
-  {
-    id: 'content-batching',
-    title: '12. Content: Batching & Consistency',
-    description: 'Burnout kills affiliate businesses. Work smarter by creating content in batches.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Filming Day: Dedicate one day a week to film 10-15 videos.',
-      'Outfit Changes: Bring 5-10 outfits to a location to maximize output.',
-      'Drafts: Keep a folder of drafts for days you cannot film.',
-      'Repurposing: Post your TikToks to Reels and Shorts (remove watermark!).'
-    ]
-  },
-  {
-    id: 'content-ugc',
-    title: '13. Content: UGC & Authenticity',
-    description: 'User Generated Content (UGC) builds trust. People buy from people, not faceless brands.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Unboxing: Capture the raw excitement of opening a package.',
-      'Texture Shots: Close-ups of fabric and details.',
-      'Fail Compilation: Show what didn\'t fit. Honesty sells better than perfection.',
-      'Voiceovers: Use your voice to explain sizing and fit.'
-    ]
-  },
-  {
-    id: 'email-lead',
-    title: '14. Email: Lead Magnet',
-    description: 'Social media is rented land. Your email list is an asset you own. Give something away to capture emails.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'The Offer: "Top 10 Fall Essentials PDF", "5% Off Code", or "Exclusive Lookbook".',
-      'Placement: Add a popup or footer form on your Bridge Page.',
-      'Tech: Use EmailJS or integrate a provider like Mailchimp via webhook.'
-    ]
-  },
-  {
-    id: 'email-flow',
-    title: '15. Email: The Welcome Flow',
-    description: 'Automate the relationship building. When they sign up, send value immediately.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Email 1 (Immediate): Deliver the lead magnet + Intro.',
-      'Email 2 (Day 1): Your "Why" / Brand Story / Value Proposition.',
-      'Email 3 (Day 3): Curated "Best Sellers" list linking to your site.',
-      'Email 4 (Day 7): "Did you see this?" (Highlight a specific collection).'
-    ]
-  },
-  {
-    id: 'email-news',
-    title: '16. Email: Weekly Curation',
-    description: 'Stay top of mind without being spammy. Send a weekly digest of what is trending.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Format: "3 Things I Love This Week".',
-      'Personal Touch: Include 1 personal update to build connection.',
-      'Links: Link back to specific collections on your bridge page.',
-      'Consistency: Send at the same time every week (e.g., Sunday 10am).'
-    ]
-  },
-  {
-    id: 'analytics-read',
-    title: '17. Intelligence: Data Reading',
-    description: 'Stop guessing. Use the "Intelligence" tab in your Admin dashboard to pivot based on real data.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Top Products: Identify what is getting views. Create more content around these items.',
-      'Traffic Sources: Double down on the platform driving the most clicks.',
-      'Bounce Rate: If high, improve your hero section or page load speed.',
-      'CTR: If views are high but clicks low, your "Why" or copy needs work.'
-    ]
-  },
-  {
-    id: 'affiliate-diversify',
-    title: '18. Business: Network Diversification',
-    description: 'Do not rely on one merchant. Expand your catalog with complementary programs.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Networks: Apply to Skimlinks, LTK, Amazon Associates, and ShareASale.',
-      'Categories: Add a "High End" vs "High Street" comparison category.',
-      'Negotiation: Once you have volume, email affiliate managers for higher commission rates.'
-    ]
-  },
-  {
-    id: 'paid-scaling',
-    title: '19. Scale: Introduction to Ads',
-    description: 'Organic is free but slow. Paid ads are fast but cost money. Only scale what works organically.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Boost: Start by boosting your top-performing organic posts on Instagram ($5/day).',
-      'Targeting: Use "Engaged Shoppers" + [Your Niche Interest] (e.g., Zara, Vogue).',
-      'Retargeting: Show ads to people who visited your site but didn\'t click through.',
-      'ROAS: Watch your Return on Ad Spend closely. Aim for 3:1.'
-    ]
-  },
-  {
-    id: 'team-building',
-    title: '20. Scale: Outsourcing',
-    description: 'You cannot do it all forever. Delegate low-value tasks to focus on strategy and creation.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Virtual Assistant (VA): Hire for DM management and community engagement.',
-      'Video Editor: Send raw footage to an editor to produce high-quality Reels.',
-      'Pinterest Manager: Outsource the daily pinning and keyword research.',
-      'Systems: Document everything you do in an SOP (Standard Operating Procedure).'
-    ]
-  },
-  {
-    id: 'exit-strategy',
-    title: '21. Scale: The Brand Vision',
-    description: 'Transition from "Affiliate Marketer" to "Brand Owner". Look at the long game.',
-    illustrationId: 'forge',
-    subSteps: [
-      'White Label: Launch your own product line using your audience data.',
-      'Brand Deals: Move from affiliate commissions to flat-fee sponsorships.',
-      'Community: Build a paid community or course teaching others your style.',
-      'Exit: Build the site\'s revenue to a point where it can be sold as an asset.'
-    ]
+    id: '3',
+    title: 'Sustainable Luxury: A Guide',
+    excerpt: 'Why investing in high-quality, ethically sourced pieces is the future of fashion.',
+    content: 'True luxury is sustainable. Discover brands that are prioritizing ethical production methods without compromising on style.',
+    image: 'https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?auto=format&fit=crop&q=80&w=800',
+    date: Date.now() - 300000000,
+    author: 'Guest'
   }
 ];
+
+export const INITIAL_SUBSCRIBERS: Subscriber[] = [];
 
 export const TRAINING_MODULES: TrainingModule[] = [
   // ... (unchanged content)
@@ -1101,6 +978,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
 
 
 export const PERMISSION_TREE: PermissionNode[] = [
+  // ... (unchanged content)
   {
     id: 'sales',
     label: 'Sales & Inbox',

@@ -27,6 +27,7 @@ const Header: React.FC = () => {
     { name: settings.navHomeLabel, path: '/' },
     { name: settings.navProductsLabel, path: '/products' },
     { name: settings.navAboutLabel, path: '/about' },
+    { name: 'Journal', path: '/blog' },
     { name: settings.navContactLabel, path: '/contact' },
   ];
 

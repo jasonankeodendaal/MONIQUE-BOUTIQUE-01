@@ -164,7 +164,8 @@ export async function checkAndMigrate(): Promise<boolean> {
       { table: 'enquiries', key: 'admin_enquiries' },
       { table: 'admin_users', key: 'admin_users' },
       { table: 'product_stats', key: 'admin_product_stats' },
-      { table: 'orders', key: 'admin_orders' }
+      { table: 'orders', key: 'admin_orders' },
+      { table: 'subscribers', key: 'admin_subscribers' }
     ];
 
     let migrated = false;

@@ -1,5 +1,4 @@
 
-// Added React import to resolve namespace errors
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X } from 'lucide-react';
@@ -15,9 +14,12 @@ import ClientAuth from './pages/ClientAuth';
 import ClientDashboard from './pages/ClientDashboard';
 import Checkout from './pages/Checkout';
 import Legal from './pages/Legal';
+import Blog from './pages/Blog';
+import ArticleDetail from './pages/ArticleDetail';
 import CartDrawer from './components/CartDrawer';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order, TrafficLog } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
+import NewsletterPopup from './components/NewsletterPopup';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order, TrafficLog, Article, Subscriber } from './types';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, INITIAL_ARTICLES, INITIAL_SUBSCRIBERS } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, checkAndMigrate } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { CartProvider } from './context/CartContext';
@@ -79,6 +81,7 @@ const Footer: React.FC = () => {
                 <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
                 <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
                 <li><Link to="/about" className="hover:text-primary transition-colors">{settings.navAboutLabel}</Link></li>
+                <li><Link to="/blog" className="hover:text-primary transition-colors">Journal</Link></li>
               </ul>
             </div>
             <div>
@@ -421,8 +424,10 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>(() => getLocalState('admin_categories', INITIAL_CATEGORIES));
   const [subCategories, setSubCategories] = useState<SubCategory[]>(() => getLocalState('admin_subcategories', INITIAL_SUBCATEGORIES));
   const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(() => getLocalState('admin_hero', INITIAL_CAROUSEL));
+  const [articles, setArticles] = useState<Article[]>(() => getLocalState('admin_articles', INITIAL_ARTICLES));
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
   const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
+  const [subscribers, setSubscribers] = useState<Subscriber[]>(() => getLocalState('admin_subscribers', INITIAL_SUBSCRIBERS));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
   const [orders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
 
@@ -465,10 +470,10 @@ const App: React.FC = () => {
   });
 
   const calculateStorage = useCallback(() => {
-      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders];
+      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers];
       const jsonString = JSON.stringify(dataSet);
       const dbBytes = new Blob([jsonString]).size;
-      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length + orders.length;
+      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length + orders.length + articles.length + subscribers.length;
       let mediaBytes = 0;
       let mediaCnt = 0;
 
@@ -492,7 +497,7 @@ const App: React.FC = () => {
       });
 
       setStorageStats({ dbSize: dbBytes, mediaSize: mediaBytes, totalRecords: totalRecs, mediaCount: mediaCnt });
-  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders]);
+  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers]);
 
   useEffect(() => {
     calculateStorage();
@@ -641,9 +646,10 @@ const App: React.FC = () => {
         fetchTableData('categories'),
         fetchTableData('subcategories'),
         fetchTableData('hero_slides'),
+        fetchTableData('articles'), // Added articles fetch
       ]);
 
-      const [s, p, c, sc, hs] = results;
+      const [s, p, c, sc, hs, ar] = results;
 
       // Handle Public Settings
       if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
@@ -677,6 +683,10 @@ const App: React.FC = () => {
           setHeroSlides(hs.value);
           localStorage.setItem('admin_hero', JSON.stringify(hs.value));
       }
+      if (ar.status === 'fulfilled' && ar.value !== null) {
+          setArticles(ar.value);
+          localStorage.setItem('admin_articles', JSON.stringify(ar.value));
+      }
     } catch (e) {
       console.error("Public data fetch failed", e);
     }
@@ -692,10 +702,11 @@ const App: React.FC = () => {
         fetchTableData('admin_users'),
         fetchTableData('product_stats'),
         fetchTableData('orders'),
-        fetchTableData('private_secrets')
+        fetchTableData('private_secrets'),
+        fetchTableData('subscribers')
       ]);
 
-      const [enq, adm, st, ord, sec] = results;
+      const [enq, adm, st, ord, sec, subs] = results;
 
       if (enq.status === 'fulfilled' && enq.value !== null) {
           setEnquiries(enq.value);
@@ -712,6 +723,10 @@ const App: React.FC = () => {
       if (ord.status === 'fulfilled' && ord.value !== null) {
           setOrders(ord.value);
           localStorage.setItem('admin_orders', JSON.stringify(ord.value));
+      }
+      if (subs.status === 'fulfilled' && subs.value !== null) {
+          setSubscribers(subs.value);
+          localStorage.setItem('admin_subscribers', JSON.stringify(subs.value));
       }
       
       // Merge secrets into settings state if present
@@ -886,6 +901,8 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
         case 'orders': setOrders(updateLocalState(orders)); break;
+        case 'articles': setArticles(updateLocalState(articles)); break; // Added articles
+        case 'subscribers': setSubscribers(updateLocalState(subscribers)); break;
     }
 
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
@@ -921,6 +938,8 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
         case 'orders': setOrders(deleteLocalState(orders)); break;
+        case 'articles': setArticles(deleteLocalState(articles)); break; // Added articles
+        case 'subscribers': setSubscribers(deleteLocalState(subscribers)); break;
     }
 
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
@@ -1080,7 +1099,7 @@ const App: React.FC = () => {
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, 
-      products, categories, subCategories, heroSlides, enquiries, admins, stats, orders,
+      products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers,
       refreshAllData, updateData, deleteData,
       user, loadingAuth, 
       isDataLoaded,
@@ -1093,6 +1112,7 @@ const App: React.FC = () => {
           <TrackingInjector />
           <TrafficTracker logEvent={logEvent} />
           <CartDrawer />
+          <NewsletterPopup />
           <style>{`
             .text-primary { color: var(--primary-color); }
             .bg-primary { background-color: var(--primary-color); }
@@ -1116,6 +1136,8 @@ const App: React.FC = () => {
                 <Route path="/disclosure" element={<Legal />} />
                 <Route path="/privacy" element={<Legal />} />
                 <Route path="/terms" element={<Legal />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<ArticleDetail />} />
               </Routes>
             </div>
             <Footer />

@@ -13,13 +13,13 @@ import {
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
   FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator, AlertCircle, RefreshCw, ShieldAlert, Binary, Unlock, Coins as CoinsIcon
+  Truck, Printer, Box, UserCheck, Repeat, Coins, Banknote, Power, TrendingDown, PieChart, CornerUpRight, ArrowDown, Youtube, Calculator, AlertCircle, RefreshCw, ShieldAlert, Binary, Unlock, Coins as CoinsIcon, ThumbsUp
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, Order, OrderItem, SaveStatus } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, Order, OrderItem, SaveStatus, Review, Article, Subscriber } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupabaseUrl } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -70,6 +70,118 @@ interface CalculatorFieldProps {
   error?: boolean;
   tooltip?: string;
 }
+
+interface ERPState {
+    effectiveCost: number;
+    averageCost: number;
+    lastCost: number;
+    costBasis: 'effective' | 'average' | 'last';
+    commissionType: 'percentage' | 'fixed';
+    commissionPercent: number;
+    fixedCommission: number;
+    taxRate: number;
+    sellingPriceExcl: number;
+    sellingPriceIncl: number;
+    lockedField: 'margin' | 'markup' | 'none';
+    currency: string;
+}
+
+const ERPPricingCalculator: React.FC<{ state: ERPState, onChange: (field: keyof ERPState, value: any) => void }> = ({ state, onChange }) => {
+    // Derived values for display
+    const cost = state.costBasis === 'effective' ? state.effectiveCost : state.costBasis === 'last' ? state.lastCost : state.averageCost;
+    const commissionVal = state.commissionType === 'percentage' ? state.sellingPriceExcl * (state.commissionPercent / 100) : state.fixedCommission;
+    const grossProfit = state.sellingPriceExcl - cost - commissionVal;
+    const gpPercent = state.sellingPriceExcl > 0 ? (grossProfit / state.sellingPriceExcl) * 100 : 0;
+    const markupPercent = cost > 0 ? (grossProfit / cost) * 100 : 0;
+
+    return (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+            <div className="grid md:grid-cols-2 gap-8">
+                {/* COST SECTION */}
+                <div className="space-y-3">
+                    <h4 className="text-white font-bold text-xs uppercase tracking-widest border-b border-slate-800 pb-2 mb-4 flex items-center gap-2">
+                        <CoinsIcon size={14} className="text-blue-400"/> Cost Analysis
+                    </h4>
+                    <CalculatorField label="Effective Cost" value={state.effectiveCost} onChange={v => onChange('effectiveCost', parseFloat(v))} prefix={state.currency} />
+                    <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest block">Cost Basis for Calculation</label>
+                        <div className="flex gap-2">
+                            {['effective', 'average', 'last'].map((basis) => (
+                                <button 
+                                    key={basis}
+                                    onClick={() => onChange('costBasis', basis)}
+                                    className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${state.costBasis === basis ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-500 border border-slate-800'}`}
+                                >
+                                    {basis}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* PRICING SECTION */}
+                <div className="space-y-3">
+                    <h4 className="text-white font-bold text-xs uppercase tracking-widest border-b border-slate-800 pb-2 mb-4 flex items-center gap-2">
+                        <Tag size={14} className="text-green-400"/> Pricing Structure
+                    </h4>
+                    
+                    <CalculatorField 
+                        label="Selling Price (Excl.)" 
+                        value={state.sellingPriceExcl.toFixed(2)} 
+                        onChange={v => onChange('sellingPriceExcl', parseFloat(v))} 
+                        prefix={state.currency}
+                        highlight
+                    />
+                    
+                    <CalculatorField 
+                        label={`VAT / Tax (${state.taxRate}%)`} 
+                        value={(state.sellingPriceIncl - state.sellingPriceExcl).toFixed(2)} 
+                        readOnly 
+                        prefix={state.currency} 
+                    />
+
+                    <div className="pt-2 border-t border-slate-800 mt-2">
+                        <CalculatorField 
+                            label="Selling Price (Incl.)" 
+                            value={state.sellingPriceIncl.toFixed(2)} 
+                            onChange={v => onChange('sellingPriceIncl', parseFloat(v))} 
+                            prefix={state.currency}
+                            highlight
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* PROFITABILITY SECTION */}
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <span className="block text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Gross Profit</span>
+                    <span className={`text-lg font-mono font-bold ${grossProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {state.currency} {grossProfit.toFixed(2)}
+                    </span>
+                </div>
+                <div>
+                    <span className="block text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">GP %</span>
+                    <span className={`text-lg font-mono font-bold ${gpPercent >= 20 ? 'text-green-400' : 'text-yellow-400'}`}>
+                        {gpPercent.toFixed(1)}%
+                    </span>
+                </div>
+                <div>
+                    <span className="block text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Markup %</span>
+                    <span className="text-lg font-mono font-bold text-blue-400">
+                        {markupPercent.toFixed(1)}%
+                    </span>
+                </div>
+                <div>
+                    <span className="block text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Commission</span>
+                    <span className="text-lg font-mono font-bold text-orange-400">
+                        {state.currency} {commissionVal.toFixed(2)}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const CalculatorField: React.FC<CalculatorFieldProps> = ({ 
   label, value, onChange, readOnly = false, prefix, suffix, highlight = false, error = false, tooltip 
@@ -326,493 +438,183 @@ const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color
 
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState(''); useEffect(() => { const baseText = `Check out the ${product.name} from ${settings.companyName}.`; const price = `Price: R ${product.price}`; const link = `${window.location.origin}/#/product/${product.id}`; const features = product.features ? product.features.slice(0, 3).map(f => `• ${f}`).join('\n') : ''; const discount = product.discountRules?.[0]; const discountText = discount ? (discount.type === 'percentage' ? `🔥 ${discount.value}% OFF` : `🔥 R${discount.value} OFF`) : ''; let generated = ''; switch(platform.id) { case 'instagram': generated = `✨ NEW DROP: ${product.name} ✨\n\n${product.description.substring(0, 100)}...\n\n💎 ${price}\n${discountText ? `${discountText}\n` : ''}\n${features}\n\n👇 SHOP NOW\nLink in bio / story!\n\n#${settings.companyName.replace(/\s/g, '')} #LuxuryFashion`; break; default: generated = `${product.name} is now available.\n\n${product.description.substring(0, 200)}...\n\n${discountText ? `${discountText}\n` : ''}${features}\n\nShop securely here: ${link}`; } setCustomText(generated); }, [platform, product, settings]); const handleCopy = () => { navigator.clipboard.writeText(customText); setCopied(true); setTimeout(() => setCopied(false), 2000); }; const handleShareBundle = async () => { if (!navigator.share) { alert("Sharing not supported on this device/browser. Please copy text and save image manually."); return; } try { const link = `${window.location.origin}/#/product/${product.id}`; const shareData: any = { title: settings.companyName, text: customText, url: link }; if (product.media?.[0]?.url) { try { const response = await fetch(product.media[0].url); const blob = await response.blob(); const file = new File([blob], `${product.name.replace(/\s/g, '_')}.jpg`, { type: blob.type }); if (navigator.canShare && navigator.canShare({ files: [file] })) { shareData.files = [file]; } } catch (e) { console.warn("Could not bundle image for share", e); } } await navigator.share(shareData); } catch (error) { console.error('Error sharing', error); alert("Device sharing failed. Please use 'Save Image' and 'Copy Text' manually."); } }; return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>); };
 
-const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => { const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); }; return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>); };
+const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => { const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); }; return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div><div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>); };
 
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => { const fileInputRef = useRef<HTMLInputElement>(null); const [uploading, setUploading] = useState(false); const processFiles = async (incomingFiles: FileList | null) => { if (!incomingFiles) return; setUploading(true); const newFiles: MediaFile[] = []; for (let i = 0; i < incomingFiles.length; i++) { const file = incomingFiles[i]; try { const compressedDataUrl = await compressImage(file); if (compressedDataUrl.length > 5 * 1024 * 1024) { alert(`Skipped ${file.name}: Too large (>4MB)`); continue; } let result = compressedDataUrl; if (isSupabaseConfigured) { const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' }); try { const publicUrl = await uploadMedia(compressedFile, 'media'); if (publicUrl) result = publicUrl; } catch (err: any) { console.error("Upload failed", err); alert(`Upload Error: ${err.message}. Check Bucket config.`); continue; } } newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type.startsWith('image/') ? 'image/jpeg' : file.type, size: file.size }); } catch (e) { console.error("Processing failed", e); } } onFilesChange(multiple ? [...files, ...newFiles] : newFiles); setUploading(false); }; return ( <div className="space-y-4 text-left w-full min-w-0"> <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]"> {uploading ? ( <div className="flex flex-col items-center"> <Loader2 size={24} className="animate-spin text-primary mb-2" /> <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div> <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span> </div> ) : ( <> <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} /> <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p> </> )} <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} /> </div> {files.length > 0 && ( <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2"> {files.map(f => ( <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900"> {f.type.startsWith('video') ? ( <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div> ) : ( <img src={f.url} className="w-full h-full object-cover" alt="preview" /> )} <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"> <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button> </div> </div> ))} </div> )} </div> ); };
 
 const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left"> <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2"><Lightbulb size={16}/> Integration Setup Guide</h4> <div className="space-y-4 text-xs text-slate-400"> <details className="group"> <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors"><Mail size={14} /> EmailJS (Forms)</summary> <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2"> <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p> <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p> <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p> <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p> </div> </details> </div> </div> );
 
+const SystemMonitor: React.FC<{ connectionHealth: any, systemLogs: any[], storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800">
+                <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2"><Activity size={18} className={connectionHealth?.status === 'online' ? "text-green-500" : "text-red-500"}/> System Health</h3>
+                <div className="space-y-4">
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Status</span><span className={`font-bold ${connectionHealth?.status === 'online' ? 'text-green-500' : 'text-red-500'}`}>{connectionHealth?.status === 'online' ? 'Operational' : 'Offline'}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Latency</span><span className="font-mono text-white">{connectionHealth?.latency}ms</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Message</span><span className="text-xs text-slate-400">{connectionHealth?.message}</span></div>
+                </div>
+            </div>
+            <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800">
+                <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2"><Database size={18} className="text-blue-500"/> Storage Metrics</h3>
+                <div className="space-y-4">
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Records</span><span className="font-mono text-white">{storageStats.totalRecords}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Media Files</span><span className="font-mono text-white">{storageStats.mediaCount}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-slate-500">Est. Size</span><span className="font-mono text-white">{(storageStats.mediaSize / (1024*1024)).toFixed(2)} MB</span></div>
+                </div>
+            </div>
+        </div>
+        <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2"><Terminal size={18} className="text-slate-400"/> System Logs</h3>
+            <div className="h-64 overflow-y-auto custom-scrollbar space-y-2 font-mono text-xs bg-black p-4 rounded-xl border border-slate-800">
+                {systemLogs.map(log => (
+                    <div key={log.id} className="flex gap-4 text-slate-400 border-b border-slate-900 pb-1 mb-1 last:border-0">
+                        <span className="text-slate-600 w-20 flex-shrink-0">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                        <span className={`w-16 font-bold flex-shrink-0 ${log.type === 'ERROR' ? 'text-red-500' : log.type === 'SYNC' ? 'text-blue-500' : 'text-green-500'}`}>{log.type}</span>
+                        <span className="flex-grow break-all">{log.message}</span>
+                    </div>
+                ))}
+                {systemLogs.length === 0 && <div className="text-slate-700 text-center italic">No system events logged.</div>}
+            </div>
+        </div>
+    </div>
+);
+
 // --- ANALYTICS DASHBOARD ---
 const AnalyticsDashboard: React.FC<{ trafficEvents: any[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[] }> = ({ trafficEvents, products, stats, orders, categories }) => {
-  const { settings } = useSettings();
-  
-  const TrafficQualityGrid = () => {
-    // Process Traffic Data
-    const sourceStats = useMemo(() => {
-        const map: Record<string, { count: number, bounceCount: number, engagementTotal: number }> = {};
-        
-        trafficEvents.forEach(e => {
-            const src = e.source || 'Direct';
-            if (!map[src]) map[src] = { count: 0, bounceCount: 0, engagementTotal: 0 };
-            
-            map[src].count++;
-            if ((e.scrollDepth || 0) < 20) map[src].bounceCount++;
-            map[src].engagementTotal += (e.scrollDepth || 0) + ((e.sessionDuration || 0) / 2); 
-        });
-
-        return Object.entries(map).map(([name, data]) => ({
-            name,
-            value: data.count,
-            bounceRate: Math.round((data.bounceCount / data.count) * 100),
-            engagement: Math.round(data.engagementTotal / data.count),
-            color: getChannelColor(name)
-        })).sort((a, b) => b.value - a.value);
-    }, [trafficEvents]);
-
-    function getChannelColor(source: string) {
-        const s = source.toLowerCase();
-        if (s.includes('instagram')) return '#E1306C';
-        if (s.includes('tiktok')) return '#000000';
-        if (s.includes('facebook')) return '#1877F2';
-        if (s.includes('google')) return '#4285F4';
-        if (s.includes('whatsapp')) return '#25D366';
-        if (s.includes('pinterest')) return '#E60023';
-        if (s.includes('linkedin')) return '#0A66C2';
-        if (s.includes('twitter') || s.includes('x')) return '#1DA1F2';
-        return '#64748b'; 
-    }
-
-    return (
-        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col h-full">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <Globe size={18} className="text-cyan-500"/> Traffic Sources & Quality
-            </h3>
-            
-            <div className="flex flex-col md:flex-row gap-8 items-center h-full">
-                <div className="w-full md:w-5/12 flex flex-col items-center justify-center">
-                    <SimpleDonutChart data={sourceStats.map(s => ({ label: s.name, value: s.value, color: s.color }))} />
-                </div>
-
-                <div className="w-full md:w-7/12 space-y-4 overflow-y-auto max-h-[300px] custom-scrollbar pr-2">
-                    {sourceStats.map((stat, idx) => (
-                        <div key={idx} className="bg-slate-950/50 p-3 rounded-xl border border-slate-800/50 flex items-center justify-between group hover:border-slate-700 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-8 rounded-full" style={{ backgroundColor: stat.color }}></div>
-                                <div>
-                                    <div className="text-xs font-bold text-white">{stat.name}</div>
-                                    <div className="text-[10px] text-slate-500 font-mono">{stat.value} Visits</div>
-                                </div>
-                            </div>
-                            
-                            <div className="flex gap-4 text-right">
-                                <div>
-                                    <div className={`text-[10px] font-black uppercase tracking-widest ${stat.bounceRate > 60 ? 'text-red-500' : 'text-green-500'}`}>
-                                        {stat.bounceRate}%
-                                    </div>
-                                    <div className="text-[9px] text-slate-600">Bounce</div>
-                                </div>
-                                <div>
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-primary">
-                                        {Math.min(100, stat.engagement)}
-                                    </div>
-                                    <div className="text-[9px] text-slate-600">Engage Score</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                    {sourceStats.length === 0 && <div className="text-center text-slate-600 text-xs py-4">No traffic data recorded.</div>}
-                </div>
-            </div>
-        </div>
-    );
-  };
-
-  const MerchandisingTable = () => {
-    const [merchFilter, setMerchFilter] = useState('all');
-
-    const merchData = useMemo(() => {
-        return products.map(product => {
-            const stat = stats.find(s => s.productId === product.id) || { views: 0, clicks: 0, shares: 0 };
-            
-            const productOrders = orders.flatMap(o => o.items || []).filter(i => i.productId === product.id);
-            const salesCount = productOrders.reduce((sum, item) => sum + item.quantity, 0);
-            const revenue = productOrders.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            
-            const conversionRate = stat.views > 0 ? (salesCount / stat.views) * 100 : 0;
-            const stockStatus = !product.isDirectSale ? 'N/A' : (product.stockQuantity || 0) === 0 ? 'Out' : (product.stockQuantity || 0) < 5 ? 'Low' : 'Good';
-
-            const daysActive = Math.max(1, Math.ceil((Date.now() - (product.createdAt || Date.now())) / (86400000))); 
-            const avgDailySales = salesCount / daysActive;
-            
-            const estDaysLeft = product.isDirectSale && avgDailySales > 0 
-                ? Math.round((product.stockQuantity || 0) / avgDailySales) 
-                : (product.isDirectSale && salesCount === 0 && (product.stockQuantity || 0) > 0 ? 999 : 0);
-
-            const potentialRevenue = (product.stockQuantity || 0) * product.price;
-
-            return {
-                ...product,
-                stats: stat,
-                salesCount,
-                revenue,
-                conversionRate,
-                stockStatus,
-                estDaysLeft,
-                potentialRevenue
-            };
-        }).sort((a, b) => b.revenue - a.revenue); 
-    }, [products, stats, orders]);
-
-    const filteredMerch = merchFilter === 'all' 
-        ? merchData 
-        : merchData.filter(p => p.categoryId === merchFilter);
-
-    return (
-        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col mt-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Tag size={18} className="text-yellow-500"/> Merchandising Intelligence
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1">Inventory performance and conversion analysis.</p>
-                </div>
-                
-                <div className="flex gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
-                    <button 
-                        onClick={() => setMerchFilter('all')}
-                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${merchFilter === 'all' ? 'bg-primary text-slate-900 shadow-lg' : 'bg-slate-950 text-slate-500 border border-slate-800 hover:text-white'}`}
-                    >
-                        All Items
-                    </button>
-                    {categories.map(cat => (
-                        <button 
-                            key={cat.id}
-                            onClick={() => setMerchFilter(cat.id)}
-                            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${merchFilter === cat.id ? 'bg-primary text-slate-900 shadow-lg' : 'bg-slate-950 text-slate-500 border border-slate-800 hover:text-white'}`}
-                        >
-                            {cat.name}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse min-w-[900px]">
-                    <thead>
-                        <tr className="border-b border-slate-800 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                            <th className="pb-4 pl-4 w-1/3">Product Detail</th>
-                            <th className="pb-4">Status</th>
-                            <th className="pb-4 text-center">Funnel (View → Buy)</th>
-                            <th className="pb-4">Runway (Est.)</th>
-                            <th className="pb-4 text-right">Potential</th>
-                            <th className="pb-4 text-right">Revenue</th>
-                            <th className="pb-4 text-right pr-4">Conv. %</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/50">
-                        {filteredMerch.map(item => (
-                            <tr key={item.id} className="group hover:bg-slate-800/30 transition-colors">
-                                <td className="py-4 pl-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden border border-slate-700 flex-shrink-0">
-                                            <img src={item.media?.[0]?.url} className="w-full h-full object-cover" loading="lazy" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="text-sm font-bold text-white line-clamp-1 flex items-center gap-2">
-                                                {item.name}
-                                                {item.conversionRate > 2 && (
-                                                    <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-500 text-[8px] font-black uppercase rounded flex items-center gap-1 border border-orange-500/30">
-                                                        🔥 Hot
-                                                    </span>
-                                                )}
-                                                {item.conversionRate < 0.5 && item.stats.views > 50 && (
-                                                    <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-500 text-[8px] font-black uppercase rounded flex items-center gap-1 border border-blue-500/30">
-                                                        ❄️ Cold
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="text-[10px] text-slate-500 font-mono mt-0.5">{item.sku}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="py-4">
-                                    <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${
-                                        item.stockStatus === 'Good' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
-                                        item.stockStatus === 'Low' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                                        item.stockStatus === 'Out' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                                        'bg-slate-800 text-slate-500 border-slate-700'
-                                    }`}>
-                                        {item.stockStatus}
-                                    </span>
-                                </td>
-                                <td className="py-4 px-4">
-                                    <div className="flex items-center gap-1 h-8 justify-center">
-                                        <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.stats.views} Views`}>
-                                            <div className="w-full bg-blue-500/40 rounded-sm" style={{ height: '100%' }}></div>
-                                            <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.stats.views}</span>
-                                        </div>
-                                        <ArrowRight size={10} className="text-slate-600"/>
-                                        <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.stats.clicks} Clicks`}>
-                                            <div className="w-full bg-purple-500/40 rounded-sm" style={{ height: `${item.stats.views > 0 ? (item.stats.clicks / item.stats.views) * 100 : 0}%`, minHeight: '4px' }}></div>
-                                            <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.stats.clicks}</span>
-                                        </div>
-                                        <ArrowRight size={10} className="text-slate-600"/>
-                                        <div className="h-full bg-slate-800 rounded-sm relative group/bar w-12 flex items-end justify-center" title={`${item.salesCount} Sales`}>
-                                            <div className="w-full bg-green-500/40 rounded-sm" style={{ height: `${item.stats.clicks > 0 ? (item.salesCount / item.stats.clicks) * 100 : 0}%`, minHeight: '2px' }}></div>
-                                            <span className="absolute bottom-1 text-[8px] text-white font-bold">{item.salesCount}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="py-4">
-                                   {item.isDirectSale ? (
-                                     <div className="flex flex-col">
-                                       <span className="text-xs text-white font-bold">
-                                          {item.estDaysLeft >= 999 ? 'Stagnant' : item.estDaysLeft > 365 ? '> 1 Year' : `${item.estDaysLeft} Days`}
-                                       </span>
-                                       <span className="text-[9px] text-slate-500">Based on avg. sales</span>
-                                     </div>
-                                   ) : <span className="text-slate-600 text-xs">-</span>}
-                                </td>
-                                <td className="py-4 text-right">
-                                   {item.isDirectSale ? (
-                                     <div className="flex flex-col items-end">
-                                       <span className="text-xs text-slate-300 font-mono">R {item.potentialRevenue.toLocaleString()}</span>
-                                       <span className="text-[9px] text-slate-500">Unrealized</span>
-                                     </div>
-                                   ) : <span className="text-slate-600 text-xs">-</span>}
-                                </td>
-                                <td className="py-4 text-right font-mono text-xs text-white">
-                                    R {item.revenue.toLocaleString()}
-                                </td>
-                                <td className="py-4 pr-4 text-right">
-                                    <span className={`font-bold text-xs ${item.conversionRate > 2 ? 'text-green-400' : 'text-slate-400'}`}>
-                                        {item.conversionRate.toFixed(1)}%
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {filteredMerch.length === 0 && <div className="text-center py-8 text-slate-500 text-xs">No products found in this category.</div>}
-            </div>
-        </div>
-    );
-  };
-
-  const generateReport = () => {
-    const doc = new jsPDF();
-    const activeOrders = orders.filter(o => o.status !== 'cancelled');
-    const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
-    const totalVisits = trafficEvents.length;
-    
-    const now = new Date();
-    const dailyRevenues = Array.from({length: 30}, (_, i) => {
-        const d = new Date();
-        d.setDate(now.getDate() - (29 - i));
-        const dayStart = d.setHours(0,0,0,0);
-        const dayEnd = d.setHours(23,59,59,999);
-        
-        return activeOrders
-            .filter(o => o.createdAt >= dayStart && o.createdAt <= dayEnd)
-            .reduce((sum, o) => sum + o.total, 0);
-    });
-
-    const nextDayRevenue = predictNextValue(dailyRevenues);
-    const forecast30Days = Math.max(0, nextDayRevenue * 30);
-
-    doc.setFontSize(20);
-    doc.text(`${settings.companyName} - Performance Report`, 14, 22);
-    doc.setFontSize(11);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 30);
-    
-    doc.text(`Total Revenue: ${settings.currency} ${totalRevenue.toLocaleString()}`, 14, 40);
-    doc.text(`Total Orders: ${activeOrders.length}`, 14, 46);
-    doc.text(`Total Visits: ${totalVisits.toLocaleString()}`, 14, 52);
-    
-    const productData = products.map(p => {
-        const stat = stats.find(s => s.productId === p.id);
-        return [p.name, stat?.views || 0, stat?.clicks || 0, stat ? ((stat.clicks/stat.views)*100).toFixed(1)+'%' : '0%'];
-    }).sort((a,b) => (b[1] as number) - (a[1] as number)).slice(0, 10); 
-
-    autoTable(doc, {
-        startY: 60,
-        head: [['Product', 'Views', 'Clicks', 'CTR']],
-        body: productData,
-    });
-    
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.setFillColor(0, 0, 0);
-    doc.rect(14, finalY, 182, 25, 'F');
-    doc.setTextColor(212, 175, 55);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text("EXECUTIVE FORECAST (30-DAY)", 20, finalY + 16);
-    doc.setFontSize(16);
-    doc.text(`${settings.currency} ${forecast30Days.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 190, finalY + 16, { align: 'right' });
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    doc.save(`analytics_report_${Date.now()}.pdf`);
-  };
-
   const activeOrders = orders.filter(o => o.status !== 'cancelled');
   const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
-  const totalOrders = orders.length;
   const totalVisits = Math.max(trafficEvents.length, 1);
-  const conversionRate = totalVisits > 0 ? (totalOrders / totalVisits) * 100 : 0;
-  
-  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d.toLocaleDateString('en-US', { weekday: 'short' }); });
-  const hourlyTraffic = useMemo(() => { const hours = Array(24).fill(0); trafficEvents.forEach(e => { const h = new Date(e.timestamp).getHours(); if (h >= 0 && h < 24) hours[h]++; }); return hours.map((count, hour) => ({ label: `${hour.toString().padStart(2, '0')}:00`, value: count })); }, [trafficEvents]);
-  const peakHour = useMemo(() => { const max = Math.max(...hourlyTraffic.map(h => h.value)); const hour = hourlyTraffic.find(h => h.value === max); return { time: hour?.label || '00:00', count: max }; }, [hourlyTraffic]);
-  const getTimelineData = (sourceArr: any[], dateField: string) => { const counts = Array(7).fill(0); const now = new Date(); sourceArr.forEach(item => { const d = new Date(item[dateField]); const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 3600 * 24)); if (diffDays < 7 && diffDays >= 0) { counts[6 - diffDays]++; } }); return counts; };
-  const trafficTrend = getTimelineData(trafficEvents, 'timestamp');
-  const orderTrend = getTimelineData(activeOrders, 'createdAt');
-  const devices = trafficEvents.reduce((acc: any, curr) => { const d = curr.device || 'Desktop'; acc[d] = (acc[d] || 0) + 1; return acc; }, {});
-  const deviceData = [ { label: 'Mobile', value: devices['Mobile'] || 0, color: '#ec4899' }, { label: 'Desktop', value: devices['Desktop'] || 0, color: '#3b82f6' }, { label: 'Tablet', value: devices['Tablet'] || 0, color: '#a855f7' } ].filter(d => d.value > 0);
-  
-  const metrics = [ { label: 'Net Revenue', value: `R ${totalRevenue.toLocaleString()}`, change: '+12%', icon: DollarSign, color: 'text-green-500', bg: 'bg-green-500/10' }, { label: 'Orders', value: totalOrders, change: '+5%', icon: ShoppingBag, color: 'text-blue-500', bg: 'bg-blue-500/10' }, { label: 'Site Visits', value: totalVisits.toLocaleString(), change: '+24%', icon: Eye, color: 'text-purple-500', bg: 'bg-purple-500/10' }, { label: 'Conversion', value: `${conversionRate.toFixed(2)}%`, change: '-1%', icon: Target, color: 'text-amber-500', bg: 'bg-amber-500/10', negative: true }, ];
-  
-  const engagementStats = useMemo(() => {
-    const eventsWithScroll = trafficEvents.filter(e => typeof e.scrollDepth === 'number');
-    const avgScroll = eventsWithScroll.length ? Math.round(eventsWithScroll.reduce((a, b) => a + (b.scrollDepth || 0), 0) / eventsWithScroll.length) : 0;
-    const eventsWithDuration = trafficEvents.filter(e => typeof e.sessionDuration === 'number' && e.sessionDuration > 0);
-    const avgDuration = eventsWithDuration.length ? Math.round(eventsWithDuration.reduce((a, b) => a + (b.sessionDuration || 0), 0) / eventsWithDuration.length) : 0;
-    return { avgScroll, avgDuration };
-  }, [trafficEvents]);
+  const conversionRate = totalVisits > 0 ? (orders.length / totalVisits) * 100 : 0;
 
-  const campaignPerformance = useMemo(() => {
-    const campMap: Record<string, { visits: number, interactionCount: number, scrollTotal: number, durationTotal: number }> = {};
-    trafficEvents.forEach(e => {
-        if (e.utmCampaign) {
-            if (!campMap[e.utmCampaign]) campMap[e.utmCampaign] = { visits: 0, interactionCount: 0, scrollTotal: 0, durationTotal: 0 };
-            campMap[e.utmCampaign].visits++;
-            if (typeof e.scrollDepth === 'number') {
-                campMap[e.utmCampaign].interactionCount++;
-                campMap[e.utmCampaign].scrollTotal += e.scrollDepth;
-                campMap[e.utmCampaign].durationTotal += (e.sessionDuration || 0);
-            }
-        }
+  // Process Traffic Data for Charts
+  const visitsByDate = useMemo(() => {
+    const data: Record<string, number> = {};
+    const last7Days = Array.from({length: 7}, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d.toLocaleDateString();
     });
-    return Object.entries(campMap).map(([name, data]) => ({
-        name,
-        visits: data.visits,
-        avgScroll: data.interactionCount ? Math.round(data.scrollTotal / data.interactionCount) : 0,
-        avgDuration: data.interactionCount ? Math.round(data.durationTotal / data.interactionCount) : 0
-    })).sort((a, b) => b.visits - a.visits);
-  }, [trafficEvents]);
+    
+    // Initialize
+    last7Days.forEach(d => data[d] = 0);
 
-  const topCities = useMemo(() => {
-    const cityMap: Record<string, number> = {};
+    // Populate
     trafficEvents.forEach(e => {
-        if (e.city) {
-            cityMap[e.city] = (cityMap[e.city] || 0) + 1;
-        }
+        const date = new Date(e.timestamp).toLocaleDateString();
+        if (data[date] !== undefined) data[date]++;
     });
-    return Object.entries(cityMap)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
+
+    return Object.values(data);
   }, [trafficEvents]);
 
-  const formatDuration = (sec: number) => sec < 60 ? `${sec}s` : `${Math.floor(sec/60)}m ${sec%60}s`;
+  // Process Revenue Data for Charts
+  const revenueByDate = useMemo(() => {
+    const data: Record<string, number> = {};
+    const last7Days = Array.from({length: 7}, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d.toLocaleDateString();
+    });
+    
+    last7Days.forEach(d => data[d] = 0);
+
+    activeOrders.forEach(o => {
+        const date = new Date(o.createdAt).toLocaleDateString();
+        if (data[date] !== undefined) data[date] += o.total;
+    });
+
+    return Object.values(data);
+  }, [activeOrders]);
+
+  // Top Products Data
+  const topProducts = useMemo(() => {
+      const sorted = [...stats].sort((a, b) => b.views - a.views).slice(0, 5);
+      return sorted.map(s => {
+          const product = products.find(p => p.id === s.productId);
+          return { label: product?.name || 'Unknown', value: s.views };
+      });
+  }, [stats, products]);
+
+  // Traffic Source Data
+  const trafficSources = useMemo(() => {
+      const sources: Record<string, number> = {};
+      trafficEvents.forEach(e => {
+          const s = e.source || 'Direct';
+          sources[s] = (sources[s] || 0) + 1;
+      });
+      
+      const colors = ['#D4AF37', '#1E293B', '#64748B', '#94A3B8', '#E2E8F0'];
+      return Object.entries(sources)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([label, value], i) => ({ label, value, color: colors[i % colors.length] }));
+  }, [trafficEvents]);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6"><div><h2 className="text-3xl font-serif text-white">Intelligence Center</h2><p className="text-slate-400 text-sm">Real-time telemetry and performance analytics.</p></div><div className="flex gap-2"><button className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors">Last 7 Days</button><button onClick={generateReport} className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-xs font-bold hover:text-white transition-colors flex items-center gap-2"><Download size={14}/> Report</button><button onClick={() => window.location.reload()} className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 hover:text-white"><RefreshCcw size={16}/></button></div></div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{metrics.map((m, i) => ( <div key={i} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-colors shadow-lg"><div className="flex justify-between items-start mb-4"><div className={`p-2.5 rounded-xl ${m.bg} ${m.color}`}><m.icon size={20} /></div><div className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full ${m.negative ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>{m.negative ? <TrendingDown size={12}/> : <TrendingUp size={12}/>} {m.change}</div></div><div><h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">{m.value}</h4><p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">{m.label}</p></div></div> ))}</div>
-      
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 relative overflow-hidden"><div className="flex justify-between items-center mb-8"><div><h3 className="text-lg font-bold text-white flex items-center gap-2"><Activity size={18} className="text-primary"/> Performance Timeline</h3><p className="text-xs text-slate-500 mt-1">Traffic vs Sales volume over the last week.</p></div><div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Traffic</div><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div> Orders</div></div></div><div className="h-64 w-full relative"><div className="absolute inset-0 opacity-100"><SimpleLineChart data={trafficTrend} color="#3b82f6" height={250} /></div><div className="absolute inset-0 opacity-70"><SimpleLineChart data={orderTrend} color="#22c55e" height={250} /></div></div><div className="flex justify-between mt-4 text-[10px] font-mono text-slate-500 uppercase">{days.map(d => <span key={d}>{d}</span>)}</div></div>
-        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col"><h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><Smartphone size={18} className="text-pink-500"/> Device Access</h3><p className="text-xs text-slate-500 mb-8">Platform distribution of your visitors.</p><div className="flex-grow flex items-center justify-center"><SimpleDonutChart data={deviceData} /></div><div className="mt-8 space-y-3">{deviceData.map((d, i) => ( <div key={i} className="flex items-center justify-between text-xs"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div><span className="text-slate-300 font-medium">{d.label}</span></div><span className="text-slate-500 font-mono">{d.value}</span></div> ))}</div></div>
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+          {/* Key Metrics Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl group hover:border-primary/30 transition-colors">
+                  <div className="text-slate-500 text-xs font-bold uppercase flex items-center gap-2 mb-2"><Banknote size={14} className="text-green-500"/> Revenue</div>
+                  <div className="text-2xl font-black text-white">R {totalRevenue.toLocaleString()}</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl group hover:border-primary/30 transition-colors">
+                  <div className="text-slate-500 text-xs font-bold uppercase flex items-center gap-2 mb-2"><ShoppingBag size={14} className="text-blue-500"/> Orders</div>
+                  <div className="text-2xl font-black text-white">{orders.length}</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl group hover:border-primary/30 transition-colors">
+                  <div className="text-slate-500 text-xs font-bold uppercase flex items-center gap-2 mb-2"><Globe size={14} className="text-purple-500"/> Visits</div>
+                  <div className="text-2xl font-black text-white">{totalVisits}</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl group hover:border-primary/30 transition-colors">
+                  <div className="text-slate-500 text-xs font-bold uppercase flex items-center gap-2 mb-2"><Activity size={14} className="text-orange-500"/> Conv. Rate</div>
+                  <div className="text-2xl font-black text-white">{conversionRate.toFixed(2)}%</div>
+              </div>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6">
+              {/* Traffic Chart */}
+              <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800">
+                  <h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><BarChart3 size={16} className="text-primary"/> Traffic Trend (7 Days)</h4>
+                  <div className="h-48">
+                      <SimpleLineChart data={visitsByDate} color="#D4AF37" height={190} />
+                  </div>
+              </div>
+
+              {/* Revenue Chart */}
+              <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800">
+                  <h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><TrendingUp size={16} className="text-green-500"/> Revenue Trend (7 Days)</h4>
+                  <div className="h-48">
+                      <SimpleLineChart data={revenueByDate} color="#22c55e" height={190} />
+                  </div>
+              </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Top Products */}
+              <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 lg:col-span-2">
+                  <h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><Star size={16} className="text-yellow-500"/> Top Products (Views)</h4>
+                  <div className="h-48 w-full">
+                      <SimpleBarChart data={topProducts} color="#D4AF37" />
+                  </div>
+              </div>
+
+              {/* Source Distribution */}
+              <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 flex flex-col items-center justify-center">
+                  <h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2 w-full text-left"><Globe2 size={16} className="text-blue-500"/> Traffic Sources</h4>
+                  <SimpleDonutChart data={trafficSources} />
+                  <div className="flex flex-wrap justify-center gap-3 mt-6">
+                      {trafficSources.map((s, i) => (
+                          <div key={i} className="flex items-center gap-1.5">
+                              <div className="w-2 h-2 rounded-full" style={{backgroundColor: s.color}}></div>
+                              <span className="text-[9px] text-slate-400 font-bold uppercase">{s.label}</span>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+          </div>
       </div>
-
-      <div className="grid md:grid-cols-2 gap-6">
-         <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
-            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Target size={18} className="text-indigo-500"/> Engagement Quality</h3>
-            <div className="grid grid-cols-2 gap-6">
-               <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center">
-                  <div className="w-10 h-10 mx-auto bg-indigo-500/10 rounded-full flex items-center justify-center text-indigo-500 mb-3"><ArrowDown size={20}/></div>
-                  <h4 className="text-2xl font-black text-white">{engagementStats.avgScroll}%</h4>
-                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">Avg Scroll Depth</p>
-               </div>
-               <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-center">
-                  <div className="w-10 h-10 mx-auto bg-teal-500/10 rounded-full flex items-center justify-center text-teal-500 mb-3"><Timer size={20}/></div>
-                  <h4 className="text-2xl font-black text-white">{formatDuration(engagementStats.avgDuration)}</h4>
-                  <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">Avg Session</p>
-               </div>
-            </div>
-         </div>
-
-         <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8"><div className="flex justify-between items-start mb-6"><div><h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2"><Clock size={18} className="text-orange-500"/> Peak Activity Times</h3><p className="text-xs text-slate-500">Distribution of visits by hour of the day.</p></div><div className="px-4 py-2 bg-orange-500/10 rounded-xl border border-orange-500/20 text-right"><span className="block text-[9px] font-black uppercase tracking-widest text-orange-500">Peak Hour</span><span className="text-lg font-bold text-white">{peakHour.time}</span></div></div><div className="h-48 w-full"><SimpleBarChart data={hourlyTraffic} color="#f97316" showLabels={false} /></div><div className="flex justify-between mt-2 text-[9px] font-mono text-slate-600"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div></div>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
-           <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6"><Megaphone size={18} className="text-red-500"/> Campaign Performance</h3>
-           <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                 <thead>
-                    <tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                       <th className="pb-4 pl-4">UTM Campaign</th>
-                       <th className="pb-4 w-32">Visits</th>
-                       <th className="pb-4 w-32">Avg Scroll</th>
-                       <th className="pb-4 w-32">Avg Duration</th>
-                    </tr>
-                 </thead>
-                 <tbody className="divide-y divide-slate-800/50">
-                    {campaignPerformance.length === 0 ? (
-                       <tr><td colSpan={4} className="py-8 text-center text-slate-600 text-xs">No campaign data tracked yet.</td></tr>
-                    ) : (
-                       campaignPerformance.map((camp, idx) => (
-                          <tr key={idx} className="group hover:bg-slate-800/20 transition-colors">
-                             <td className="py-3 pl-4 text-sm font-bold text-white">{camp.name}</td>
-                             <td className="py-3 text-xs text-slate-400 font-mono">{camp.visits}</td>
-                             <td className="py-3"><span className={`inline-block px-2 py-1 rounded-md text-[10px] font-bold border ${ camp.avgScroll > 50 ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-slate-800 text-slate-500 border-slate-700' }`}>{camp.avgScroll}%</span></td>
-                             <td className="py-3 text-xs text-slate-400 font-mono">{formatDuration(camp.avgDuration)}</td>
-                          </tr>
-                       ))
-                    )}
-                 </tbody>
-              </table>
-           </div>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-6"><MapPin size={18} className="text-emerald-500"/> Top Cities</h3>
-            <div className="space-y-4">
-                {topCities.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-40 text-slate-500 opacity-50">
-                        <MapPin size={32} className="mb-2"/>
-                        <p className="text-xs">No geo data recorded.</p>
-                    </div>
-                ) : (
-                    topCities.map((city, idx) => (
-                        <div key={city.name} className="flex items-center justify-between group">
-                            <div className="flex items-center gap-3">
-                                <div className="w-6 h-6 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-colors">
-                                    {idx + 1}
-                                </div>
-                                <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">{city.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(city.count / topCities[0].count) * 100}%` }}></div>
-                                </div>
-                                <span className="text-[10px] font-mono text-slate-500 w-6 text-right">{city.count}</span>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
-      </div>
-
-      <MerchandisingTable />
-      
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-         <TrafficQualityGrid />
-         
-         <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-6 md:p-8 flex flex-col justify-center items-center text-center">
-            <div className="p-4 bg-primary/10 rounded-full text-primary mb-4"><Zap size={32}/></div>
-            <h3 className="text-white font-bold text-lg">System Status</h3>
-            <p className="text-slate-500 text-xs mb-4">All systems operational.</p>
-            <div className="flex gap-4 text-xs font-mono text-slate-400">
-               <span>Views: {totalVisits}</span>
-               <span>Orders: {totalOrders}</span>
-            </div>
-         </div>
-      </div>
-    </div>
   );
 };
 
@@ -824,480 +626,10 @@ const TrainingGrid: React.FC = () => {
    return ( <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left"><div className="flex flex-col md:flex-row justify-between items-end gap-6"><div className="space-y-2"><div className="flex items-center gap-4"><h2 className="text-3xl font-serif text-white">Academy</h2><a href="https://www.youtube.com/results?search_query=affiliate+marketing+training" target="_blank" rel="noopener noreferrer" className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20 flex items-center justify-center" title="Watch Video Tutorials"><Youtube size={20} /></a></div><p className="text-slate-400 text-sm">Master the art of affiliate curation.</p></div><div className="flex gap-2 overflow-x-auto no-scrollbar">{categories.map(cat => ( <button key={cat} onClick={() => setFilter(cat)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${filter === cat ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{cat}</button> ))}</div></div><div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{filteredModules.map((module, i) => { const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap; const isExpanded = expandedModule === module.id; return ( <div key={module.id} className={`bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden flex flex-col transition-all duration-300 ${isExpanded ? 'md:col-span-2 row-span-2 border-primary/50 shadow-2xl z-10' : 'hover:border-slate-600'}`}><div className="p-6 flex flex-col h-full"><div className="flex justify-between items-start mb-4"><div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white ${module.platform === 'Pinterest' ? 'bg-red-600' : 'bg-slate-800 border border-slate-700'}`}><Icon size={20} /></div><span className="px-2 py-1 rounded-md bg-slate-800 text-[9px] font-bold text-slate-400 uppercase tracking-widest">{module.platform}</span></div><h3 className="text-white font-bold text-lg mb-2 leading-tight">{module.title}</h3><p className="text-slate-500 text-xs line-clamp-3 mb-4">{module.description}</p><div className="mt-auto"><button onClick={() => setExpandedModule(isExpanded ? null : module.id)} className="w-full py-3 bg-slate-800/50 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2">{isExpanded ? 'Close Module' : 'Start Lesson'} <ArrowRight size={12}/></button></div></div>{isExpanded && ( <div className="px-6 pb-6 bg-slate-900 border-t border-slate-800 animate-in fade-in"><div className="pt-6 space-y-6"><div><h4 className="text-primary font-bold text-xs uppercase tracking-widest mb-3 flex items-center gap-2"><Target size={14}/> Strategy</h4><ul className="space-y-2">{module.strategies.map((s, idx) => ( <li key={idx} className="text-slate-300 text-xs pl-4 border-l-2 border-slate-700">{s}</li> ))}</ul></div><div><h4 className="text-green-500 font-bold text-xs uppercase tracking-widest mb-3 flex items-center gap-2"><Rocket size={14}/> Action Items</h4><div className="space-y-2">{module.actionItems.map((item, idx) => ( <label key={idx} className="flex items-center gap-3 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer hover:border-green-500/30 transition-colors"><input type="checkbox" className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-green-500 focus:ring-0" /><span className="text-slate-400 text-xs">{item}</span></label> ))}</div></div></div></div> )}</div> ); })}</div></div> );
 };
 
-// --- MAIN ADMIN COMPONENT ---
-
-interface ERPState {
-  effectiveCost: number;
-  averageCost: number;
-  lastCost: number;
-  costBasis: 'effective' | 'average' | 'last';
-  commissionType: 'percentage' | 'fixed';
-  commissionPercent: number;
-  fixedCommission: number;
-  taxRate: number;
-  sellingPriceExcl: number;
-  sellingPriceIncl: number;
-  lockedField: 'price' | 'margin' | 'none';
-  currency: string;
-}
-
-const ERPPricingCalculator: React.FC<{
-  state: ERPState;
-  onChange: (field: keyof ERPState, value: any) => void;
-  readOnly?: boolean;
-}> = ({ state, onChange, readOnly = false }) => {
-  const baseCost = state[state.costBasis === 'effective' ? 'effectiveCost' : state.costBasis === 'last' ? 'lastCost' : 'averageCost'] || 0;
-  const taxAmount = state.sellingPriceExcl * (state.taxRate / 100);
-  const grossProfit = state.sellingPriceExcl - baseCost;
-  const markupPercent = baseCost > 0 ? (grossProfit / baseCost) * 100 : 0;
-  const marginPercent = state.sellingPriceExcl > 0 ? (grossProfit / state.sellingPriceExcl) * 100 : 0;
-  const netProfit = grossProfit - state.fixedCommission;
-  const breakEvenPrice = baseCost + state.fixedCommission;
-
-  const exportCalculation = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("Pricing Calculation Sheet", 14, 20);
-    const data = [
-        ['Metric', 'Value'],
-        ['Cost Basis', state.costBasis.toUpperCase()],
-        ['Base Cost', `${state.currency} ${baseCost.toFixed(2)}`],
-        ['Selling Price (Excl)', `${state.currency} ${state.sellingPriceExcl.toFixed(2)}`],
-        ['Tax', `${state.currency} ${taxAmount.toFixed(2)}`],
-        ['Selling Price (Incl)', `${state.currency} ${state.sellingPriceIncl.toFixed(2)}`],
-        ['Commission', `${state.currency} ${state.fixedCommission.toFixed(2)}`],
-        ['Gross Profit', `${state.currency} ${grossProfit.toFixed(2)}`],
-        ['Net Profit', `${state.currency} ${netProfit.toFixed(2)}`],
-        ['Margin', `${marginPercent.toFixed(2)}%`],
-        ['Markup', `${markupPercent.toFixed(2)}%`],
-        ['Break Even', `${state.currency} ${breakEvenPrice.toFixed(2)}`]
-    ];
-    autoTable(doc, { startY: 30, head: [['Field', 'Value']], body: data });
-    doc.save(`pricing_calc_${Date.now()}.pdf`);
-  };
-
-  const resetFields = () => {
-      onChange('sellingPriceExcl', 0);
-      onChange('effectiveCost', 0);
-      onChange('fixedCommission', 0);
-      onChange('commissionPercent', 0);
-  };
-
-  const isLowMargin = marginPercent < 15;
-
-  return (
-    <div className="bg-slate-900 border border-slate-800 p-6 md:p-8 rounded-[2rem] w-full min-w-0 shadow-xl space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-slate-800">
-         <div className="flex items-center gap-4 w-full md:w-auto">
-            <select 
-                value={state.currency} 
-                onChange={(e) => onChange('currency', e.target.value)}
-                className="bg-slate-950 border border-slate-700 text-white text-xs font-bold rounded-lg px-3 py-2 outline-none focus:border-primary"
-            >
-                <option value="ZAR">ZAR (R)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-            </select>
-            <div className="h-6 w-px bg-slate-800"></div>
-            <button onClick={resetFields} className="text-slate-500 hover:text-white text-xs font-bold uppercase tracking-widest flex items-center gap-1 transition-colors"><RefreshCw size={12}/> Reset</button>
-         </div>
-         <button onClick={exportCalculation} className="w-full md:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all border border-slate-700">
-            <Download size={14}/> Export PDF
-         </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-        <div className="space-y-8">
-            <div className="space-y-4">
-                <div className="flex justify-between items-end mb-2">
-                    <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Tag size={12}/> Cost Configuration</h5>
-                    <div className="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
-                        {['effective', 'last', 'average'].map((basis) => (
-                            <button
-                                key={basis}
-                                onClick={() => onChange('costBasis', basis)}
-                                className={`px-3 py-1 rounded text-[9px] font-bold uppercase tracking-wider transition-all ${state.costBasis === basis ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300'}`}
-                            >
-                                {basis}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                    <CalculatorField 
-                        label="Effective Cost" 
-                        value={state.effectiveCost} 
-                        onChange={v => onChange('effectiveCost', parseFloat(v) || 0)} 
-                        prefix={state.currency} 
-                        readOnly={readOnly}
-                        highlight={state.costBasis === 'effective'}
-                        error={state.effectiveCost < 0}
-                    />
-                    <CalculatorField 
-                        label="Last Cost" 
-                        value={state.lastCost} 
-                        onChange={v => onChange('lastCost', parseFloat(v) || 0)} 
-                        prefix={state.currency}
-                        readOnly={readOnly}
-                        highlight={state.costBasis === 'last'}
-                    />
-                    <CalculatorField 
-                        label="Avg Cost" 
-                        value={state.averageCost} 
-                        onChange={v => onChange('averageCost', parseFloat(v) || 0)} 
-                        prefix={state.currency} 
-                        readOnly={true} 
-                        highlight={state.costBasis === 'average'}
-                    />
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><CoinsIcon size={12}/> Commission Structure</h5>
-                <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                    <div className="flex gap-4">
-                        <div className="flex-1">
-                            <CalculatorField 
-                                label="Comm. %" 
-                                value={state.commissionPercent} 
-                                onChange={v => {
-                                    const val = parseFloat(v) || 0;
-                                    onChange('commissionPercent', val);
-                                    onChange('fixedCommission', state.sellingPriceExcl * (val / 100));
-                                }} 
-                                suffix="%" 
-                                readOnly={readOnly}
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <CalculatorField 
-                                label="Fixed Amt" 
-                                value={state.fixedCommission.toFixed(2)} 
-                                onChange={v => {
-                                    const val = parseFloat(v) || 0;
-                                    onChange('fixedCommission', val);
-                                    if(state.sellingPriceExcl > 0) onChange('commissionPercent', (val / state.sellingPriceExcl) * 100);
-                                }} 
-                                prefix={state.currency} 
-                                readOnly={readOnly}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div className="space-y-8">
-            <div className="space-y-4">
-                <h5 className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Banknote size={12}/> Pricing Strategy</h5>
-                <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                       <button 
-                          onClick={() => onChange('lockedField', state.lockedField === 'price' ? 'none' : 'price')}
-                          className={`p-1.5 rounded-lg transition-colors ${state.lockedField === 'price' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-500 hover:text-white'}`}
-                          title={state.lockedField === 'price' ? "Price Locked (Margin fluctuates)" : "Lock Selling Price"}
-                       >
-                          {state.lockedField === 'price' ? <Lock size={12}/> : <Unlock size={12}/>}
-                       </button>
-                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Price Lock</span>
-                    </div>
-
-                    <CalculatorField 
-                        label="Selling (Excl)" 
-                        value={state.sellingPriceExcl.toFixed(2)} 
-                        onChange={v => onChange('sellingPriceExcl', parseFloat(v) || 0)} 
-                        readOnly={readOnly || state.lockedField === 'price'} 
-                        prefix={state.currency} 
-                        highlight 
-                    />
-                    
-                    <div className="py-2 flex items-center gap-2">
-                        <div className="h-px bg-slate-800 flex-grow"></div>
-                        <span className="text-[9px] font-mono text-slate-500">+ VAT ({state.taxRate}%)</span>
-                        <div className="h-px bg-slate-800 flex-grow"></div>
-                    </div>
-
-                    <CalculatorField 
-                        label="Selling (Incl)" 
-                        value={state.sellingPriceIncl.toFixed(2)} 
-                        onChange={v => onChange('sellingPriceIncl', parseFloat(v) || 0)} 
-                        readOnly={readOnly || state.lockedField === 'price'} 
-                        prefix={state.currency} 
-                        highlight 
-                        tooltip="Final Shelf Price including Tax"
-                    />
-                    
-                    <div className="pt-2">
-                       <CalculatorField label="Tax Rate" value={state.taxRate} onChange={v => onChange('taxRate', parseFloat(v) || 0)} suffix="%" readOnly={readOnly}/>
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
-                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Gross Profit</div>
-                    <div className="text-lg font-mono text-white font-bold">{state.currency} {grossProfit.toFixed(2)}</div>
-                </div>
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
-                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Net Profit</div>
-                    <div className={`text-lg font-mono font-bold ${netProfit < 0 ? 'text-red-400' : 'text-green-400'}`}>
-                        {state.currency} {netProfit.toFixed(2)}
-                    </div>
-                </div>
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50 relative overflow-hidden">
-                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1 flex items-center gap-1">
-                        Margin
-                        {isLowMargin && <AlertCircle size={10} className="text-red-500 animate-pulse"/>}
-                    </div>
-                    <div className={`text-lg font-mono font-bold ${isLowMargin ? 'text-red-400' : 'text-blue-400'}`}>
-                        {marginPercent.toFixed(2)}%
-                    </div>
-                    {isLowMargin && <div className="text-[8px] text-red-500 font-bold mt-1">BELOW THRESHOLD</div>}
-                </div>
-                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
-                    <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">Markup</div>
-                    <div className="text-lg font-mono text-purple-400 font-bold">{markupPercent.toFixed(2)}%</div>
-                </div>
-            </div>
-            
-            <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-bold uppercase tracking-widest">Break Even Price</span>
-                <span className="text-white font-mono">{state.currency} {breakEvenPrice.toFixed(2)}</span>
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storageStats: any }> = ({ connectionHealth, systemLogs, storageStats }) => {
-    const [pulse, setPulse] = useState<number[]>(new Array(20).fill(50));
-    const [termFilter, setTermFilter] = useState('ALL');
-    const [termSearch, setTermSearch] = useState('');
-    const [memoryUsage, setMemoryUsage] = useState<number>(0);
-    const [isTesting, setIsTesting] = useState(false);
-
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setPulse(prev => {
-          const noise = Math.random() * 20 - 10;
-          const base = 50;
-          const newVal = Math.max(10, Math.min(90, base + noise));
-          return [...prev.slice(1), newVal];
-        });
-        
-        if ((performance as any).memory) {
-            setMemoryUsage((performance as any).memory.usedJSHeapSize / 1024 / 1024);
-        } else {
-            setMemoryUsage(prev => Math.max(30, Math.min(120, prev + (Math.random() * 4 - 2))));
-        }
-      }, 1000);
-      return () => clearInterval(interval);
-    }, []);
-
-    const healthScore = useMemo(() => {
-        if (!connectionHealth) return 0;
-        let score = 100;
-        if (connectionHealth.status !== 'online') score -= 50;
-        if (connectionHealth.latency > 100) score -= 10;
-        if (connectionHealth.latency > 500) score -= 20;
-        
-        const recentLogs = systemLogs.slice(0, 20);
-        const errorCount = recentLogs.filter(l => l.type === 'ERROR').length;
-        score -= (errorCount * 5);
-        
-        return Math.max(0, score);
-    }, [connectionHealth, systemLogs]);
-
-    const filteredLogs = systemLogs.filter(log => {
-        const matchesSearch = log.message.toLowerCase().includes(termSearch.toLowerCase()) || log.type.toLowerCase().includes(termSearch.toLowerCase());
-        const matchesFilter = termFilter === 'ALL' || log.type === termFilter;
-        return matchesSearch && matchesFilter;
-    });
-
-    const handlePurgeCache = () => {
-        if (window.confirm("This will clear local storage and reload. Continue?")) {
-          localStorage.clear();
-          window.location.reload();
-        }
-    };
-
-    const handleTestLatency = async () => {
-        setIsTesting(true);
-        await measureConnection();
-        setTimeout(() => setIsTesting(false), 1000);
-    };
-
-    const exportLogs = () => {
-        const blob = new Blob([JSON.stringify(systemLogs, null, 2)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `system_logs_${Date.now()}.json`;
-        a.click();
-    };
-
-    return ( 
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl font-serif text-white flex items-center gap-3">
-              <Activity className="text-emerald-400 animate-pulse" size={28}/> 
-              System Diagnostics
-          </h2>
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">NOC ONLINE</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/30 transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Health Index</h4>
-                <ShieldCheck size={16} className={healthScore > 80 ? 'text-emerald-500' : 'text-amber-500'} />
-              </div>
-              <div className="flex items-end gap-2">
-                <span className={`text-4xl font-mono font-bold ${healthScore > 80 ? 'text-white' : 'text-amber-400'}`}>{healthScore}%</span>
-                <span className="text-[10px] text-slate-500 mb-1">STABLE</span>
-              </div>
-              <div className="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-                <div className={`h-full transition-all duration-1000 ${healthScore > 80 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${healthScore}%` }}></div>
-              </div>
-          </div>
-
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-blue-500/30 transition-all">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Network Pulse</h4>
-                <Wifi size={16} className="text-blue-500" />
-              </div>
-              <div className="h-12 w-full">
-                <SimpleLineChart data={pulse} color="#3b82f6" height={48} />
-              </div>
-              <div className="flex justify-between mt-2 text-[10px] font-mono text-slate-400">
-                <span>LATENCY:</span>
-                <span className={connectionHealth?.latency > 200 ? 'text-red-400' : 'text-blue-400'}>{connectionHealth?.latency || 0}ms</span>
-              </div>
-          </div>
-
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/30 transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Client Memory</h4>
-                <Cpu size={16} className="text-purple-500" />
-              </div>
-              <div className="text-2xl font-mono font-bold text-white mb-2">{memoryUsage.toFixed(1)} <span className="text-sm text-slate-500">MB</span></div>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: `${Math.min(100, (memoryUsage / 200) * 100)}%` }}></div>
-              </div>
-          </div>
-
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-orange-500/30 transition-all">
-              <div className="flex justify-between items-start mb-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Storage Anatomy</h4>
-                <Database size={16} className="text-orange-500" />
-              </div>
-              <div className="text-xl font-mono font-bold text-white mb-2">{(storageStats.mediaSize / 1024 / 1024).toFixed(2)} MB</div>
-              <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-slate-800">
-                <div className="bg-blue-500 h-full" style={{ width: '20%' }} title="Database"></div>
-                <div className="bg-orange-500 h-full" style={{ width: '60%' }} title="Media"></div>
-                <div className="bg-slate-600 h-full" style={{ width: '20%' }} title="System"></div>
-              </div>
-              <div className="flex justify-between mt-2 text-[9px] text-slate-500 font-mono">
-                <span>DB: 20%</span>
-                <span>MEDIA: 60%</span>
-              </div>
-          </div>
-        </div>
-
-        <div className="bg-black border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[400px]">
-          <div className="bg-slate-900/50 border-b border-slate-800 p-3 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-                </div>
-                <div className="h-4 w-px bg-slate-800"></div>
-                <div className="flex gap-2">
-                    {['ALL', 'ERROR', 'SYNC', 'UPDATE'].map(t => (
-                      <button 
-                          key={t}
-                          onClick={() => setTermFilter(t)}
-                          className={`px-3 py-1 rounded text-[9px] font-bold font-mono transition-colors ${termFilter === t ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
-                      >
-                          {t}
-                      </button>
-                    ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-600" size={12}/>
-                    <input 
-                      type="text" 
-                      value={termSearch}
-                      onChange={e => setTermSearch(e.target.value)}
-                      placeholder="grep logs..."
-                      className="bg-slate-950 border border-slate-800 rounded-md pl-7 pr-3 py-1 text-[10px] text-emerald-500 font-mono outline-none focus:border-emerald-500/50 w-32 focus:w-48 transition-all"
-                    />
-                </div>
-                <button onClick={exportLogs} className="p-1.5 hover:bg-slate-800 rounded text-slate-500 hover:text-white transition-colors">
-                    <Download size={14}/>
-                </button>
-              </div>
-          </div>
-
-          <div className="flex-grow bg-[#0c0c0c] p-4 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1">
-              {filteredLogs.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-700 opacity-50">
-                    <Terminal size={48} className="mb-4"/>
-                    <p>NO SIGNAL DETECTED</p>
-                </div>
-              ) : (
-                filteredLogs.map(log => (
-                    <div key={log.id} className="flex gap-3 hover:bg-white/5 p-0.5 rounded transition-colors group">
-                      <span className="text-slate-600 w-20 flex-shrink-0 select-none">[{new Date(log.timestamp).toLocaleTimeString([], {hour12: false})}]</span>
-                      <span className={`w-16 flex-shrink-0 font-bold ${
-                          log.type === 'ERROR' ? 'text-rose-500' : 
-                          log.type === 'SYNC' ? 'text-cyan-400' : 
-                          log.type === 'UPDATE' ? 'text-amber-400' : 'text-slate-400'
-                      }`}>{log.type}</span>
-                      <span className="text-slate-300 group-hover:text-white break-all">{log.message}</span>
-                    </div>
-                ))
-              )}
-              <div className="h-2"></div>
-              <div className="animate-pulse flex items-center gap-2 text-emerald-500/50">
-                <span>_</span>
-              </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button onClick={handlePurgeCache} className="p-4 bg-slate-900 border border-slate-800 hover:border-red-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-red-400 transition-all group">
-              <Trash size={16} className="group-hover:rotate-12 transition-transform"/>
-              <span className="text-[10px] font-black uppercase tracking-widest">Purge Cache</span>
-          </button>
-          <button onClick={handleTestLatency} disabled={isTesting} className="p-4 bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-blue-400 transition-all group">
-              <RefreshCw size={16} className={`group-hover:rotate-180 transition-transform ${isTesting ? 'animate-spin' : ''}`}/>
-              <span className="text-[10px] font-black uppercase tracking-widest">{isTesting ? 'Pinging...' : 'Test Latency'}</span>
-          </button>
-          <div className="md:col-span-2 p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between px-6">
-              <div className="flex items-center gap-3">
-                <ShieldAlert size={16} className="text-emerald-500"/>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Security Protocol</span>
-              </div>
-              <span className="text-xs font-mono text-emerald-400">ENCRYPTED (TLS 1.3)</span>
-          </div>
-        </div>
-      </div> 
-    );
-  };
-
-  const Admin: React.FC = () => {
+const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
-    products, categories, subCategories, heroSlides, enquiries, admins, stats, orders,
+    products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers,
     updateData, deleteData, refreshAllData, connectionHealth, systemLogs, storageStats
   } = useSettings();
   
@@ -1313,12 +645,14 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showHeroForm, setShowHeroForm] = useState(false);
+  const [showArticleForm, setShowArticleForm] = useState(false); // NEW for Blog
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedAdProduct, setSelectedAdProduct] = useState<Product | null>(null);
   const [replyEnquiry, setReplyEnquiry] = useState<Enquiry | null>(null);
   const [productData, setProductData] = useState<Partial<Product>>({});
   const [catData, setCatData] = useState<Partial<Category>>({});
   const [heroData, setHeroData] = useState<Partial<CarouselSlide>>({});
+  const [articleData, setArticleData] = useState<Partial<Article>>({}); // NEW for Blog
   const [tempSubCatName, setTempSubCatName] = useState('');
   const [tempDiscountRule, setTempDiscountRule] = useState<Partial<DiscountRule>>({ type: 'percentage', value: 0, description: '' });
   const [tempFeature, setTempFeature] = useState('');
@@ -1334,6 +668,9 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
   const [trackingInfo, setTrackingInfo] = useState({ courier: '', tracking: '' });
   const [creatorFilter, setCreatorFilter] = useState('all');
   
+  // Reviews State
+  const [reviews, setReviews] = useState<Review[]>([]);
+
   const [erpPricing, setErpPricing] = useState<ERPState>({
     effectiveCost: 0,
     averageCost: 0,
@@ -1402,12 +739,56 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
     return () => clearInterval(interval);
   }, [isSupabaseConfigured]);
 
+  // Fetch Reviews when Reviews tab is active
+  useEffect(() => {
+    if (activeTab === 'reviews') {
+        const fetchReviews = async () => {
+            if (isSupabaseConfigured) {
+                const { data } = await supabase.from('reviews').select('*').order('createdAt', { ascending: false });
+                if (data) setReviews(data);
+            } else {
+                const local = localStorage.getItem('site_reviews');
+                if (local) setReviews(JSON.parse(local));
+            }
+        };
+        fetchReviews();
+    }
+  }, [activeTab]);
+
+  const handleDeleteReview = async (id: string) => {
+      if (!window.confirm("Are you sure you want to delete this review?")) return;
+      
+      const newReviews = reviews.filter(r => r.id !== id);
+      setReviews(newReviews);
+
+      if (isSupabaseConfigured) {
+          await supabase.from('reviews').delete().eq('id', id);
+      } else {
+          localStorage.setItem('site_reviews', JSON.stringify(newReviews));
+      }
+  };
+
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
   
   const handleSaveProduct = async () => { const newProduct = { ...productData, id: editingId || Date.now().toString(), createdAt: productData.createdAt || Date.now(), createdBy: productData.createdBy || user?.id }; const ok = await updateData('products', newProduct); if (ok) { setShowProductForm(false); setEditingId(null); } };
   const handleSaveCategory = async () => { const newCat = { ...catData, id: editingId || Date.now().toString(), createdBy: catData.createdBy || user?.id }; const ok = await updateData('categories', newCat); if (ok) { setShowCategoryForm(false); setEditingId(null); } };
   const handleSaveHero = async () => { const newSlide = { ...heroData, id: editingId || Date.now().toString(), createdBy: heroData.createdBy || user?.id }; const ok = await updateData('hero_slides', newSlide); if (ok) { setShowHeroForm(false); setEditingId(null); } };
   const handleSaveAdmin = async () => { if (!adminData.email) return; setCreatingAdmin(true); try { const newAdmin = { ...adminData, id: editingId || Date.now().toString(), createdAt: adminData.createdAt || Date.now() }; const ok = await updateData('admin_users', newAdmin); if (ok) { setShowAdminForm(false); setEditingId(null); } } catch (err: any) { alert(`Error saving member: ${err.message}`); } finally { setCreatingAdmin(false); } };
+  
+  // NEW: Blog Article Handler
+  const handleSaveArticle = async () => {
+    const newArticle: Article = {
+        ...articleData as Article,
+        id: editingId || Date.now().toString(),
+        date: articleData.date || Date.now(),
+        author: articleData.author || settings.companyName,
+    };
+    const ok = await updateData('articles', newArticle);
+    if (ok) {
+        setShowArticleForm(false);
+        setEditingId(null);
+    }
+  };
 
   const toggleEnquiryStatus = async (enquiry: Enquiry) => { if(!hasPermission('sales.manage')) return; const updated = { ...enquiry, status: enquiry.status === 'read' ? 'unread' : 'read' }; await updateData('enquiries', updated); };
   const handleAddSubCategory = async (categoryId: string) => { if (!tempSubCatName.trim()) return; const newSub: SubCategory = { id: Date.now().toString(), categoryId, name: tempSubCatName, createdBy: user?.id }; await updateData('subcategories', newSub); setTempSubCatName(''); };
@@ -1426,6 +807,17 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
   const updateTempSettings = (newSettings: Partial<SiteSettings>) => setTempSettings(prev => ({ ...prev, ...newSettings }));
   const exportEnquiries = () => { if(!hasPermission('sales.export')) return; const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + enquiries.map(e => `${e.name},${e.email},${e.subject},"${e.message}",${new Date(e.createdAt).toLocaleDateString()}`).join("\n"); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "enquiries_export.csv"); document.body.appendChild(link); link.click(); };
   const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
+
+  const exportSubscribers = () => { 
+    if(!hasPermission('sales.export')) return; 
+    const csvContent = "data:text/csv;charset=utf-8," + "Email,Joined Date\n" + subscribers.map(s => `${s.email},${new Date(s.createdAt).toLocaleDateString()}`).join("\n"); 
+    const encodedUri = encodeURI(csvContent); 
+    const link = document.createElement("a"); 
+    link.setAttribute("href", encodedUri); 
+    link.setAttribute("download", "subscribers_export.csv"); 
+    document.body.appendChild(link); 
+    link.click(); 
+  };
 
   const handleErpChange = (field: keyof ERPState, value: any, isProductForm: boolean = false) => {
     let state = isProductForm 
@@ -1481,6 +873,7 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
   };
 
   const generateGlobalReport = () => {
+    // ... (unchanged)
     const doc = new jsPDF();
     const activeOrders = orders.filter(o => o.status !== 'cancelled');
     const totalRevenue = activeOrders.reduce((acc, o) => acc + o.total, 0);
@@ -1509,6 +902,7 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
   };
 
   const generateAffiliateReport = () => {
+    // ... (unchanged)
     const doc = new jsPDF();
     const affiliateOrders = orders.filter(o => o.affiliateId && o.status !== 'cancelled');
     const affiliateStats: Record<string, { count: number, sales: number, commission: number }> = {};
@@ -1538,6 +932,7 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
   };
 
   const generateUserReport = (admin: AdminUser) => {
+    // ... (unchanged)
     const doc = new jsPDF();
     const affiliateOrders = orders.filter(o => o.affiliateId === admin.id && o.status !== 'cancelled');
     const totalSales = affiliateOrders.reduce((sum, o) => sum + o.total, 0);
@@ -1562,6 +957,8 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
     autoTable(doc, { startY: 65, head: [['Date', 'Order ID', 'Total', 'Commission']], body: tableData });
     doc.save(`affiliate_report_${admin.name.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
   };
+
+  // --- RENDER FUNCTIONS ---
 
   const renderEnquiries = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
@@ -1592,6 +989,157 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
           </div>
         ))
       }
+    </div>
+  );
+
+  const renderSubscribers = () => (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Audience</h2><p className="text-slate-400 text-sm">Manage your newsletter subscribers.</p></div>
+         <div className="flex gap-3 w-full md:w-auto">
+            {hasPermission('sales.export') && <button onClick={exportSubscribers} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><FileSpreadsheet size={16}/> Export CSV</button>}
+         </div>
+      </div>
+      
+      {subscribers.length === 0 ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">No subscribers yet.</div> : 
+        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden">
+            <table className="w-full text-left border-collapse">
+                <thead>
+                    <tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800">
+                        <th className="p-6">Email Address</th>
+                        <th className="p-6">Joined Date</th>
+                        <th className="p-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                    {subscribers.sort((a,b) => b.createdAt - a.createdAt).map(sub => (
+                        <tr key={sub.id} className="hover:bg-slate-800/30 transition-colors">
+                            <td className="p-6 text-sm text-white font-bold">{sub.email}</td>
+                            <td className="p-6 text-xs text-slate-400">{new Date(sub.createdAt).toLocaleDateString()}</td>
+                            <td className="p-6 text-right">
+                                <button onClick={() => deleteData('subscribers', sub.id)} className="p-2 bg-slate-800 text-slate-500 rounded-lg hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+      }
+    </div>
+  );
+
+  const renderArticles = () => (
+    <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
+        {showArticleForm ? (
+            <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
+                <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6">
+                    <h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Article' : 'New Journal Entry'}</h3>
+                    <button onClick={() => setShowArticleForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                        <SettingField label="Title" value={articleData.title || ''} onChange={v => setArticleData({ ...articleData, title: v })} />
+                        <SettingField label="Author" value={articleData.author || settings.companyName} onChange={v => setArticleData({ ...articleData, author: v })} />
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Publish Date</label>
+                            <input 
+                                type="date" 
+                                className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none"
+                                value={articleData.date ? new Date(articleData.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
+                                onChange={e => setArticleData({ ...articleData, date: new Date(e.target.value).getTime() })}
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-6">
+                        <SingleImageUploader label="Cover Image" value={articleData.image || ''} onChange={v => setArticleData({ ...articleData, image: v })} className="h-48 w-full object-cover rounded-2xl" />
+                        <SettingField label="Excerpt" value={articleData.excerpt || ''} onChange={v => setArticleData({ ...articleData, excerpt: v })} type="textarea" rows={3} />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <SettingField label="Content (Markdown Supported)" value={articleData.content || ''} onChange={v => setArticleData({ ...articleData, content: v })} type="textarea" rows={15} />
+                </div>
+                <div className="flex gap-4 pt-8 border-t border-slate-800">
+                    <button onClick={handleSaveArticle} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110">Save Article</button>
+                    <button onClick={() => setShowArticleForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white">Cancel</button>
+                </div>
+            </div>
+        ) : (
+            <>
+                <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left">
+                    <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Journal</h2><p className="text-slate-400 text-sm">Curate your editorial content.</p></div>
+                    <button onClick={() => { setArticleData({}); setShowArticleForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> New Article</button>
+                </div>
+                <div className="grid gap-6">
+                    {articles.map(article => (
+                        <div key={article.id} className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row gap-6 hover:border-primary/30 transition-colors group">
+                            <div className="w-full md:w-48 h-32 bg-slate-800 rounded-xl overflow-hidden flex-shrink-0">
+                                <img src={article.image} alt={article.title} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex-grow min-w-0">
+                                <div className="flex justify-between items-start">
+                                    <h4 className="text-xl font-serif text-white mb-2 line-clamp-1">{article.title}</h4>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => { setArticleData(article); setEditingId(article.id); setShowArticleForm(true); }} className="p-2 bg-slate-800 text-slate-400 rounded-lg hover:text-white"><Edit2 size={16}/></button>
+                                        <button onClick={() => deleteData('articles', article.id)} className="p-2 bg-slate-800 text-slate-400 rounded-lg hover:text-red-500"><Trash2 size={16}/></button>
+                                    </div>
+                                </div>
+                                <p className="text-slate-500 text-sm line-clamp-2 mb-4">{article.excerpt}</p>
+                                <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                                    <span>{new Date(article.date).toLocaleDateString()}</span>
+                                    <span>{article.author}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {articles.length === 0 && <div className="text-center py-20 text-slate-500">No articles found.</div>}
+                </div>
+            </>
+        )}
+    </div>
+  );
+
+  const renderReviews = () => (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+            <div className="space-y-2">
+                <h2 className="text-3xl font-serif text-white">Reviews</h2>
+                <p className="text-slate-400 text-sm">Manage user feedback and moderation.</p>
+            </div>
+        </div>
+        
+        {reviews.length === 0 ? (
+            <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
+                <ThumbsUp className="mx-auto mb-4 opacity-50" size={32}/>
+                <p className="text-sm">No reviews submitted yet.</p>
+            </div>
+        ) : (
+            <div className="grid gap-4">
+                {reviews.map(review => {
+                    const product = products.find(p => p.id === review.productId);
+                    return (
+                        <div key={review.id} className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row justify-between items-start gap-6 hover:border-slate-700 transition-colors">
+                            <div className="flex-grow min-w-0">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="flex text-yellow-500">
+                                        {[1, 2, 3, 4, 5].map(s => <Star key={s} size={12} fill={s <= review.rating ? "currentColor" : "none"} />)}
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{new Date(review.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <h4 className="text-white font-bold text-sm mb-1">{review.userName} <span className="text-slate-500 font-normal">on</span> <span className="text-primary">{product?.name || 'Unknown Product'}</span></h4>
+                                <p className="text-slate-400 text-xs italic leading-relaxed">"{review.comment}"</p>
+                            </div>
+                            <button 
+                                onClick={() => handleDeleteReview(review.id)}
+                                className="p-3 bg-slate-800 text-slate-500 rounded-xl hover:bg-red-500/20 hover:text-red-500 transition-colors flex-shrink-0"
+                                title="Delete Review"
+                            >
+                                <Trash2 size={16}/>
+                            </button>
+                        </div>
+                    );
+                })}
+            </div>
+        )}
     </div>
   );
 
@@ -1941,12 +1489,15 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
     { id: 'enquiries', label: 'Inbox', icon: Inbox, perm: 'sales.view' },
     { id: 'orders', label: 'Orders', icon: ShoppingBag, perm: 'sales.orders' },
     { id: 'analytics', label: 'Insights', icon: BarChart3, perm: 'analytics.view' },
+    { id: 'subscribers', label: 'Audience', icon: Users, perm: 'sales.view' }, // Added Subscribers Tab
     { id: 'catalog', label: 'Items', icon: Tag, perm: 'catalog.view' },
     { id: 'hero', label: 'Visuals', icon: LayoutPanelTop, perm: 'content.hero' },
     { id: 'categories', label: 'Depts', icon: Layout, perm: 'content.categories' },
+    { id: 'articles', label: 'Journal', icon: BookOpen, perm: 'content.categories' }, // ADDED BLOG TAB
     { id: 'site_editor', label: 'Canvas', icon: Palette, perm: 'site.editor' },
     { id: 'team', label: 'Maison', icon: Users, perm: 'team.view' },
     { id: 'pricing', label: 'Pricing Tool', icon: Calculator, perm: 'catalog.view' },
+    { id: 'reviews', label: 'Reviews', icon: ThumbsUp, perm: 'catalog.view' },
     { id: 'training', label: 'Training', icon: GraduationCap, perm: 'training.view' }, 
     { id: 'system', label: 'System', icon: Activity, perm: 'system.view' },
     { id: 'guide', label: 'Pilot', icon: Rocket, perm: 'system.view' } 
@@ -1984,14 +1535,17 @@ const SystemMonitor: React.FC<{ connectionHealth: any; systemLogs: any[]; storag
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
         {activeTab === 'enquiries' && (hasPermission('sales.view') ? renderEnquiries() : <AccessDenied />)}
+        {activeTab === 'subscribers' && (hasPermission('sales.view') ? renderSubscribers() : <AccessDenied />)}
         {activeTab === 'orders' && (hasPermission('sales.orders') ? renderOrders() : <AccessDenied />)}
         {activeTab === 'analytics' && (hasPermission('analytics.view') ? <AnalyticsDashboard trafficEvents={trafficEvents} products={products} stats={stats} orders={orders} categories={categories} /> : <AccessDenied />)}
         {activeTab === 'catalog' && (hasPermission('catalog.view') ? renderCatalog() : <AccessDenied />)}
         {activeTab === 'hero' && (hasPermission('content.hero') ? renderHero() : <AccessDenied />)}
         {activeTab === 'categories' && (hasPermission('content.categories') ? renderCategories() : <AccessDenied />)}
+        {activeTab === 'articles' && (hasPermission('content.categories') ? renderArticles() : <AccessDenied />)}
         {activeTab === 'site_editor' && (hasPermission('site.editor') ? renderSiteEditor() : <AccessDenied />)}
         {activeTab === 'team' && (hasPermission('team.view') ? renderTeam() : <AccessDenied />)}
         {activeTab === 'pricing' && (hasPermission('catalog.view') ? renderPricingTool() : <AccessDenied />)}
+        {activeTab === 'reviews' && (hasPermission('catalog.view') ? renderReviews() : <AccessDenied />)}
         {activeTab === 'training' && <TrainingGrid />} 
         {activeTab === 'system' && (hasPermission('system.view') ? <SystemMonitor connectionHealth={connectionHealth} systemLogs={systemLogs} storageStats={storageStats} /> : <AccessDenied />)}
         {activeTab === 'guide' && (hasPermission('system.view') ? renderGuide() : <AccessDenied />)}
