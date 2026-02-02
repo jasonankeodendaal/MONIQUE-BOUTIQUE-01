@@ -28,7 +28,7 @@ export const GUIDE_STEPS = [
       'Click "Run". Ensure all statements return "Success".',
       'This establishes 17 tables with recursion-proof Row Level Security.'
     ],
-    codeLabel: 'Full System Architecture (v13.0 - Absolute Conflict Fix)',
+    codeLabel: 'Full System Architecture (v13.5 - Analytics & Orders Fix)',
     code: `-- 1. AGGRESSIVE POLICY CLEANUP
 -- This block dynamically drops every existing policy in the public schema 
 -- to prevent "Policy already exists" errors.
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS public_settings (
   "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
   "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
   "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT,
-  "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT,
+  "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT, "googleMyBusinessUrl" TEXT,
   "socialLinks" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT,
   "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
   "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeTrustSectionTitle" TEXT,
@@ -181,6 +181,18 @@ CREATE POLICY "Public_Insert_Subscribers" ON subscribers FOR INSERT WITH CHECK (
 CREATE POLICY "Public_Insert_Enquiries" ON enquiries FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public_Insert_Reviews" ON reviews FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public_Insert_Traffic" ON traffic_logs FOR INSERT WITH CHECK (true);
+
+-- Public Analytics Update (Views/Clicks)
+CREATE POLICY "Public_Manage_Stats" ON product_stats FOR ALL USING (true) WITH CHECK (true);
+
+-- Customer Order Management
+CREATE POLICY "Customer_Manage_Orders" ON orders FOR ALL 
+USING (auth.uid()::text = "userId") 
+WITH CHECK (auth.uid()::text = "userId");
+
+CREATE POLICY "Customer_Manage_OrderItems" ON order_items FOR ALL 
+USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items."orderId" AND orders."userId" = auth.uid()::text))
+WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items."orderId" AND orders."userId" = auth.uid()::text));
 
 -- Profile Control
 CREATE POLICY "Profiles_Public_View" ON profiles FOR SELECT USING (true);
@@ -404,7 +416,7 @@ begin
     'authenticated',
     'authenticated',
     email,
-    encrypted_pw,
+    encrypted_password,
     now(),
     null,
     null,
