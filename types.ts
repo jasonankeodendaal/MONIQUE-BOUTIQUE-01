@@ -280,6 +280,7 @@ export interface TrainingModule {
   strategies: string[];
   actionItems: string[];
   icon: string;
+  createdBy?: string;
 }
 
 export interface SystemLog {
@@ -387,6 +388,7 @@ export interface SettingsContextType {
   subscribers: Subscriber[];
   stats: ProductStats[];
   orders: Order[]; // New
+  trainingModules: TrainingModule[];
   // Actions
   refreshAllData: () => Promise<void>;
   updateData: (table: string, data: any) => Promise<boolean>;

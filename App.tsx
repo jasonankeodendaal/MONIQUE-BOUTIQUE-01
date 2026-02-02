@@ -18,8 +18,8 @@ import Blog from './pages/Blog';
 import ArticleDetail from './pages/ArticleDetail';
 import CartDrawer from './components/CartDrawer';
 import NewsletterPopup from './components/NewsletterPopup';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order, TrafficLog, Article, Subscriber } from './types';
-import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, INITIAL_ARTICLES, INITIAL_SUBSCRIBERS } from './constants';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order, TrafficLog, Article, Subscriber, TrainingModule } from './types';
+import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, INITIAL_ARTICLES, INITIAL_SUBSCRIBERS, TRAINING_MODULES } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, checkAndMigrate } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { CartProvider } from './context/CartContext';
@@ -428,6 +428,7 @@ const App: React.FC = () => {
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
   const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
   const [subscribers, setSubscribers] = useState<Subscriber[]>(() => getLocalState('admin_subscribers', INITIAL_SUBSCRIBERS));
+  const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(() => getLocalState('admin_training_modules', TRAINING_MODULES));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
   const [orders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
 
@@ -470,10 +471,10 @@ const App: React.FC = () => {
   });
 
   const calculateStorage = useCallback(() => {
-      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers];
+      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers, trainingModules];
       const jsonString = JSON.stringify(dataSet);
       const dbBytes = new Blob([jsonString]).size;
-      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length + orders.length + articles.length + subscribers.length;
+      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length + orders.length + articles.length + subscribers.length + trainingModules.length;
       let mediaBytes = 0;
       let mediaCnt = 0;
 
@@ -497,7 +498,7 @@ const App: React.FC = () => {
       });
 
       setStorageStats({ dbSize: dbBytes, mediaSize: mediaBytes, totalRecords: totalRecs, mediaCount: mediaCnt });
-  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers]);
+  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers, trainingModules]);
 
   useEffect(() => {
     calculateStorage();
@@ -515,7 +516,7 @@ const App: React.FC = () => {
   // --- DYNAMIC HEAD & PWA MANIFEST SYSTEM ---
   useEffect(() => {
     // 1. Update Title
-    document.title = settings.companyName || 'Monique Boutique';
+    document.title = settings.companyName || 'FINDARA';
 
     // 2. Update Favicon (Standard)
     if (settings.companyLogoUrl) {
@@ -578,13 +579,13 @@ const App: React.FC = () => {
       theme_color: primaryColor,
       icons: [
         {
-          src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
+          src: settings.companyLogoUrl || "https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png",
           sizes: "500x500", 
           type: "image/png",
           purpose: "any"
         },
         {
-          src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
+          src: settings.companyLogoUrl || "https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png",
           sizes: "192x192", 
           type: "image/png",
           purpose: "maskable"
@@ -646,18 +647,15 @@ const App: React.FC = () => {
         fetchTableData('categories'),
         fetchTableData('subcategories'),
         fetchTableData('hero_slides'),
-        fetchTableData('articles'), // Added articles fetch
+        fetchTableData('articles'),
+        fetchTableData('training_modules'),
       ]);
 
-      const [s, p, c, sc, hs, ar] = results;
+      const [s, p, c, sc, hs, ar, tm] = results;
 
-      // Handle Public Settings
       if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
         const { id, ...rest } = s.value[0];
         setSettingsId(id);
-        
-        // Merge with existing state to preserve structure
-        // FIX: Prevent nulls from DB overwriting valid defaults
         const mergedSettings = { ...settings };
         Object.keys(rest).forEach(key => {
             const val = (rest as any)[key];
@@ -665,23 +663,18 @@ const App: React.FC = () => {
                 (mergedSettings as any)[key] = val;
             }
         });
-        
         setSettings(mergedSettings);
         localStorage.setItem('site_settings', JSON.stringify(mergedSettings));
       } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
-        // Init public settings if empty
-        // FIX: Separate private keys to prevent schema error on public_settings table
         const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
         const initialPublic: any = { ...INITIAL_SETTINGS, id: 'global' };
         const initialPrivate: any = { id: 'global' };
-
         privateKeys.forEach(k => {
             if (k in initialPublic) {
                 initialPrivate[k] = initialPublic[k];
                 delete initialPublic[k];
             }
         });
-
         await upsertData('public_settings', initialPublic);
         await upsertData('private_secrets', initialPrivate);
         setSettingsId('global');
@@ -707,6 +700,10 @@ const App: React.FC = () => {
           setArticles(ar.value);
           localStorage.setItem('admin_articles', JSON.stringify(ar.value));
       }
+      if (tm.status === 'fulfilled' && tm.value !== null) {
+          setTrainingModules(tm.value);
+          localStorage.setItem('admin_training_modules', JSON.stringify(tm.value));
+      }
     } catch (e) {
       console.error("Public data fetch failed", e);
     }
@@ -716,7 +713,6 @@ const App: React.FC = () => {
     if (!isSupabaseConfigured) return;
     
     try {
-      // Admin authenticated fetch including secrets
       const results = await Promise.allSettled([
         fetchTableData('enquiries'),
         fetchTableData('admin_users'),
@@ -749,16 +745,12 @@ const App: React.FC = () => {
           localStorage.setItem('admin_subscribers', JSON.stringify(subs.value));
       }
       
-      // Merge secrets into settings state if present
       if (sec.status === 'fulfilled' && sec.value && sec.value.length > 0) {
           const secretData = sec.value[0];
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, ...secrets } = secretData;
           setSettings(prev => ({ ...prev, ...secrets }));
-          // We intentionally do NOT save secrets to localStorage for security
-          // They live in memory only while admin session is active
       } else if (sec.status === 'fulfilled' && sec.value && sec.value.length === 0) {
-          // Initialize secrets row if missing
           await upsertData('private_secrets', { id: 'global' });
       }
 
@@ -793,12 +785,6 @@ const App: React.FC = () => {
     let authSubscription: any = null;
 
     const initSequence = async () => {
-       if (isSupabaseConfigured) {
-          // We check for migration, but now migration maps to public_settings
-          // The checkAndMigrate function in lib/supabase.ts needs update or manual handling
-          // For now, assuming fresh start or manual migration via Guide
-       }
-       // Initial Public Data Load
        if (mounted) {
          await fetchPublicData();
          setIsDataLoaded(true);
@@ -809,7 +795,6 @@ const App: React.FC = () => {
 
     if (!isSupabaseConfigured) {
       setLoadingAuth(false);
-      // Local mode data is lazy loaded from localStorage, so set flag immediately
       setIsDataLoaded(true);
       return;
     }
@@ -825,7 +810,6 @@ const App: React.FC = () => {
          if (mounted) setUser(currentUser);
          
          if (currentUser) {
-            // Fetch admin data immediately if session exists
             await fetchAdminData();
          }
 
@@ -835,7 +819,6 @@ const App: React.FC = () => {
              setUser(newUser);
              setLoadingAuth(false);
              if (newUser) {
-                // Fetch admin data on login
                 await fetchAdminData();
              }
            }
@@ -859,8 +842,6 @@ const App: React.FC = () => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     
-    // Persist safe settings to local storage
-    // We filter out secrets so they don't persist in browser storage
     const safeSettings = { ...updated };
     delete (safeSettings as any).payfastSaltPassphrase;
     delete (safeSettings as any).zapierWebhookUrl;
@@ -870,8 +851,6 @@ const App: React.FC = () => {
 
     if (isSupabaseConfigured) {
       try {
-        // Split update between Public and Private tables
-        // 1. Identify Private keys
         const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
         const publicPayload: any = { id: settingsId };
         const privatePayload: any = { id: settingsId };
@@ -921,8 +900,9 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
         case 'orders': setOrders(updateLocalState(orders)); break;
-        case 'articles': setArticles(updateLocalState(articles)); break; // Added articles
+        case 'articles': setArticles(updateLocalState(articles)); break;
         case 'subscribers': setSubscribers(updateLocalState(subscribers)); break;
+        case 'training_modules': setTrainingModules(updateLocalState(trainingModules)); break;
     }
 
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
@@ -958,8 +938,9 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
         case 'orders': setOrders(deleteLocalState(orders)); break;
-        case 'articles': setArticles(deleteLocalState(articles)); break; // Added articles
+        case 'articles': setArticles(deleteLocalState(articles)); break;
         case 'subscribers': setSubscribers(deleteLocalState(subscribers)); break;
+        case 'training_modules': setTrainingModules(deleteLocalState(trainingModules)); break;
     }
 
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
@@ -987,21 +968,13 @@ const App: React.FC = () => {
     source: string = 'Direct',
     extra?: { interactionType?: string }
   ) => {
-    // UTM Capture
     const params = new URLSearchParams(window.location.search);
     const utmCampaign = params.get('utm_campaign') || undefined;
     const utmMedium = params.get('utm_medium') || undefined;
-
-    // Scroll Depth
     const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
     const scrollDepth = scrollHeight > 0 ? Math.round((window.scrollY / scrollHeight) * 100) : 0;
-
-    // Session Duration
     const sessionDuration = Math.round((Date.now() - sessionStartTime.current) / 1000);
-
-    // City from Session (fetched by TrafficTracker)
     const city = sessionStorage.getItem('visitor_city') || undefined;
-
     const eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newEvent: TrafficLog = {
       id: eventId,
@@ -1010,8 +983,7 @@ const App: React.FC = () => {
       time: new Date().toLocaleTimeString(),
       timestamp: Date.now(),
       source: source || 'Direct',
-      city, // Added city
-      // Enhanced Telemetry
+      city,
       utmCampaign,
       utmMedium,
       scrollDepth,
@@ -1021,7 +993,7 @@ const App: React.FC = () => {
 
     if (isSupabaseConfigured) {
       try {
-        const { error } = await supabase.from('traffic_logs').insert([newEvent]);
+        await supabase.from('traffic_logs').insert([newEvent]);
       } catch (err) {}
     } else {
       const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
@@ -1066,23 +1038,19 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // GLOBAL ERROR LISTENER: Captures errors from anywhere in the app
     const handleGlobalError = (event: ErrorEvent) => {
       try {
         logEvent('system', `[CRITICAL] Runtime Exception: ${event.message}`, event.filename || 'Script');
       } catch (e) { console.error(e); }
     };
-
     const handleGlobalRejection = (event: PromiseRejectionEvent) => {
       try {
         const reason = event.reason instanceof Error ? event.reason.message : String(event.reason);
         logEvent('system', `[CRITICAL] Async Failure: ${reason}`, 'Promise');
       } catch (e) { console.error(e); }
     };
-
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleGlobalRejection);
-
     return () => {
       window.removeEventListener('error', handleGlobalError);
       window.removeEventListener('unhandledrejection', handleGlobalRejection);
@@ -1119,7 +1087,7 @@ const App: React.FC = () => {
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, 
-      products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers,
+      products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers, trainingModules,
       refreshAllData, updateData, deleteData,
       user, loadingAuth, 
       isDataLoaded,

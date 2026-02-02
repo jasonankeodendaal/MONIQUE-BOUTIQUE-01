@@ -4,58 +4,39 @@ import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser,
 export const GUIDE_STEPS = [
   {
     id: 'supabase-init',
-    title: '1. Supabase Infrastructure',
-    description: 'Supabase is your backend-as-a-service. It replaces a traditional server, handling your database, authentication, and file storage in one secure cloud environment.',
+    title: '1. Supabase Cloud Foundation',
+    description: 'Establish your backend-as-a-service. Supabase handles your Postgres database, Authentication, and S3-compatible Storage.',
     illustrationId: 'rocket',
     subSteps: [
-      'Visit https://supabase.com and click "Start your project".',
-      'Sign in with GitHub (recommended for easier deployment later) or email.',
-      'Click "New Project". Choose an Organization (create one if needed).',
-      'Name: "Affiliate Bridge". Region: Select the one closest to your target audience (e.g., Cape Town, London, or N. Virginia).',
-      'Database Password: Generate a strong password and STORE IT in a password manager. You cannot recover it later.',
-      'Click "Create New Project" and wait 1-2 minutes for provisioning.'
+      'Create an account at https://supabase.com.',
+      'Start a "New Project" and assign it a name (e.g., "Maison Affiliate").',
+      'Select a Region close to your primary traffic source.',
+      'Generate a Secure Database Password and copy it immediately.',
+      'Wait for the "Project API" keys to appear on your dashboard.'
     ]
   },
   {
-    id: 'database',
-    title: '2. Database Schema (Repair & Setup)',
-    description: 'This script defines your data structure. It includes a "Safety Flush" to remove any corrupted or recursive security policies before creating clean ones.',
+    id: 'database-master',
+    title: '2. Master Schema & Security Repair',
+    description: 'This script builds the entire data architecture. It includes a safety flush to prevent policy conflicts and implements advanced Row Level Security (RLS).',
     illustrationId: 'forge',
     subSteps: [
-      'In your Supabase Dashboard, look at the left sidebar icon menu.',
-      'Click on "SQL Editor" (icon looks like a terminal prompt >_).',
-      'Click "+ New Query" at the top left.',
-      'Copy the entire SQL block provided below.',
-      'Paste it into the editor window.',
-      'Click the green "Run" button at the bottom right.',
-      'Success Check: Look for "Success. No rows returned" in the results area.'
+      'Navigate to the SQL Editor in your Supabase dashboard.',
+      'Open a "+ New Query" tab.',
+      'Copy and paste the entire SQL block below.',
+      'Click "Run". Ensure all statements return "Success".',
+      'This creates all 17 system tables including Orders, Products, and Traffic Logs.'
     ],
-    code: `-- MASTER ARCHITECTURE & REPAIR SCRIPT v8.0
--- Fixes "Policy Already Exists" and "Infinite Recursion" errors.
-
--- 1. EXTENSIONS
+    codeLabel: 'Full System Architecture (v10.0)',
+    code: `-- 1. EXTENSIONS & RESET
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- 2. SAFETY FLUSH (Drop existing policies to prevent recursion & existence errors)
-DO $$ 
-DECLARE 
-    r RECORD; 
-BEGIN 
-    -- Drop policies on public tables
-    FOR r IN SELECT schemaname, tablename, policyname FROM pg_policies WHERE schemaname = 'public' 
-    LOOP 
+DO $$ DECLARE r RECORD; BEGIN 
+    FOR r IN SELECT schemaname, tablename, policyname FROM pg_policies WHERE schemaname = 'public' LOOP 
         EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', r.policyname, r.schemaname, r.tablename); 
     END LOOP;
-
-    -- Explicitly drop storage policies to prevent Error 42710
-    EXECUTE 'DROP POLICY IF EXISTS "Public Access Media" ON storage.objects';
-    EXECUTE 'DROP POLICY IF EXISTS "Public Insert Media" ON storage.objects';
-    EXECUTE 'DROP POLICY IF EXISTS "Public Update Media" ON storage.objects';
-    EXECUTE 'DROP POLICY IF EXISTS "Public Delete Media" ON storage.objects';
-    EXECUTE 'DROP POLICY IF EXISTS "Admin Upload Media" ON storage.objects';
 END $$;
 
--- 3. TABLE DEFINITIONS
+-- 2. CORE SYSTEM TABLES
 CREATE TABLE IF NOT EXISTS public_settings (
   id TEXT PRIMARY KEY DEFAULT 'global',
   "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
@@ -81,18 +62,12 @@ CREATE TABLE IF NOT EXISTS public_settings (
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "pinterestTagId" TEXT,
   "enableDirectSales" BOOLEAN DEFAULT false, "currency" TEXT DEFAULT 'ZAR', 
-  "yocoPublicKey" TEXT, "payfastMerchantId" TEXT, "payfastMerchantKey" TEXT,
-  "bankDetails" TEXT,
+  "yocoPublicKey" TEXT, "payfastMerchantId" TEXT, "payfastMerchantKey" TEXT, "bankDetails" TEXT,
   "vatRegistered" BOOLEAN DEFAULT false, "vatRate" NUMERIC, "vatNumber" TEXT,
   "bankName" TEXT, "accountNumber" TEXT, "branchCode" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS private_secrets (
-  id TEXT PRIMARY KEY DEFAULT 'global',
-  "payfastSaltPassphrase" TEXT, 
-  "zapierWebhookUrl" TEXT,
-  "webhookUrl" TEXT
-);
+CREATE TABLE IF NOT EXISTS private_secrets (id TEXT PRIMARY KEY DEFAULT 'global', "payfastSaltPassphrase" TEXT, "zapierWebhookUrl" TEXT, "webhookUrl" TEXT);
 
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT,
@@ -107,16 +82,16 @@ CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TE
 CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
 CREATE TABLE IF NOT EXISTS articles (id TEXT PRIMARY KEY, title TEXT, excerpt TEXT, content TEXT, image TEXT, date BIGINT, author TEXT);
 CREATE TABLE IF NOT EXISTS subscribers (id TEXT PRIMARY KEY, email TEXT, "createdAt" BIGINT);
+CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, strategies TEXT[], "actionItems" TEXT[], icon TEXT, "createdBy" TEXT);
 
 CREATE TABLE IF NOT EXISTS admin_users (
-  id TEXT PRIMARY KEY, 
-  name TEXT, email TEXT, role TEXT, permissions TEXT[], 
+  id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], 
   "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT,
   "commissionRate" NUMERIC DEFAULT 0, "totalEarnings" NUMERIC DEFAULT 0, "uploadLimit" INTEGER DEFAULT 0, "canUpload" BOOLEAN DEFAULT false
 );
 
-CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT, city TEXT, "utmCampaign" TEXT, "utmMedium" TEXT, "scrollDepth" INTEGER, "sessionDuration" INTEGER, "interactionType" TEXT);
-CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
+CREATE TABLE IF NOT EXISTS product_stats ("productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT);
+CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT, city TEXT, device TEXT, "utmCampaign" TEXT, "utmMedium" TEXT, "scrollDepth" INTEGER, "sessionDuration" INTEGER, "interactionType" TEXT);
 CREATE TABLE IF NOT EXISTS reviews (id TEXT PRIMARY KEY, "productId" TEXT REFERENCES products(id) ON DELETE CASCADE, "userName" TEXT, rating INTEGER, comment TEXT, "createdAt" BIGINT);
 
 CREATE TABLE IF NOT EXISTS orders (
@@ -125,139 +100,348 @@ CREATE TABLE IF NOT EXISTS orders (
   "courierName" TEXT, "trackingNumber" TEXT, "trackingUrl" TEXT, "affiliateId" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS order_items (
-  id TEXT PRIMARY KEY, "orderId" TEXT REFERENCES orders(id) ON DELETE CASCADE,
-  "productId" TEXT, "productName" TEXT, quantity INTEGER, price NUMERIC
-);
+CREATE TABLE IF NOT EXISTS order_items (id TEXT PRIMARY KEY, "orderId" TEXT REFERENCES orders(id) ON DELETE CASCADE, "productId" TEXT, "productName" TEXT, quantity INTEGER, price NUMERIC);
 
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   "fullName" TEXT, phone TEXT, building TEXT, street TEXT, suburb TEXT, city TEXT, province TEXT, "postalCode" TEXT, "updatedAt" BIGINT
 );
 
--- 4. RLS ENABLING
-ALTER TABLE public_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE private_secrets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
-ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
-ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subscribers ENABLE ROW LEVEL SECURITY;
+-- 3. RLS ACTIVATION
+DO $$ DECLARE t TEXT; BEGIN 
+  FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP 
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t); 
+  END LOOP; 
+END $$;
 
--- 5. CLEAN NON-RECURSIVE POLICIES
--- Public Read
-CREATE POLICY "Public Read settings" ON public_settings FOR SELECT USING (true);
-CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
-CREATE POLICY "Public Read categories" ON categories FOR SELECT USING (true);
-CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true);
-CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true);
-CREATE POLICY "Public Read reviews" ON reviews FOR SELECT USING (true);
-CREATE POLICY "Public Read articles" ON articles FOR SELECT USING (true);
+-- 4. ACCESS POLICIES
+CREATE POLICY "PubRead" ON public_settings FOR SELECT USING (true);
+CREATE POLICY "PubRead" ON products FOR SELECT USING (true);
+CREATE POLICY "PubRead" ON categories FOR SELECT USING (true);
+CREATE POLICY "PubRead" ON subcategories FOR SELECT USING (true);
+CREATE POLICY "PubRead" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "PubRead" ON articles FOR SELECT USING (true);
+CREATE POLICY "PubRead" ON reviews FOR SELECT USING (true);
+CREATE POLICY "PubRead" ON training_modules FOR SELECT USING (true);
 
--- Admin Full Access (Simplified for setup)
-CREATE POLICY "Enable all for admin public_settings" ON public_settings FOR ALL USING (true);
-CREATE POLICY "Enable all for admin products" ON products FOR ALL USING (true);
-CREATE POLICY "Enable all for admin categories" ON categories FOR ALL USING (true);
-CREATE POLICY "Enable all for admin subcategories" ON subcategories FOR ALL USING (true);
-CREATE POLICY "Enable all for admin hero_slides" ON hero_slides FOR ALL USING (true);
-CREATE POLICY "Enable all for admin enquiries" ON enquiries FOR ALL USING (true);
-CREATE POLICY "Enable all for admin admin_users" ON admin_users FOR ALL USING (true);
-CREATE POLICY "Enable all for admin traffic_logs" ON traffic_logs FOR ALL USING (true);
-CREATE POLICY "Enable all for admin product_stats" ON product_stats FOR ALL USING (true);
-CREATE POLICY "Enable all for admin orders" ON orders FOR ALL USING (true);
-CREATE POLICY "Enable all for admin order_items" ON order_items FOR ALL USING (true);
-CREATE POLICY "Enable all for admin reviews" ON reviews FOR ALL USING (true);
-CREATE POLICY "Enable all for admin articles" ON articles FOR ALL USING (true);
-CREATE POLICY "Enable all for admin subscribers" ON subscribers FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON public_settings FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON products FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON categories FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON subcategories FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON hero_slides FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON enquiries FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON admin_users FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON traffic_logs FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON product_stats FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON orders FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON order_items FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON reviews FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON articles FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON subscribers FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON training_modules FOR ALL USING (true);
 
--- Lead Capture
-CREATE POLICY "Enable insert for subscribers" ON subscribers FOR INSERT WITH CHECK (true);
-CREATE POLICY "Enable insert for enquiries" ON enquiries FOR INSERT WITH CHECK (true);
+CREATE POLICY "LeadInsert" ON subscribers FOR INSERT WITH CHECK (true);
+CREATE POLICY "LeadInsert" ON enquiries FOR INSERT WITH CHECK (true);
+CREATE POLICY "ReviewInsert" ON reviews FOR INSERT WITH CHECK (true);
 
--- Private Secrets (Auth Only)
-CREATE POLICY "Authenticated Read Secrets" ON private_secrets FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Authenticated Update Secrets" ON private_secrets FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Authenticated Insert Secrets" ON private_secrets FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
--- User Profiles
-CREATE POLICY "Public Read profiles" ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-
--- 6. STORAGE BUCKET & POLICIES
-INSERT INTO storage.buckets (id, name, public) VALUES ('media', 'media', true) ON CONFLICT (id) DO NOTHING;
-
-CREATE POLICY "Public Access Media" ON storage.objects FOR SELECT USING ( bucket_id = 'media' );
-CREATE POLICY "Admin Upload Media" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'media' );
-CREATE POLICY "Admin Update Media" ON storage.objects FOR UPDATE USING ( bucket_id = 'media' );
-CREATE POLICY "Admin Delete Media" ON storage.objects FOR DELETE USING ( bucket_id = 'media' );`,
-    codeLabel: 'Full System Repair Script (v8.0)'
+CREATE POLICY "ProfileView" ON profiles FOR SELECT USING (true);
+CREATE POLICY "ProfileManage" ON profiles FOR ALL USING (auth.uid() = id);`
   },
   {
-    id: 'storage',
-    title: '3. Asset Vault (Storage)',
-    description: 'We need a public bucket to host your images. This acts like a CDN (Content Delivery Network) for your product photos and videos.',
+    id: 'asset-vault',
+    title: '3. Asset Vault (Cloud Storage)',
+    description: 'Enable media hosting for high-resolution product photos, videos, and branding assets.',
     illustrationId: 'rocket',
     subSteps: [
-      'In Supabase, click the "Storage" icon on the left sidebar.',
-      'Click "New Bucket".',
-      'Name it exactly: "media" (lowercase, no spaces).',
-      'Toggle "Public Bucket" to ON. This is crucial for images to display on your site.',
-      'Click "Save".',
-      'Note: The SQL script in Step 2 has already applied the necessary permission policies for this bucket.'
+      'In Supabase, click the "Storage" icon (Bucket icon).',
+      'Click "New Bucket" and name it exactly: "media" (lowercase).',
+      'Set bucket privacy to "Public" so images load for visitors.',
+      'Go to "Policies" and click "New Policy".',
+      'Select "Allow access to everyone for SELECT" and "Allow authenticated users to INSERT/DELETE".',
+      'Save the bucket and test by uploading a single JPG.'
     ]
   },
   {
-    id: 'auth',
-    title: '4. Authentication (Security)',
-    description: 'Set up the login system. We will disable email confirmation for now to make onboarding your first admin (yourself) faster.',
+    id: 'auth-protocol',
+    title: '4. Authentication Protocol',
+    description: 'Configure how administrators and clients access their respective portals.',
     illustrationId: 'forge',
     subSteps: [
-      'Click "Authentication" on the left sidebar.',
-      'Go to "Providers" > "Email" -> Disable "Confirm Email" (Optional, but speeds up testing).',
+      'Go to "Authentication" > "Providers".',
+      'Enable "Email" and disable "Confirm Email" for immediate setup speed.',
       'Go to "URL Configuration".',
-      'Site URL: Add "http://localhost:3000" (for local testing).',
-      'Redirect URLs: Add "http://localhost:3000/**" and "https://your-vercel-domain.vercel.app/**".',
-      'Click Save.'
+      'Site URL: Add your final production domain (e.g., https://maison-findara.vercel.app).',
+      'Redirect URLs: Add "http://localhost:3000/**" and your production URL followed by "/**".',
+      'Go to "Google" provider and paste your Client ID/Secret if using Social Login.'
     ]
   },
   {
-    id: 'environment',
-    title: '5. Local Infrastructure (.env)',
-    description: 'Connect your local code to your new cloud database using environment variables.',
+    id: 'profile-bridge',
+    title: '5. Profile & Auth Bridge',
+    description: 'Syncing your Auth users with the custom Profile table to store shipping addresses.',
     illustrationId: 'rocket',
     subSteps: [
-      'In Supabase, go to Settings (cog icon) > API.',
-      'Find "Project URL" and "anon" public key.',
-      'Open your local project folder in VS Code.',
-      'Create a file named ".env" in the root directory (same level as package.json).',
-      'Paste the variables exactly as shown below, replacing values with your keys.',
-      'Restart your development server (Ctrl+C, then "npm run dev") for changes to take effect.'
+      'This step ensures when a customer registers, their address is saved automatically.',
+      'In the SQL Editor, create a new query.',
+      'Run the "Trigger Script" provided below.',
+      'This automation creates a row in the "profiles" table every time a user confirms their email.'
     ],
-    code: 'VITE_SUPABASE_URL=https://your-project.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-key-here',
-    codeLabel: '.env Variables'
+    codeLabel: 'Profile Auto-Creation Trigger',
+    code: `-- AUTO-PROFILE TRIGGER
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, "fullName", "updatedAt")
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', extract(epoch from now()) * 1000);
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`
   },
   {
-    id: 'deploy',
-    title: '6. Global Deployment (Vercel)',
-    description: 'Launch your bridge page to the world. Vercel provides fast, secure hosting for React apps.',
+    id: 'telemetry-realtime',
+    title: '6. Telemetry & Realtime API',
+    description: 'Enable live traffic monitoring and instant order notifications.',
     illustrationId: 'forge',
     subSteps: [
-      'Push your code to a GitHub repository.',
-      'Visit https://vercel.com and sign up/login.',
-      'Click "Add New..." > "Project" > Import from GitHub.',
-      'Select your repository.',
-      'Environment Variables: Copy the same Name/Value pairs from your local .env file (VITE_SUPABASE_URL, etc.).',
-      'Click "Deploy". Your site is now live!'
+      'Go to "Database" > "Replication".',
+      'In the "Source" table list, find "traffic_logs" and "orders".',
+      'Toggle the "Realtime" switch to ON for both.',
+      'This allows your Admin dashboard to update live without refreshing.',
+      'Go to API settings and ensure "Enable Realtime" is checked under "Settings".'
+    ]
+  },
+  {
+    id: 'environment-linking',
+    title: '7. Infrastructure Link (.env)',
+    description: 'Connect your local code to your cloud infrastructure via secure environment variables.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Go to Project Settings > API.',
+      'Find the "Project URL" and the "anon public key".',
+      'Open your local project in VS Code.',
+      'Edit the ".env" file in the root directory.',
+      'Paste the keys exactly as shown below.',
+      'Restart your Vite dev server to apply changes.'
+    ],
+    codeLabel: '.env Secure Configuration',
+    code: `VITE_SUPABASE_URL=https://your-unique-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-long-alphanumeric-anon-key`
+  },
+  {
+    id: 'bootstrap-owner',
+    title: '8. Bootstrap System Owner',
+    description: 'Grant yourself the first "Owner" role to bypass all local-mode restrictions.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Register an account normally through the "Client Login" page on your site.',
+      'Go back to Supabase SQL Editor.',
+      'Run the bootstrap query below, replacing the email with your registered one.',
+      'This grants you "*" permissions (all access).'
+    ],
+    codeLabel: 'Promote to Owner SQL',
+    code: `INSERT INTO admin_users (id, name, email, role, permissions, "createdAt")
+SELECT id, raw_user_meta_data->>'full_name', email, 'owner', ARRAY['*'], extract(epoch from now()) * 1000
+FROM auth.users
+WHERE email = 'your-email@example.com'
+ON CONFLICT (id) DO UPDATE SET role = 'owner', permissions = ARRAY['*'];`
+  },
+  {
+    id: 'inventory-migration',
+    title: '9. Inventory Migration',
+    description: 'Transfer your local products and categories into the cloud database.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Ensure you are logged in as an Owner.',
+      'Navigate to the "System" tab in the Admin Portal.',
+      'Wait for the "Cloud Connection" to show green status.',
+      'Click the "Sync Local to Cloud" button (if visible) or simply re-save one product.',
+      'The App will detect the empty cloud DB and offer to migrate all 17 tables.'
+    ]
+  },
+  {
+    id: 'global-deployment',
+    title: '10. Global Deployment (Vercel)',
+    description: 'Launch your high-performance bridge page to the worldwide web.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Push your code to a private GitHub repository.',
+      'Connect the repo to Vercel.com.',
+      'Under "Environment Variables", add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.',
+      'Click "Deploy". Your site is now live on a global CDN.',
+      'Configure a custom domain (e.g., style.com) in Vercel settings.'
+    ]
+  },
+  {
+    id: 'domain-ssl',
+    title: '11. Domain & SSL Hardening',
+    description: 'Secure your professional image with a custom domain and SSL encryption.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Purchase a domain from a registrar like Namecheap or Google Domains.',
+      'In Vercel Dashboard, go to Settings > Domains.',
+      'Add your domain (e.g., curatorfinds.com).',
+      'Follow the DNS instructions provided by Vercel to point your A and CNAME records.',
+      'Ensure "Force HTTPS" is enabled to guarantee SSL on every visit.'
+    ],
+    codeLabel: 'Vercel JSON Redirect Config',
+    code: `{
+  "redirects": [
+    { "source": "/(.*)", "destination": "https://www.yourdomain.com/$1", "permanent": true }
+  ]
+}`
+  },
+  {
+    id: 'meta-pixel',
+    title: '12. Meta Pixel Implementation',
+    description: 'Track ad performance and build retargeting audiences for Facebook and Instagram ads.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Go to Meta Events Manager and create a new Pixel/Dataset.',
+      'Copy your "Pixel ID" (a numeric string).',
+      'In this Admin Portal, go to Canvas > Integrations.',
+      'Paste your ID into the "Meta Pixel ID" field and click Apply.',
+      'Test with the "Meta Pixel Helper" browser extension.'
+    ],
+    codeLabel: 'Manual Pixel Init Script',
+    code: `fbq('init', 'YOUR_PIXEL_ID');
+fbq('track', 'PageView');
+fbq('track', 'ViewContent', { content_name: 'Luxury Silk Wrap' });`
+  },
+  {
+    id: 'google-grounding',
+    title: '13. Google Search Console & SEO',
+    description: 'Verify your site with Google to index your curated pages and track organic search keywords.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Navigate to Google Search Console and add your domain.',
+      'Choose "URL Prefix" and select the "HTML Tag" verification method.',
+      'Copy the meta tag and paste it into the SEO section of your Admin portal.',
+      'Submit your sitemap (usually /sitemap.xml) for faster indexing.',
+      'Check the "Performance" tab weekly to see which keywords drive traffic.'
+    ],
+    codeLabel: 'SEO Meta Verification',
+    code: `<meta name="google-site-verification" content="unique-verification-code" />
+<link rel="canonical" href="https://yourdomain.com/" />`
+  },
+  {
+    id: 'tiktok-pixel',
+    title: '14. TikTok Creative Center Sync',
+    description: 'Measure the impact of your viral TikTok content on bridge page traffic.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Log into TikTok Ads Manager > Assets > Events.',
+      'Create a "Web Pixel" and select "Manual Setup".',
+      'Copy the Pixel ID and add it to the Integrations tab here.',
+      'Enable "Advanced Matching" to better track conversions across devices.',
+      'Use TikTok Spark Ads to promote your top-performing curated pieces.'
+    ],
+    codeLabel: 'TikTok Event Tracking',
+    code: `ttq.track('CompletePayment', {
+  contents: [{ content_id: 'ORD-123', content_type: 'product' }],
+  value: 4200, currency: 'ZAR'
+});`
+  },
+  {
+    id: 'pinterest-tag',
+    title: '15. Pinterest Tag Integration',
+    description: 'The ultimate tool for fashion curators. Track "Pins" and "Saves" back to your shop.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to Pinterest Business Hub > Ads > Conversions.',
+      'Create a "Pinterest Tag" and find your Unique Tag ID.',
+      'Paste this into the Pinterest section of your Canvas editor.',
+      'Use "Pin Extension" on your product detail pages to encourage social sharing.',
+      'Check the "Pinterest Analytics" to see which aesthetics resonate with the community.'
+    ],
+    codeLabel: 'Pinterest Event Snippet',
+    code: `pintrk('track', 'pagevisit');
+pintrk('track', 'addtocart', {
+  value: 4200.00, order_quantity: 1, currency: 'ZAR'
+});`
+  },
+  {
+    id: 'yoco-verification',
+    title: '16. Yoco Payment Verification',
+    description: 'Switch from "Test Mode" to "Live Mode" to start accepting real card payments.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Login to your Yoco Dashboard > Settings > API Keys.',
+      'Generate your "Live Public Key" (starts with pk_live).',
+      'Paste it into the Commerce section of your Admin portal.',
+      'Set up your bank account for settlements (Yoco pays out every business day).',
+      'Do a R1.00 test transaction to ensure the flow is operational.'
+    ],
+    codeLabel: 'Live API Key Pattern',
+    code: `VITE_YOCO_PUBLIC_KEY=pk_live_************************
+# Ensure the key is from the LIVE toggle, not TEST.`
+  },
+  {
+    id: 'zapier-leads',
+    title: '17. Zapier Lead CRM Automation',
+    description: 'Connect your bridge page to 5000+ apps like Mailchimp, Slack, or Google Sheets.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Create a new Zap at Zapier.com with the trigger "Webhooks by Zapier".',
+      'Select "Catch Hook" and copy the unique URL provided.',
+      'Paste this URL into the "Webhook URL" field in your Admin settings.',
+      'Add an action to your Zap (e.g., "Add Subscriber to Mailchimp").',
+      'Every time a customer registers or places an order, their data flows to your CRM automatically.'
+    ],
+    codeLabel: 'Webhook Payload Structure',
+    code: `{
+  "event": "new_order",
+  "data": { "id": "ORD-552", "email": "customer@gmail.com", "total": 4200 }
+}`
+  },
+  {
+    id: 'link-obfuscation',
+    title: '18. Affiliate Link Optimization',
+    description: 'Transform ugly affiliate URLs into professional, branded links to increase CTR.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Instead of sharing raw Amazon links, use your bridge page product URLs.',
+      'Add UTM parameters to your links (e.g., ?source=ig_story) to track specific traffic spikes.',
+      'Ensure "Affiliate Disclosure" is visible on all bridge pages (mandatory for legal compliance).',
+      'Use the "Ad Generator" in the catalog to quickly copy perfectly formatted social captions.'
+    ],
+    codeLabel: 'Branded Link Structure',
+    code: `https://findara.style/#/product/p1?ref=influencer_name
+# Converts to -> internal acquisition logic`
+  },
+  {
+    id: 'pwa-manifest',
+    title: '19. PWA Offline Manifest',
+    description: 'Allow users to "Install" your bridge page as an app on their home screen.',
+    illustrationId: 'forge',
+    subSteps: [
+      'The manifest is generated dynamically by the app using your branding settings.',
+      'Ensure your "Company Logo URL" points to a high-res (512x512) PNG.',
+      'Users on iOS/Android will see an "Add to Home Screen" prompt.',
+      'This increases return visitor rate by making your curation just one tap away.',
+      'The service worker ensures basic page loading even with spotty internet.'
+    ],
+    codeLabel: 'Internal Manifest Logic',
+    code: `{
+  "name": "FINDARA", "display": "standalone",
+  "theme_color": "#D4AF37", "start_url": "/#/",
+  "icons": [{ "src": "/logo.png", "sizes": "512x512" }]
+}`
+  },
+  {
+    id: 'readiness-test',
+    title: '20. Performance & Readiness',
+    description: 'Final audit before scaling traffic to your new fashion destination.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Run a Google Lighthouse report on your live URL.',
+      'Verify all "Journal" links are functional and lead to engaging content.',
+      'Test your "Concierge" form with a dummy message to ensure inbox delivery.',
+      'Check the "Insights" tab to confirm real-time traffic logging is active.',
+      'Congratulations! You are officially operational on the global stage.'
     ]
   }
 ];
@@ -362,7 +546,7 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 
 export const INITIAL_SETTINGS: SiteSettings = {
   companyName: 'FINDARA',
-  slogan: 'Curating Luxury, Bridging Style',
+  slogan: 'Curating the Exceptional',
   companyLogo: 'FD',
   companyLogoUrl: 'https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png',
   primaryColor: '#D4AF37',
@@ -383,28 +567,28 @@ export const INITIAL_SETTINGS: SiteSettings = {
     { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }
   ],
 
-  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to global fashion trends.",
+  footerDescription: "A curated bridge connecting you to global fashion trends. Hand-selected quality, vetted by experts.",
   footerCopyrightText: "All rights reserved.",
 
-  homeHeroBadge: 'Affiliate Curator',
+  homeHeroBadge: 'Curator & Expert',
   homeAboutTitle: 'My Journey in Curation.',
-  homeAboutDescription: 'I started FINDARA as a way to bridge the gap between global luxury retailers and fashion lovers who appreciate a personal touch. Every item here is hand-selected to reflect the highest standards of style and quality.',
+  homeAboutDescription: 'I started this journey to bridge the gap between global luxury retailers and style seekers who value authentic, hand-picked recommendations. This isn’t just affiliate marketing; it’s a personal catalog of the best the world has to offer.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Read My Story',
   homeCategorySectionTitle: 'Curated Departments',
   homeCategorySectionSubtitle: 'The Collection',
-  homeTrustSectionTitle: 'Why Shop via FINDARA',
+  homeTrustSectionTitle: 'Why My Selections Matter',
   
-  homeTrustItem1Title: 'Verified Affiliate',
-  homeTrustItem1Desc: 'Official partner with major global retailers.',
+  homeTrustItem1Title: 'Expert Vetting',
+  homeTrustItem1Desc: 'I personally verify every partner for shipping reliability and authentic quality.',
   homeTrustItem1Icon: 'ShieldCheck', 
 
-  homeTrustItem2Title: 'Personal Review',
-  homeTrustItem2Desc: 'I personally select and review every item on this bridge page.',
+  homeTrustItem2Title: 'Authentic Curation',
+  homeTrustItem2Desc: 'No AI filler. Every recommendation comes from my actual styling experience.',
   homeTrustItem2Icon: 'User', 
 
-  homeTrustItem3Title: 'Direct Links',
-  homeTrustItem3Desc: 'Click through directly to the merchant for secure checkout.',
+  homeTrustItem3Title: 'Direct Bridge',
+  homeTrustItem3Desc: 'Clean, safe links that take you directly to verified checkout pages.',
   homeTrustItem3Icon: 'Link', 
 
   productsHeroTitle: 'The Catalog',
@@ -414,29 +598,29 @@ export const INITIAL_SETTINGS: SiteSettings = {
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Search selections...',
+  productsSearchPlaceholder: 'Search my finds...',
 
-  aboutHeroTitle: 'Me & FINDARA.',
-  aboutHeroSubtitle: 'A passion for fashion turned into a global bridge.',
+  aboutHeroTitle: 'The Person Behind the Bridge.',
+  aboutHeroSubtitle: 'A passion for quality, bridging you to the best.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
   aboutFounderName: 'The Curator',
   aboutLocation: 'Cape Town, South Africa',
 
-  aboutHistoryTitle: 'The Bridge Vision',
-  aboutHistoryBody: 'My name is [Name], and FINDARA is my personal project to simplify the search for luxury fashion. In an age of endless options, I believe in curation.\n\nAs an affiliate marketer, I partner with world-renowned brands to bring you pieces that aren\'t just "trendy," but timeless. Every click on this site leads you to a verified, secure retail partner, ensuring you get authentic products while supporting my independent curation journey.',
+  aboutHistoryTitle: 'My Vision for Curation',
+  aboutHistoryBody: 'In a world of endless digital noise, curation is a superpower. My mission is to simplify your search for quality by providing a "bridge" to the best global affiliate offers. \n\nI don\'t just list items; I select them based on years of experience in the fashion industry. Every click here supports independent curation while ensuring you get the best price from verified luxury retailers.',
   
-  aboutMissionTitle: 'Curation Mission',
-  aboutMissionBody: 'To bridge the gap between discerning shoppers and the best global affiliate offers.',
+  aboutMissionTitle: 'Expert Mission',
+  aboutMissionBody: 'To provide a high-trust gateway between discerning shoppers and the world\'s most reliable retailers.',
   aboutMissionIcon: 'Target',
 
-  aboutCommunityTitle: 'Join Our Circle',
-  aboutCommunityBody: 'Follow for daily find and styling secrets.',
+  aboutCommunityTitle: 'My Community',
+  aboutCommunityBody: 'Join thousands of followers who look to this bridge for daily styling inspiration.',
   aboutCommunityIcon: 'Users',
   
-  aboutIntegrityTitle: 'Transparency',
-  aboutIntegrityBody: 'I am proud to be an affiliate. This site is built on honest reviews and authentic recommendations.',
+  aboutIntegrityTitle: 'Affiliate Disclosure',
+  aboutIntegrityBody: 'I am proud to be an affiliate. This site is built on honest reviews and authentic recommendations. I earn a small commission when you shop via my links, which keeps this bridge running.',
   aboutIntegrityIcon: 'Shield',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
@@ -445,7 +629,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
     'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800'
   ],
 
-  contactHeroTitle: 'Contact Concierge.',
+  contactHeroTitle: 'The Concierge.',
   contactHeroSubtitle: 'Have questions about my curations or affiliate partners?',
   contactFormNameLabel: 'Name',
   contactFormEmailLabel: 'Email',
@@ -460,11 +644,11 @@ export const INITIAL_SETTINGS: SiteSettings = {
   contactHoursWeekends: '',
 
   disclosureTitle: 'Affiliate Disclosure',
-  disclosureContent: `### AFFILIATE DISCLOSURE STATEMENT\n\nFINDARA participates in various affiliate marketing programs, which means we may get paid commissions on products purchased through our links to retailer sites. This comes at no additional cost to you.\n\nOur recommendations are always based on independent curation and personal preference.`, 
+  disclosureContent: `### AFFILIATE DISCLOSURE STATEMENT\n\nThis website participates in various affiliate marketing programs, which means we may get paid commissions on products purchased through our links to retailer sites. This comes at no additional cost to you.\n\nOur recommendations are always based on independent curation and personal preference.`, 
   privacyTitle: 'Privacy Policy',
   privacyContent: `### PRIVACY POLICY\n\nYour privacy is paramount. We do not sell your personal data. We use cookies to track traffic sources and improve your experience on our bridge page.`, 
   termsTitle: 'Terms of Service',
-  termsContent: `### TERMS OF SERVICE\n\nBy using FINDARA, you agree that we are a curation service and not the direct seller of affiliate items. All transaction disputes must be handled via the final retailer.`, 
+  termsContent: `### TERMS OF SERVICE\n\nBy using this site, you agree that we are a curation service and not the direct seller of affiliate items. All transaction disputes must be handled via the final retailer.`, 
 
   googleAnalyticsId: '',
   facebookPixelId: '',
@@ -494,8 +678,8 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Curated Elegance',
-    subtitle: 'A personal collection of global luxury finds.',
+    title: 'Expert Curation',
+    subtitle: 'My personal bridge to the world’s finest fashion finds.',
     cta: 'Browse My Picks'
   },
 ];
