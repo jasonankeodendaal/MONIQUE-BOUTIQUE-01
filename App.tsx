@@ -33,7 +33,8 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, loadingAuth, isLocalMode } = useSettings();
+  const { user, loadingAuth, isLocalMode, admins } = useSettings();
+  
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -42,18 +43,35 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
       </div>
     </div>
   );
+
+  // In Local Mode, treat as Admin/Owner
   if (isLocalMode) return <>{children}</>;
+  
   if (!user) return <Navigate to="/login" replace />;
+
+  // Strict Role Enforcement
+  const isAdmin = admins.some(a => a.id === user.id || a.email === user.email);
+  
+  if (!isAdmin) {
+      // User is authenticated but not an admin (Customer). Redirect to account.
+      return <Navigate to="/account" replace />;
+  }
+
   return <>{children}</>;
 };
 
 const Footer: React.FC = () => {
-  const { settings, user, saveStatus, connectionHealth } = useSettings();
+  const { settings, user, saveStatus, connectionHealth, admins } = useSettings();
   const location = useLocation();
   const [showCreatorModal, setShowCreatorModal] = useState(false);
 
-  // Updated: Allow footer on /admin, hide only on login/auth pages
+  // Allow footer on /admin, hide only on login/auth pages
   if (location.pathname === '/login' || location.pathname === '/client-login') return null;
+
+  // Determine if current user is admin to show/hide the Maison portal link
+  const isAdmin = isSupabaseConfigured 
+    ? (user && admins.some(a => a.id === user.id || a.email === user.email))
+    : true; // Local mode always admin
 
   return (
     <>
@@ -118,9 +136,11 @@ const Footer: React.FC = () => {
                   }`} 
                   title={`System Status: ${saveStatus}`}
                 />
-                <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
-                  Bridge Concierge Portal
-                </Link>
+                {(!user || isAdmin) && (
+                  <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
+                    Bridge Concierge Portal
+                  </Link>
+                )}
                </div>
             </div>
           </div>
@@ -458,10 +478,21 @@ const App: React.FC = () => {
   }, []);
 
   const performLogout = useCallback(async () => {
+    // Determine target route before clearing user
+    const isAdmin = window.location.hash.includes('admin');
+    
+    setUser(null);
+    
+    // Immediate navigation using hash manipulation since we are outside Router context
+    if (isAdmin) {
+        window.location.hash = '/login';
+    } else {
+        window.location.hash = '/';
+    }
+
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
     }
-    setUser(null);
   }, []);
 
   useInactivityTimer(() => {
@@ -1061,16 +1092,20 @@ const App: React.FC = () => {
     if (user && isSupabaseConfigured) {
       const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
       if (!existingAdmin) {
-        const newAdmin: AdminUser = {
-          id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin',
-          role: admins.length === 0 ? 'owner' : 'admin',
-          permissions: admins.length === 0 ? ['*'] : [],
-          createdAt: Date.now(),
-          lastActive: Date.now()
-        };
-        updateData('admin_users', newAdmin);
+        // If user is not in admin_users table, they might be a customer or new admin in local mode
+        // For local mode or first setup, we auto-create admin if list is empty
+        if (admins.length === 0) {
+            const newAdmin: AdminUser = {
+              id: user.id,
+              email: user.email || '',
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin',
+              role: 'owner',
+              permissions: ['*'],
+              createdAt: Date.now(),
+              lastActive: Date.now()
+            };
+            updateData('admin_users', newAdmin);
+        }
       }
     }
   }, [user, admins]);

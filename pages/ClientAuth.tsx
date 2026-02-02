@@ -9,7 +9,7 @@ const ClientAuth: React.FC = () => {
   const { settings, user, isLocalMode } = useSettings();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectPath = searchParams.get('redirect') || '/';
+  const redirectPath = searchParams.get('redirect');
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [loading, setLoading] = useState(false);
@@ -29,10 +29,18 @@ const ClientAuth: React.FC = () => {
     postalCode: ''
   });
 
+  // Helper to safely determine redirect target
+  const getSafeRedirect = (path: string | null) => {
+    if (path && !path.startsWith('/admin') && path !== '/login') {
+        return path;
+    }
+    return '/account';
+  };
+
   // Auto-redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate(redirectPath);
+      navigate(getSafeRedirect(redirectPath));
     }
   }, [user, navigate, redirectPath]);
 
@@ -109,7 +117,7 @@ const ClientAuth: React.FC = () => {
         // 3. Handle Session & Redirect
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            navigate(redirectPath);
+            navigate(getSafeRedirect(redirectPath));
         } else {
             setError("Please check your email to confirm your account.");
         }
@@ -121,7 +129,9 @@ const ClientAuth: React.FC = () => {
             password: formData.password 
         });
         if (error) throw error;
-        navigate(redirectPath);
+        
+        // Success - navigate
+        navigate(getSafeRedirect(redirectPath));
       }
     } catch (err: any) {
       setError(err.message);

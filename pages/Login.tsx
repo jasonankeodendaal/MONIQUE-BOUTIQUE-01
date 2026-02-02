@@ -56,9 +56,8 @@ const Login: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Redirect to root, App.tsx auth listener handles navigation
-          redirectTo: window.location.origin, 
-          // Force refresh token generation and consent prompt to fix "not detecting credentials" issues
+          // Explicitly redirect to /admin to ensure landing on dashboard
+          redirectTo: `${window.location.origin}/admin`, 
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
