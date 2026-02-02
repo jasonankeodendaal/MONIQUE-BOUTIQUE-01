@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -25,7 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import emailjs from '@emailjs/browser';
 import { CustomIcons } from '../components/CustomIcons';
 
-// ... [Pricing Simulator Code Remains the Same]
+// ... [Pricing Simulator Code]
 interface PricingState {
   mode: 'affiliate' | 'merchant';
   costPrice: number;
@@ -327,7 +328,7 @@ const SimpleDonutChart = ({ data }: { data: { label: string, value: number, colo
     ); 
 };
 
-// ... [File uploaders and Helpers remain the same]
+// ... [File uploaders and Helpers]
 const compressImage = async (file: File): Promise<string> => { return new Promise((resolve, reject) => { if (!file.type.startsWith('image/')) { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => resolve(e.target?.result as string); reader.onerror = (e) => reject(e); return; } const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target?.result as string; img.onload = () => { const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const scaleSize = MAX_WIDTH / img.width; if (scaleSize < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize; } else { canvas.width = img.width; canvas.height = img.height; } const ctx = canvas.getContext('2d'); if (!ctx) { reject(new Error('Canvas context failed')); return; } ctx.drawImage(img, 0, 0, canvas.width, canvas.height); const dataUrl = canvas.toDataURL('image/jpeg', 0.7); resolve(dataUrl); }; img.onerror = (err: any) => reject(err); }; reader.onerror = (err) => reject(err); }); };
 
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
@@ -411,100 +412,7 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
     return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300"><div className="flex items-center gap-3"><SelectedIcon size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center"><h3 className="text-white font-bold text-lg">Icon Library</h3><button onClick={() => setIsOpen(false)}><X size={20} className="text-white"/></button></div><div className="flex-grow overflow-y-auto p-6 bg-slate-950 grid grid-cols-6 gap-3">{ALL_ICONS.slice(0,100).map(name => { const Icon = CustomIcons[name] || (LucideIcons as any)[name]; if(!Icon) return null; return <button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-col items-center gap-2 hover:bg-slate-800 text-slate-400 hover:text-white"><Icon size={24}/><span className="text-[9px] truncate w-full text-center">{name}</span></button> })}</div></div></div>)}</div>); 
 };
 
-const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
-  const { settings } = useSettings();
-  const [subject, setSubject] = useState(`Re: ${enquiry.subject}`);
-  const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`);
-
-  const handleSend = async () => {
-    if (!settings.emailJsServiceId) return alert("EmailJS not configured");
-    const templateParams = {
-      to_name: enquiry.name,
-      to_email: enquiry.email,
-      message,
-      subject,
-      reply_to: enquiry.email,
-      company_name: settings.companyName,
-      company_address: settings.address,
-      company_website: window.location.origin,
-      year: new Date().getFullYear(),
-    };
-    try {
-      await emailjs.send(settings.emailJsServiceId, settings.emailJsTemplateId!, templateParams, settings.emailJsPublicKey!);
-      onClose();
-    } catch (err: any) {
-      alert(`Dispatch Error: ${err.message}`);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
-      <div className="bg-slate-900 w-full max-w-2xl rounded-[2.5rem] p-8 md:p-12 border border-slate-800 shadow-2xl relative overflow-hidden">
-        {/* Aesthetic Shine */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-        
-        <div className="flex justify-between items-start mb-8">
-          <div className="text-left">
-            <h3 className="text-2xl font-serif text-white mb-1">Maison Concierge</h3>
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-black">Outbound Communication</p>
-          </div>
-          <button onClick={onClose} className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-full transition-colors border border-slate-700">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="space-y-6 text-left">
-          {/* Recipient Display */}
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20">
-                <User size={18} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest leading-none mb-1">Recipient</p>
-                <p className="text-sm font-bold text-white leading-none">{enquiry.email}</p>
-              </div>
-            </div>
-            <div className="text-slate-700 hover:text-primary transition-colors cursor-help group relative">
-               <Paperclip size={18}/>
-               <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black text-[9px] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-slate-800 pointer-events-none uppercase tracking-widest text-center">Cloud Attachments Pending</div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Transmission Subject</label>
-            <input 
-              type="text" 
-              className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Message Content</label>
-            <textarea 
-              className="w-full p-6 bg-slate-800 border border-slate-700 rounded-[1.5rem] text-white outline-none focus:border-primary transition-all text-sm leading-relaxed h-72 resize-none font-light custom-scrollbar" 
-              value={message} 
-              onChange={e => setMessage(e.target.value)} 
-              placeholder="Type professional response..." 
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-4 pt-8 border-t border-slate-800 mt-8">
-          <button onClick={onClose} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] rounded-xl hover:text-white transition-all">
-            Cancel
-          </button>
-          <button onClick={handleSend} className="flex-[2] py-4 bg-primary text-slate-900 font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:brightness-110 shadow-xl shadow-primary/10 flex items-center justify-center gap-3 group transition-all">
-            <span>Transmit Message</span>
-            <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => { const { settings } = useSettings(); const [message, setMessage] = useState(''); const handleSend = async () => { if (!settings.emailJsServiceId) return alert("EmailJS not configured"); const templateParams = { to_name: enquiry.name, to_email: enquiry.email, message, reply_to: enquiry.email }; await emailjs.send(settings.emailJsServiceId, settings.emailJsTemplateId!, templateParams, settings.emailJsPublicKey!); onClose(); }; return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"><div className="bg-slate-900 w-full max-w-2xl rounded-2xl p-6 border border-slate-700"><h3 className="text-white font-bold mb-4">Reply to {enquiry.name}</h3><textarea className="w-full p-4 bg-slate-800 rounded-xl text-white mb-4 h-64" value={message} onChange={e => setMessage(e.target.value)} placeholder="Type response..." /><div className="flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-slate-400">Cancel</button><button onClick={handleSend} className="px-6 py-2 bg-primary text-slate-900 rounded-xl font-bold">Send</button></div></div></div>); };
 
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C' }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2' }, { id: 'twitter', name: 'X', icon: Twitter, color: '#1DA1F2' } ];
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { 
@@ -537,7 +445,7 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
 const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left"> <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2"><Lightbulb size={16}/> Integration Setup Guide</h4> <div className="space-y-4 text-xs text-slate-400"> <details className="group"> <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors"><Mail size={14} /> EmailJS (Forms)</summary> <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2"> <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p> <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p> <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p> <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p> </div> </details> </div> </div> );
 
 const SystemMonitor: React.FC<{ connectionHealth: any, systemLogs: any[], storageStats: any, generateTestData: () => void, settings: SiteSettings }> = ({ connectionHealth, systemLogs, storageStats, generateTestData, settings }) => {
-    // ... [Content same as previous]
+    // ... [Monitor Content]
     const integrations = [
         { name: 'Supabase', status: connectionHealth?.status === 'online', icon: Database, desc: 'Database & Auth' },
         { name: 'EmailJS', status: !!settings.emailJsServiceId, icon: Mail, desc: 'Email Automation' },
@@ -549,7 +457,6 @@ const SystemMonitor: React.FC<{ connectionHealth: any, systemLogs: any[], storag
 
     return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
-        {/* ... [Existing monitor cards remain] */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800">
                 <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2"><Activity size={18} className={connectionHealth?.status === 'online' ? "text-green-500" : "text-red-500"}/> System Health</h3>
@@ -607,16 +514,14 @@ const SystemMonitor: React.FC<{ connectionHealth: any, systemLogs: any[], storag
     );
 };
 
-// --- ANALYTICS DASHBOARD WITH PDF EXPORT ---
+// --- ANALYTICS DASHBOARD ---
 const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[]; admins: AdminUser[]; user: any; isOwner: boolean }> = ({ trafficEvents, products, stats, orders, categories, admins, user, isOwner }) => {
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
   const [exportOpen, setExportOpen] = useState(false);
   const { settings } = useSettings();
 
-  // Force non-owners to only view their own data
   const targetUserId = isOwner ? selectedUserId : user?.id;
 
-  // Filter Data based on User Scope
   const filteredProducts = useMemo(() => {
       if (targetUserId === 'all') return products;
       return products.filter(p => p.createdBy === targetUserId);
@@ -639,7 +544,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
 
   const filteredTraffic = useMemo(() => {
       if (targetUserId === 'all') return trafficEvents;
-      const userProductNames = new Set(filteredProducts.map(p => p.name.toLowerCase()));
+      const userProductNames = new Set(filteredProducts.map(p => (p.name || '').toLowerCase()));
       return trafficEvents.filter(e => {
           return Array.from(userProductNames).some(name => e.text?.toLowerCase().includes(name));
       });
@@ -650,7 +555,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
   const totalVisits = Math.max(filteredTraffic.length, 1);
   const conversionRate = totalVisits > 0 ? (filteredOrders.length / totalVisits) * 100 : 0;
 
-  // New Table State
   const [sortField, setSortField] = useState<string>('views');
   const [sortAsc, setSortAsc] = useState(false);
   const [filterText, setFilterText] = useState('');
@@ -668,7 +572,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
 
   const sortedPerformance = useMemo(() => {
       return [...productPerformance]
-          .filter(p => p.name.toLowerCase().includes(filterText.toLowerCase()) || p.sku?.toLowerCase().includes(filterText.toLowerCase()))
+          .filter(p => (p.name || '').toLowerCase().includes((filterText || '').toLowerCase()) || (p.sku || '').toLowerCase().includes((filterText || '').toLowerCase()))
           .sort((a, b) => {
               let valA: any = (a.stats as any)[sortField] || 0;
               let valB: any = (b.stats as any)[sortField] || 0;
@@ -732,7 +636,6 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
       return hours;
   }, [filteredTraffic]);
 
-  // --- PDF REPORT GENERATOR ---
   const generatePDFReport = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
@@ -742,31 +645,23 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const primaryColor = [212, 175, 55]; // #D4AF37
-    const secondaryColor = [30, 41, 59]; // #1E293B
-    const lightColor = [241, 245, 249]; // #f1f5f9
+    const primaryColor = [212, 175, 55]; 
+    const secondaryColor = [30, 41, 59]; 
+    const lightColor = [241, 245, 249]; 
 
-    // Helper: Draw Slide Background
     const drawSlideBg = (title: string, sub: string) => {
         doc.setFillColor(lightColor[0], lightColor[1], lightColor[2]);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
-        
-        // Sidebar Strip
         doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
         doc.rect(0, 0, 15, pageHeight, 'F');
-
-        // Header
         doc.setFontSize(22);
         doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
         doc.setFont('helvetica', 'bold');
         doc.text(title, 25, 20);
-        
         doc.setFontSize(10);
         doc.setTextColor(100, 116, 139);
         doc.setFont('helvetica', 'normal');
         doc.text(sub, 25, 26);
-
-        // Logo Mark (Simple Draw)
         doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.circle(pageWidth - 20, 15, 6, 'F');
         doc.setFontSize(8);
@@ -774,83 +669,61 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
         doc.text("MB", pageWidth - 22.5, 17.5);
     };
 
-    // Helper: Draw Metric Card
     const drawCard = (x: number, y: number, w: number, h: number, title: string, value: string, iconType: 'money' | 'trend' | 'user' | 'cart') => {
         doc.setFillColor(255, 255, 255);
         doc.roundedRect(x, y, w, h, 3, 3, 'F');
         doc.setDrawColor(226, 232, 240);
         doc.roundedRect(x, y, w, h, 3, 3, 'S');
-
-        // Icon Circle
         doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.circle(x + 12, y + 12, 6, 'F');
-        
-        // Title
         doc.setFontSize(9);
         doc.setTextColor(148, 163, 184);
         doc.text(title.toUpperCase(), x + 25, y + 10);
-
-        // Value
         doc.setFontSize(18);
         doc.setTextColor(30, 41, 59);
         doc.setFont('helvetica', 'bold');
         doc.text(value, x + 25, y + 20);
     };
 
-    // --- SLIDE 1: COVER ---
     doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
-    
-    // Abstract Art
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(0.5);
     doc.circle(pageWidth/2, pageHeight/2, 60, 'S');
     doc.circle(pageWidth/2, pageHeight/2, 50, 'S');
-    
     doc.setFontSize(36);
     doc.setTextColor(255, 255, 255);
-    doc.setFont('times', 'bold'); // Serif approximation
+    doc.setFont('times', 'bold'); 
     doc.text(settings.companyName || "Executive Report", pageWidth/2, pageHeight/2 - 10, { align: 'center' });
-    
     doc.setFontSize(14);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setFont('helvetica', 'normal');
     doc.text("PERFORMANCE INTELLIGENCE", pageWidth/2, pageHeight/2 + 5, { align: 'center' });
-
     doc.setFontSize(10);
     doc.setTextColor(148, 163, 184);
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth/2, pageHeight - 20, { align: 'center' });
 
-    // --- SLIDE 2: KPI DASHBOARD ---
     doc.addPage();
     drawSlideBg("Executive Summary", "Key Performance Indicators");
-
     const cardWidth = 60;
     drawCard(25, 40, cardWidth, 30, "Total Revenue", `R ${totalRevenue.toLocaleString()}`, 'money');
     drawCard(95, 40, cardWidth, 30, "Active Orders", filteredOrders.length.toString(), 'cart');
     drawCard(165, 40, cardWidth, 30, "Total Visits", totalVisits.toLocaleString(), 'trend');
     drawCard(235, 40, cardWidth, 30, "Conversion Rate", `${conversionRate.toFixed(2)}%`, 'trend');
 
-    // Recent Traffic Chart (Simulated drawing)
     doc.setFillColor(255, 255, 255);
     doc.roundedRect(25, 80, 270, 80, 3, 3, 'F');
     doc.setFontSize(12);
     doc.setTextColor(30, 41, 59);
     doc.text("Traffic Velocity (Last 7 Days)", 35, 90);
-    
-    // Draw Axis
     doc.setDrawColor(200, 200, 200);
-    doc.line(35, 150, 285, 150); // X Axis
-    
-    // Draw Line Chart Points
+    doc.line(35, 150, 285, 150); 
     let prevX = 35;
     let prevY = 150;
     const maxVisit = Math.max(...visitsByDate, 10);
     const stepX = 250 / (visitsByDate.length - 1 || 1);
-    
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(1);
-    
     visitsByDate.forEach((val, i) => {
         const x = 35 + (i * stepX);
         const y = 150 - ((val / maxVisit) * 50);
@@ -861,88 +734,37 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
         prevY = y;
     });
 
-    // --- SLIDE 3: PRODUCTS & INVENTORY ---
     doc.addPage();
     drawSlideBg("Collection Performance", "Top Performing Assets");
+    const productRows = sortedPerformance.slice(0, 10).map(p => [ p.name, p.sku, p.stats.views, p.stats.clicks, `${p.ctr.toFixed(1)}%`, `R ${p.price}` ]);
+    autoTable(doc, { startY: 40, head: [['Product Name', 'SKU', 'Views', 'Clicks', 'CTR', 'Price']], body: productRows, theme: 'grid', headStyles: { fillColor: secondaryColor, textColor: [255, 255, 255] }, styles: { fontSize: 9, cellPadding: 3 }, margin: { left: 25, right: 10 } });
 
-    const productRows = sortedPerformance.slice(0, 10).map(p => [
-        p.name,
-        p.sku,
-        p.stats.views,
-        p.stats.clicks,
-        `${p.ctr.toFixed(1)}%`,
-        `R ${p.price}`
-    ]);
-
-    autoTable(doc, {
-        startY: 40,
-        head: [['Product Name', 'SKU', 'Views', 'Clicks', 'CTR', 'Price']],
-        body: productRows,
-        theme: 'grid',
-        headStyles: { fillColor: secondaryColor, textColor: [255, 255, 255] },
-        styles: { fontSize: 9, cellPadding: 3 },
-        margin: { left: 25, right: 10 }
-    });
-
-    // --- SLIDE 4: ORDERS & FINANCIALS ---
     doc.addPage();
     drawSlideBg("Financial Ledger", "Recent Transaction History");
+    const orderRows = filteredOrders.slice(0, 12).map(o => [ o.id, new Date(o.createdAt).toLocaleDateString(), o.customerName, o.status.toUpperCase(), `R ${o.total.toLocaleString()}` ]);
+    autoTable(doc, { startY: 40, head: [['Order ID', 'Date', 'Customer', 'Status', 'Total']], body: orderRows, theme: 'striped', headStyles: { fillColor: primaryColor, textColor: secondaryColor }, styles: { fontSize: 9, cellPadding: 3 }, margin: { left: 25, right: 10 } });
 
-    const orderRows = filteredOrders.slice(0, 12).map(o => [
-        o.id,
-        new Date(o.createdAt).toLocaleDateString(),
-        o.customerName,
-        o.status.toUpperCase(),
-        `R ${o.total.toLocaleString()}`
-    ]);
-
-    autoTable(doc, {
-        startY: 40,
-        head: [['Order ID', 'Date', 'Customer', 'Status', 'Total']],
-        body: orderRows,
-        theme: 'striped',
-        headStyles: { fillColor: primaryColor, textColor: secondaryColor },
-        styles: { fontSize: 9, cellPadding: 3 },
-        margin: { left: 25, right: 10 }
-    });
-
-    // Save
     doc.save(`${settings.companyName.replace(/\s+/g, '_')}_Executive_Report.pdf`);
   };
 
   return (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left relative">
-          
-          {/* --- HEADER ACTIONS ROW --- */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
              <div>
                 <h2 className="text-3xl font-serif text-white">Insights</h2>
                 <p className="text-slate-400 text-sm">Performance tracking and detailed analytics.</p>
              </div>
-             
              <div className="flex gap-4">
-                {/* User Filter (Owner Only) */}
                 {isOwner && (
                    <div className="relative group">
-                      <select 
-                        value={selectedUserId} 
-                        onChange={(e) => setSelectedUserId(e.target.value)} 
-                        className="px-4 py-3 bg-slate-900 text-slate-300 border border-slate-800 rounded-xl text-xs font-bold uppercase tracking-widest outline-none hover:bg-slate-800 hover:text-white cursor-pointer appearance-none pr-10"
-                      >
+                      <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)} className="px-4 py-3 bg-slate-900 text-slate-300 border border-slate-800 rounded-xl text-xs font-bold uppercase tracking-widest outline-none hover:bg-slate-800 hover:text-white cursor-pointer appearance-none pr-10">
                          <option value="all">Global View</option>
-                         {admins.map(a => (
-                            <option key={a.id} value={a.id}>{a.name} (Admin)</option>
-                         ))}
+                         {admins.map(a => ( <option key={a.id} value={a.id}>{a.name} (Admin)</option> ))}
                       </select>
                       <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"/>
                    </div>
                 )}
-
-                {/* PDF Generation Button (Replaces CSV Exports) */}
-                <button 
-                    onClick={generatePDFReport}
-                    className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2 shadow-lg shadow-primary/20"
-                >
+                <button onClick={generatePDFReport} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2 shadow-lg shadow-primary/20">
                     <Presentation size={16}/> Generate Executive Deck
                 </button>
              </div>
@@ -960,22 +782,14 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
               <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><TrendingUp size={16} className="text-green-500"/> Revenue Trend (7 Days)</h4><div className="h-48"><SimpleLineChart data={revenueByDate} color="#22c55e" height={190} /></div></div>
           </div>
 
-          {/* --- DETAILED PRODUCT PERFORMANCE TABLE --- */}
           <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800">
               <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
                   <h4 className="text-white font-bold text-lg flex items-center gap-2"><Table size={18} className="text-primary"/> Product Performance Intelligence</h4>
                   <div className="relative w-full md:w-64">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16}/>
-                      <input 
-                        type="text" 
-                        placeholder="Search products..." 
-                        value={filterText}
-                        onChange={e => setFilterText(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs outline-none focus:border-primary transition-all"
-                      />
+                      <input type="text" placeholder="Search products..." value={filterText} onChange={e => setFilterText(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs outline-none focus:border-primary transition-all" />
                   </div>
               </div>
-              
               <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                       <thead>
@@ -992,26 +806,13 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
                       <tbody className="divide-y divide-slate-800">
                           {sortedPerformance.map((p) => (
                               <tr key={p.id} className="hover:bg-slate-800/30 transition-colors group">
-                                  <td className="p-4">
-                                      <div className="w-10 h-10 bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
-                                          <img src={p.media?.[0]?.url} className="w-full h-full object-cover"/>
-                                      </div>
-                                  </td>
-                                  <td className="p-4">
-                                      <div className="text-white font-bold text-xs">{p.name}</div>
-                                      <div className="text-slate-500 text-[9px] font-mono">{p.sku}</div>
-                                  </td>
+                                  <td className="p-4"><div className="w-10 h-10 bg-slate-800 rounded-lg overflow-hidden border border-slate-700"><img src={p.media?.[0]?.url} className="w-full h-full object-cover"/></div></td>
+                                  <td className="p-4"><div className="text-white font-bold text-xs">{p.name}</div><div className="text-slate-500 text-[9px] font-mono">{p.sku}</div></td>
                                   <td className="p-4 text-center text-xs text-slate-300 font-mono">{p.stats.views}</td>
                                   <td className="p-4 text-center text-xs text-slate-300 font-mono">{p.stats.clicks}</td>
-                                  <td className="p-4 text-center">
-                                      <span className={`px-2 py-1 rounded text-[9px] font-black ${p.ctr > 5 ? 'bg-green-500/20 text-green-400' : p.ctr > 2 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-800 text-slate-500'}`}>
-                                          {p.ctr.toFixed(1)}%
-                                      </span>
-                                  </td>
+                                  <td className="p-4 text-center"><span className={`px-2 py-1 rounded text-[9px] font-black ${p.ctr > 5 ? 'bg-green-500/20 text-green-400' : p.ctr > 2 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-800 text-slate-500'}`}>{p.ctr.toFixed(1)}%</span></td>
                                   <td className="p-4 text-center text-xs text-slate-300 font-mono">{p.stats.shares}</td>
-                                  <td className="p-4 text-right text-[10px] text-slate-500 font-mono">
-                                      {p.stats.lastUpdated ? new Date(p.stats.lastUpdated).toLocaleDateString() : 'Never'}
-                                  </td>
+                                  <td className="p-4 text-right text-[10px] text-slate-500 font-mono">{p.stats.lastUpdated ? new Date(p.stats.lastUpdated).toLocaleDateString() : 'Never'}</td>
                               </tr>
                           ))}
                       </tbody>
@@ -1041,7 +842,6 @@ const TrainingGrid: React.FC = () => {
 };
 
 const Admin: React.FC = () => {
-  // ... [Main Admin logic remains largely unchanged, just context providers]
   const { 
     settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers,
@@ -1093,7 +893,6 @@ const Admin: React.FC = () => {
   const displayCategories = useMemo(() => { if (!isOwner) return categories.filter(c => c.createdBy === userId); if (creatorFilter !== 'all') return categories.filter(c => c.createdBy === creatorFilter); return categories; }, [categories, isOwner, userId, creatorFilter]);
   const displayHeroSlides = useMemo(() => { if (!isOwner) return heroSlides.filter(s => s.createdBy === userId); if (creatorFilter !== 'all') return heroSlides.filter(s => s.createdBy === creatorFilter); return heroSlides; }, [heroSlides, isOwner, userId, creatorFilter]);
 
-  // ... [useEffect hooks remain the same]
   useEffect(() => {
     const fetchTraffic = async () => { try { if (isSupabaseConfigured) { const { data } = await supabase.from('traffic_logs').select('*').order('timestamp', { ascending: false }).limit(2000); if (data) setTrafficEvents(data); } else { const rawLogs = localStorage.getItem('site_traffic_logs'); const logs = rawLogs ? JSON.parse(rawLogs) : []; if (Array.isArray(logs)) setTrafficEvents(logs); } } catch (e) { setTrafficEvents([]); } };
     if (hasPermission('analytics.view')) { fetchTraffic(); } const interval = setInterval(fetchTraffic, 5000); return () => clearInterval(interval);
@@ -1101,7 +900,6 @@ const Admin: React.FC = () => {
 
   useEffect(() => { if (activeTab === 'reviews') { const fetchReviews = async () => { if (isSupabaseConfigured) { const { data } = await supabase.from('reviews').select('*').order('createdAt', { ascending: false }); if (data) setReviews(data); } else { const local = localStorage.getItem('site_reviews'); if (local) setReviews(JSON.parse(local)); } }; fetchReviews(); } }, [activeTab]);
 
-  // ... [Helper functions: handleDeleteReview, handleLogout, handleSaveProduct etc. remain the same]
   const handleDeleteReview = async (id: string) => { if (!window.confirm("Delete review?")) return; const newReviews = reviews.filter(r => r.id !== id); setReviews(newReviews); if (isSupabaseConfigured) { await supabase.from('reviews').delete().eq('id', id); } else { localStorage.setItem('site_reviews', JSON.stringify(newReviews)); } };
   const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
   
@@ -1118,7 +916,6 @@ const Admin: React.FC = () => {
   const handleSaveTracking = async () => { if(!viewingOrder || !hasPermission('sales.fulfillment')) return; const updated = { ...viewingOrder, courierName: trackingInfo.courier, trackingNumber: trackingInfo.tracking, status: 'shipped' as const }; await updateData('orders', updated); setViewingOrder(updated); alert(`Status updated to Shipped.`); };
   const printInvoice = (order: Order) => { const w = window.open('', '_blank'); if(w) { w.document.write(`<html><head><title>Invoice ${order.id}</title><style>body { font-family: sans-serif; padding: 40px; } .header { margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 20px; } th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; } .total { margin-top: 20px; text-align: right; font-size: 20px; font-weight: bold; }</style></head><body><div class="header"><h1>${settings.companyName}</h1><p>Invoice #${order.id}</p><p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p></div><p><strong>Bill To:</strong> ${order.customerName}<br>${order.shippingAddress}<br>${order.customerEmail}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${order.items?.map(i => `<tr><td>${i.productName}</td><td>${i.quantity}</td><td>R ${i.price}</td><td>R ${i.price * i.quantity}</td></tr>`).join('')}</tbody></table><div class="total">Total: R ${order.total.toLocaleString()}</div></body></html>`); w.document.close(); w.print(); } };
   
-  // Product Form Handlers
   const handleAddDiscountRule = () => { if (!tempDiscountRule.value || !tempDiscountRule.description) return; const newRule: DiscountRule = { id: Date.now().toString(), type: tempDiscountRule.type || 'percentage', value: Number(tempDiscountRule.value), description: tempDiscountRule.description }; setProductData({ ...productData, discountRules: [...(productData.discountRules || []), newRule] }); setTempDiscountRule({ type: 'percentage', value: 0, description: '' }); };
   const handleRemoveDiscountRule = (id: string) => { setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) }); };
   const handleAddFeature = () => { if (!tempFeature.trim()) return; setProductData(prev => ({ ...prev, features: [...(prev.features || []), tempFeature] })); setTempFeature(''); };
@@ -1126,15 +923,12 @@ const Admin: React.FC = () => {
   const handleAddSpec = () => { if (!tempSpec.key.trim() || !tempSpec.value.trim()) return; setProductData(prev => ({ ...prev, specifications: { ...(prev.specifications || {}), [tempSpec.key]: tempSpec.value } })); setTempSpec({ key: '', value: '' }); };
   const handleRemoveSpec = (key: string) => { setProductData(prev => { const newSpecs = { ...(prev.specifications || {}) }; delete newSpecs[key]; return { ...prev, specifications: newSpecs }; }); };
   
-  // Editor Handlers
   const handleOpenEditor = (section: any) => { if(!hasPermission('site.editor')) return; setTempSettings({...settings}); setActiveEditorSection(section); setEditorDrawerOpen(true); };
   const updateTempSettings = (newSettings: Partial<SiteSettings>) => setTempSettings(prev => ({ ...prev, ...newSettings }));
   
-  // Filters
-  const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
+  const filteredEnquiries = enquiries.filter(e => { const matchesSearch = (e.name || '').toLowerCase().includes((enquirySearch || '').toLowerCase()) || (e.email || '').toLowerCase().includes((enquirySearch || '').toLowerCase()) || (e.subject || '').toLowerCase().includes((enquirySearch || '').toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
 
   const handleGenerateTestData = async () => {
-      // 1. Generate Traffic Logs
       const devices = ['Desktop', 'Mobile', 'Tablet'];
       const sources = ['Google', 'Instagram', 'Direct', 'TikTok', 'Email'];
       const cities = ['New York', 'London', 'Cape Town', 'Paris', 'Tokyo', 'Sydney'];
@@ -1143,7 +937,7 @@ const Admin: React.FC = () => {
           type: 'view',
           text: `Page View: /products`,
           time: new Date().toLocaleTimeString(),
-          timestamp: Date.now() - Math.floor(Math.random() * 604800000), // Last 7 days
+          timestamp: Date.now() - Math.floor(Math.random() * 604800000), 
           source: sources[Math.floor(Math.random() * sources.length)],
           device: devices[Math.floor(Math.random() * devices.length)],
           city: cities[Math.floor(Math.random() * cities.length)]
@@ -1157,7 +951,6 @@ const Admin: React.FC = () => {
           localStorage.setItem('site_traffic_logs', JSON.stringify([...newLogs, ...existing]));
       }
 
-      // 2. Generate Orders
       const newOrders = Array.from({length: 5}, (_, i) => ({
           id: `TEST-${Date.now().toString().slice(-4)}-${i}`,
           customerName: `Test User ${i}`,
@@ -1195,7 +988,6 @@ const Admin: React.FC = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left"><div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Audience</h2><p className="text-slate-400 text-sm">Newsletter subscribers.</p></div></div>{subscribers.length === 0 ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">No subscribers yet.</div> : <div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden"><table className="w-full text-left border-collapse"><thead><tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800"><th className="p-6">Email Address</th><th className="p-6">Joined Date</th><th className="p-6 text-right">Actions</th></tr></thead><tbody className="divide-y divide-slate-800">{subscribers.sort((a,b) => b.createdAt - a.createdAt).map(sub => (<tr key={sub.id} className="hover:bg-slate-800/30 transition-colors"><td className="p-6 text-sm text-white font-bold">{sub.email}</td><td className="p-6 text-xs text-slate-400">{new Date(sub.createdAt).toLocaleDateString()}</td><td className="p-6 text-right"><button onClick={() => deleteData('subscribers', sub.id)} className="p-2 bg-slate-800 text-slate-500 rounded-lg hover:text-red-500 transition-colors"><Trash2 size={16}/></button></td></tr>))}</tbody></table></div>}</div>
   );
 
-  // ... [Render functions for Articles, Reviews, Catalog, Orders, Hero, Categories, PricingTool, SiteEditor, Team, Guide remain the same]
   const renderArticles = () => (
     <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         {showArticleForm ? (
@@ -1356,14 +1148,14 @@ const Admin: React.FC = () => {
         <>
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Catalog</h2><p className="text-slate-400 text-sm">Curate your collection.</p></div>{hasPermission('catalog.create') && <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> Add Product</button>}</div>
           <div className="flex flex-col md:flex-row gap-4 mb-6"><div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm" /></div></div>
-          <div className="grid gap-4">{displayProducts.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase())).map(p => (<div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4"><div className="flex items-center gap-6 min-w-0 text-left"><div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><h4 className="text-white font-bold line-clamp-1">{p.name}</h4><div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span></div></div></div><div className="flex gap-2 w-full md:w-auto flex-shrink-0"><button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl"><Megaphone size={18}/></button>{hasPermission('catalog.edit') && <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white"><Edit2 size={18}/></button>}{hasPermission('catalog.delete') && <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500"><Trash2 size={18}/></button>}</div></div>))}</div>
+          <div className="grid gap-4">{displayProducts.filter(p => (p.name || '').toLowerCase().includes((productSearch || '').toLowerCase())).map(p => (<div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4"><div className="flex items-center gap-6 min-w-0 text-left"><div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><h4 className="text-white font-bold line-clamp-1">{p.name}</h4><div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span></div></div></div><div className="flex gap-2 w-full md:w-auto flex-shrink-0"><button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl"><Megaphone size={18}/></button>{hasPermission('catalog.edit') && <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white"><Edit2 size={18}/></button>}{hasPermission('catalog.delete') && <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500"><Trash2 size={18}/></button>}</div></div>))}</div>
         </>
       )}
     </div>
   );
 
   const renderOrders = () => {
-    const filteredOrders = orders.filter(o => { const matchesSearch = o.id.toLowerCase().includes(orderSearch.toLowerCase()) || o.customerName.toLowerCase().includes(orderSearch.toLowerCase()); const matchesFilter = orderFilter === 'all' ? true : o.status === orderFilter; return matchesSearch && matchesFilter; }).sort((a, b) => b.createdAt - a.createdAt);
+    const filteredOrders = orders.filter(o => { const matchesSearch = (o.id || '').toLowerCase().includes((orderSearch || '').toLowerCase()) || (o.customerName || '').toLowerCase().includes((orderSearch || '').toLowerCase()); const matchesFilter = orderFilter === 'all' ? true : o.status === orderFilter; return matchesSearch && matchesFilter; }).sort((a, b) => b.createdAt - a.createdAt);
     const getStatusBadge = (status: string) => { const styles: Record<string, string> = { paid: 'bg-blue-500/20 text-blue-400', shipped: 'bg-purple-500/20 text-purple-400', delivered: 'bg-green-500/20 text-green-400', cancelled: 'bg-red-500/20 text-red-400', pending_payment: 'bg-yellow-500/20 text-yellow-400', processing: 'bg-orange-500/20 text-orange-400' }; return <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${styles[status] || styles.pending_payment}`}>{status.replace('_', ' ')}</span>; };
     return (
       <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Fulfillment</h2><p className="text-slate-400 text-sm">Manage orders.</p></div></div><div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">{['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => ( <button key={f} onClick={() => setOrderFilter(f)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{f.replace('_', ' ')}</button> ))}</div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden"><table className="w-full text-left border-collapse"><thead><tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800"><th className="p-4">Order ID</th><th className="p-4">Date</th><th className="p-4">Customer</th><th className="p-4">Status</th><th className="p-4 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-800">{filteredOrders.length === 0 ? ( <tr><td colSpan={5} className="p-8 text-center text-slate-500 text-sm">No orders found.</td></tr> ) : ( filteredOrders.map(order => ( <tr key={order.id} className="hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => { setViewingOrder(order); setTrackingInfo({ courier: order.courierName || '', tracking: order.trackingNumber || '' }); }}><td className="p-4 font-mono text-xs text-white">{order.id}</td><td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td><td className="p-4"><div className="flex flex-col"><span className="text-sm font-bold text-white">{order.customerName}</span><span className="text-[10px] text-slate-500">{order.customerEmail}</span></div></td><td className="p-4">{getStatusBadge(order.status)}</td><td className="p-4 text-right text-sm font-bold text-white">R {order.total.toLocaleString()}</td></tr> )) )}</tbody></table></div>{viewingOrder && (<div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" onClick={() => setViewingOrder(null)}><div className="w-full max-w-lg bg-slate-900 h-full shadow-2xl border-l border-slate-800 overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}><div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950/50"><div><h3 className="text-2xl font-serif text-white mb-1">Order Details</h3><div className="flex items-center gap-2 text-xs font-mono text-slate-400"><span>#{viewingOrder.id}</span></div></div><button onClick={() => setViewingOrder(null)} className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"><X size={20}/></button></div><div className="flex-grow p-6 space-y-8"><div className="space-y-4"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Order Status</label><select value={viewingOrder.status} onChange={(e) => handleOrderStatusUpdate(viewingOrder.id, e.target.value)} disabled={!hasPermission('sales.fulfillment')} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer disabled:opacity-50">{['pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => ( <option key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</option> ))}</select></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><User size={16} className="text-primary"/> Customer</h4><div className="text-xs text-slate-300"><div>{viewingOrder.customerName}</div><div>{viewingOrder.customerEmail}</div><div className="mt-2">{viewingOrder.shippingAddress}</div></div></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><ShoppingBag size={16} className="text-primary"/> Items</h4><div className="space-y-3">{viewingOrder.items?.map((item: OrderItem) => ( <div key={item.id} className="flex justify-between items-center bg-slate-950/30 p-3 rounded-xl border border-slate-800/50"><div className="flex items-center gap-3"><div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-xs font-bold text-white">{item.quantity}x</div><span className="text-sm text-slate-300">{item.productName}</span></div><span className="text-xs font-mono text-white">R {(item.price * item.quantity).toLocaleString()}</span></div> ))}<div className="flex justify-between items-center pt-2 text-sm font-bold text-white"><span>Total</span><span className="text-primary text-lg">R {viewingOrder.total.toLocaleString()}</span></div></div></div><div className="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800"><h4 className="text-white font-bold text-sm flex items-center gap-2 mb-2"><Truck size={16} className="text-blue-500"/> Logistics</h4>{hasPermission('sales.fulfillment') ? (<div className="space-y-3"><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Courier</label><input type="text" value={trackingInfo.courier} onChange={e => setTrackingInfo({...trackingInfo, courier: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Tracking</label><input type="text" value={trackingInfo.tracking} onChange={e => setTrackingInfo({...trackingInfo, tracking: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><button onClick={handleSaveTracking} className="w-full py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Update</button></div>) : (<div className="text-xs text-slate-500">Only Fulfillment staff can update logistics.</div>)}</div></div><div className="p-6 border-t border-slate-800 bg-slate-950/50 flex gap-4"><button onClick={() => printInvoice(viewingOrder)} className="flex-1 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white flex items-center justify-center gap-2"><Printer size={16}/> Invoice</button></div></div></div>)}</div>
