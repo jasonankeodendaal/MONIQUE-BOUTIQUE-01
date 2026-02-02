@@ -1,4 +1,3 @@
-
 export interface Category {
   id: string;
   name: string;
@@ -218,9 +217,6 @@ export interface SiteSettings {
   termsContent: string;
 
   // Integrations
-  emailJsServiceId?: string;
-  emailJsTemplateId?: string;
-  emailJsPublicKey?: string;
   googleAnalyticsId?: string;
   facebookPixelId?: string;
   tiktokPixelId?: string;

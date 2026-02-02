@@ -1,95 +1,4 @@
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule, Article, Subscriber } from './types';
-
-// EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
-export const EMAIL_TEMPLATE_HTML = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Message from {{company_name}}</title>
-<style>
-    /* RESET & BASICS */
-    body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #FDFCFB; color: #1E293B; -webkit-font-smoothing: antialiased; line-height: 1.6; }
-    table { border-spacing: 0; width: 100%; }
-    td { padding: 0; }
-    img { border: 0; }
-    
-    /* WRAPPER */
-    .wrapper { width: 100%; table-layout: fixed; background-color: #FDFCFB; padding-bottom: 60px; }
-    .webkit { max-width: 600px; background-color: #FFFFFF; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.1); border: 1px solid #f1f5f9; }
-    .outer { margin: 0 auto; width: 100%; max-width: 600px; }
-    
-    /* HEADER */
-    .header { background-color: #1E293B; padding: 40px 20px; text-align: center; }
-    .brand-title { color: #FFFFFF; font-family: 'Playfair Display', Times, serif; font-size: 28px; letter-spacing: 2px; text-transform: uppercase; margin: 0; font-weight: 400; }
-    .brand-subtitle { color: #D4AF37; font-size: 10px; text-transform: uppercase; letter-spacing: 4px; margin-top: 5px; font-weight: 700; display: block; }
-    
-    /* CONTENT */
-    .content { padding: 40px; background-color: #FFFFFF; }
-    .greeting { font-size: 20px; font-weight: 600; color: #1E293B; margin-bottom: 20px; font-family: 'Playfair Display', serif; }
-    .message-body { font-size: 15px; color: #475569; line-height: 1.8; white-space: pre-wrap; margin-bottom: 30px; }
-    
-    /* BUTTON */
-    .btn-container { text-align: center; margin: 35px 0; }
-    .btn { display: inline-block; background-color: #D4AF37; color: #FFFFFF; padding: 16px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); }
-    
-    /* FOOTER */
-    .footer { background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
-    .footer-text { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-    .address { color: #cbd5e1; font-size: 10px; line-height: 1.5; margin-top: 10px; }
-    .socials { margin-top: 20px; }
-    .social-link { color: #D4AF37; font-size: 11px; text-decoration: none; margin: 0 10px; font-weight: 700; }
-</style>
-</head>
-<body>
-<center class="wrapper">
-    <div class="webkit">
-        <table class="outer" align="center">
-            <!-- Header -->
-            <tr>
-                <td class="header">
-                    <h1 class="brand-title">{{company_name}}</h1>
-                    <span class="brand-subtitle">Private Concierge</span>
-                </td>
-            </tr>
-            
-            <!-- Body -->
-            <tr>
-                <td class="content">
-                    <p class="greeting">Dear {{to_name}},</p>
-                    <div class="message-body">
-                        {{{message}}}
-                    </div>
-                    <div class="btn-container">
-                        <a href="{{company_website}}" class="btn">Visit Collection</a>
-                    </div>
-                    <p style="font-size: 13px; color: #64748b; text-align: center; font-style: italic;">
-                        "Curating the exceptional for the discerning few."
-                    </p>
-                </td>
-            </tr>
-            
-            <!-- Footer -->
-            <tr>
-                <td class="footer">
-                    <p class="footer-text">&copy; {{year}} {{company_name}}</p>
-                    <p class="footer-text">All Rights Reserved</p>
-                    <div class="address">{{company_address}}</div>
-                    <div class="socials">
-                        <a href="{{company_website}}" class="social-link">Website</a>
-                        <span style="color: #cbd5e1;">|</span>
-                        <a href="mailto:{{reply_to}}" class="social-link">Contact Support</a>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-</center>
-</body>
-</html>
-`;
 
 export const GUIDE_STEPS = [
   {
@@ -162,7 +71,6 @@ CREATE TABLE IF NOT EXISTS public_settings (
   "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
   "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
-  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "pinterestTagId" TEXT,
   "enableDirectSales" BOOLEAN DEFAULT false, "currency" TEXT DEFAULT 'ZAR', 
   "yocoPublicKey" TEXT, "payfastMerchantId" TEXT, "payfastMerchantKey" TEXT,
@@ -266,6 +174,9 @@ CREATE POLICY "Enable all for anon reviews" ON reviews FOR ALL USING (true);
 CREATE POLICY "Enable all for anon articles" ON articles FOR ALL USING (true);
 CREATE POLICY "Enable all for anon subscribers" ON subscribers FOR ALL USING (true);
 
+-- Anonymous Subscriptions
+CREATE POLICY "Enable insert for anon subscribers" ON subscribers FOR INSERT WITH CHECK (true);
+
 -- Private Secrets (Auth Only)
 CREATE POLICY "Authenticated Read Secrets" ON private_secrets FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Authenticated Update Secrets" ON private_secrets FOR UPDATE USING (auth.role() = 'authenticated');
@@ -346,45 +257,8 @@ END $$;`,
     ]
   },
   {
-    id: 'emailjs-config',
-    title: '7. EmailJS Configuration',
-    description: 'Configure your transactional emails. Copy the templates below into your EmailJS dashboard to enable professional notifications and auto-replies.',
-    illustrationId: 'forge',
-    subSteps: [
-      'Go to EmailJS Dashboard > Email Templates.',
-      'Create a new template.',
-      'Click the "Source Code" icon (< >) in the editor toolbar.',
-      'Paste the specific HTML code provided below.',
-      'Save. Repeat for the second template.',
-      'Copy your Service ID, Template IDs, and Public Key to the "Integrations" tab in your Admin Panel.'
-    ],
-    code: `<!-- 1. ADMIN NOTIFICATION TEMPLATE (To You) -->
-<div style="font-family: sans-serif; color: #333;">
-  <h2 style="color: #D4AF37;">New Concierge Request</h2>
-  <p><strong>Client:</strong> {{name}}</p>
-  <p><strong>Email:</strong> {{email}}</p>
-  <p><strong>WhatsApp:</strong> {{whatsapp}}</p>
-  <hr style="border: 0; border-top: 1px solid #eee;">
-  <h3>{{subject}}</h3>
-  <div style="background: #f9f9f9; padding: 15px; border-left: 4px solid #D4AF37;">
-    {{message}}
-  </div>
-</div>
-
-<!-- 2. CLIENT AUTO-REPLY TEMPLATE (To User) -->
-<div style="font-family: 'Playfair Display', serif; text-align: center; color: #1e293b; padding: 40px;">
-  <h1 style="color: #D4AF37; text-transform: uppercase; letter-spacing: 2px;">Monique Boutique</h1>
-  <p style="font-size: 18px;">Dear {{name}},</p>
-  <p>We have received your inquiry regarding <strong>{{subject}}</strong>.</p>
-  <p>Our concierge team is reviewing your request and will be in touch shortly.</p>
-  <br>
-  <p style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Curating the Exceptional</p>
-</div>`,
-    codeLabel: 'HTML Email Templates'
-  },
-  {
     id: 'seo-meta',
-    title: '8. SEO Meta Tags & Branding',
+    title: '7. SEO Meta Tags & Branding',
     description: 'Optimize your site for search engines by customizing the global meta tags in the "Identity" section of the Site Editor.',
     illustrationId: 'rocket',
     subSteps: [
@@ -396,7 +270,7 @@ END $$;`,
   },
   {
     id: 'sitemap',
-    title: '9. Sitemap Submission',
+    title: '8. Sitemap Submission',
     description: 'Help Google index your pages faster.',
     illustrationId: 'rocket',
     subSteps: [
@@ -407,7 +281,7 @@ END $$;`,
   },
   {
     id: 'gsc',
-    title: '10. Google Search Console',
+    title: '9. Google Search Console',
     description: 'The command center for your organic search presence.',
     illustrationId: 'forge',
     subSteps: [
@@ -419,7 +293,7 @@ END $$;`,
   },
   {
     id: 'social-handles',
-    title: '11. Secure Social Handles',
+    title: '10. Secure Social Handles',
     description: 'Brand consistency is key. Ensure your handle is the same across all platforms.',
     illustrationId: 'rocket',
     subSteps: [
@@ -430,7 +304,7 @@ END $$;`,
   },
   {
     id: 'content-post',
-    title: '12. First Journal Entry',
+    title: '11. First Journal Entry',
     description: 'Content drives traffic. Write your first blog post to establish authority.',
     illustrationId: 'forge',
     subSteps: [
@@ -442,7 +316,7 @@ END $$;`,
   },
   {
     id: 'influencer',
-    title: '13. Micro-Influencer Outreach',
+    title: '12. Micro-Influencer Outreach',
     description: 'You don\'t need millions of followers. You need engagement.',
     illustrationId: 'rocket',
     subSteps: [
@@ -454,7 +328,7 @@ END $$;`,
   },
   {
     id: 'email-marketing',
-    title: '14. Email Marketing Setup',
+    title: '13. Email Marketing Setup',
     description: 'The money is in the list. Start collecting emails immediately.',
     illustrationId: 'forge',
     subSteps: [
@@ -466,18 +340,18 @@ END $$;`,
   },
   {
     id: 'cart-recovery',
-    title: '15. Abandoned Cart Strategy',
+    title: '14. Abandoned Cart Strategy',
     description: 'Recover lost sales manually until you scale.',
     illustrationId: 'rocket',
     subSteps: [
       'Monitor your "Orders" tab for "Pending Payment" status.',
-      'If an order sits for 24 hours, use the "Reply" or email function to send a friendly reminder.',
+      'If an order sits for 24 hours, use the built-in Inbox to reply and send a friendly reminder.',
       'Offer assistance or a small discount code to close the sale.'
     ]
   },
   {
     id: 'retargeting',
-    title: '16. Retargeting Pixels',
+    title: '15. Retargeting Pixels',
     description: 'Show ads to people who already visited your site.',
     illustrationId: 'forge',
     subSteps: [
@@ -489,7 +363,7 @@ END $$;`,
   },
   {
     id: 'ab-testing',
-    title: '17. A/B Testing Headlines',
+    title: '16. A/B Testing Headlines',
     description: 'Optimize your conversion rate.',
     illustrationId: 'rocket',
     subSteps: [
@@ -500,7 +374,7 @@ END $$;`,
   },
   {
     id: 'affiliate-network',
-    title: '18. Join Premium Networks',
+    title: '17. Join Premium Networks',
     description: 'Expand your catalog with high-ticket items.',
     illustrationId: 'forge',
     subSteps: [
@@ -510,7 +384,7 @@ END $$;`,
   },
   {
     id: 'audit',
-    title: '19. Quarterly Performance Audit',
+    title: '18. Quarterly Performance Audit',
     description: 'Review what is working.',
     illustrationId: 'rocket',
     subSteps: [
@@ -521,7 +395,7 @@ END $$;`,
   },
   {
     id: 'scale',
-    title: '20. Scale & Automate',
+    title: '19. Scale & Automate',
     description: 'The final frontier.',
     illustrationId: 'forge',
     subSteps: [
@@ -532,9 +406,7 @@ END $$;`,
   }
 ];
 
-// ... (TRAINING_MODULES, PERMISSION_TREE, INITIAL_ADMINS, INITIAL_ENQUIRIES unchanged)
-
-// Add new initial data for articles
+// ... (INITIAL_ARTICLES, INITIAL_SUBSCRIBERS, TRAINING_MODULES, PERMISSION_TREE, INITIAL_ADMINS, INITIAL_ENQUIRIES, INITIAL_SETTINGS, INITIAL_CAROUSEL, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_PRODUCTS remain unchanged)
 export const INITIAL_ARTICLES: Article[] = [
   {
     id: '1',
@@ -568,7 +440,6 @@ export const INITIAL_ARTICLES: Article[] = [
 export const INITIAL_SUBSCRIBERS: Subscriber[] = [];
 
 export const TRAINING_MODULES: TrainingModule[] = [
-  // ... (unchanged content)
   // --- INSTAGRAM MASTERY ---
   {
     id: 'ig-bio',
@@ -1128,7 +999,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
 
 
 export const PERMISSION_TREE: PermissionNode[] = [
-  // ... (unchanged content)
   {
     id: 'sales',
     label: 'Sales & Inbox',
@@ -1354,9 +1224,6 @@ export const INITIAL_SETTINGS: SiteSettings = {
   termsContent: `### TERMS OF SERVICE & USER AGREEMENT...`, 
 
   // Integrations
-  emailJsServiceId: '',
-  emailJsTemplateId: '',
-  emailJsPublicKey: '',
   googleAnalyticsId: '',
   facebookPixelId: '',
   tiktokPixelId: '',
