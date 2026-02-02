@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Loader2 } from 'lucide-react';
@@ -101,7 +100,9 @@ const ProductDetail: React.FC = () => {
         ? (discount.type === 'percentage' ? `-${discount.value}%` : `-R${discount.value}`) 
         : '';
       
-      const priceString = `R ${product.price.toLocaleString()}`;
+      // Fix: Add fallback '0' if price is undefined to prevent crash
+      const priceVal = product.price || 0;
+      const priceString = `R ${priceVal.toLocaleString()}`;
       
       const adText = [
           `✨ ${product.name} ✨`,
@@ -357,7 +358,8 @@ const ProductDetail: React.FC = () => {
               <h1 className="text-3xl md:text-5xl font-serif text-slate-900 leading-tight">{product.name}</h1>
               
               <div className="flex items-center gap-4">
-                <span className="text-2xl md:text-3xl font-black text-slate-900">R {product.price.toLocaleString()}</span>
+                {/* Fallback added here to prevent runtime crash */}
+                <span className="text-2xl md:text-3xl font-black text-slate-900">R {(product.price || 0).toLocaleString()}</span>
                 {product.discountRules && product.discountRules.length > 0 && (
                   <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest">
                     {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
