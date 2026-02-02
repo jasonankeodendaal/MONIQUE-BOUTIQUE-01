@@ -220,6 +220,8 @@ DROP POLICY IF EXISTS "Public Read Media" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated Upload Media" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated Delete Media" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated Update Media" ON storage.objects;
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Access" ON storage.objects;
 
 -- 3. Create permissive policies for the 'media' bucket
 -- Allow public read access to all files in 'media'
@@ -368,7 +370,7 @@ ON CONFLICT (id) DO UPDATE SET role = 'owner', permissions = ARRAY['*'];`
     ],
     codeLabel: 'create_admin_user SQL Function',
     code: `-- Enable pgcrypto for hashing
-create extension if not exists pgcrypto;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 create or replace function create_admin_user(
   email text,
