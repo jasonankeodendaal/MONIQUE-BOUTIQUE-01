@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Loader2 } from 'lucide-react';
@@ -83,11 +84,12 @@ const ProductDetail: React.FC = () => {
             meta.setAttribute('content', content);
         };
 
-        updateMeta('og:title', product.name);
-        updateMeta('og:description', product.description.substring(0, 200));
+        const safeDesc = (product.description || '').substring(0, 200);
+        updateMeta('og:title', product.name || '');
+        updateMeta('og:description', safeDesc);
         updateMeta('og:image', product.media?.[0]?.url || '');
-        updateMeta('twitter:title', product.name);
-        updateMeta('twitter:description', product.description.substring(0, 200));
+        updateMeta('twitter:title', product.name || '');
+        updateMeta('twitter:description', safeDesc);
         updateMeta('twitter:image', product.media?.[0]?.url || '');
     }
   }, [product, settings.companyName]);
@@ -104,10 +106,13 @@ const ProductDetail: React.FC = () => {
       const priceVal = product.price || 0;
       const priceString = `R ${priceVal.toLocaleString()}`;
       
+      // Fix: Safely handle missing description
+      const description = product.description || '';
+      
       const adText = [
           `✨ ${product.name} ✨`,
           '',
-          product.description.length > 150 ? `${product.description.substring(0, 150)}...` : product.description,
+          description.length > 150 ? `${description.substring(0, 150)}...` : description,
           '',
           `💎 Price: ${priceString} ${discountString ? `(${discountString} OFF 🔥)` : ''}`,
           '',
@@ -173,7 +178,9 @@ const ProductDetail: React.FC = () => {
           try {
             const response = await fetch(imgUrl);
             const blob = await response.blob();
-            const filename = `${product.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`;
+            // Safe filename handling
+            const safeName = (product.name || 'product').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const filename = `${safeName}.jpg`;
             const file = new File([blob], filename, { type: blob.type });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                shareData.files = [file];
@@ -358,7 +365,6 @@ const ProductDetail: React.FC = () => {
               <h1 className="text-3xl md:text-5xl font-serif text-slate-900 leading-tight">{product.name}</h1>
               
               <div className="flex items-center gap-4">
-                {/* Fallback added here to prevent runtime crash */}
                 <span className="text-2xl md:text-3xl font-black text-slate-900">R {(product.price || 0).toLocaleString()}</span>
                 {product.discountRules && product.discountRules.length > 0 && (
                   <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest">
