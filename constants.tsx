@@ -532,30 +532,603 @@ END $$;`,
   }
 ];
 
+// ... (TRAINING_MODULES, PERMISSION_TREE, INITIAL_ADMINS, INITIAL_ENQUIRIES unchanged)
+
+// Add new initial data for articles
 export const INITIAL_ARTICLES: Article[] = [
   {
     id: '1',
-    title: 'The Art of Affiliate Curation',
-    excerpt: 'How I transformed my passion for fashion into a curated bridge system that helps thousands find their style.',
-    content: 'Building a bridge page is not just about links; it is about building trust. In this article, I share my journey from a fashion enthusiast to a professional affiliate curator.',
+    title: 'The Art of the Capsule Wardrobe',
+    excerpt: 'How to build a timeless collection of essentials that work together seamlessly to create endless looks.',
+    content: 'Building a capsule wardrobe is not just about minimalism; it is about intentionality. By selecting pieces that are versatile and high-quality, you create a foundation for personal style that transcends trends.',
     image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=800',
     date: Date.now() - 100000000,
-    author: 'Founder'
+    author: 'Curator'
   },
   {
     id: '2',
-    title: 'My Top 5 High-Conversion Finds',
-    excerpt: 'A deep dive into the items that my community loves the most and why they are essential for your collection.',
-    content: 'Every season has its heroes. This summer, these five pieces have stood out not just for their style, but for the incredible value they offer through our affiliate partners.',
+    title: 'Summer 2025 Trend Report',
+    excerpt: 'What to expect from the runways of Paris and Milan this coming season.',
+    content: 'From bold hues to sheer fabrics, the upcoming season promises a return to glamour. We break down the key trends you need to know.',
     image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=800',
     date: Date.now() - 200000000,
-    author: 'Founder'
+    author: 'Editor'
+  },
+  {
+    id: '3',
+    title: 'Sustainable Luxury: A Guide',
+    excerpt: 'Why investing in high-quality, ethically sourced pieces is the future of fashion.',
+    content: 'True luxury is sustainable. Discover brands that are prioritizing ethical production methods without compromising on style.',
+    image: 'https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?auto=format&fit=crop&q=80&w=800',
+    date: Date.now() - 300000000,
+    author: 'Guest'
   }
 ];
 
 export const INITIAL_SUBSCRIBERS: Subscriber[] = [];
 
+export const TRAINING_MODULES: TrainingModule[] = [
+  // ... (unchanged content)
+  // --- INSTAGRAM MASTERY ---
+  {
+    id: 'ig-bio',
+    title: '1. Instagram: Bio Architecture',
+    platform: 'Instagram',
+    description: 'Your bio is your digital business card. Optimize it to convert profile visits into clicks within seconds.',
+    strategies: [
+      'Keyword Optimization: Include "Affiliate", "Fashion", or "Deals" in your name field for searchability.',
+      'Link in Bio Tools: Use the Bridge Page URL as your single link to track all outbound traffic.',
+      'CTA Placement: Use the last line of your bio to point down to the link with an emoji.'
+    ],
+    actionItems: [
+      'Rewrite bio to include your niche keywords.',
+      'Add a "Shop My Finds" Call-to-Action.',
+      'Switch to a Creator Account for insights.'
+    ],
+    icon: 'Instagram'
+  },
+  {
+    id: 'ig-stories',
+    title: '2. Instagram: Stories That Sell',
+    platform: 'Instagram',
+    description: 'Stories are where retention happens. Build a relationship with your audience through behind-the-scenes content.',
+    strategies: [
+      'The 4-Slide Rule: Hook, Value, Proof, CTA.',
+      'Polls & Stickers: Use interaction stickers to boost algorithmic ranking.',
+      'Link Stickers: Place link stickers in the "thumb zone" (bottom right).'
+    ],
+    actionItems: [
+      'Post 3 stories today: Morning coffee, Outfit check, Product link.',
+      'Use a poll sticker to ask "This or That?".',
+      'Save your best selling stories to a Highlight.'
+    ],
+    icon: 'Aperture'
+  },
+  {
+    id: 'ig-reels',
+    title: '3. Instagram: Reels Algorithm',
+    platform: 'Instagram',
+    description: 'Reels are the primary growth engine on Instagram currently. Reach non-followers effectively.',
+    strategies: [
+      'Trending Audio: Use audios with < 10k uses that have an upward arrow.',
+      'Text Overlay: Place text within the 4:5 safe zone to avoid being cut off in the grid.',
+      'Looping: Create videos that loop seamlessly to increase watch time.'
+    ],
+    actionItems: [
+      'Find 3 trending audios.',
+      'Film a 7-second Reel pointing to text bubbles.',
+      'Post consistently at the same time for a week.'
+    ],
+    icon: 'Film'
+  },
+  {
+    id: 'ig-dm',
+    title: '4. Instagram: DM Automation',
+    platform: 'Instagram',
+    description: 'Convert comments into sales conversations automatically.',
+    strategies: [
+      'Keyword Triggers: Tell users "Comment LINK" to get the product sent to their DMs.',
+      'ManyChat Basics: Set up a simple auto-reply flow.',
+      'Personal Touch: Send a voice note to new high-value followers.'
+    ],
+    actionItems: [
+      'Set up a ManyChat account (free tier).',
+      'Create a trigger keyword for your latest post.',
+      'Test the automation with a friend.'
+    ],
+    icon: 'MessageCircle'
+  },
+  {
+    id: 'ig-seo',
+    title: '5. Instagram: SEO & Hashtags',
+    platform: 'Instagram',
+    description: 'Stop relying on hashtags alone. Optimize your entire post for search.',
+    strategies: [
+      'Alt Text: Add descriptive alt text to your images before posting.',
+      'Caption Keywords: Write captions that include "Summer Dress" or "Office Outfit".',
+      'Hashtag Ladders: Mix broad (1M+), medium (500k), and niche (50k) tags.'
+    ],
+    actionItems: [
+      'Research 10 keywords for your niche.',
+      'Update 3 old posts with Alt Text.',
+      'Create 3 hashtag groups in your notes app.'
+    ],
+    icon: 'Search'
+  },
+  {
+    id: 'ig-collab',
+    title: '6. Instagram: Collab Posts',
+    platform: 'Instagram',
+    description: 'Double your reach by leveraging other accounts\' audiences.',
+    strategies: [
+      'Brand Collabs: Tag the brand as a collaborator (if approved) or tag them in the photo.',
+      'Peer Collabs: Team up with a creator in a complementary niche.',
+      'Engagement Pods: Genuine support groups to boost initial engagement.'
+    ],
+    actionItems: [
+      'Identify 5 peers with similar follower counts.',
+      'Propose a "Style Swap" collab.',
+      'Tag the brands in your outfit photo.'
+    ],
+    icon: 'Users'
+  },
+
+  // --- TIKTOK GROWTH ---
+  {
+    id: 'tiktok-hooks',
+    title: '7. TikTok: The 3-Second Hook',
+    platform: 'TikTok',
+    description: 'Stop the scroll immediately. If you do not grab attention in 3 seconds, the algorithm kills your reach.',
+    strategies: [
+      'Visual Interrupts: Start with movement or a sudden transition.',
+      'Text Overlays: Use "You won\'t believe this price" or "Amazon vs Reality".',
+      'Controversial Takes: "Unpopular opinion: This dupe is better."'
+    ],
+    actionItems: [
+      'Film 3 videos using different visual hooks.',
+      'Test text-to-speech for the opening line.',
+      'Analyze watch time in analytics.'
+    ],
+    icon: 'Zap'
+  },
+  {
+    id: 'tiktok-audio',
+    title: '8. TikTok: Audio Strategy',
+    platform: 'TikTok',
+    description: 'Sound is half the experience on TikTok. Ride the waves of viral sounds.',
+    strategies: [
+      'Sound Sync: Edit your cuts to the beat of the music.',
+      'Original Audio: Create ASMR unboxing sounds.',
+      'Volume Mixing: Lower music to 10-20% when speaking.'
+    ],
+    actionItems: [
+      'Save 5 sounds from your For You Page.',
+      'Create a video syncing 3 outfit changes to a beat.',
+      'Record an ASMR packaging video.'
+    ],
+    icon: 'Music'
+  },
+  {
+    id: 'tiktok-seo',
+    title: '9. TikTok: Search Optimization',
+    platform: 'TikTok',
+    description: 'TikTok is a search engine. Get found by people looking for specific items.',
+    strategies: [
+      'Screen Text: Put keywords on the screen for the first 3 seconds.',
+      'Spoken Keywords: Say the product name clearly in the video.',
+      'Caption Structure: "The best [Product] for [Problem] in 2024".'
+    ],
+    actionItems: [
+      'Search your niche keyword and see what auto-fills.',
+      'Create a video answering a specific search query.',
+      'Use 3-5 keywords in your caption.'
+    ],
+    icon: 'SearchCode'
+  },
+  {
+    id: 'tiktok-stitch',
+    title: '10. TikTok: Duet & Stitch',
+    platform: 'TikTok',
+    description: 'Piggyback on viral content to divert traffic to your page.',
+    strategies: [
+      'Reaction Videos: React to high-fashion runway fails or wins.',
+      'Add Value: Stitch a problem video with your product as the solution.',
+      'Blind Reacts: Genuine reactions to price reveals.'
+    ],
+    actionItems: [
+      'Find a viral fashion video posted in the last 24h.',
+      'Stitch it with your take.',
+      'Duet a "Get Ready With Me" adding commentary.'
+    ],
+    icon: 'Repeat'
+  },
+  {
+    id: 'tiktok-batch',
+    title: '11. Content Batching',
+    platform: 'TikTok',
+    description: 'Consistency is key. Film everything in one day to stay ahead.',
+    strategies: [
+      'Outfit Changes: Bring 5 outfits to a location.',
+      'Drafts Folder: Keep 10 videos in drafts for busy days.',
+      'Scripting: Write out your hooks before you turn on the camera.'
+    ],
+    actionItems: [
+      'Schedule a 2-hour filming block this Sunday.',
+      'Prepare 5 scripts.',
+      'Film and edit 5 videos to keep in drafts.'
+    ],
+    icon: 'Layers'
+  },
+  {
+    id: 'tiktok-live',
+    title: '12. TikTok: Going Live',
+    platform: 'TikTok',
+    description: 'Build deep connection and sell in real-time.',
+    strategies: [
+      'Q&A Session: Answer questions about sizing and fit.',
+      'Try-On Haul: Live unboxing and trying on new items.',
+      'Flash Sale: Exclusive discount codes for live viewers.'
+    ],
+    actionItems: [
+      'Announce a "Live Try-On" 24 hours in advance.',
+      'Go live for at least 30 minutes.',
+      'Have your products ready to show on camera.'
+    ],
+    icon: 'Radio'
+  },
+
+  // --- PINTEREST STRATEGY ---
+  {
+    id: 'pin-design',
+    title: '13. Pinterest: Pin Design',
+    platform: 'Pinterest',
+    description: 'Pinterest is a visual discovery engine. Your pins must be aesthetic and clear.',
+    strategies: [
+      'Vertical Aspect Ratio: Always use 2:3 (1000x1500px).',
+      'Text Overlay: Large, readable fonts with good contrast.',
+      'Branding: Subtle logo placement at the top or bottom.'
+    ],
+    actionItems: [
+      'Create 3 pin templates in Canva.',
+      'Design 5 pins for your top-performing product.',
+      'Test a video pin.'
+    ],
+    icon: 'Palette'
+  },
+  {
+    id: 'pin-seo',
+    title: '14. Pinterest: Keywords',
+    platform: 'Pinterest',
+    description: 'Target high-intent buyers searching for specific aesthetics.',
+    strategies: [
+      'Pinterest Trends: Use the native tool to find rising searches.',
+      'Board SEO: Name your boards "Summer Fashion" not "Stuff I like".',
+      'Description: Write full sentences containing keywords.'
+    ],
+    actionItems: [
+      'Rename your generic boards.',
+      'Write a keyword-rich description for your profile.',
+      'Research "OOTD" trends for the upcoming season.'
+    ],
+    icon: 'Hash'
+  },
+  {
+    id: 'pin-rich',
+    title: '15. Pinterest: Rich Pins',
+    platform: 'Pinterest',
+    description: 'Automatically pull metadata from your site to Pinterest.',
+    strategies: [
+      'Product Rich Pins: Show real-time pricing and availability.',
+      'Article Rich Pins: Show headline and author for blog posts.',
+      'Validation: Use the Pinterest Validator tool.'
+    ],
+    actionItems: [
+      'Apply for Rich Pins in Pinterest settings.',
+      'Verify your website claim.',
+      'Check if price updates reflect on your pins.'
+    ],
+    icon: 'Tag'
+  },
+  {
+    id: 'pin-group',
+    title: '16. Group Boards',
+    platform: 'Pinterest',
+    description: 'Leverage established communities to get your content seen.',
+    strategies: [
+      'Niche Boards: Join boards specific to "Affiliate Fashion".',
+      'Rules: Read and follow board rules strictly to avoid banning.',
+      'Reciprocity: Re-pin others\' content to maintain good standing.'
+    ],
+    actionItems: [
+      'Request to join 3 active group boards.',
+      'Pin your best content to these boards.',
+      'Engage with 5 other pins on the board.'
+    ],
+    icon: 'Users'
+  },
+  {
+    id: 'pin-idea',
+    title: '17. Idea Pins',
+    platform: 'Pinterest',
+    description: 'Pinterest\'s answer to Stories. Great for engagement.',
+    strategies: [
+      'Multi-Page Content: Create a 5-page guide "How to Style...".',
+      'Video Integration: Use video on the first slide to grab attention.',
+      'Tagging: Tag products directly in the Idea Pin.'
+    ],
+    actionItems: [
+      'Create an Idea Pin showing "3 Ways to Wear a White Shirt".',
+      'Tag the white shirt affiliate link.',
+      'Include a CTA on the last slide.'
+    ],
+    icon: 'Lightbulb'
+  },
+
+  // --- CONTENT CREATION ---
+  {
+    id: 'photo-mobile',
+    title: '18. Mobile Photography',
+    platform: 'Content',
+    description: 'You don\'t need a DSLR. Master your phone camera.',
+    strategies: [
+      'Lighting: Always face the window (natural light).',
+      'Grid Lines: Use the rule of thirds for composition.',
+      'Exposure Lock: Tap and hold to lock focus and exposure.'
+    ],
+    actionItems: [
+      'Clean your camera lens.',
+      'Take a flat-lay photo using window light.',
+      'Edit exposure and contrast in Lightroom Mobile.'
+    ],
+    icon: 'Smartphone'
+  },
+  {
+    id: 'video-capcut',
+    title: '19. Video Editing (CapCut)',
+    platform: 'Content',
+    description: 'The industry standard for short-form video editing.',
+    strategies: [
+      'Keyframes: Add subtle zooms to static shots.',
+      'Auto-Captions: Generate and style captions instantly.',
+      'Overlay: Add "picture-in-picture" for reaction videos.'
+    ],
+    actionItems: [
+      'Download CapCut.',
+      'Edit a raw video clip adding a zoom effect.',
+      'Export in 1080p/60fps.'
+    ],
+    icon: 'Scissors'
+  },
+  {
+    id: 'aesthetic',
+    title: '20. Curation & Aesthetic',
+    platform: 'Content',
+    description: 'A cohesive visual brand builds trust and recognition.',
+    strategies: [
+      'Color Palette: Stick to 3-4 core colors for your feed.',
+      'Filter Consistency: Use the same preset for all photos.',
+      'Mood Boarding: Plan your grid before you post.'
+    ],
+    actionItems: [
+      'Define your brand colors.',
+      'Create a mood board on Pinterest.',
+      'Archive posts that clash with your new aesthetic.'
+    ],
+    icon: 'Sparkles'
+  },
+  {
+    id: 'copywriting',
+    title: '21. Copywriting 101',
+    platform: 'Content',
+    description: 'Words that sell. Move people from "nice photo" to "must buy".',
+    strategies: [
+      'Benefit vs Feature: "100% Silk" (Feature) vs "Feels like water on skin" (Benefit).',
+      'Urgency: "Limited stock available".',
+      'Storytelling: "I wore this to..."'
+    ],
+    actionItems: [
+      'Rewrite a product description focusing on benefits.',
+      'Write 3 different captions for the same product.',
+      'Use power words like "Exclusive", "Secret", "Essential".'
+    ],
+    icon: 'PenTool'
+  },
+  {
+    id: 'ugc',
+    title: '22. User Generated Content',
+    platform: 'Content',
+    description: 'Authenticity wins. Content that looks real performs better.',
+    strategies: [
+      'Unboxing: Capture the raw excitement of opening a package.',
+      'Fail Compilation: Show what didn\'t fit (builds trust).',
+      'Texture Shots: Close-ups of fabric and details.'
+    ],
+    actionItems: [
+      'Film an unboxing of your latest order.',
+      'Take a macro shot of a fabric texture.',
+      'Share an honest review of a product flaw.'
+    ],
+    icon: 'Camera'
+  },
+
+  // --- TRAFFIC & CONVERSION ---
+  {
+    id: 'email-list',
+    title: '23. Building an Email List',
+    platform: 'Traffic',
+    description: 'You don\'t own your social followers. You own your email list.',
+    strategies: [
+      'Lead Magnet: Offer a "Free Style Guide" in exchange for email.',
+      'Newsletter: Weekly curation of top finds.',
+      'Welcome Sequence: Automated email delivering the freebie.'
+    ],
+    actionItems: [
+      'Sign up for an email provider (e.g., Mailchimp).',
+      'Create a simple landing page for signups.',
+      'Promote your newsletter on stories.'
+    ],
+    icon: 'Mail'
+  },
+  {
+    id: 'bridge-funnel',
+    title: '24. The Bridge Page Funnel',
+    platform: 'Traffic',
+    description: 'Pre-frame the visitor before sending them to the retailer.',
+    strategies: [
+      'Personal Review: "Why I bought this".',
+      'Context: Show how to style it.',
+      'Trust Badges: "Verified Affiliate".'
+    ],
+    actionItems: [
+      'Ensure every product on your site has a personal note.',
+      'Check that your "About" page builds authority.',
+      'Test your outbound links.'
+    ],
+    icon: 'Layout'
+  },
+  {
+    id: 'follow-up',
+    title: '25. Follow-Up Sequences',
+    platform: 'Traffic',
+    description: 'The money is in the follow-up. Retarget interested prospects.',
+    strategies: [
+      'Value Emails: Send styling tips, not just sales links.',
+      'Seasonal Updates: "Fall Wardrobe Essentials".',
+      'Sale Alerts: Notify list when favorites drop in price.'
+    ],
+    actionItems: [
+      'Draft a "Weekly Favorites" email.',
+      'Set a calendar reminder to check for sales.',
+      'Segment your list by interest (e.g., Shoes vs Dresses).'
+    ],
+    icon: 'Repeat'
+  },
+  {
+    id: 'analytics',
+    title: '26. Analytics Deep Dive',
+    platform: 'Traffic',
+    description: 'Data driven decisions reduce wasted effort.',
+    strategies: [
+      'Click-Through Rate (CTR): Is your creative good?',
+      'Conversion Rate: Is your bridge page effective?',
+      'Traffic Source: Which platform is winning?'
+    ],
+    actionItems: [
+      'Review your site analytics weekly.',
+      'Identify your top 3 traffic sources.',
+      'Double down on the top performing content format.'
+    ],
+    icon: 'BarChart3'
+  },
+  {
+    id: 'link-bio',
+    title: '27. Link-in-Bio Optimization',
+    platform: 'Traffic',
+    description: 'Reduce friction. Make it easy to find what they saw.',
+    strategies: [
+      'Direct Links: "Shop my Feed" section.',
+      'Clear Categories: "Amazon Faves", "OOTD".',
+      'Visuals: Use thumbnails for links.'
+    ],
+    actionItems: [
+      'Audit your link-in-bio tool.',
+      'Remove broken or old links.',
+      'Add a "New Arrivals" button at the top.'
+    ],
+    icon: 'Link'
+  },
+
+  // --- BUSINESS MINDSET ---
+  {
+    id: 'mindset-abundance',
+    title: '28. Abundance Mindset',
+    platform: 'Business',
+    description: 'There is enough success for everyone. Competition is proof of demand.',
+    strategies: [
+      'Community vs Competition: Collaborate, don\'t envy.',
+      'Positive Affirmations: "I attract wealth".',
+      'Gratitude: Celebrate small wins.'
+    ],
+    actionItems: [
+      'Write down 3 things you are grateful for in your business.',
+      'Comment genuinely on a "competitor\'s" post.',
+      'Replace "I can\'t" with "How can I?".'
+    ],
+    icon: 'Sun'
+  },
+  {
+    id: 'time-mgmt',
+    title: '29. Time Management',
+    platform: 'Business',
+    description: 'Avoid burnout. Work smarter, not harder.',
+    strategies: [
+      'Pomodoro Technique: 25 min work, 5 min break.',
+      'Time Blocking: Dedicated hours for engagement vs creation.',
+      'Boundaries: No DMs after 8 PM.'
+    ],
+    actionItems: [
+      'Create a weekly schedule.',
+      'Turn off notifications during deep work blocks.',
+      'Take one full day off social media.'
+    ],
+    icon: 'Clock'
+  },
+  {
+    id: 'imposter-syndrome',
+    title: '30. Imposter Syndrome',
+    platform: 'Business',
+    description: 'You are worthy. Everyone starts at zero.',
+    strategies: [
+      'Evidence Log: Keep a folder of nice comments/results.',
+      'Keep Learning: Competence builds confidence.',
+      'Start Ugly: Better done than perfect.'
+    ],
+    actionItems: [
+      'Screenshot a nice comment and save it.',
+      'Post something "imperfect" today.',
+      'Read one chapter of a business book.'
+    ],
+    icon: 'Shield'
+  },
+  {
+    id: 'goals',
+    title: '31. Goal Setting',
+    platform: 'Business',
+    description: 'You can\'t hit a target you can\'t see.',
+    strategies: [
+      'SMART Goals: Specific, Measurable, Achievable, Relevant, Time-bound.',
+      'Vision Board: Visual representation of goals.',
+      'Reverse Engineering: Break big goals into daily tasks.'
+    ],
+    actionItems: [
+      'Set a revenue goal for this month.',
+      'Create a digital vision board for your phone wallpaper.',
+      'List 3 tasks for tomorrow that move the needle.'
+    ],
+    icon: 'Target'
+  },
+  {
+    id: 'finance',
+    title: '32. Financial Literacy',
+    platform: 'Business',
+    description: 'Treat it like a business, not a hobby.',
+    strategies: [
+      'Track Expenses: Software subscriptions, props, ads.',
+      'Reinvest: Put profit back into better gear or courses.',
+      'Taxes: Save a percentage of every payout.'
+    ],
+    actionItems: [
+      'Open a separate bank account for business.',
+      'Create a spreadsheet for monthly expenses.',
+      'Review your affiliate commission tiers.'
+    ],
+    icon: 'DollarSign'
+  }
+];
+
+
 export const PERMISSION_TREE: PermissionNode[] = [
+  // ... (unchanged content)
   {
     id: 'sales',
     label: 'Sales & Inbox',
@@ -639,9 +1212,9 @@ export const INITIAL_ADMINS: AdminUser[] = [
   {
     id: 'owner',
     name: 'Main Administrator',
-    email: 'admin@findara.com',
+    email: 'admin@moniqueboutique.com',
     role: 'owner',
-    permissions: ['*'],
+    permissions: ['*'], // * implies all
     password: 'password123',
     createdAt: Date.now(),
     phone: '',
@@ -660,119 +1233,138 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
     name: 'Sarah Jenkins',
     email: 'sarah.j@example.com',
     whatsapp: '+27 82 555 0123',
-    subject: 'Affiliate Question',
-    message: 'Hi, I love your curation! Do you have a direct link for the Summer Dress you posted on Instagram?',
+    subject: 'Styling Consultation',
+    message: 'Hi there, I am looking for a personal stylist for an upcoming gala in Cape Town. Do you offer virtual consultations?',
     createdAt: Date.now() - 86400000 * 2,
     status: 'unread'
   },
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: 'FINDARA Fashion',
-  slogan: 'Curating Your Path to Style',
-  companyLogo: 'FD',
+  companyName: 'FINDARA Fashion-Tech-Home',
+  slogan: 'Your Bridge to Global Style',
+  companyLogo: 'MB',
   companyLogoUrl: 'https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png',
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
   navHomeLabel: 'Home',
-  navProductsLabel: 'Market',
-  navAboutLabel: 'My Journey',
-  navContactLabel: 'Connect',
+  navProductsLabel: 'Collections',
+  navAboutLabel: 'My Story',
+  navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
-  contactEmail: 'contact@findara.com',
+  contactEmail: 'contact@example.com',
   contactPhone: '+27 00 000 0000',
   whatsappNumber: '27000000000',
-  address: 'Johannesburg, South Africa',
+  address: 'Online, South Africa',
   socialLinks: [
     { id: '1', name: 'Instagram', url: 'https://instagram.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
     { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }
   ],
 
-  footerDescription: "The ultimate bridge page for fashion enthusiasts. I find the best deals from around the web and bring them to you.",
+  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to global fashion trends.",
   footerCopyrightText: "All rights reserved.",
 
-  homeHeroBadge: 'Official Curator',
-  homeAboutTitle: 'My Story & Vision',
-  homeAboutDescription: 'I started this journey to solve one problem: finding high-quality, verified fashion without the noise. Every product here is hand-picked by me after thorough research.',
+  // Home Page Content
+  homeHeroBadge: 'Affiliate Curator',
+  homeAboutTitle: 'Me and My Story.',
+  homeAboutDescription: 'I built this bridge page to share my journey in affiliate marketing. Here I showcase my favorite finds, offering you a personal look at the products I love and recommend.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Read My Journey',
-  homeCategorySectionTitle: 'The Catalog',
-  homeCategorySectionSubtitle: 'Select Departments',
-  homeTrustSectionTitle: 'The Bridge Standard',
+  homeAboutCta: 'Read My Story',
+  homeCategorySectionTitle: 'Curated Departments',
+  homeCategorySectionSubtitle: 'The Collection',
+  homeTrustSectionTitle: 'Why Shop Here',
   
-  homeTrustItem1Title: 'Expert Selection',
-  homeTrustItem1Desc: 'Years of industry experience in every choice.',
-  homeTrustItem1Icon: 'Award', 
+  homeTrustItem1Title: 'Verified Affiliate',
+  homeTrustItem1Desc: 'Official partner with major global retailers.',
+  homeTrustItem1Icon: 'ShieldCheck', 
 
-  homeTrustItem2Title: 'Authentic Links',
-  homeTrustItem2Desc: 'Direct connections to authorized retailers only.',
-  homeTrustItem2Icon: 'ShieldCheck', 
+  homeTrustItem2Title: 'Personal Curation',
+  homeTrustItem2Desc: 'I personally select and review every item on this bridge page.',
+  homeTrustItem2Icon: 'User', 
 
-  homeTrustItem3Title: 'Personal Support',
-  homeTrustItem3Desc: 'I am here to answer your style questions.',
-  homeTrustItem3Icon: 'MessageCircle', 
+  homeTrustItem3Title: 'Direct Links',
+  homeTrustItem3Desc: 'Click through directly to the merchant for secure checkout.',
+  homeTrustItem3Icon: 'Link', 
 
-  productsHeroTitle: 'The Selection',
-  productsHeroSubtitle: 'Quality-tested products from our premium network partners.',
+  // Products Page Content
+  productsHeroTitle: 'Affiliate Catalog',
+  productsHeroSubtitle: 'Browse my hand-picked selections from top affiliate programs.',
   productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
-    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000'
+    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000',
+    'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Search the market...',
+  productsSearchPlaceholder: 'Search selections...',
 
-  aboutHeroTitle: 'The Curator Behind FINDARA.',
-  aboutHeroSubtitle: 'Bridging the gap between luxury trends and everyday access.',
+  // About Page Content
+  aboutHeroTitle: 'My Story.',
+  aboutHeroSubtitle: 'Welcome to my bridge page. I curate the best fashion so you don\'t have to.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Personal Curator',
-  aboutLocation: 'South Africa',
+  aboutFounderName: 'Curator',
+  aboutLocation: 'Online',
 
-  aboutHistoryTitle: 'How It All Began',
-  aboutHistoryBody: 'My journey into affiliate marketing wasn\'t planned. It grew from a genuine love for finding hidden gems in the fashion world and sharing them with friends. I realized people needed a trusted "bridge" to navigate the overwhelming options online.',
+  aboutHistoryTitle: 'The Bridge System',
+  aboutHistoryBody: 'This website is more than just a store; it is a bridge page system designed to market various affiliate programs. My passion for fashion led me to partner with top brands to bring you the best deals.\n\nHere you will find my personal reviews, styling tips, and direct links to purchase the items I love.',
   
-  aboutMissionTitle: 'My Mission',
-  aboutMissionBody: 'To provide a curated, transparent, and trustworthy shopping experience through professional affiliate partnerships.',
+  aboutMissionTitle: 'Marketing Mission',
+  aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers.',
   aboutMissionIcon: 'Target',
 
-  aboutCommunityTitle: 'The Community',
-  aboutCommunityBody: 'Join a growing group of style-conscious individuals who value quality over quantity.',
+  aboutCommunityTitle: 'Join the Community',
+  aboutCommunityBody: 'Follow my journey as I discover new trends and deals.',
   aboutCommunityIcon: 'Users',
   
-  aboutIntegrityTitle: 'Transparency Matters',
-  aboutIntegrityBody: 'I am a professional affiliate marketer. This means I earn a small commission when you purchase through my links, at no extra cost to you.',
+  aboutIntegrityTitle: 'Transparency',
+  aboutIntegrityBody: 'I am upfront about my role as an affiliate marketer. This system is built on trust.',
   aboutIntegrityIcon: 'Shield',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
   aboutGalleryImages: [
     'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800'
+    'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1551488852-0801d863dc34?auto=format&fit=crop&q=80&w=800'
   ],
 
-  contactHeroTitle: 'Let\'s Bridge the Gap.',
-  contactHeroSubtitle: 'Questions about a specific item or interested in a brand partnership?',
-  contactFormNameLabel: 'Full Name',
-  contactFormEmailLabel: 'Email Identity',
+  // Contact Page Content
+  contactHeroTitle: 'Get in Touch.',
+  contactHeroSubtitle: 'Have questions about a product or my affiliate partners?',
+  contactFormNameLabel: 'Name',
+  contactFormEmailLabel: 'Email',
   contactFormSubjectLabel: 'Subject',
   contactFormMessageLabel: 'Message',
-  contactFormButtonText: 'Connect Now',
+  contactFormButtonText: 'Send Message',
   
-  contactInfoTitle: 'Direct Connect',
-  contactAddressLabel: 'Based In',
-  contactHoursLabel: 'Response Time',
-  contactHoursWeekdays: 'Within 24 Hours',
-  contactHoursWeekends: 'Weekends vary',
+  contactInfoTitle: 'Contact',
+  contactAddressLabel: 'Location',
+  contactHoursLabel: 'Hours',
+  contactHoursWeekdays: 'Online 24/7',
+  contactHoursWeekends: '',
 
+  // Legal Content
   disclosureTitle: 'Affiliate Disclosure',
-  disclosureContent: `### OUR COMMITMENT TO TRANSPARENCY\n\nFINDARA is a professional bridge page and affiliate marketing platform...`, 
+  disclosureContent: `### COMPREHENSIVE AFFILIATE DISCLOSURE STATEMENT...`, 
   privacyTitle: 'Privacy Policy',
-  privacyContent: `### YOUR DATA PRIVACY\n\nWe value your trust and are committed to protecting your personal information...`, 
+  privacyContent: `### COMPREHENSIVE PRIVACY POLICY...`, 
   termsTitle: 'Terms of Service',
-  termsContent: `### USAGE AGREEMENT\n\nBy using this bridge page, you agree to our terms of service...`, 
+  termsContent: `### TERMS OF SERVICE & USER AGREEMENT...`, 
 
+  // Integrations
+  emailJsServiceId: '',
+  emailJsTemplateId: '',
+  emailJsPublicKey: '',
+  googleAnalyticsId: '',
+  facebookPixelId: '',
+  tiktokPixelId: '',
+  amazonAssociateId: '',
+  webhookUrl: '',
+  pinterestTagId: '',
+
+  // Commerce (New)
   enableDirectSales: false,
   currency: 'ZAR',
   yocoPublicKey: '',
@@ -781,6 +1373,8 @@ export const INITIAL_SETTINGS: SiteSettings = {
   payfastSaltPassphrase: '',
   zapierWebhookUrl: '',
   bankDetails: '',
+
+  // Financial Defaults
   vatRate: 15,
   vatNumber: '',
   bankName: '',
@@ -793,63 +1387,52 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'The Curator Series',
-    subtitle: 'Personally selected essentials for the modern lifestyle.',
-    cta: 'Explore Finds'
+    title: 'The Silk Series',
+    subtitle: 'Flowing silhouettes designed for the golden hour.',
+    cta: 'View Collection'
   },
 ];
 
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat1', name: 'Curated Wear', icon: 'Dress', image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800', description: 'Hand-picked fashion pieces.' },
-  { id: 'cat2', name: 'Aesthetic Tools', icon: 'Scissors', image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&q=80&w=800', description: 'The gear I use every day.' },
+  { id: 'cat1', name: 'Apparel', icon: 'Shirt', image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800', description: 'Luxury ready-to-wear.' },
+  { id: 'cat2', name: 'Accessories', icon: 'Watch', image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&q=80&w=800', description: 'The finishing touch.' },
+  { id: 'cat3', name: 'Footwear', icon: 'Footprints', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800', description: 'Walk in confidence.' },
+  { id: 'cat4', name: 'Home Living', icon: 'Home', image: 'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&q=80&w=800', description: 'Couture for your space.' }
 ];
 
 export const INITIAL_SUBCATEGORIES: SubCategory[] = [
-  { id: 'sub1', categoryId: 'cat1', name: 'Evening Luxe' },
-  { id: 'sub2', categoryId: 'cat2', name: 'Photography Gear' }
+  { id: 'sub1', categoryId: 'cat1', name: 'Silk Dresses' },
+  { id: 'sub2', categoryId: 'cat1', name: 'Tailored Blazers' },
+  { id: 'sub3', categoryId: 'cat2', name: 'Leather Bags' },
+  { id: 'sub4', categoryId: 'cat3', name: 'Stilettos' }
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'p1',
-    name: 'Signature Silk Scarf',
-    sku: 'FD-ACC-001',
-    price: 850,
-    affiliateLink: 'https://example.com/signature-silk',
+    name: 'Midnight Silk Wrap',
+    sku: 'MB-APP-001',
+    price: 3450,
+    affiliateLink: 'https://example.com/midnight-silk',
     categoryId: 'cat1',
     subCategoryId: 'sub1',
-    description: 'A timeless accessory that I personally use to elevate any outfit. Soft, durable, and ethically sourced from our partners.',
+    description: 'A luxurious 100% silk wrap dress that transitions perfectly from day to night. Personally selected for its incredible drape and timeless silhouette.',
     features: [
-      '100% Pure Silk',
-      'Hand-rolled edges',
-      'Exclusive FINDARA curation'
+      '100% Premium Mulberry Silk',
+      'Hand-finished french seams',
+      'Adjustable wrap closure',
+      'Temperature regulating'
     ],
     specifications: {
-      'Material': 'Pure Silk',
-      'Size': '90cm x 90cm'
+      'Material': '100% Mulberry Silk',
+      'Care': 'Dry Clean Only',
+      'Fit': 'True to Size'
     },
-    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800', name: 'Silk Scarf', type: 'image/jpeg', size: 0 }],
+    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800', name: 'Silk Dress', type: 'image/jpeg', size: 0 }],
     createdAt: Date.now(),
+    discountRules: [{ id: 'd1', type: 'percentage', value: 15, description: 'Season Launch' }],
+    // reviews: [...] removed for relational normalization
     isDirectSale: false,
-  }
-];
-
-export const TRAINING_MODULES: TrainingModule[] = [
-  {
-    id: 'bridge-101',
-    title: 'Bridge Page Fundamentals',
-    platform: 'General',
-    description: 'Learn the "Why" behind bridge pages and how they outperform direct affiliate links.',
-    strategies: [
-      'Trust Building: Why a personal story matters.',
-      'Pre-framing: Setting expectations before the click.',
-      'Value Add: Providing bonuses or insights.'
-    ],
-    actionItems: [
-      'Draft your 500-word origin story.',
-      'Identify 3 core values for your brand.',
-      'Review your current affiliate links.'
-    ],
-    icon: 'Layout'
+    stockQuantity: 0
   }
 ];
