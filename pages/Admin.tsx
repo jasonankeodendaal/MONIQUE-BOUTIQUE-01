@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -242,7 +243,7 @@ const SaveIndicator: React.FC<{ status: SaveStatus }> = ({ status }) => {
   return (
     <div className={`fixed bottom-24 right-6 z-[100] ${status === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20 max-w-sm`}>
       <div className="p-2 bg-white/20 rounded-full flex-shrink-0">{status === 'error' ? <AlertOctagon size={24} /> : <CheckCircle2 size={24} />}</div>
-      <div className="min-w-0"><h4 className="font-bold text-sm uppercase tracking-widest">{status === 'error' ? 'Action Failed' : 'System Synced'}</h4><p className="text-[10px] opacity-90 font-medium truncate">{status === 'error' ? errorMessage : 'Changes successfully recorded.'}</p></div>
+      <div className="min-w-0"><h4 className="font-bold text-sm uppercase tracking-widest">{status === 'error' ? 'Action Failed' : 'System Synced'}</h4><p className="text-[10px] opacity-90 font-medium truncate">{status === 'error' ? errorMessage : 'Check connection.'}</p></div>
     </div>
   );
 };
@@ -922,7 +923,131 @@ const Admin: React.FC = () => {
     window.location.href = `mailto:${enquiry.email}?subject=${subject}&body=${body}`;
   };
 
-  const printInvoice = (order: Order) => { const w = window.open('', '_blank'); if(w) { w.document.write(`<html><head><title>Invoice ${order.id}</title><style>body { font-family: sans-serif; padding: 40px; } .header { margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 20px; } th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; } .total { margin-top: 20px; text-align: right; font-size: 20px; font-weight: bold; }</style></head><body><div class="header"><h1>${settings.companyName}</h1><p>Invoice #${order.id}</p><p>Date: ${new Date(order.createdAt).toLocaleDateString()}</p></div><p><strong>Bill To:</strong> ${order.customerName}<br>${order.shippingAddress}<br>${order.customerEmail}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${order.items?.map(i => `<tr><td>${i.productName}</td><td>${i.quantity}</td><td>R ${i.price}</td><td>R ${i.price * i.quantity}</td></tr>`).join('')}</tbody></table><div class="total">Total: R ${order.total.toLocaleString()}</div></body></html>`); w.document.close(); w.print(); } };
+  const handleShareWhatsApp = (order: Order) => {
+    const message = `Hi ${order.customerName},\n\nThis is ${settings.companyName} concierge. Your order #${order.id} is currently ${order.status.replace('_', ' ')}.\nTotal: R ${order.total.toLocaleString()}\n\nThank you for choosing us!`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleShareEmail = (order: Order) => {
+    const subject = `Order Status Update: #${order.id}`;
+    const body = `Dear ${order.customerName},\n\nThis is a status update regarding your order #${order.id} with ${settings.companyName}.\n\nCurrent Status: ${order.status.replace('_', ' ').toUpperCase()}\nOrder Total: R ${order.total.toLocaleString()}\n\nIf you have any questions, please reply directly to this email.\n\nBest Regards,\nThe ${settings.companyName} Team`;
+    window.location.href = `mailto:${order.customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const printInvoice = (order: Order) => { 
+    const w = window.open('', '_blank'); 
+    if(w) { 
+        const vatRate = settings.vatRegistered ? (settings.vatRate || 15) : 0;
+        const vatAmount = settings.vatRegistered ? (order.total - (order.total / (1 + vatRate / 100))) : 0;
+        const subtotal = order.total - vatAmount;
+        
+        w.document.write(`
+        <html>
+            <head>
+                <title>Invoice ${order.id}</title>
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+                    body { font-family: 'Inter', sans-serif; color: #1e293b; padding: 50px; background: #fff; margin: 0; }
+                    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 60px; border-bottom: 1px solid #e2e8f0; padding-bottom: 30px; }
+                    .logo-section { display: flex; align-items: center; gap: 15px; }
+                    .logo-box { width: 50px; height: 50px; background: #D4AF37; color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; border-radius: 8px; }
+                    .company-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+                    .invoice-tag { text-align: right; }
+                    .invoice-tag h1 { font-family: 'Playfair Display', serif; font-size: 40px; margin: 0; color: #D4AF37; font-weight: 700; }
+                    .billing-grid { display: grid; grid-template-cols: 1fr 1fr; gap: 40px; margin-bottom: 60px; }
+                    .bill-to h4, .ship-to h4 { text-transform: uppercase; font-size: 10px; letter-spacing: 2px; color: #94a3b8; margin-bottom: 15px; }
+                    .bill-to p, .ship-to p { margin: 5px 0; font-size: 14px; line-height: 1.6; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+                    th { text-align: left; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; color: #64748b; padding: 15px 10px; border-bottom: 2px solid #f1f5f9; }
+                    td { padding: 20px 10px; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+                    .totals-section { margin-top: 40px; display: flex; justify-content: flex-end; }
+                    .totals-box { width: 300px; }
+                    .totals-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; }
+                    .totals-row.grand { border-top: 2px solid #D4AF37; margin-top: 10px; padding-top: 15px; font-weight: 700; font-size: 20px; color: #D4AF37; }
+                    .footer { margin-top: 80px; padding-top: 40px; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 11px; line-height: 1.8; }
+                    @media print { body { padding: 0; } .header { border-bottom: 2px solid #000; } }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="logo-section">
+                        ${settings.companyLogoUrl ? `<img src="${settings.companyLogoUrl}" style="height:60px; width:auto;">` : `<div class="logo-box">${settings.companyLogo}</div>`}
+                        <div class="company-name">${settings.companyName}</div>
+                    </div>
+                    <div class="invoice-tag">
+                        <h1>INVOICE</h1>
+                        <p style="margin:5px 0; font-weight:bold;">#${order.id}</p>
+                        <p style="margin:0; font-size:12px; color:#64748b;">${new Date(order.createdAt).toLocaleDateString('en-GB')}</p>
+                    </div>
+                </div>
+
+                <div class="billing-grid">
+                    <div class="bill-to">
+                        <h4>BILLING FROM</h4>
+                        <p><strong>${settings.companyName}</strong></p>
+                        <p>${settings.address}</p>
+                        <p>${settings.contactEmail}</p>
+                        ${settings.vatNumber ? `<p>VAT: ${settings.vatNumber}</p>` : ''}
+                    </div>
+                    <div class="ship-to">
+                        <h4>BILLING TO</h4>
+                        <p><strong>${order.customerName}</strong></p>
+                        <p>${order.shippingAddress}</p>
+                        <p>${order.customerEmail}</p>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:50%;">DESCRIPTION</th>
+                            <th style="text-align:center;">QTY</th>
+                            <th style="text-align:right;">UNIT PRICE</th>
+                            <th style="text-align:right;">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items?.map(i => `
+                            <tr>
+                                <td><strong>${i.productName}</strong></td>
+                                <td style="text-align:center;">${i.quantity}</td>
+                                <td style="text-align:right;">R ${i.price.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                                <td style="text-align:right;">R ${(i.price * i.quantity).toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div class="totals-section">
+                    <div class="totals-box">
+                        <div class="totals-row">
+                            <span>Subtotal (Excl. VAT)</span>
+                            <span>R ${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                        </div>
+                        ${settings.vatRegistered ? `
+                        <div class="totals-row">
+                            <span>VAT (${vatRate}%)</span>
+                            <span>R ${vatAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                        </div>` : ''}
+                        <div class="totals-row grand">
+                            <span>Grand Total</span>
+                            <span>R ${order.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>Thank you for choosing ${settings.companyName}. We appreciate your discerning taste.</p>
+                    <p>Terms: This invoice is payable within 24 hours of receipt for EFT orders. Products are only released upon clearance of funds.</p>
+                    <p>&copy; ${new Date().getFullYear()} ${settings.companyName}. South Africa.</p>
+                </div>
+            </body>
+        </html>
+        `); 
+        w.document.close(); 
+        w.print(); 
+    } 
+  };
   
   const handleAddDiscountRule = () => { if (!tempDiscountRule.value || !tempDiscountRule.description) return; const newRule: DiscountRule = { id: Date.now().toString(), type: tempDiscountRule.type || 'percentage', value: Number(tempDiscountRule.value), description: tempDiscountRule.description }; setProductData({ ...productData, discountRules: [...(productData.discountRules || []), newRule] }); setTempDiscountRule({ type: 'percentage', value: 0, description: '' }); };
   const handleRemoveDiscountRule = (id: string) => { setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) }); };
@@ -1322,7 +1447,7 @@ const Admin: React.FC = () => {
     const filteredOrders = orders.filter(o => { const matchesSearch = (o.id || '').toLowerCase().includes((orderSearch || '').toLowerCase()) || (o.customerName || '').toLowerCase().includes((orderSearch || '').toLowerCase()); const matchesFilter = orderFilter === 'all' ? true : o.status === orderFilter; return matchesSearch && matchesFilter; }).sort((a, b) => b.createdAt - a.createdAt);
     const getStatusBadge = (status: string) => { const styles: Record<string, string> = { paid: 'bg-blue-500/20 text-blue-400', shipped: 'bg-purple-500/20 text-purple-400', delivered: 'bg-green-500/20 text-green-400', cancelled: 'bg-red-500/20 text-red-400', pending_payment: 'bg-yellow-500/20 text-yellow-400', processing: 'bg-orange-500/20 text-orange-400' }; return <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${styles[status] || styles.pending_payment}`}>{status.replace('_', ' ')}</span>; };
     return (
-      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Fulfillment</h2><p className="text-slate-400 text-sm">Manage orders.</p></div></div><div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">{['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => ( <button key={f} onClick={() => setOrderFilter(f)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{f.replace('_', ' ')}</button> ))}</div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden"><table className="w-full text-left border-collapse"><thead><tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800"><th className="p-4">Order ID</th><th className="p-4">Date</th><th className="p-4">Customer</th><th className="p-4">Status</th><th className="p-4 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-800">{filteredOrders.length === 0 ? ( <tr><td colSpan={5} className="p-8 text-center text-slate-500 text-sm">No orders found.</td></tr> ) : ( filteredOrders.map(order => ( <tr key={order.id} className="hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => { setViewingOrder(order); setTrackingInfo({ courier: order.courierName || '', tracking: order.trackingNumber || '' }); }}><td className="p-4 font-mono text-xs text-white">{order.id}</td><td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td><td className="p-4"><div className="flex flex-col"><span className="text-sm font-bold text-white">{order.customerName}</span><span className="text-[10px] text-slate-500">{order.customerEmail}</span></div></td><td className="p-4">{getStatusBadge(order.status)}</td><td className="p-4 text-right text-sm font-bold text-white">R {order.total.toLocaleString()}</td></tr> )) )}</tbody></table></div>{viewingOrder && (<div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" onClick={() => setViewingOrder(null)}><div className="w-full max-w-lg bg-slate-900 h-full shadow-2xl border-l border-slate-800 overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}><div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950/50"><div><h3 className="text-2xl font-serif text-white mb-1">Order Details</h3><div className="flex items-center gap-2 text-xs font-mono text-slate-400"><span>#{viewingOrder.id}</span></div></div><button onClick={() => setViewingOrder(null)} className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"><X size={20}/></button></div><div className="flex-grow p-6 space-y-8"><div className="space-y-4"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Order Status</label><select value={viewingOrder.status} onChange={(e) => handleOrderStatusUpdate(viewingOrder.id, e.target.value)} disabled={!hasPermission('sales.fulfillment')} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer disabled:opacity-50">{['pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => ( <option key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</option> ))}</select></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><User size={16} className="text-primary"/> Customer</h4><div className="text-xs text-slate-300"><div>{viewingOrder.customerName}</div><div>{viewingOrder.customerEmail}</div><div className="mt-2">{viewingOrder.shippingAddress}</div></div></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><ShoppingBag size={16} className="text-primary"/> Items</h4><div className="space-y-3">{viewingOrder.items?.map((item: OrderItem) => ( <div key={item.id} className="flex justify-between items-center bg-slate-950/30 p-3 rounded-xl border border-slate-800/50"><div className="flex items-center gap-3"><div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-xs font-bold text-white">{item.quantity}x</div><span className="text-sm text-slate-300">{item.productName}</span></div><span className="text-xs font-mono text-white">R {(item.price * item.quantity).toLocaleString()}</span></div> ))}<div className="flex justify-between items-center pt-2 text-sm font-bold text-white"><span>Total</span><span className="text-primary text-lg">R {viewingOrder.total.toLocaleString()}</span></div></div></div><div className="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800"><h4 className="text-white font-bold text-sm flex items-center gap-2 mb-2"><Truck size={16} className="text-blue-500"/> Logistics</h4>{hasPermission('sales.fulfillment') ? (<div className="space-y-3"><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Courier</label><input type="text" value={trackingInfo.courier} onChange={e => setTrackingInfo({...trackingInfo, courier: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Tracking</label><input type="text" value={trackingInfo.tracking} onChange={e => setTrackingInfo({...trackingInfo, tracking: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><button onClick={handleSaveTracking} className="w-full py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Update</button></div>) : (<div className="text-xs text-slate-500">Only Fulfillment staff can update logistics.</div>)}</div></div><div className="p-6 border-t border-slate-800 bg-slate-950/50 flex gap-4"><button onClick={() => printInvoice(viewingOrder)} className="flex-1 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white flex items-center justify-center gap-2"><Printer size={16}/> Invoice</button></div></div></div>)}</div>
+      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Fulfillment</h2><p className="text-slate-400 text-sm">Manage orders.</p></div></div><div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">{['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => ( <button key={f} onClick={() => setOrderFilter(f)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{f.replace('_', ' ')}</button> ))}</div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden"><table className="w-full text-left border-collapse"><thead><tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800"><th className="p-4">Order ID</th><th className="p-4">Date</th><th className="p-4">Customer</th><th className="p-4">Status</th><th className="p-4 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-800">{filteredOrders.length === 0 ? ( <tr><td colSpan={5} className="p-8 text-center text-slate-500 text-sm">No orders found.</td></tr> ) : ( filteredOrders.map(order => ( <tr key={order.id} className="hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => { setViewingOrder(order); setTrackingInfo({ courier: order.courierName || '', tracking: order.trackingNumber || '' }); }}><td className="p-4 font-mono text-xs text-white">{order.id}</td><td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td><td className="p-4"><div className="flex flex-col"><span className="text-sm font-bold text-white">{order.customerName}</span><span className="text-[10px] text-slate-500">{order.customerEmail}</span></div></td><td className="p-4">{getStatusBadge(order.status)}</td><td className="p-4 text-right text-sm font-bold text-white">R {order.total.toLocaleString()}</td></tr> )) )}</tbody></table></div>{viewingOrder && (<div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" onClick={() => setViewingOrder(null)}><div className="w-full max-w-lg bg-slate-900 h-full shadow-2xl border-l border-slate-800 overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}><div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950/50"><div><h3 className="text-2xl font-serif text-white mb-1">Order Details</h3><div className="flex items-center gap-2 text-xs font-mono text-slate-400"><span>#{viewingOrder.id}</span></div></div><button onClick={() => setViewingOrder(null)} className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"><X size={20}/></button></div><div className="flex-grow p-6 space-y-8"><div className="space-y-4"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Order Status</label><select value={viewingOrder.status} onChange={(e) => handleOrderStatusUpdate(viewingOrder.id, e.target.value)} disabled={!hasPermission('sales.fulfillment')} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer disabled:opacity-50">{['pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => ( <option key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</option> ))}</select></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><User size={16} className="text-primary"/> Customer</h4><div className="text-xs text-slate-300"><div>{viewingOrder.customerName}</div><div>{viewingOrder.customerEmail}</div><div className="mt-2">{viewingOrder.shippingAddress}</div></div></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><ShoppingBag size={16} className="text-primary"/> Items</h4><div className="space-y-3">{viewingOrder.items?.map((item: OrderItem) => ( <div key={item.id} className="flex justify-between items-center bg-slate-950/30 p-3 rounded-xl border border-slate-800/50"><div className="flex items-center gap-3"><div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-xs font-bold text-white">{item.quantity}x</div><span className="text-sm text-slate-300">{item.productName}</span></div><span className="text-xs font-mono text-white">R {(item.price * item.quantity).toLocaleString()}</span></div> ))}<div className="flex justify-between items-center pt-2 text-sm font-bold text-white"><span>Total</span><span className="text-primary text-lg">R {viewingOrder.total.toLocaleString()}</span></div></div></div><div className="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800"><h4 className="text-white font-bold text-sm flex items-center gap-2 mb-4"><Truck size={16} className="text-blue-500"/> Logistics</h4>{hasPermission('sales.fulfillment') ? (<div className="space-y-3"><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Courier</label><input type="text" value={trackingInfo.courier} onChange={e => setTrackingInfo({...trackingInfo, courier: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Tracking</label><input type="text" value={trackingInfo.tracking} onChange={e => setTrackingInfo({...trackingInfo, tracking: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><button onClick={handleSaveTracking} className="w-full py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Update Logistics</button></div>) : (<div className="text-xs text-slate-500">Only Fulfillment staff can update logistics.</div>)}</div><div className="space-y-4 pt-4 border-t border-slate-800"><h4 className="text-white font-bold text-sm flex items-center gap-2 mb-4"><Share2 size={16} className="text-primary"/> Share Updates</h4><div className="grid grid-cols-2 gap-3"><button onClick={() => handleShareWhatsApp(viewingOrder)} className="flex items-center justify-center gap-2 py-3 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white rounded-xl border border-[#25D366]/20 transition-all text-[10px] font-black uppercase tracking-widest"><MessageCircle size={16}/> WhatsApp</button><button onClick={() => handleShareEmail(viewingOrder)} className="flex items-center justify-center gap-2 py-3 bg-slate-800 text-slate-300 hover:text-white rounded-xl border border-slate-700 transition-all text-[10px] font-black uppercase tracking-widest"><Mail size={16}/> Email</button></div></div></div><div className="p-6 border-t border-slate-800 bg-slate-950/50 flex gap-4"><button onClick={() => printInvoice(viewingOrder)} className="flex-1 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white flex items-center justify-center gap-2"><Printer size={16}/> Generate Invoice</button></div></div></div>)}</div>
     );
   };
 
