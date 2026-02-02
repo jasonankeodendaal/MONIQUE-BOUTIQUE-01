@@ -95,6 +95,9 @@ export async function uploadMedia(file: File, bucket = 'media') {
 
   if (error) {
     console.error('Upload Error:', error);
+    if (error.message && error.message.includes('row-level security')) {
+        throw new Error("Storage Permission Denied. Go to Admin > Pilot > Asset Vault and run the fix script.");
+    }
     throw new Error(error.message || 'Upload failed');
   }
 

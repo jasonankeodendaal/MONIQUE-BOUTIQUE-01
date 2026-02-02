@@ -1,4 +1,5 @@
 
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule, Article, Subscriber } from './types';
 
 export const GUIDE_STEPS = [
@@ -191,13 +192,46 @@ CREATE POLICY "Profiles_User_Manage" ON profiles FOR ALL USING (auth.uid() = id)
     description: 'Enable media hosting for high-resolution product photos, videos, and branding assets.',
     illustrationId: 'rocket',
     subSteps: [
-      'In Supabase, click the "Storage" icon (Bucket icon).',
-      'Click "New Bucket" and name it exactly: "media" (lowercase).',
-      'Set bucket privacy to "Public" so images load for visitors.',
-      'Go to "Policies" and click "New Policy".',
-      'Select "Allow access to everyone for SELECT" and "Allow authenticated users to INSERT/DELETE".',
-      'Save the bucket and test by uploading a single JPG.'
-    ]
+      'In Supabase, navigate to SQL Editor -> New Query.',
+      'Copy and paste the Storage Policy SQL below.',
+      'Run the query to automatically create the "media" bucket and set correct permissions.',
+      'This fixes "new row violates row-level security policy" errors during upload.'
+    ],
+    codeLabel: 'Storage Bucket & Policy Auto-Setup',
+    code: `-- 1. Create the 'media' bucket if it doesn't exist
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('media', 'media', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- 2. Drop existing policies to prevent conflicts/duplicates
+DROP POLICY IF EXISTS "Public Read Media" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Upload Media" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Delete Media" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Update Media" ON storage.objects;
+
+-- 3. Create permissive policies for the 'media' bucket
+-- Allow public read access to all files in 'media'
+CREATE POLICY "Public Read Media"
+ON storage.objects FOR SELECT
+USING ( bucket_id = 'media' );
+
+-- Allow authenticated users (Admins) to upload to 'media'
+CREATE POLICY "Authenticated Upload Media"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK ( bucket_id = 'media' );
+
+-- Allow authenticated users (Admins) to delete from 'media'
+CREATE POLICY "Authenticated Delete Media"
+ON storage.objects FOR DELETE
+TO authenticated
+USING ( bucket_id = 'media' );
+
+-- Allow authenticated users (Admins) to update in 'media'
+CREATE POLICY "Authenticated Update Media"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING ( bucket_id = 'media' );`
   },
   {
     id: 'auth-protocol',
@@ -229,8 +263,17 @@ CREATE POLICY "Profiles_User_Manage" ON profiles FOR ALL USING (auth.uid() = id)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, "fullName", "updatedAt")
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', extract(epoch from now()) * 1000);
+  -- Strict Separation: Only create profiles for customers
+  IF (new.raw_user_meta_data->>'role' = 'customer') THEN
+    INSERT INTO public.profiles (id, "fullName", phone, building, street, suburb, city, province, "postalCode", "updatedAt")
+    VALUES (
+      new.id, 
+      new.raw_user_meta_data->>'full_name',
+      new.raw_user_meta_data->>'phone',
+      '', '', '', '', '', '', -- Initialize address fields empty
+      extract(epoch from now()) * 1000
+    );
+  END IF;
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -631,7 +674,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   footerCopyrightText: "All rights reserved.",
 
   homeHeroBadge: 'Curator & Expert',
-  homeAboutTitle: 'My Journey in Curation.',
+  homeAboutTitle: 'My Story',
   homeAboutDescription: 'I started this journey to bridge the gap between global luxury retailers and style seekers who value authentic, hand-picked recommendations. This isn’t just affiliate marketing; it’s a personal catalog of the best the world has to offer.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Read My Story',
@@ -660,7 +703,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   ],
   productsSearchPlaceholder: 'Search my finds...',
 
-  aboutHeroTitle: 'The Person Behind the Bridge.',
+  aboutHeroTitle: 'The Journey',
   aboutHeroSubtitle: 'A passion for quality, bridging you to the best.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   

@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X } from 'lucide-react';
@@ -55,6 +56,26 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   if (!isAdmin) {
       // User is authenticated but not an admin (Customer). Redirect to account.
       return <Navigate to="/account" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const ClientRoute = ({ children }: { children?: React.ReactNode }) => {
+  const { user, loadingAuth, isLocalMode, admins } = useSettings();
+  
+  if (loadingAuth) return (
+    <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+    </div>
+  );
+
+  if (!user) return <Navigate to="/client-login" replace />;
+
+  // Check if Admin - Admins should not access client dashboard directly via URL, redirect to their portal
+  const isAdmin = admins.some(a => a.id === user.id || a.email === user.email);
+  if (isAdmin) {
+      return <Navigate to="/admin" replace />;
   }
 
   return <>{children}</>;
@@ -1149,8 +1170,8 @@ const App: React.FC = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/client-login" element={<ClientAuth />} />
-                <Route path="/account" element={<ClientDashboard />} />
-                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/account" element={<ClientRoute><ClientDashboard /></ClientRoute>} />
+                <Route path="/checkout" element={<ClientRoute><Checkout /></ClientRoute>} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/products" element={<Products />} />

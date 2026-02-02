@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -93,6 +94,10 @@ const ClientAuth: React.FC = () => {
         if (authError) throw authError;
 
         // 2. Create Profile Record (if Supabase is configured and user created)
+        // Note: The handle_new_user SQL trigger now handles this for role='customer' automatically,
+        // but we keep this manual upsert as a backup or for immediate data updates if trigger logic varies.
+        // Actually, since we updated the trigger to strictly rely on metadata, we can let the trigger handle it OR keep this as fallback.
+        // Keeping it ensures address data is saved immediately if passed during registration flow beyond metadata.
         if (authData.user && isSupabaseConfigured) {
             const { error: profileError } = await supabase.from('profiles').upsert({
                 id: authData.user.id,
@@ -109,8 +114,6 @@ const ClientAuth: React.FC = () => {
 
             if (profileError) {
                 console.error("Profile creation failed:", profileError);
-                // We log but don't block the auth flow if profile fails, 
-                // though ideally we might want to retry or warn.
             }
         }
 
@@ -124,11 +127,25 @@ const ClientAuth: React.FC = () => {
 
       } else {
         // Login Flow
-        const { error } = await supabase.auth.signInWithPassword({ 
+        const { data, error } = await supabase.auth.signInWithPassword({ 
             email: formData.email, 
             password: formData.password 
         });
         if (error) throw error;
+
+        // STRICT ROLE CHECK FOR CLIENTS
+        if (data.user) {
+             const { data: adminCheck } = await supabase
+              .from('admin_users')
+              .select('id')
+              .eq('id', data.user.id)
+              .maybeSingle();
+            
+            if (adminCheck) {
+               await supabase.auth.signOut();
+               throw new Error("Maison Staff must use the Admin Portal.");
+            }
+        }
         
         // Success - navigate
         navigate(getSafeRedirect(redirectPath));

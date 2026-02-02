@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -35,8 +36,27 @@ const Login: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      // STRICT ROLE CHECK FOR ADMIN
+      if (data.user) {
+        // Check if user exists in admin_users table
+        const { data: adminCheck, error: adminError } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        
+        // Also allow if it's the hardcoded initial owner email (fallback for bootstrap)
+        const isOwnerEmail = data.user.email === 'admin@kasicouture.com'; 
+        
+        if (!adminCheck && !isOwnerEmail) {
+           await supabase.auth.signOut();
+           throw new Error("Access Denied: Account not authorized for Concierge Portal.");
+        }
+      }
+
       navigate('/admin');
     } catch (err: any) {
       if (err.message === 'Invalid login credentials') {
