@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -527,8 +529,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
           <div className="grid lg:grid-cols-2 gap-6"><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><BarChart3 size={16} className="text-primary"/> Traffic Trend (7 Days)</h4><div className="h-48"><SimpleLineChart data={visitsByDate} color="#D4AF37" height={190} /></div></div><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><TrendingUp size={16} className="text-green-500"/> Revenue Trend (7 Days)</h4><div className="h-48"><SimpleLineChart data={revenueByDate} color="#22c55e" height={190} /></div></div></div>
           <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800"><div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><h4 className="text-white font-bold text-lg flex items-center gap-2"><Table size={18} className="text-primary"/> Product Performance Intelligence</h4><div className="relative w-full md:w-64"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16}/><input type="text" placeholder="Search products..." value={filterText} onChange={e => setFilterText(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs outline-none focus:border-primary transition-all" /></div></div><div className="overflow-x-auto"><table className="w-full text-left border-collapse"><thead><tr className="border-b border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500"><th className="p-4 w-16">Item</th><th className="p-4 cursor-pointer hover:text-white" onClick={() => handleSort('name')}>Name <ArrowUpDown size={10} className="inline ml-1"/></th><th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('views')}>Views <ArrowUpDown size={10} className="inline ml-1"/></th><th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('clicks')}>Clicks <ArrowUpDown size={10} className="inline ml-1"/></th><th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('ctr')}>CTR <ArrowUpDown size={10} className="inline ml-1"/></th><th className="p-4 text-center cursor-pointer hover:text-white" onClick={() => handleSort('shares')}>Shares <ArrowUpDown size={10} className="inline ml-1"/></th><th className="p-4 text-right cursor-pointer hover:text-white" onClick={() => handleSort('lastUpdated')}>Last Interaction <ArrowUpDown size={10} className="inline ml-1"/></th></tr></thead><tbody className="divide-y divide-slate-800">{sortedPerformance.map((p) => (<tr key={p.id} className="hover:bg-slate-800/30 transition-colors group"><td className="p-4"><div className="w-10 h-10 bg-slate-800 rounded-lg overflow-hidden border border-slate-700"><img src={p.media?.[0]?.url} className="w-full h-full object-cover"/></div></td><td className="p-4"><div className="text-white font-bold text-xs">{p.name}</div><div className="text-slate-500 text-[9px] font-mono">{p.sku}</div></td><td className="p-4 text-center text-xs text-slate-300 font-mono">{p.stats.views}</td><td className="p-4 text-center text-xs text-slate-300 font-mono">{p.stats.clicks}</td><td className="p-4 text-center"><span className={`px-2 py-1 rounded text-[9px] font-black ${p.ctr > 5 ? 'bg-green-500/20 text-green-400' : p.ctr > 2 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-slate-800 text-slate-500'}`}>{p.ctr.toFixed(1)}%</span></td><td className="p-4 text-center text-xs text-slate-300 font-mono">{p.stats.shares}</td><td className="p-4 text-right text-[10px] text-slate-500 font-mono">{p.stats.lastUpdated ? new Date(p.stats.lastUpdated).toLocaleDateString() : 'Never'}</td></tr>))}</tbody></table>{sortedPerformance.length === 0 && <div className="p-8 text-center text-slate-500 text-xs italic">No performance data found.</div>}</div></div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 lg:col-span-2"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><Clock size={16} className="text-blue-400"/> Peak Activity Hours</h4><div className="h-48 w-full"><SimpleBarChart data={peakHours.map((v, i) => ({ label: `${i}:00`, value: v }))} color="#3b82f6" showLabels={false} /></div><div className="flex justify-between text-[8px] text-slate-500 mt-2 font-mono"><span>00:00</span><span>12:00</span><span>23:00</span></div></div><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 flex flex-col items-center justify-center"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2 w-full text-left"><Monitor size={16} className="text-purple-500"/> Device Breakdown</h4><SimpleDonutChart data={deviceBreakdown} /><div className="flex flex-wrap justify-center gap-3 mt-6">{deviceBreakdown.map((s, i) => (<div key={i} className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full" style={{backgroundColor: s.color}}></div><span className="text-[9px] text-slate-400 font-bold uppercase">{s.label}</span></div>))}</div></div></div>
-          <div className="grid md:grid-cols-2 gap-6"><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><Star size={16} className="text-yellow-500"/> Top Products (Views)</h4><div className="h-48 w-full"><SimpleBarChart data={topProducts} color="#D4AF37" /></div></div><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><MapPin size={16} className="text-red-500"/> Top Locations</h4><div className="h-48 w-full"><SimpleBarChart data={topLocations} color="#ef4444" /></div></div></div>
-      </div>
+          <div className="grid md:grid-cols-2 gap-6"><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><Star size={16} className="text-yellow-500"/> Top Products (Views)</h4><div className="h-48 w-full"><SimpleBarChart data={topProducts} color="#D4AF37" /></div></div><div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800"><h4 className="text-white font-bold text-sm mb-6 flex items-center gap-2"><MapPin size={16} className="text-red-500"/> Top Locations</h4><div className="h-48 w-full"><SimpleBarChart data={topLocations} color="#ef4444" /></div></div></div></div>
   );
 };
 
@@ -630,13 +631,19 @@ const Admin: React.FC = () => {
                     throw new Error("Password is required for new users.");
                 }
 
-                const { data, error } = await supabase.rpc('create_admin_user', {
+                // Protect against infinite hang if network fails
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("RPC Request timed out")), 10000));
+                
+                const rpcPromise = supabase.rpc('create_admin_user', {
                     email: adminData.email,
                     password: adminData.password,
                     name: adminData.name || 'Admin',
                     role: adminData.role || 'admin',
                     permissions: adminData.permissions || []
                 });
+
+                const result = await Promise.race([rpcPromise, timeoutPromise]) as any;
+                const { error } = result;
                 
                 if (error) {
                     console.error('RPC Error:', error);
@@ -666,7 +673,7 @@ const Admin: React.FC = () => {
             }
         }
     } catch (err: any) { 
-        console.error(err);
+        console.error("Save Admin Error:", err);
         alert(`Error saving member: ${err.message}`); 
     } finally { 
         setCreatingAdmin(false); 

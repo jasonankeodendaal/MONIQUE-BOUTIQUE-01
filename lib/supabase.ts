@@ -7,7 +7,13 @@ const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
+// Strictly check that the URL is a real Supabase URL and NOT the placeholder
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && 
+  supabaseUrl.includes('supabase.co') && 
+  !supabaseUrl.includes('placeholder') &&
+  !supabaseUrl.includes('your-unique-id')
+);
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
@@ -110,7 +116,7 @@ export async function uploadMedia(file: File, bucket = 'media') {
 
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
   if (!isSupabaseConfigured) {
-    return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
+    return { status: 'offline', latency: 0, message: 'Local Mode (No Cloud)' };
   }
   
   const controller = new AbortController();
