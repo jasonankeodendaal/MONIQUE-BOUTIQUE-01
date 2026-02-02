@@ -18,22 +18,27 @@ export const GUIDE_STEPS = [
   {
     id: 'database-master',
     title: '2. Master Schema & Security Repair',
-    description: 'This script builds the entire data architecture. It includes a safety flush to prevent policy conflicts and implements advanced Row Level Security (RLS).',
+    description: 'This script builds the entire data architecture. It uses Security Definer functions to prevent infinite recursion—the most common cause of Supabase 500 errors.',
     illustrationId: 'forge',
     subSteps: [
       'Navigate to the SQL Editor in your Supabase dashboard.',
       'Open a "+ New Query" tab.',
       'Copy and paste the entire SQL block below.',
       'Click "Run". Ensure all statements return "Success".',
-      'This creates all 17 system tables including Orders, Products, and Traffic Logs.'
+      'This establishes 17 tables with recursion-proof Row Level Security.'
     ],
-    codeLabel: 'Full System Architecture (v10.1)',
-    code: `-- 1. EXTENSIONS & RESET
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-DO $$ DECLARE r RECORD; BEGIN 
-    FOR r IN SELECT schemaname, tablename, policyname FROM pg_policies WHERE schemaname = 'public' LOOP 
-        EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', r.policyname, r.schemaname, r.tablename); 
-    END LOOP;
+    codeLabel: 'Full System Architecture (v13.0 - Absolute Conflict Fix)',
+    code: `-- 1. AGGRESSIVE POLICY CLEANUP
+-- This block dynamically drops every existing policy in the public schema 
+-- to prevent "Policy already exists" errors.
+DO $$ 
+DECLARE 
+    pol RECORD; 
+BEGIN 
+    FOR pol IN (SELECT policyname, tablename, schemaname FROM pg_policies WHERE schemaname = 'public') 
+    LOOP 
+        EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', pol.policyname, pol.schemaname, pol.tablename); 
+    END LOOP; 
 END $$;
 
 -- 2. CORE SYSTEM TABLES
@@ -107,46 +112,78 @@ CREATE TABLE IF NOT EXISTS profiles (
   "fullName" TEXT, phone TEXT, building TEXT, street TEXT, suburb TEXT, city TEXT, province TEXT, "postalCode" TEXT, "updatedAt" BIGINT
 );
 
--- 3. RLS ACTIVATION
+-- 3. RECURSION-PROOF HELPERS (SECURITY DEFINER bypasses RLS loop)
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.admin_users 
+    WHERE id = auth.uid()::text
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+CREATE OR REPLACE FUNCTION public.is_owner()
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.admin_users 
+    WHERE id = auth.uid()::text AND role = 'owner'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 4. RLS ACTIVATION
 DO $$ DECLARE t TEXT; BEGIN 
   FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP 
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t); 
   END LOOP; 
 END $$;
 
--- 4. ACCESS POLICIES
-CREATE POLICY "PubRead" ON public_settings FOR SELECT USING (true);
-CREATE POLICY "PubRead" ON products FOR SELECT USING (true);
-CREATE POLICY "PubRead" ON categories FOR SELECT USING (true);
-CREATE POLICY "PubRead" ON subcategories FOR SELECT USING (true);
-CREATE POLICY "PubRead" ON hero_slides FOR SELECT USING (true);
-CREATE POLICY "PubRead" ON articles FOR SELECT USING (true);
-CREATE POLICY "PubRead" ON reviews FOR SELECT USING (true);
-CREATE POLICY "PubRead" ON training_modules FOR SELECT USING (true);
+-- 5. RE-CREATE ACCESS POLICIES (Guaranteed Clean State)
+-- Public Read Access
+CREATE POLICY "Public_Read_Settings" ON public_settings FOR SELECT USING (true);
+CREATE POLICY "Public_Read_Products" ON products FOR SELECT USING (true);
+CREATE POLICY "Public_Read_Categories" ON categories FOR SELECT USING (true);
+CREATE POLICY "Public_Read_Subcategories" ON subcategories FOR SELECT USING (true);
+CREATE POLICY "Public_Read_Hero" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "Public_Read_Articles" ON articles FOR SELECT USING (true);
+CREATE POLICY "Public_Read_Reviews" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Public_Read_Training" ON training_modules FOR SELECT USING (true);
 
-CREATE POLICY "AdminFull" ON public_settings FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON private_secrets FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON products FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON categories FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON subcategories FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON hero_slides FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON enquiries FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON admin_users FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON traffic_logs FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON product_stats FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON orders FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON order_items FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON reviews FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON articles FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON subscribers FOR ALL USING (true);
-CREATE POLICY "AdminFull" ON training_modules FOR ALL USING (true);
+-- Admin Management Access
+CREATE POLICY "Admin_Manage_Settings" ON public_settings FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Products" ON products FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Categories" ON categories FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Subcategories" ON subcategories FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Hero" ON hero_slides FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Enquiries" ON enquiries FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Traffic" ON traffic_logs FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Stats" ON product_stats FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Orders" ON orders FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_OrderItems" ON order_items FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Reviews" ON reviews FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Articles" ON articles FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Subscribers" ON subscribers FOR ALL USING (is_admin());
+CREATE POLICY "Admin_Manage_Training" ON training_modules FOR ALL USING (is_admin());
 
-CREATE POLICY "LeadInsert" ON subscribers FOR INSERT WITH CHECK (true);
-CREATE POLICY "LeadInsert" ON enquiries FOR INSERT WITH CHECK (true);
-CREATE POLICY "ReviewInsert" ON reviews FOR INSERT WITH CHECK (true);
+-- Specialized admin_users Table Policies
+CREATE POLICY "Admin_Self_View" ON admin_users FOR SELECT USING (auth.uid()::text = id);
+CREATE POLICY "Admin_List_View" ON admin_users FOR SELECT USING (is_admin());
+CREATE POLICY "Owner_Manage_Admins" ON admin_users FOR ALL USING (is_owner());
 
-CREATE POLICY "ProfileView" ON profiles FOR SELECT USING (true);
-CREATE POLICY "ProfileManage" ON profiles FOR ALL USING (auth.uid() = id);`
+-- Security Layer
+CREATE POLICY "Owner_Only_Secrets" ON private_secrets FOR ALL USING (is_owner());
+
+-- Public Data Submission
+CREATE POLICY "Public_Insert_Subscribers" ON subscribers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public_Insert_Enquiries" ON enquiries FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public_Insert_Reviews" ON reviews FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public_Insert_Traffic" ON traffic_logs FOR INSERT WITH CHECK (true);
+
+-- Profile Control
+CREATE POLICY "Profiles_Public_View" ON profiles FOR SELECT USING (true);
+CREATE POLICY "Profiles_User_Manage" ON profiles FOR ALL USING (auth.uid() = id);`
   },
   {
     id: 'asset-vault',
@@ -171,7 +208,7 @@ CREATE POLICY "ProfileManage" ON profiles FOR ALL USING (auth.uid() = id);`
       'Go to "Authentication" > "Providers".',
       'Enable "Email" and disable "Confirm Email" for immediate setup speed.',
       'Go to "URL Configuration".',
-      'Site URL: Add your final production domain (e.g., https://maison-findara.vercel.app).',
+      'Site URL: Add your final production domain (e.g., https://findara.style).',
       'Redirect URLs: Add "http://localhost:3000/**" and your production URL followed by "/**".',
       'Go to "Google" provider and paste your Client ID/Secret if using Social Login.'
     ]
@@ -492,23 +529,45 @@ export const TRAINING_MODULES: TrainingModule[] = [
 
 export const PERMISSION_TREE: PermissionNode[] = [
   {
-    id: 'sales',
-    label: 'Sales & Inbox',
-    description: 'Manage incoming client communications and orders.',
+    id: 'sector.sales',
+    label: 'Sales & Logistics',
+    description: 'Access to high-level commerce sections.',
     children: [
-      { id: 'sales.view', label: 'View Inbox' },
-      { id: 'sales.manage', label: 'Manage Enquiries (Reply/Status)' },
-      { id: 'sales.orders', label: 'View Orders' }
+      { id: 'privilege.inbox', label: 'Access Inbox', description: 'View and respond to customer enquiries.' },
+      { id: 'privilege.orders', label: 'Access Orders', description: 'View and manage orders and fulfillment.' },
+      { id: 'privilege.audience', label: 'Access Audience', description: 'View and manage newsletter subscribers.' }
     ]
   },
   {
-    id: 'catalog',
-    label: 'Catalog & Products',
-    description: 'Manage the product database and inventory.',
+    id: 'sector.curation',
+    label: 'Inventory & Curation',
+    description: 'Manage the physical and affiliate catalog.',
     children: [
-      { id: 'catalog.view', label: 'View Product List' },
-      { id: 'catalog.create', label: 'Add New Items' },
-      { id: 'catalog.edit', label: 'Edit Item Details' }
+      { id: 'privilege.items', label: 'Access Items', description: 'Manage products and direct sales pricing.' },
+      { id: 'privilege.depts', label: 'Access Depts', description: 'Manage departments and subcategories.' },
+      { id: 'privilege.reviews', label: 'Access Reviews', description: 'Moderate customer reviews and feedback.' }
+    ]
+  },
+  {
+    id: 'sector.experience',
+    label: 'Content & Experience',
+    description: 'Control the aesthetic and educational experience.',
+    children: [
+      { id: 'privilege.visuals', label: 'Access Visuals', description: 'Control hero banners and cinematic media.' },
+      { id: 'privilege.journal', label: 'Access Journal', description: 'Create and edit blog/editorial content.' },
+      { id: 'privilege.academy', label: 'Access Academy', description: 'Manage affiliate training and lessons.' }
+    ]
+  },
+  {
+    id: 'sector.infrastructure',
+    label: 'Infrastructure & Maison',
+    description: 'Core system and staff management.',
+    children: [
+      { id: 'privilege.insights', label: 'Access Insights', description: 'View advanced analytics and export reports.' },
+      { id: 'privilege.canvas', label: 'Access Canvas', description: 'Edit site identity, legal, and integrations.' },
+      { id: 'privilege.maison', label: 'Access Maison', description: 'Manage Maison staff and privileges.' },
+      { id: 'privilege.system', label: 'Access System', description: 'View technical health and system logs.' },
+      { id: 'privilege.pilot', label: 'Access Pilot', description: 'Access the architectural launch blueprints.' }
     ]
   }
 ];
@@ -517,7 +576,7 @@ export const INITIAL_ADMINS: AdminUser[] = [
   {
     id: 'owner',
     name: 'Main Administrator',
-    email: 'admin@example.com',
+    email: 'admin@kasicouture.com',
     role: 'owner',
     permissions: ['*'],
     password: 'password123',
@@ -594,9 +653,9 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
   productsHeroTitle: 'The Catalog',
   productsHeroSubtitle: 'Browse my hand-picked selections from top affiliate programs.',
-  productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
+  productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d1?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d1?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000'
   ],
   productsSearchPlaceholder: 'Search my finds...',
