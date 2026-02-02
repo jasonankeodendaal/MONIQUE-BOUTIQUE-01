@@ -1031,7 +1031,7 @@ const Admin: React.FC = () => {
                     </div>
                  )}
              </div>
-             <p className="text-slate-400 text-xs">Enable Direct Sales above to access the full pricing calculator. For Affiliate items, simply enter the display price below.</p>
+             <p className="text-slate-400 text-xs">Enable Direct Sales above to access the full pricing calculator. For Affiliate items, simply enter the final price below.</p>
              
              <SmartPricingSimulator 
                 currency={settings.currency || 'ZAR'}
@@ -1150,9 +1150,74 @@ const Admin: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Catalog</h2><p className="text-slate-400 text-sm">Curate your collection.</p></div>{hasPermission('catalog.create') && <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> Add Product</button>}</div>
-          <div className="flex flex-col md:flex-row gap-4 mb-6"><div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm" /></div></div>
-          <div className="grid gap-4">{displayProducts.filter(p => (p.name || '').toLowerCase().includes((productSearch || '').toLowerCase())).map(p => (<div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4"><div className="flex items-center gap-6 min-w-0 text-left"><div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><h4 className="text-white font-bold line-clamp-1">{p.name}</h4><div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span></div></div></div><div className="flex gap-2 w-full md:w-auto flex-shrink-0"><button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl"><Megaphone size={18}/></button>{hasPermission('catalog.edit') && <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white"><Edit2 size={18}/></button>{hasPermission('catalog.delete') && <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500"><Trash2 size={18}/></button>}</div></div>))}</div>
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-serif text-white">Catalog</h2>
+              <p className="text-slate-400 text-sm">Curate your collection.</p>
+            </div>
+            {hasPermission('catalog.create') && (
+              <button 
+                onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} 
+                className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"
+              >
+                <Plus size={18} /> Add Product
+              </button>
+            )}
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative flex-grow">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                value={productSearch} 
+                onChange={e => setProductSearch(e.target.value)} 
+                className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm" 
+              />
+            </div>
+          </div>
+          
+          <div className="grid gap-4">
+            {displayProducts
+              .filter(p => (p.name || '').toLowerCase().includes((productSearch || '').toLowerCase()))
+              .map(p => (
+                <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
+                  <div className="flex items-center gap-6 min-w-0 text-left">
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0">
+                      <img src={p.media?.[0]?.url} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-white font-bold line-clamp-1">{p.name}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-primary text-xs font-bold">R {p.price}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
+                    <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl">
+                      <Megaphone size={18}/>
+                    </button>
+                    {hasPermission('catalog.edit') && (
+                      <button 
+                        onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} 
+                        className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white"
+                      >
+                        <Edit2 size={18}/>
+                      </button>
+                    )}
+                    {hasPermission('catalog.delete') && (
+                      <button 
+                        onClick={() => deleteData('products', p.id)} 
+                        className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500"
+                      >
+                        <Trash2 size={18}/>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
         </>
       )}
     </div>
