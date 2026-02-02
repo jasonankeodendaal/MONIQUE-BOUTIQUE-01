@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X } from 'lucide-react';
@@ -429,7 +428,7 @@ const App: React.FC = () => {
   const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
   const [subscribers, setSubscribers] = useState<Subscriber[]>(() => getLocalState('admin_subscribers', INITIAL_SUBSCRIBERS));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
-  const [orders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
+  const [customOrders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -470,10 +469,10 @@ const App: React.FC = () => {
   });
 
   const calculateStorage = useCallback(() => {
-      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers];
+      const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, customOrders, articles, subscribers];
       const jsonString = JSON.stringify(dataSet);
       const dbBytes = new Blob([jsonString]).size;
-      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length + orders.length + articles.length + subscribers.length;
+      const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length + customOrders.length + articles.length + subscribers.length;
       let mediaBytes = 0;
       let mediaCnt = 0;
 
@@ -497,7 +496,7 @@ const App: React.FC = () => {
       });
 
       setStorageStats({ dbSize: dbBytes, mediaSize: mediaBytes, totalRecords: totalRecs, mediaCount: mediaCnt });
-  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers]);
+  }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, customOrders, articles, subscribers]);
 
   useEffect(() => {
     calculateStorage();
@@ -517,19 +516,24 @@ const App: React.FC = () => {
     // 1. Update Title
     document.title = settings.companyName || 'Monique Boutique';
 
-    // 2. Update Favicon (Standard)
+    // 2. Update Favicon & Apple Icon (Aggressive Refresh)
+    const primaryColor = settings.primaryColor || '#D4AF37';
     if (settings.companyLogoUrl) {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = settings.companyLogoUrl;
+      // Clear existing links to force browser refresh
+      document.querySelectorAll("link[rel*='icon']").forEach(link => link.remove());
+      
+      const standardFavicon = document.createElement('link');
+      standardFavicon.rel = 'icon';
+      standardFavicon.href = settings.companyLogoUrl;
+      document.head.appendChild(standardFavicon);
+
+      const appleIcon = document.createElement('link');
+      appleIcon.rel = 'apple-touch-icon';
+      appleIcon.href = settings.companyLogoUrl;
+      document.head.appendChild(appleIcon);
     }
 
     // 3. Update Theme Color (Mobile Bars)
-    const primaryColor = settings.primaryColor || '#D4AF37';
     let themeMeta = document.querySelector("meta[name='theme-color']");
     if (!themeMeta) {
         themeMeta = document.createElement('meta');
@@ -538,18 +542,7 @@ const App: React.FC = () => {
     }
     themeMeta.setAttribute('content', primaryColor);
 
-    // 4. Update Apple Touch Icon (iOS Home Screen)
-    if (settings.companyLogoUrl) {
-        let appleIcon = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement;
-        if (!appleIcon) {
-            appleIcon = document.createElement('link');
-            appleIcon.rel = 'apple-touch-icon';
-            document.head.appendChild(appleIcon);
-        }
-        appleIcon.href = settings.companyLogoUrl;
-    }
-
-    // 5. Update Open Graph Meta Tags Dynamically (For bookmarking/rich clients)
+    // 4. Update Open Graph Meta Tags Dynamically
     const updateMeta = (prop: string, content: string) => {
         let meta = document.querySelector(`meta[property="${prop}"]`);
         if (!meta) {
@@ -563,7 +556,30 @@ const App: React.FC = () => {
     updateMeta('og:title', settings.companyName);
     updateMeta('og:description', settings.slogan || settings.footerDescription);
     if (settings.companyLogoUrl) updateMeta('og:image', settings.companyLogoUrl);
-    updateMeta('og:url', window.location.href);
+    updateMeta('og:url', window.location.origin);
+
+    // 5. JSON-LD Structured Data (Google Search Result Sync)
+    let ldScript = document.getElementById('json-ld-schema') as HTMLScriptElement;
+    if (!ldScript) {
+      ldScript = document.createElement('script');
+      ldScript.id = 'json-ld-schema';
+      ldScript.type = 'application/ld+json';
+      document.head.appendChild(ldScript);
+    }
+    ldScript.innerHTML = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": settings.companyName,
+      "url": window.location.origin,
+      "logo": settings.companyLogoUrl,
+      "description": settings.slogan || settings.footerDescription,
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": settings.contactPhone,
+        "contactType": "customer service",
+        "email": settings.contactEmail
+      }
+    });
 
     // 6. Generate & Inject Dynamic Manifest
     const manifest = {
@@ -589,22 +605,6 @@ const App: React.FC = () => {
           type: "image/png",
           purpose: "maskable"
         }
-      ],
-      screenshots: [
-        {
-           src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1280",
-           sizes: "1280x853",
-           type: "image/jpeg",
-           form_factor: "wide",
-           label: "Curated Collections"
-        },
-        {
-           src: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&q=80&w=720",
-           sizes: "720x1080",
-           type: "image/jpeg",
-           form_factor: "narrow",
-           label: "Mobile Shopping"
-        }
       ]
     };
 
@@ -623,7 +623,7 @@ const App: React.FC = () => {
     }
 
     return () => URL.revokeObjectURL(manifestURL);
-  }, [settings.companyName, settings.companyLogoUrl, settings.primaryColor, settings.slogan, settings.footerDescription]);
+  }, [settings.companyName, settings.companyLogoUrl, settings.primaryColor, settings.slogan, settings.footerDescription, settings.contactPhone, settings.contactEmail]);
 
   const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
     const newLog: SystemLog = {
@@ -646,42 +646,26 @@ const App: React.FC = () => {
         fetchTableData('categories'),
         fetchTableData('subcategories'),
         fetchTableData('hero_slides'),
-        fetchTableData('articles'), // Added articles fetch
+        fetchTableData('articles'),
       ]);
 
       const [s, p, c, sc, hs, ar] = results;
 
-      // Handle Public Settings
       if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
         const { id, ...rest } = s.value[0];
         setSettingsId(id);
-        
-        // Merge with existing state to preserve structure
-        // FIX: Prevent nulls from DB overwriting valid defaults
         const mergedSettings = { ...settings };
         Object.keys(rest).forEach(key => {
             const val = (rest as any)[key];
-            if (val !== null) {
-                (mergedSettings as any)[key] = val;
-            }
+            if (val !== null) (mergedSettings as any)[key] = val;
         });
-        
         setSettings(mergedSettings);
         localStorage.setItem('site_settings', JSON.stringify(mergedSettings));
       } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
-        // Init public settings if empty
-        // FIX: Separate private keys to prevent schema error on public_settings table
         const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
         const initialPublic: any = { ...INITIAL_SETTINGS, id: 'global' };
         const initialPrivate: any = { id: 'global' };
-
-        privateKeys.forEach(k => {
-            if (k in initialPublic) {
-                initialPrivate[k] = initialPublic[k];
-                delete initialPublic[k];
-            }
-        });
-
+        privateKeys.forEach(k => { if (k in initialPublic) { initialPrivate[k] = initialPublic[k]; delete initialPublic[k]; } });
         await upsertData('public_settings', initialPublic);
         await upsertData('private_secrets', initialPrivate);
         setSettingsId('global');
@@ -714,9 +698,7 @@ const App: React.FC = () => {
 
   const fetchAdminData = async () => {
     if (!isSupabaseConfigured) return;
-    
     try {
-      // Admin authenticated fetch including secrets
       const results = await Promise.allSettled([
         fetchTableData('enquiries'),
         fetchTableData('admin_users'),
@@ -725,64 +707,30 @@ const App: React.FC = () => {
         fetchTableData('private_secrets'),
         fetchTableData('subscribers')
       ]);
-
       const [enq, adm, st, ord, sec, subs] = results;
-
-      if (enq.status === 'fulfilled' && enq.value !== null) {
-          setEnquiries(enq.value);
-          localStorage.setItem('admin_enquiries', JSON.stringify(enq.value));
-      }
-      if (adm.status === 'fulfilled' && adm.value !== null) {
-          setAdmins(adm.value);
-          localStorage.setItem('admin_users', JSON.stringify(adm.value));
-      }
-      if (st.status === 'fulfilled' && st.value !== null) {
-          setStats(st.value);
-          localStorage.setItem('admin_product_stats', JSON.stringify(st.value));
-      }
-      if (ord.status === 'fulfilled' && ord.value !== null) {
-          setOrders(ord.value);
-          localStorage.setItem('admin_orders', JSON.stringify(ord.value));
-      }
-      if (subs.status === 'fulfilled' && subs.value !== null) {
-          setSubscribers(subs.value);
-          localStorage.setItem('admin_subscribers', JSON.stringify(subs.value));
-      }
-      
-      // Merge secrets into settings state if present
+      if (enq.status === 'fulfilled' && enq.value !== null) { setEnquiries(enq.value); localStorage.setItem('admin_enquiries', JSON.stringify(enq.value)); }
+      if (adm.status === 'fulfilled' && adm.value !== null) { setAdmins(adm.value); localStorage.setItem('admin_users', JSON.stringify(adm.value)); }
+      if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
+      if (ord.status === 'fulfilled' && ord.value !== null) { setOrders(ord.value); localStorage.setItem('admin_orders', JSON.stringify(ord.value)); }
+      if (subs.status === 'fulfilled' && subs.value !== null) { setSubscribers(subs.value); localStorage.setItem('admin_subscribers', JSON.stringify(subs.value)); }
       if (sec.status === 'fulfilled' && sec.value && sec.value.length > 0) {
           const secretData = sec.value[0];
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { id, ...secrets } = secretData;
           setSettings(prev => ({ ...prev, ...secrets }));
-          // We intentionally do NOT save secrets to localStorage for security
-          // They live in memory only while admin session is active
       } else if (sec.status === 'fulfilled' && sec.value && sec.value.length === 0) {
-          // Initialize secrets row if missing
           await upsertData('private_secrets', { id: 'global' });
       }
-
-    } catch (e) {
-      console.error("Admin data fetch failed", e);
-    }
+    } catch (e) { console.error("Admin data fetch failed", e); }
   };
 
   const refreshAllData = async () => {
     addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
     try {
       await fetchPublicData();
-      if (user) {
-        await fetchAdminData();
-      }
+      if (user) await fetchAdminData();
       setIsDataLoaded(true);
-      if (isSupabaseConfigured) {
-         addSystemLog('SYNC', 'ALL', 'Refresh completed', 0);
-      } else {
-         addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0);
-      }
       setSaveStatus('saved');
     } catch (e) {
-      console.error("Data sync failed", e);
       addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed');
       setSaveStatus('error');
     }
@@ -791,25 +739,16 @@ const App: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     let authSubscription: any = null;
-
     const initSequence = async () => {
-       if (isSupabaseConfigured) {
-          // We check for migration, but now migration maps to public_settings
-          // The checkAndMigrate function in lib/supabase.ts needs update or manual handling
-          // For now, assuming fresh start or manual migration via Guide
-       }
-       // Initial Public Data Load
        if (mounted) {
          await fetchPublicData();
          setIsDataLoaded(true);
        }
     };
-
     initSequence();
 
     if (!isSupabaseConfigured) {
       setLoadingAuth(false);
-      // Local mode data is lazy loaded from localStorage, so set flag immediately
       setIsDataLoaded(true);
       return;
     }
@@ -817,85 +756,48 @@ const App: React.FC = () => {
     const setupAuth = async () => {
       try {
          const { data: { session }, error } = await supabase.auth.getSession();
-         if (error) {
-           if (error.message.includes('Refresh Token')) await supabase.auth.signOut();
-         }
-         
+         if (error && error.message.includes('Refresh Token')) await supabase.auth.signOut();
          const currentUser = session?.user ?? null;
          if (mounted) setUser(currentUser);
-         
-         if (currentUser) {
-            // Fetch admin data immediately if session exists
-            await fetchAdminData();
-         }
-
+         if (currentUser) await fetchAdminData();
          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
            if (mounted) {
              const newUser = session?.user ?? null;
              setUser(newUser);
              setLoadingAuth(false);
-             if (newUser) {
-                // Fetch admin data on login
-                await fetchAdminData();
-             }
+             if (newUser) await fetchAdminData();
            }
          });
          authSubscription = subscription;
          if (mounted) setLoadingAuth(false);
-      } catch (e) {
-         if (mounted) setLoadingAuth(false);
-      }
+      } catch (e) { if (mounted) setLoadingAuth(false); }
     };
-
     setupAuth();
-    return () => {
-      mounted = false;
-      if (authSubscription) authSubscription.unsubscribe();
-    };
+    return () => { mounted = false; if (authSubscription) authSubscription.unsubscribe(); };
   }, []);
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving');
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
-    
-    // Persist safe settings to local storage
-    // We filter out secrets so they don't persist in browser storage
     const safeSettings = { ...updated };
     delete (safeSettings as any).payfastSaltPassphrase;
     delete (safeSettings as any).zapierWebhookUrl;
     delete (safeSettings as any).webhookUrl;
-    
     localStorage.setItem('site_settings', JSON.stringify(safeSettings));
-
     if (isSupabaseConfigured) {
       try {
-        // Split update between Public and Private tables
-        // 1. Identify Private keys
         const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
         const publicPayload: any = { id: settingsId };
         const privatePayload: any = { id: settingsId };
         let hasPrivateUpdate = false;
         let hasPublicUpdate = false;
-
         Object.keys(newSettings).forEach(key => {
-            if (privateKeys.includes(key)) {
-                privatePayload[key] = (newSettings as any)[key];
-                hasPrivateUpdate = true;
-            } else {
-                publicPayload[key] = (newSettings as any)[key];
-                hasPublicUpdate = true;
-            }
+            if (privateKeys.includes(key)) { privatePayload[key] = (newSettings as any)[key]; hasPrivateUpdate = true; }
+            else { publicPayload[key] = (newSettings as any)[key]; hasPublicUpdate = true; }
         });
-
-        if (hasPublicUpdate) {
-            await upsertData('public_settings', publicPayload);
-        }
-        
-        if (hasPrivateUpdate) {
-            await upsertData('private_secrets', privatePayload);
-        }
-
+        if (hasPublicUpdate) await upsertData('public_settings', publicPayload);
+        if (hasPrivateUpdate) await upsertData('private_secrets', privatePayload);
         addSystemLog('UPDATE', 'settings', 'Settings synchronized', 0);
       } catch (e) { 
         addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed');
@@ -912,7 +814,6 @@ const App: React.FC = () => {
        if (exists) return prev.map(item => item.id === data.id ? data : item);
        return [data, ...prev];
     };
-
     switch(table) {
         case 'products': setProducts(updateLocalState(products)); break;
         case 'categories': setCategories(updateLocalState(categories)); break;
@@ -920,18 +821,14 @@ const App: React.FC = () => {
         case 'hero_slides': setHeroSlides(updateLocalState(heroSlides)); break;
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
-        case 'orders': setOrders(updateLocalState(orders)); break;
-        case 'articles': setArticles(updateLocalState(articles)); break; // Added articles
+        case 'orders': setOrders(updateLocalState(customOrders)); break;
+        case 'articles': setArticles(updateLocalState(articles)); break;
         case 'subscribers': setSubscribers(updateLocalState(subscribers)); break;
     }
-
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
-    const updated = existing.some((i: any) => i.id === data.id) 
-       ? existing.map((i: any) => i.id === data.id ? data : i)
-       : [data, ...existing];
+    const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? data : i) : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
-
     try {
       if (isSupabaseConfigured) {
         await upsertData(table, data);
@@ -949,7 +846,6 @@ const App: React.FC = () => {
   const deleteData = async (table: string, id: string) => {
     setSaveStatus('saving');
     const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
-    
     switch(table) {
         case 'products': setProducts(deleteLocalState(products)); break;
         case 'categories': setCategories(deleteLocalState(categories)); break;
@@ -957,16 +853,14 @@ const App: React.FC = () => {
         case 'hero_slides': setHeroSlides(deleteLocalState(heroSlides)); break;
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
-        case 'orders': setOrders(deleteLocalState(orders)); break;
-        case 'articles': setArticles(deleteLocalState(articles)); break; // Added articles
+        case 'orders': setOrders(deleteLocalState(customOrders)); break;
+        case 'articles': setArticles(deleteLocalState(articles)); break;
         case 'subscribers': setSubscribers(deleteLocalState(subscribers)); break;
     }
-
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.filter((i: any) => i.id !== id);
     localStorage.setItem(key, JSON.stringify(updated));
-
     try {
       if (isSupabaseConfigured) {
         await deleteSupabaseData(table, id);
@@ -981,27 +875,8 @@ const App: React.FC = () => {
     }
   };
 
-  const logEvent = useCallback(async (
-    type: 'view' | 'click' | 'share' | 'system' | 'interaction', 
-    label: string, 
-    source: string = 'Direct',
-    extra?: { interactionType?: string }
-  ) => {
-    // UTM Capture
-    const params = new URLSearchParams(window.location.search);
-    const utmCampaign = params.get('utm_campaign') || undefined;
-    const utmMedium = params.get('utm_medium') || undefined;
-
-    // Scroll Depth
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollDepth = scrollHeight > 0 ? Math.round((window.scrollY / scrollHeight) * 100) : 0;
-
-    // Session Duration
-    const sessionDuration = Math.round((Date.now() - sessionStartTime.current) / 1000);
-
-    // City from Session (fetched by TrafficTracker)
+  const logEvent = useCallback(async (type: any, label: string, source: string = 'Direct', extra?: any) => {
     const city = sessionStorage.getItem('visitor_city') || undefined;
-
     const eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newEvent: TrafficLog = {
       id: eventId,
@@ -1010,99 +885,31 @@ const App: React.FC = () => {
       time: new Date().toLocaleTimeString(),
       timestamp: Date.now(),
       source: source || 'Direct',
-      city, // Added city
-      // Enhanced Telemetry
-      utmCampaign,
-      utmMedium,
-      scrollDepth,
-      sessionDuration,
-      interactionType: extra?.interactionType
+      city,
+      utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign') || undefined,
+      utmMedium: new URLSearchParams(window.location.search).get('utm_medium') || undefined,
+      scrollDepth: 0,
+      sessionDuration: Math.round((Date.now() - sessionStartTime.current) / 1000)
     };
-
-    if (isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.from('traffic_logs').insert([newEvent]);
-      } catch (err) {}
-    } else {
-      const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-      localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
-    }
-
+    if (isSupabaseConfigured) { try { await supabase.from('traffic_logs').insert([newEvent]); } catch (err) {} }
+    else { const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]'); localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50))); }
     if (label.startsWith('Product: ')) {
         const productName = label.replace('Product: ', '').trim();
         const product = productsRef.current.find(p => p.name === productName);
-        
         if (product) {
-            const currentStat = statsRef.current.find(s => s.productId === product.id) || { 
-                productId: product.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: Date.now() 
-            };
-            const newStat: ProductStats = {
-                ...currentStat,
-                views: currentStat.views + (type === 'view' ? 1 : 0),
-                clicks: currentStat.clicks + (type === 'click' ? 1 : 0),
-                shares: (currentStat.shares || 0) + (type === 'share' ? 1 : 0),
-                lastUpdated: Date.now()
-            };
-            
-            setStats(prev => {
-                const filtered = prev.filter(s => s.productId !== product.id);
-                return [...filtered, newStat];
-            });
-
-            if (isSupabaseConfigured) {
-                try {
-                  await upsertData('product_stats', newStat);
-                } catch (e: any) {
-                  const { shares, ...legacyStat } = newStat as any;
-                  try { await upsertData('product_stats', legacyStat); } catch (e2) {}
-                }
-            } else {
-                const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
-                const otherStats = localStats.filter((s: any) => s.productId !== product.id);
-                localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat]));
-            }
+            const currentStat = statsRef.current.find(s => s.productId === product.id) || { productId: product.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: Date.now() };
+            const newStat: ProductStats = { ...currentStat, views: currentStat.views + (type === 'view' ? 1 : 0), clicks: currentStat.clicks + (type === 'click' ? 1 : 0), shares: (currentStat.shares || 0) + (type === 'share' ? 1 : 0), lastUpdated: Date.now() };
+            setStats(prev => [...prev.filter(s => s.productId !== product.id), newStat]);
+            if (isSupabaseConfigured) { try { await upsertData('product_stats', newStat); } catch (e) { try { const { shares, ...legacy } = newStat as any; await upsertData('product_stats', legacy); } catch (e2) {} } }
+            else { const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]'); localStorage.setItem('admin_product_stats', JSON.stringify([...localStats.filter((s: any) => s.productId !== product.id), newStat])); }
         }
     }
   }, []);
 
   useEffect(() => {
-    // GLOBAL ERROR LISTENER: Captures errors from anywhere in the app
-    const handleGlobalError = (event: ErrorEvent) => {
-      try {
-        logEvent('system', `[CRITICAL] Runtime Exception: ${event.message}`, event.filename || 'Script');
-      } catch (e) { console.error(e); }
-    };
-
-    const handleGlobalRejection = (event: PromiseRejectionEvent) => {
-      try {
-        const reason = event.reason instanceof Error ? event.reason.message : String(event.reason);
-        logEvent('system', `[CRITICAL] Async Failure: ${reason}`, 'Promise');
-      } catch (e) { console.error(e); }
-    };
-
-    window.addEventListener('error', handleGlobalError);
-    window.addEventListener('unhandledrejection', handleGlobalRejection);
-
-    return () => {
-      window.removeEventListener('error', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handleGlobalRejection);
-    };
-  }, [logEvent]);
-
-  useEffect(() => {
     if (user && isSupabaseConfigured) {
-      const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
-      if (!existingAdmin) {
-        const newAdmin: AdminUser = {
-          id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin',
-          role: admins.length === 0 ? 'owner' : 'admin',
-          permissions: admins.length === 0 ? ['*'] : [],
-          createdAt: Date.now(),
-          lastActive: Date.now()
-        };
-        updateData('admin_users', newAdmin);
+      if (!admins.find(a => a.id === user.id || a.email === user.email)) {
+        updateData('admin_users', { id: user.id, email: user.email || '', name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin', role: admins.length === 0 ? 'owner' : 'admin', permissions: admins.length === 0 ? ['*'] : [], createdAt: Date.now(), lastActive: Date.now() });
       }
     }
   }, [user, admins]);
@@ -1119,11 +926,9 @@ const App: React.FC = () => {
   return (
     <SettingsContext.Provider value={{ 
       settings, updateSettings, 
-      products, categories, subCategories, heroSlides, enquiries, admins, stats, orders, articles, subscribers,
+      products, categories, subCategories, heroSlides, enquiries, admins, stats, orders: customOrders, articles, subscribers,
       refreshAllData, updateData, deleteData,
-      user, loadingAuth, 
-      isDataLoaded,
-      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent,
+      user, loadingAuth, isDataLoaded, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent,
       connectionHealth, systemLogs, storageStats
     }}>
       <CartProvider>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -412,7 +411,100 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
     return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300"><div className="flex items-center gap-3"><SelectedIcon size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center"><h3 className="text-white font-bold text-lg">Icon Library</h3><button onClick={() => setIsOpen(false)}><X size={20} className="text-white"/></button></div><div className="flex-grow overflow-y-auto p-6 bg-slate-950 grid grid-cols-6 gap-3">{ALL_ICONS.slice(0,100).map(name => { const Icon = CustomIcons[name] || (LucideIcons as any)[name]; if(!Icon) return null; return <button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-col items-center gap-2 hover:bg-slate-800 text-slate-400 hover:text-white"><Icon size={24}/><span className="text-[9px] truncate w-full text-center">{name}</span></button> })}</div></div></div>)}</div>); 
 };
 
-const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => { const { settings } = useSettings(); const [message, setMessage] = useState(''); const handleSend = async () => { if (!settings.emailJsServiceId) return alert("EmailJS not configured"); const templateParams = { to_name: enquiry.name, to_email: enquiry.email, message, reply_to: enquiry.email }; await emailjs.send(settings.emailJsServiceId, settings.emailJsTemplateId!, templateParams, settings.emailJsPublicKey!); onClose(); }; return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"><div className="bg-slate-900 w-full max-w-2xl rounded-2xl p-6 border border-slate-700"><h3 className="text-white font-bold mb-4">Reply to {enquiry.name}</h3><textarea className="w-full p-4 bg-slate-800 rounded-xl text-white mb-4 h-64" value={message} onChange={e => setMessage(e.target.value)} placeholder="Type response..." /><div className="flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-slate-400">Cancel</button><button onClick={handleSend} className="px-6 py-2 bg-primary text-slate-900 rounded-xl font-bold">Send</button></div></div></div>); };
+const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
+  const { settings } = useSettings();
+  const [subject, setSubject] = useState(`Re: ${enquiry.subject}`);
+  const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`);
+
+  const handleSend = async () => {
+    if (!settings.emailJsServiceId) return alert("EmailJS not configured");
+    const templateParams = {
+      to_name: enquiry.name,
+      to_email: enquiry.email,
+      message,
+      subject,
+      reply_to: enquiry.email,
+      company_name: settings.companyName,
+      company_address: settings.address,
+      company_website: window.location.origin,
+      year: new Date().getFullYear(),
+    };
+    try {
+      await emailjs.send(settings.emailJsServiceId, settings.emailJsTemplateId!, templateParams, settings.emailJsPublicKey!);
+      onClose();
+    } catch (err: any) {
+      alert(`Dispatch Error: ${err.message}`);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+      <div className="bg-slate-900 w-full max-w-2xl rounded-[2.5rem] p-8 md:p-12 border border-slate-800 shadow-2xl relative overflow-hidden">
+        {/* Aesthetic Shine */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+        
+        <div className="flex justify-between items-start mb-8">
+          <div className="text-left">
+            <h3 className="text-2xl font-serif text-white mb-1">Maison Concierge</h3>
+            <p className="text-xs text-slate-500 uppercase tracking-widest font-black">Outbound Communication</p>
+          </div>
+          <button onClick={onClose} className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-full transition-colors border border-slate-700">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-6 text-left">
+          {/* Recipient Display */}
+          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20">
+                <User size={18} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest leading-none mb-1">Recipient</p>
+                <p className="text-sm font-bold text-white leading-none">{enquiry.email}</p>
+              </div>
+            </div>
+            <div className="text-slate-700 hover:text-primary transition-colors cursor-help group relative">
+               <Paperclip size={18}/>
+               <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-black text-[9px] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-slate-800 pointer-events-none uppercase tracking-widest text-center">Cloud Attachments Pending</div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Transmission Subject</label>
+            <input 
+              type="text" 
+              className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all text-sm font-bold"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Message Content</label>
+            <textarea 
+              className="w-full p-6 bg-slate-800 border border-slate-700 rounded-[1.5rem] text-white outline-none focus:border-primary transition-all text-sm leading-relaxed h-72 resize-none font-light custom-scrollbar" 
+              value={message} 
+              onChange={e => setMessage(e.target.value)} 
+              placeholder="Type professional response..." 
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-4 pt-8 border-t border-slate-800 mt-8">
+          <button onClick={onClose} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] rounded-xl hover:text-white transition-all">
+            Cancel
+          </button>
+          <button onClick={handleSend} className="flex-[2] py-4 bg-primary text-slate-900 font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:brightness-110 shadow-xl shadow-primary/10 flex items-center justify-center gap-3 group transition-all">
+            <span>Transmit Message</span>
+            <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C' }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2' }, { id: 'twitter', name: 'X', icon: Twitter, color: '#1DA1F2' } ];
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { 
