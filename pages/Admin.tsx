@@ -983,7 +983,62 @@ const Admin: React.FC = () => {
   const handleSaveHero = async () => { const newSlide = { ...heroData, id: editingId || Date.now().toString(), createdBy: heroData.createdBy || user?.id }; const ok = await updateData('hero_slides', newSlide); if (ok) { setShowHeroForm(false); setEditingId(null); } };
   const handleSaveArticle = async () => { const newArticle: Article = { ...articleData as Article, id: editingId || Date.now().toString(), date: articleData.date || Date.now(), author: articleData.author || settings.companyName }; const ok = await updateData('articles', newArticle); if (ok) { setShowArticleForm(false); setEditingId(null); } };
   const handleSaveTraining = async () => { const newModule = { ...trainingData, id: editingId || Date.now().toString(), createdBy: trainingData.createdBy || user?.id }; const ok = await updateData('training_modules', newModule); if (ok) { setShowTrainingForm(false); setEditingId(null); } };
-  const handleSaveAdmin = async () => { if (!adminData.email) return; setCreatingAdmin(true); try { const newAdmin = { ...adminData, id: editingId || Date.now().toString(), createdAt: adminData.createdAt || Date.now() }; const ok = await updateData('admin_users', newAdmin); if (ok) { setShowAdminForm(false); setEditingId(null); } } catch (err: any) { alert(`Error saving member: ${err.message}`); } finally { setCreatingAdmin(false); } };
+  
+  const handleSaveAdmin = async () => { 
+    if (!adminData.email) return; 
+    setCreatingAdmin(true); 
+    try { 
+        if (editingId) {
+            // Edit Mode: Update existing record locally or in DB via RLS
+            const newAdmin = { ...adminData, id: editingId }; 
+            const ok = await updateData('admin_users', newAdmin); 
+            if (ok) { setShowAdminForm(false); setEditingId(null); }
+        } else {
+            // Create Mode: New User
+            if (isSupabaseConfigured) {
+                // Cloud Mode: Call Edge Function to create Auth User + DB Record
+                const { data, error } = await supabase.functions.invoke('create-user', {
+                    body: {
+                        email: adminData.email,
+                        name: adminData.name,
+                        role: adminData.role,
+                        permissions: adminData.permissions
+                    }
+                });
+                
+                if (error) {
+                    console.error('Edge Function Error:', error);
+                    // If function is missing (404), warn user
+                    if (error.code === 'not_found' || error.message?.includes('not found')) {
+                       throw new Error('Edge Function "create-user" not deployed. Please deploy it to Supabase.');
+                    }
+                    throw new Error(error.message || 'Failed to create user via Edge Function.');
+                }
+                
+                // Refresh local data to show new user
+                await refreshAllData();
+                setShowAdminForm(false); 
+                setEditingId(null);
+                alert('User invited successfully! They will receive an email.');
+            } else {
+                // Local Mode: Direct Insert (Simulation)
+                const newAdmin = { 
+                    ...adminData, 
+                    id: Date.now().toString(), 
+                    createdAt: Date.now(),
+                    role: adminData.role || 'admin' 
+                }; 
+                const ok = await updateData('admin_users', newAdmin); 
+                if (ok) { setShowAdminForm(false); setEditingId(null); }
+            }
+        }
+    } catch (err: any) { 
+        console.error(err);
+        alert(`Error saving member: ${err.message}`); 
+    } finally { 
+        setCreatingAdmin(false); 
+    } 
+  };
 
   const toggleEnquiryStatus = async (enquiry: Enquiry) => { if(!hasPermission('privilege.inbox')) return; const updated = { ...enquiry, status: enquiry.status === 'read' ? 'unread' : 'read' }; await updateData('enquiries', updated); };
   const handleAddSubCategory = async (categoryId: string) => { if (!tempSubCatName.trim()) return; const newSub: SubCategory = { id: Date.now().toString(), categoryId, name: tempSubCatName, createdBy: user?.id }; await updateData('subcategories', newSub); setTempSubCatName(''); };
