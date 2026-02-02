@@ -27,7 +27,7 @@ export const GUIDE_STEPS = [
       'Click "Run". Ensure all statements return "Success".',
       'This creates all 17 system tables including Orders, Products, and Traffic Logs.'
     ],
-    codeLabel: 'Full System Architecture (v10.0)',
+    codeLabel: 'Full System Architecture (v10.1)',
     code: `-- 1. EXTENSIONS & RESET
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 DO $$ DECLARE r RECORD; BEGIN 
@@ -125,6 +125,7 @@ CREATE POLICY "PubRead" ON reviews FOR SELECT USING (true);
 CREATE POLICY "PubRead" ON training_modules FOR SELECT USING (true);
 
 CREATE POLICY "AdminFull" ON public_settings FOR ALL USING (true);
+CREATE POLICY "AdminFull" ON private_secrets FOR ALL USING (true);
 CREATE POLICY "AdminFull" ON products FOR ALL USING (true);
 CREATE POLICY "AdminFull" ON categories FOR ALL USING (true);
 CREATE POLICY "AdminFull" ON subcategories FOR ALL USING (true);
