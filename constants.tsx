@@ -344,8 +344,106 @@ ON CONFLICT (id) DO UPDATE SET role = 'owner', permissions = ARRAY['*'];`
     ]
   },
   {
+    id: 'admin-generator',
+    title: '10. Admin Generator RPC',
+    description: 'Enable creating new Admin users directly from the dashboard using a secure Database Function.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to the Supabase SQL Editor.',
+      'Create a New Query and paste the code below.',
+      'Run the query to install the `create_admin_user` function.',
+      'This allows you to add staff members instantly from the "Maison" tab.'
+    ],
+    codeLabel: 'create_admin_user SQL Function',
+    code: `-- Enable pgcrypto for hashing
+create extension if not exists pgcrypto;
+
+create or replace function create_admin_user(
+  email text,
+  password text,
+  name text,
+  role text,
+  permissions text[]
+)
+returns text
+language plpgsql
+security definer
+as $$
+declare
+  new_id uuid;
+  encrypted_pw text;
+begin
+  -- Generate ID
+  new_id := gen_random_uuid();
+  
+  -- Hash password
+  encrypted_pw := crypt(password, gen_salt('bf'));
+
+  -- Insert into auth.users
+  insert into auth.users (
+    instance_id,
+    id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    recovery_sent_at,
+    last_sign_in_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    confirmation_token,
+    email_change,
+    email_change_token_new,
+    recovery_token
+  ) values (
+    '00000000-0000-0000-0000-000000000000',
+    new_id,
+    'authenticated',
+    'authenticated',
+    email,
+    encrypted_pw,
+    now(),
+    null,
+    null,
+    '{"provider": "email", "providers": ["email"]}',
+    jsonb_build_object('full_name', name, 'role', role),
+    now(),
+    now(),
+    '',
+    '',
+    '',
+    ''
+  );
+
+  -- Insert into public.admin_users
+  insert into public.admin_users (
+    id,
+    name,
+    email,
+    role,
+    permissions,
+    "createdAt",
+    "lastActive"
+  ) values (
+    new_id::text,
+    name,
+    email,
+    role,
+    permissions,
+    extract(epoch from now()) * 1000,
+    extract(epoch from now()) * 1000
+  );
+
+  return new_id::text;
+end;
+$$;`
+  },
+  {
     id: 'global-deployment',
-    title: '10. Global Deployment (Vercel)',
+    title: '11. Global Deployment (Vercel)',
     description: 'Launch your high-performance bridge page to the worldwide web.',
     illustrationId: 'forge',
     subSteps: [
@@ -358,7 +456,7 @@ ON CONFLICT (id) DO UPDATE SET role = 'owner', permissions = ARRAY['*'];`
   },
   {
     id: 'domain-ssl',
-    title: '11. Domain & SSL Hardening',
+    title: '12. Domain & SSL Hardening',
     description: 'Secure your professional image with a custom domain and SSL encryption.',
     illustrationId: 'forge',
     subSteps: [
@@ -377,7 +475,7 @@ ON CONFLICT (id) DO UPDATE SET role = 'owner', permissions = ARRAY['*'];`
   },
   {
     id: 'meta-pixel',
-    title: '12. Meta Pixel Implementation',
+    title: '13. Meta Pixel Implementation',
     description: 'Track ad performance and build retargeting audiences for Facebook and Instagram ads.',
     illustrationId: 'rocket',
     subSteps: [
@@ -394,12 +492,12 @@ fbq('track', 'ViewContent', { content_name: 'Luxury Silk Wrap' });`
   },
   {
     id: 'google-grounding',
-    title: '13. Google Search Console & SEO',
+    title: '14. Google Search Console & SEO',
     description: 'Verify your site with Google to index your curated pages and track organic search keywords.',
     illustrationId: 'forge',
     subSteps: [
       'Navigate to Google Search Console and add your domain.',
-      'Choose "URL Prefix" and select the "HTML Tag" verification method.',
+      'Choose "URL Prefix" and select "HTML Tag" verification method.',
       'Copy the meta tag and paste it into the SEO section of your Admin portal.',
       'Submit your sitemap (usually /sitemap.xml) for faster indexing.',
       'Check the "Performance" tab weekly to see which keywords drive traffic.'
@@ -410,7 +508,7 @@ fbq('track', 'ViewContent', { content_name: 'Luxury Silk Wrap' });`
   },
   {
     id: 'tiktok-pixel',
-    title: '14. TikTok Creative Center Sync',
+    title: '15. TikTok Creative Center Sync',
     description: 'Measure the impact of your viral TikTok content on bridge page traffic.',
     illustrationId: 'rocket',
     subSteps: [
@@ -428,7 +526,7 @@ fbq('track', 'ViewContent', { content_name: 'Luxury Silk Wrap' });`
   },
   {
     id: 'pinterest-tag',
-    title: '15. Pinterest Tag Integration',
+    title: '16. Pinterest Tag Integration',
     description: 'The ultimate tool for fashion curators. Track "Pins" and "Saves" back to your shop.',
     illustrationId: 'forge',
     subSteps: [
@@ -446,7 +544,7 @@ pintrk('track', 'addtocart', {
   },
   {
     id: 'yoco-verification',
-    title: '16. Yoco Payment Verification',
+    title: '17. Yoco Payment Verification',
     description: 'Switch from "Test Mode" to "Live Mode" to start accepting real card payments.',
     illustrationId: 'rocket',
     subSteps: [
@@ -462,7 +560,7 @@ pintrk('track', 'addtocart', {
   },
   {
     id: 'zapier-leads',
-    title: '17. Zapier Lead CRM Automation',
+    title: '18. Zapier Lead CRM Automation',
     description: 'Connect your bridge page to 5000+ apps like Mailchimp, Slack, or Google Sheets.',
     illustrationId: 'forge',
     subSteps: [
@@ -480,7 +578,7 @@ pintrk('track', 'addtocart', {
   },
   {
     id: 'link-obfuscation',
-    title: '18. Affiliate Link Optimization',
+    title: '19. Affiliate Link Optimization',
     description: 'Transform ugly affiliate URLs into professional, branded links to increase CTR.',
     illustrationId: 'rocket',
     subSteps: [
@@ -495,7 +593,7 @@ pintrk('track', 'addtocart', {
   },
   {
     id: 'pwa-manifest',
-    title: '19. PWA Offline Manifest',
+    title: '20. PWA Offline Manifest',
     description: 'Allow users to "Install" your bridge page as an app on their home screen.',
     illustrationId: 'forge',
     subSteps: [
@@ -514,7 +612,7 @@ pintrk('track', 'addtocart', {
   },
   {
     id: 'readiness-test',
-    title: '20. Performance & Readiness',
+    title: '21. Performance & Readiness',
     description: 'Final audit before scaling traffic to your new fashion destination.',
     illustrationId: 'rocket',
     subSteps: [
