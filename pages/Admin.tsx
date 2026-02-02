@@ -333,20 +333,45 @@ const compressImage = async (file: File): Promise<string> => { return new Promis
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     setUploading(true);
+    
+    // Add safety timeout to prevent infinite spinner
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Upload timed out")), 15000));
+    
     try {
-      const compressedDataUrl = await compressImage(file);
-      if (compressedDataUrl.length > 5 * 1024 * 1024) { alert("File too large"); setUploading(false); return; }
-      if (isSupabaseConfigured) {
-        const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-        const url = await uploadMedia(compressedFile, 'media');
-        if (url) onChange(url);
-      } else { onChange(compressedDataUrl); }
-    } catch (err: any) { alert(`Upload Failed: ${err.message}`); } finally { setUploading(false); }
+      const uploadPromise = async () => {
+          const compressedDataUrl = await compressImage(file);
+          if (compressedDataUrl.length > 5 * 1024 * 1024) throw new Error("File too large");
+          
+          if (isSupabaseConfigured) {
+            const res = await fetch(compressedDataUrl); 
+            const blob = await res.blob(); 
+            const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+            const url = await uploadMedia(compressedFile, 'media');
+            if (url) return url;
+            throw new Error("Cloud upload failed");
+          } else { 
+            return compressedDataUrl; 
+          }
+      };
+
+      const result = await Promise.race([uploadPromise(), timeoutPromise]);
+      if (typeof result === 'string') onChange(result);
+      
+    } catch (err: any) { 
+        alert(`Upload Failed: ${err.message}`); 
+    } finally { 
+        setUploading(false); 
+        // Reset input
+        if(inputRef.current) inputRef.current.value = '';
+    }
   };
+  
   const isVideo = value?.match(/\.(mp4|webm|ogg)$/i) || accept?.includes('video');
   return (
     <div className="space-y-2 text-left w-full min-w-0">
@@ -368,16 +393,37 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
     if (!incomingFiles) return; 
     setUploading(true); 
     const newUrls: string[] = [];
+    
+    // Safety timeout
+    const timeoutId = setTimeout(() => {
+        if(uploading) {
+            setUploading(false);
+            alert("Upload timed out. Some files may not have saved.");
+        }
+    }, 20000);
+
     try {
       for (let i = 0; i < incomingFiles.length; i++) {
-        const file = incomingFiles[i]; const compressedDataUrl = await compressImage(file);
+        const file = incomingFiles[i]; 
+        const compressedDataUrl = await compressImage(file);
         if (isSupabaseConfigured) {
-          const res = await fetch(compressedDataUrl); const blob = await res.blob(); const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-          const url = await uploadMedia(compressedFile, 'media'); if (url) newUrls.push(url);
-        } else { newUrls.push(compressedDataUrl); }
+          const res = await fetch(compressedDataUrl); 
+          const blob = await res.blob(); 
+          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+          const url = await uploadMedia(compressedFile, 'media'); 
+          if (url) newUrls.push(url);
+        } else { 
+          newUrls.push(compressedDataUrl); 
+        }
       }
       onChange([...safeImages, ...newUrls]);
-    } catch (err: any) { alert(`Upload Failed`); } finally { setUploading(false); }
+    } catch (err: any) { 
+        alert(`Upload Failed`); 
+    } finally { 
+        clearTimeout(timeoutId);
+        setUploading(false); 
+        if(fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
   return (
     <div className="space-y-4 text-left w-full min-w-0">
@@ -414,7 +460,7 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C' }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2' }, { id: 'twitter', name: 'X', icon: Twitter, color: '#1DA1F2' } ];
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => { 
     const [platform, setPlatform] = useState(PLATFORMS[0]); 
-    const text = `Check out ${product.name}! ${product.description.substring(0,100)}... Price: R${product.price}`;
+    const text = `Check out ${product.name}! ${(product.description || '').substring(0,100)}... Price: R${product.price}`;
     return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"><div className="bg-slate-900 w-full max-w-2xl rounded-2xl p-6 border border-slate-700"><div className="flex justify-between mb-4"><h3 className="text-white font-bold">Ad Generator</h3><button onClick={onClose}><X size={20} className="text-slate-500"/></button></div><div className="flex gap-2 mb-4">{PLATFORMS.map(p => <button key={p.id} onClick={() => setPlatform(p)} className={`p-3 rounded-xl border ${platform.id === p.id ? 'border-primary bg-slate-800' : 'border-slate-800'}`}><p.icon size={20} style={{color: p.color}} /></button>)}</div><textarea className="w-full p-4 bg-slate-800 rounded-xl text-white h-32 mb-4" readOnly value={text} /><button onClick={() => navigator.clipboard.writeText(text)} className="w-full py-3 bg-primary text-slate-900 rounded-xl font-bold">Copy Text</button></div></div>); 
 };
 
@@ -428,25 +474,38 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
     if (!incomingFiles) return;
     setUploading(true);
     const newFiles: MediaFile[] = [];
-    try {
+    
+    // Add safety timeout for multi-file upload
+    const timeoutPromise = new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+            reject(new Error("Upload timed out"));
+        }, 30000);
+    });
+
+    const uploadLogic = async () => {
         for (let i = 0; i < incomingFiles.length; i++) {
-        const file = incomingFiles[i];
-        const compressedDataUrl = await compressImage(file);
-        let result = compressedDataUrl;
-        if (isSupabaseConfigured) {
-            const res = await fetch(compressedDataUrl);
-            const blob = await res.blob();
-            const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-            const url = await uploadMedia(compressedFile, 'media');
-            if (url) result = url;
+            const file = incomingFiles[i];
+            const compressedDataUrl = await compressImage(file);
+            let result = compressedDataUrl;
+            if (isSupabaseConfigured) {
+                const res = await fetch(compressedDataUrl);
+                const blob = await res.blob();
+                const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+                const url = await uploadMedia(compressedFile, 'media');
+                if (url) result = url;
+            }
+            newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type, size: file.size });
         }
-        newFiles.push({ id: Math.random().toString(36).substr(2, 9), url: result, name: file.name, type: file.type, size: file.size });
-        }
+    };
+
+    try {
+        await Promise.race([uploadLogic(), timeoutPromise]);
         onFilesChange(multiple ? [...(files || []), ...newFiles] : newFiles);
-    } catch (e) {
-        alert("Upload failed");
+    } catch (e: any) {
+        alert(e.message || "Upload failed");
     } finally {
         setUploading(false);
+        if(fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -579,7 +638,7 @@ const SystemMonitor: React.FC<{ connectionHealth: any, systemLogs: any[], storag
     );
 };
 
-// --- ANALYTICS DASHBOARD ---
+// ... [Analytics Dashboard Component - No changes needed]
 const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Product[]; stats: ProductStats[]; orders: Order[]; categories: Category[]; admins: AdminUser[]; user: any; isOwner: boolean }> = ({ trafficEvents, products, stats, orders, categories, admins, user, isOwner }) => {
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
   const { settings } = useSettings();
@@ -1002,7 +1061,8 @@ const Admin: React.FC = () => {
                         email: adminData.email,
                         name: adminData.name,
                         role: adminData.role,
-                        permissions: adminData.permissions
+                        permissions: adminData.permissions,
+                        password: adminData.password // Passed to backend
                     }
                 });
                 
@@ -1019,7 +1079,7 @@ const Admin: React.FC = () => {
                 await refreshAllData();
                 setShowAdminForm(false); 
                 setEditingId(null);
-                alert('User invited successfully! They will receive an email.');
+                alert('User created successfully! ' + (adminData.password ? 'Credentials set.' : 'They will receive an email.'));
             } else {
                 // Local Mode: Direct Insert (Simulation)
                 const newAdmin = { 
@@ -1590,7 +1650,7 @@ const Admin: React.FC = () => {
 
   const renderSiteEditor = () => ( <div className="space-y-6 w-full max-w-7xl mx-auto text-left"><div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">{[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan', perm: 'privilege.canvas'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer', perm: 'privilege.canvas'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip', perm: 'privilege.canvas'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text', perm: 'privilege.canvas'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery', perm: 'privilege.canvas'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials', perm: 'privilege.canvas'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure', perm: 'privilege.canvas'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'Analytics, Tracking, Commerce', perm: 'privilege.canvas'} ].map(s => { if (!hasPermission(s.perm)) return null; return (<button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] text-left border border-slate-800 hover:border-primary/50 transition-all group h-full flex flex-col justify-between"><div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div></button>)})}</div></div> );
 
-  const renderTeam = () => (<div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison</h2><p className="text-slate-400 text-sm">Manage staff and sector access rights.</p></div>{hasPermission('privilege.maison') && <button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest"><Plus size={16}/> New Member</button>}</div>{showAdminForm ? (<div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] border border-slate-800 space-y-12 text-left"><div className="grid md:grid-cols-2 gap-12"><div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Profile</h3><SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} /><SettingField label="Email" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} /></div><div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div></div><div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div></div>) : (<div className="grid gap-6">{admins.map(a => { const isCurrentUser = user && (a.id === user.id || a.email === user.email); return (<div key={a.id} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8"><div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase">{a.name?.charAt(0)}</div><div className="space-y-2 flex-grow text-center md:text-left min-w-0"><h4 className="text-white text-xl font-bold">{a.name}</h4><div className="text-slate-500 text-sm">{a.email}</div><span className="px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-slate-800 text-slate-400">{a.role}</span></div></div>{hasPermission('privilege.maison') && <div className="flex gap-3"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="p-4 bg-slate-800 text-slate-400 rounded-2xl hover:text-white"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="p-4 bg-slate-800 text-slate-400 hover:text-red-500 rounded-2xl" disabled={isCurrentUser}><Trash2 size={20}/></button></div>}</div>); })}</div>)}</div>);
+  const renderTeam = () => (<div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison</h2><p className="text-slate-400 text-sm">Manage staff and sector access rights.</p></div>{hasPermission('privilege.maison') && <button onClick={() => { setAdminData({ role: 'admin', permissions: [], password: '' }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest"><Plus size={16}/> New Member</button>}</div>{showAdminForm ? (<div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] border border-slate-800 space-y-12 text-left"><div className="grid md:grid-cols-2 gap-12"><div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Profile</h3><SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} /><SettingField label="Email" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} /><SettingField label="Password (New Member Only)" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" /></div><div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div></div><div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div></div>) : (<div className="grid gap-6">{admins.map(a => { const isCurrentUser = user && (a.id === user.id || a.email === user.email); return (<div key={a.id} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8"><div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase">{a.name?.charAt(0)}</div><div className="space-y-2 flex-grow text-center md:text-left min-w-0"><h4 className="text-white text-xl font-bold">{a.name}</h4><div className="text-slate-500 text-sm">{a.email}</div><span className="px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-slate-800 text-slate-400">{a.role}</span></div></div>{hasPermission('privilege.maison') && <div className="flex gap-3"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="p-4 bg-slate-800 text-slate-400 rounded-2xl hover:text-white"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="p-4 bg-slate-800 text-slate-400 hover:text-red-500 rounded-2xl" disabled={isCurrentUser}><Trash2 size={20}/></button></div>}</div>); })}</div>)}</div>);
 
   const renderGuide = () => (<div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden"><div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl"><Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" /><div className="max-w-3xl relative z-10 text-left"><div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30"><Zap size={14}/> Launch Protocol</div><h2 className="text-3xl sm:text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none break-words">Architecture <span className="text-primary italic font-light lowercase">Blueprint</span></h2><p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed max-w-full">Complete the following milestones to transition from local prototype to a fully-synced global luxury bridge page.</p></div></div><div className="grid gap-16 md:gap-32 text-left">{GUIDE_STEPS.map((step, idx) => (<div key={step.id} className="relative flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-20"><div className="md:col-span-1 flex flex-row md:flex-col items-center gap-4 md:gap-0"><div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl sticky md:top-32 static shrink-0">{idx + 1}</div></div><div className="md:col-span-7 space-y-6 md:space-y-10 min-w-0 text-left"><div className="space-y-4 text-left"><h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{step.title}</h3><p className="text-slate-400 text-sm md:text-lg leading-relaxed">{step.description}</p></div>{step.subSteps && (<div className="grid gap-4 text-left">{step.subSteps.map((sub, i) => (<div key={i} className="flex items-start gap-4 p-4 md:p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group"><CheckCircle size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" /><span className="text-slate-300 text-sm md:text-base leading-relaxed break-words w-full">{sub}</span></div>))}</div>)}{step.code && (<CodeBlock code={step.code} label={step.codeLabel} />)}</div><div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0"><GuideIllustration id={step.illustrationId} /></div></div>))}</div></div>);
 

@@ -61,9 +61,13 @@ const ProductDetail: React.FC = () => {
         if (data) setReviews(data);
       } else {
         // Local Mode: Simulate relational DB using localStorage
-        const allReviews: Review[] = JSON.parse(localStorage.getItem('site_reviews') || '[]');
-        const productReviews = allReviews.filter(r => r.productId === id).sort((a, b) => b.createdAt - a.createdAt);
-        setReviews(productReviews);
+        try {
+            const allReviews: Review[] = JSON.parse(localStorage.getItem('site_reviews') || '[]');
+            const productReviews = allReviews.filter(r => r.productId === id).sort((a, b) => b.createdAt - a.createdAt);
+            setReviews(productReviews || []);
+        } catch (e) {
+            setReviews([]);
+        }
       }
     };
     fetchReviews();
@@ -108,11 +112,12 @@ const ProductDetail: React.FC = () => {
       
       // Fix: Safely handle missing description
       const description = product.description || '';
+      const safeDesc = description ? (description.length > 150 ? `${description.substring(0, 150)}...` : description) : '';
       
       const adText = [
           `✨ ${product.name} ✨`,
           '',
-          description.length > 150 ? `${description.substring(0, 150)}...` : description,
+          safeDesc,
           '',
           `💎 Price: ${priceString} ${discountString ? `(${discountString} OFF 🔥)` : ''}`,
           '',
@@ -209,7 +214,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const averageRating = useMemo(() => {
-    if (reviews.length === 0) return 0;
+    if (!reviews || reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
     return Math.round(sum / reviews.length);
   }, [reviews]);
