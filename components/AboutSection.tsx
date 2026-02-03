@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, UserCheck, PenTool } from 'lucide-react';
 import { useSettings } from '../App';
+import SignatureHeader from './SignatureHeader';
 
 const AboutSection: React.FC = () => {
   const { settings } = useSettings();
@@ -18,7 +19,6 @@ const AboutSection: React.FC = () => {
           
           <div className="w-full lg:w-5/12 relative">
             <div className="relative z-10 group">
-              {/* Decorative Blur Background */}
               <div className="hidden md:block absolute -inset-10 bg-primary/5 rounded-full blur-[120px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
               
               <div className="relative overflow-hidden rounded-[2.5rem] md:rounded-[4rem] shadow-2xl transition-all duration-700 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)]">
@@ -30,7 +30,6 @@ const AboutSection: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20"></div>
               </div>
               
-              {/* Founder Signature Tag */}
               <div className="absolute -bottom-8 -right-4 md:bottom-12 md:-right-12 z-30 bg-white/95 backdrop-blur-xl p-6 md:p-10 rounded-[2rem] shadow-2xl border border-white/50 flex flex-col items-start min-w-[200px] md:min-w-[300px] transform transition-all duration-500 group-hover:translate-x-2 group-hover:-translate-y-2">
                  <div className="flex items-center gap-3 mb-3">
                     <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
@@ -56,9 +55,7 @@ const AboutSection: React.FC = () => {
           </div>
 
           <div className="w-full lg:w-6/12 text-left">
-             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6 block flex items-center gap-3">
-                <Sparkles size={14} /> {settings.homeHeroBadge || 'Curator & Expert'}
-             </span>
+             <SignatureHeader />
              
              <h2 className="text-4xl md:text-7xl font-serif text-slate-900 mb-10 leading-[0.9] tracking-tighter">
                 {title.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary">{title.split(' ').slice(-1)}</span>
