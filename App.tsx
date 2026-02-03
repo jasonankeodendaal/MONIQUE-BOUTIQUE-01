@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X, RefreshCcw } from 'lucide-react';
@@ -66,7 +67,7 @@ const Footer: React.FC = () => {
               </p>
             </div>
             <div>
-              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Navigation</h4>
+              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">{settings.footerNavHeader || 'Navigation'}</h4>
               <ul className="space-y-3 text-sm font-light">
                 <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
                 <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
@@ -74,7 +75,7 @@ const Footer: React.FC = () => {
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Policy</h4>
+              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">{settings.footerPolicyHeader || 'Policy'}</h4>
               <ul className="space-y-3 text-sm font-light">
                 <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
                 <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
@@ -118,7 +119,7 @@ const Footer: React.FC = () => {
 
       {showCreatorModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-           <div className="relative w-full max-w-md bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+           <div className="relative w-full max-md bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
               <div className="absolute inset-0">
                  <img src="https://i.ibb.co/dsh2c2hp/unnamed.jpg" className="w-full h-full object-cover opacity-60" alt="Creator Background" />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent"></div>

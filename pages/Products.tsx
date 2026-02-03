@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Search, ExternalLink, ShoppingBag, CheckCircle, FileText, Video as VideoIcon, ChevronDown, Filter, ArrowUpDown, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -112,7 +113,7 @@ const Products: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDFCFB] max-w-full overflow-x-hidden">
+    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDFCFB] max-w-full overflow-x-hidden pt-24">
       
       {/* KINETIC CONTEXT HERO */}
       <div className="relative h-[45vh] md:h-[60vh] w-full overflow-hidden bg-slate-950">

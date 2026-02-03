@@ -789,6 +789,23 @@ export const TRAINING_MODULES: TrainingModule[] = [
     ]
   },
   {
+    id: 'email-cart',
+    title: '25. Abandoned Cart (Psychology)',
+    platform: 'Email',
+    description: 'Although you don\'t own the cart, you can simulate recovery.',
+    icon: 'ShoppingCart',
+    strategies: [
+      'The "Did you see this?" Email: Re-send the link to a popular item.',
+      'Scarcity: "Low stock alert on the Silk Dress".',
+      'Social Proof: "See how others styled this".'
+    ],
+    actionItems: [
+      'Segment your list by clicks (who clicked but didn\'t buy?).',
+      'Send a follow-up email 24 hours after a major link drop.',
+      'Include a user review in the follow-up.'
+    ]
+  },
+  {
     id: 'seo-keywords',
     title: '26. Keyword Research',
     platform: 'SEO',
@@ -847,7 +864,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
     icon: 'RefreshCcw',
     strategies: [
       'Watermark Removal: Remove TikTok logo before posting to Reels.',
-      'Text Tweaks: Change the caption to suit the platform vibe.',
+      'text Tweaks: Change the caption to suit the platform vibe.',
       'Timing: Stagger posts so followers don\'t see the same thing everywhere at once.'
     ],
     actionItems: [
@@ -1027,9 +1044,28 @@ export const INITIAL_SETTINGS: SiteSettings = {
     { id: '1', name: 'Instagram', url: 'https://instagram.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
     { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }
   ],
+  contactFaqs: [
+    {
+      question: "Do you ship products directly?",
+      answer: "As a curation bridge page, we direct you to verified third-party luxury retailers. Shipping and returns are handled directly by the brand you purchase from."
+    },
+    {
+      question: "How do I book a styling consultation?",
+      answer: "Please select 'Styling Consultation' in the inquiry form. Our team will coordinate a virtual or in-person session based on your location."
+    },
+    {
+      question: "Are the luxury items authenticated?",
+      answer: "Absolutely. We only affiliate with authorized retailers and brands that guarantee 100% authenticity on every piece listed."
+    }
+  ],
+
+  productAcquisitionLabel: 'Secure Acquisition',
+  productSpecsLabel: 'Technical Specifications',
 
   footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to Shein and global fashion trends.",
   footerCopyrightText: "All rights reserved.",
+  footerNavHeader: 'Navigation',
+  footerPolicyHeader: 'Policy',
 
   // Home Page Content
   homeHeroBadge: 'Exclusive Curation',
@@ -1039,6 +1075,10 @@ export const INITIAL_SETTINGS: SiteSettings = {
   homeAboutCta: 'Read My Story',
   homeCategorySectionTitle: 'Curated Departments',
   homeCategorySectionSubtitle: 'The Collection',
+  homeNicheHeader: 'Shop by Niche',
+  homeNicheSubheader: 'Curated Portals',
+  homeTrustHeader: 'Why trust my selections?',
+  homeTrustSubheader: 'Curation Integrity',
   homeTrustSectionTitle: 'Why Shop Here',
   
   homeTrustItem1Title: 'Verified Affiliate',

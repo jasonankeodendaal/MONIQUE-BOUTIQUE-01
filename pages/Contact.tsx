@@ -34,20 +34,7 @@ const Contact: React.FC = () => {
     setTimeout(() => setSubmitted(false), 5000);
   };
 
-  const faqs = [
-    {
-      q: "Do you ship products directly?",
-      a: "As a curation bridge page, we direct you to verified third-party luxury retailers. Shipping and returns are handled directly by the brand you purchase from."
-    },
-    {
-      q: "How do I book a styling consultation?",
-      a: "Please select 'Styling Consultation' in the inquiry form. Our team will coordinate a virtual or in-person session based on your location."
-    },
-    {
-      q: "Are the luxury items authenticated?",
-      a: "Absolutely. We only affiliate with authorized retailers and brands that guarantee 100% authenticity on every piece listed."
-    }
-  ];
+  const faqs = settings.contactFaqs || [];
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] relative">
@@ -249,13 +236,13 @@ const Contact: React.FC = () => {
                           onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                           className="w-full px-6 py-4 flex items-center justify-between text-left"
                         >
-                          <span className="text-sm font-bold text-slate-900 pr-4">{faq.q}</span>
+                          <span className="text-sm font-bold text-slate-900 pr-4">{faq.question}</span>
                           <div className={`w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300 ${openFaq === idx ? 'rotate-180 bg-slate-900 text-white' : 'text-slate-400'}`}>
                              {openFaq === idx ? <Minus size={12}/> : <Plus size={12}/>}
                           </div>
                         </button>
                         <div className={`px-6 overflow-hidden transition-all duration-300 ${openFaq === idx ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 pb-0 opacity-0'}`}>
-                           <p className="text-xs text-slate-500 leading-relaxed font-light">{faq.a}</p>
+                           <p className="text-xs text-slate-500 leading-relaxed font-light">{faq.answer}</p>
                         </div>
                      </div>
                    ))}

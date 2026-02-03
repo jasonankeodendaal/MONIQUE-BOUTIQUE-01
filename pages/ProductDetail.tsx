@@ -132,7 +132,7 @@ const ProductDetail: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-center p-6">
+      <div className="min-h-screen flex items-center justify-center bg-white text-center p-6 pt-24">
         <div>
           <Package size={64} className="text-slate-200 mx-auto mb-6" />
           <h2 className="text-3xl font-serif mb-4">Piece Not Found</h2>
@@ -149,7 +149,7 @@ const ProductDetail: React.FC = () => {
   const prevMedia = () => setActiveMediaIndex((prev) => (prev === 0 ? media.length - 1 : prev - 1));
 
   return (
-    <main className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+    <main className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 pt-24 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       
       {/* --- Breadcrumbs --- */}
       <div className="hidden lg:block absolute top-28 left-10 md:left-20 z-30">
@@ -286,7 +286,7 @@ const ProductDetail: React.FC = () => {
                  onClick={() => logEvent('click', `Product: ${product.name}`)}
                  className="col-span-5 py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
                >
-                 <span>Secure Acquisition</span>
+                 <span>{settings.productAcquisitionLabel || 'Secure Acquisition'}</span>
                  <ExternalLink size={16} />
                </a>
                <button 
@@ -323,7 +323,7 @@ const ProductDetail: React.FC = () => {
                     onClick={() => setOpenAccordion(openAccordion === 'specs' ? null : 'specs')}
                     className="w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"
                   >
-                     <span className="text-xs font-black uppercase tracking-widest text-slate-900">Technical Specifications</span>
+                     <span className="text-xs font-black uppercase tracking-widest text-slate-900">{settings.productSpecsLabel || 'Technical Specifications'}</span>
                      {openAccordion === 'specs' ? <Minus size={14}/> : <Plus size={14}/>}
                   </button>
                   {openAccordion === 'specs' && (

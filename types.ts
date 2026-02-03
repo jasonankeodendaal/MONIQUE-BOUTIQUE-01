@@ -93,6 +93,11 @@ export interface SocialLink {
   iconUrl: string;
 }
 
+export interface ContactFaq {
+  question: string;
+  answer: string;
+}
+
 export interface SiteSettings {
   // Brand & Nav
   companyName: string;
@@ -114,10 +119,17 @@ export interface SiteSettings {
   whatsappNumber: string;
   address: string;
   socialLinks: SocialLink[];
+  contactFaqs: ContactFaq[];
+
+  // Product Display
+  productAcquisitionLabel: string;
+  productSpecsLabel: string;
 
   // Footer
   footerDescription: string;
   footerCopyrightText: string;
+  footerNavHeader: string;
+  footerPolicyHeader: string;
 
   // Home Page Content
   homeHeroBadge: string;
@@ -127,6 +139,10 @@ export interface SiteSettings {
   homeAboutCta: string;
   homeCategorySectionTitle: string;
   homeCategorySectionSubtitle: string;
+  homeNicheHeader: string;
+  homeNicheSubheader: string;
+  homeTrustHeader: string;
+  homeTrustSubheader: string;
   homeTrustSectionTitle: string;
   
   homeTrustItem1Title: string;
