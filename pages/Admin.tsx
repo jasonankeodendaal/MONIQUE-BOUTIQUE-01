@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -390,7 +389,7 @@ const TrafficAreaChart: React.FC<{ trafficEvents: any[] }> = ({ trafficEvents })
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
       <div className="xl:col-span-2 relative min-h-[600px] bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
-        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
         
         <div className="relative z-10 p-8 md:p-10 pb-4 border-b border-white/5 flex flex-col md:flex-row justify-between items-start text-left gap-4">
            <div>
@@ -733,7 +732,7 @@ const Admin: React.FC = () => {
   const [productCatFilter, setProductCatFilter] = useState('all');
 
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
-  const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@kasicouture.com');
+  const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@findara.com');
   const userId = user?.id;
   const displayProducts = useMemo(() => isOwner ? products : products.filter(p => !p.createdBy || p.createdBy === userId), [products, isOwner, userId]);
   const displayCategories = useMemo(() => isOwner ? categories : categories.filter(c => !c.createdBy || c.createdBy === userId), [categories, isOwner, userId]);
