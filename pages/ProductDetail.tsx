@@ -255,13 +255,25 @@ const ProductDetail: React.FC = () => {
 
               <h1 className="text-3xl md:text-5xl font-serif text-slate-900 leading-tight">{product.name}</h1>
               
-              <div className="flex items-center gap-4">
-                <span className="text-2xl md:text-3xl font-black text-slate-900">R {product.price.toLocaleString()}</span>
-                {product.discountRules && product.discountRules.length > 0 && (
-                  <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                    {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
-                  </span>
-                )}
+              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl md:text-3xl font-black text-slate-900">R {product.price.toLocaleString()}</span>
+                  {product.discountRules && product.discountRules.length > 0 && (
+                    <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                      {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
+                    </span>
+                  )}
+                </div>
+                {/* SKU DISPLAY */}
+                <div className="flex flex-col border-l border-slate-100 pl-8 hidden md:flex">
+                   <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Reference ID</span>
+                   <span className="text-xs font-mono font-bold text-slate-500">{product.sku}</span>
+                </div>
+              </div>
+              
+              <div className="md:hidden pt-2">
+                 <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest mr-2">REF ID:</span>
+                 <span className="text-xs font-mono font-bold text-slate-500">{product.sku}</span>
               </div>
             </div>
 

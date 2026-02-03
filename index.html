@@ -58,8 +58,16 @@
         0% { transform: scale(1); }
         100% { transform: scale(1.1); }
       }
+      @keyframes soft-flicker {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(0.95); }
+        100% { opacity: 1; transform: scale(1); }
+      }
       .animate-kenburns {
         animation: kenburns 20s ease-out infinite alternate;
+      }
+      .animate-soft-flicker {
+        animation: soft-flicker 4s ease-in-out infinite;
       }
       .soft-3d {
         transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), shadow 0.4s ease;
