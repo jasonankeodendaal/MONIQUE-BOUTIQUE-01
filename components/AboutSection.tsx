@@ -8,10 +8,15 @@ import Signature from './Signature';
 const AboutSection: React.FC = () => {
   const { settings } = useSettings();
 
-  const title = settings.homeAboutTitle || "Me and My Story.";
-  const description = settings.homeAboutDescription || "";
-  const cta = settings.homeAboutCta || "Read My Story";
-  const image = settings.homeAboutImage || "https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200";
+  const title = settings?.homeAboutTitle || "Me and My Story.";
+  const description = settings?.homeAboutDescription || "A personal journey of curation and taste.";
+  const cta = settings?.homeAboutCta || "Read My Story";
+  const image = settings?.homeAboutImage || "https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200";
+
+  // Safe splitting logic
+  const titleWords = title.split(' ');
+  const mainTitlePart = titleWords.length > 1 ? titleWords.slice(0, -1).join(' ') : title;
+  const lastTitleWord = titleWords.length > 1 ? titleWords.slice(-1) : "";
 
   return (
     <section className="py-24 md:py-64 bg-[#FDFCFB] overflow-visible relative">
@@ -20,18 +25,16 @@ const AboutSection: React.FC = () => {
           
           <div className="w-full lg:w-5/12 relative">
             <div className="relative z-10 group">
-              {/* Decorative Blur Background */}
               <div className="hidden md:block absolute -inset-10 bg-primary/5 rounded-full blur-[120px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
               
               <div className="relative overflow-hidden rounded-[3rem] md:rounded-[5rem] shadow-2xl transition-all duration-1000 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.2)]">
                 <img 
                   src={image} 
-                  alt={settings.aboutFounderName || "Founder"} 
+                  alt={settings?.aboutFounderName || "Founder"} 
                   className="w-full h-auto aspect-[4/5] object-cover relative z-10 transition-transform duration-[3s] group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20"></div>
                 
-                {/* Floating Experience Badge */}
                 <div className="absolute top-8 left-8 z-30 bg-white/90 backdrop-blur-md p-4 rounded-3xl shadow-xl border border-white/50 animate-in fade-in zoom-in duration-1000 delay-500">
                    <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
@@ -39,19 +42,18 @@ const AboutSection: React.FC = () => {
                       </div>
                       <div className="flex flex-col">
                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Established</span>
-                         <span className="text-xs font-bold text-slate-900 leading-none">{settings.aboutEstablishedYear}</span>
+                         <span className="text-xs font-bold text-slate-900 leading-none">{settings?.aboutEstablishedYear || '2025'}</span>
                       </div>
                    </div>
                 </div>
               </div>
               
-              {/* Founder Signature Tag - Refined Size */}
               <div className="absolute -bottom-6 -right-2 md:bottom-12 md:-right-16 z-30 bg-slate-900 p-5 md:p-8 rounded-[2rem] shadow-2xl border border-white/10 flex flex-col items-start min-w-[200px] md:min-w-[280px] transform transition-all duration-700 group-hover:translate-x-2 group-hover:-translate-y-2">
                  <div className="flex items-center gap-2 mb-3">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
                     <span className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400">Founder & Curator</span>
                  </div>
-                 <h4 className="text-xl md:text-3xl font-serif text-white mb-1 leading-none">{settings.aboutFounderName || "The Curator"}</h4>
+                 <h4 className="text-xl md:text-3xl font-serif text-white mb-1 leading-none">{settings?.aboutFounderName || "The Curator"}</h4>
                  
                  <div className="relative mt-1">
                     <Signature className="h-10 md:h-12 text-primary opacity-90 group-hover:opacity-100 transition-opacity" />
@@ -75,7 +77,7 @@ const AboutSection: React.FC = () => {
              </div>
              
              <h2 className="text-5xl md:text-8xl font-serif text-slate-900 mb-12 leading-[0.85] tracking-tighter text-balance">
-                {title.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary">{title.split(' ').slice(-1)}</span>
+                {mainTitlePart} {lastTitleWord && <span className="italic font-light text-primary">{lastTitleWord}</span>}
              </h2>
              
              <div className="relative mb-12">

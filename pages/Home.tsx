@@ -22,12 +22,18 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { settings, categories } = useSettings();
 
+  // Defensive logic for string splitting
+  const hookTitle = settings?.homeBottomHookTitle || "The Future of Taste.";
+  const titleWords = hookTitle.split(' ');
+  const mainTitle = titleWords.slice(0, -1).join(' ');
+  const lastTitleWord = titleWords.slice(-1);
+
   return (
     <main className="pt-0">
       {/* 1. Cinematic Hero */}
       <Hero />
       
-      {/* 2. Primary Narrative Bridge */}
+      {/* 2. Primary Narrative Bridge - Me and My Story */}
       <AboutSection />
 
       <SectionDivider />
@@ -40,7 +46,9 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-8">
              <div className="text-center md:text-left">
-                <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-3">{settings.homeCategorySectionTitle}</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-3">
+                  {settings?.homeCategorySectionTitle || 'Departments'}
+                </span>
                 <h3 className="text-3xl md:text-5xl font-serif text-slate-900 tracking-tight">Curated <span className="italic font-light">Departments</span></h3>
              </div>
              <Link to="/products" className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all">
@@ -49,7 +57,7 @@ const Home: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
-            {categories.map((cat) => {
+            {categories.slice(0, 4).map((cat) => {
               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
               return (
                 <button
@@ -85,15 +93,17 @@ const Home: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
            <div className="text-center mb-20 md:mb-32">
-              <span className="text-[11px] font-black uppercase tracking-[0.7em] text-primary block mb-4">{settings.homeTrustSectionTitle}</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.7em] text-primary block mb-4">
+                {settings?.homeTrustSectionTitle || 'The Standard'}
+              </span>
               <h3 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tighter">The <span className="italic font-light">Curator's</span> Standard</h3>
            </div>
            
            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-20">
               {[
-                { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
-                { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
-                { iconName: settings.homeTrustItem3Icon || 'Globe', title: settings.homeTrustItem3Title, desc: settings.homeTrustItem3Desc }
+                { iconName: settings?.homeTrustItem1Icon || 'ShieldCheck', title: settings?.homeTrustItem1Title || 'Vetted Quality', desc: settings?.homeTrustItem1Desc || 'Strict quality checks.' },
+                { iconName: settings?.homeTrustItem2Icon || 'Sparkles', title: settings?.homeTrustItem2Title || 'Authentic Finds', desc: settings?.homeTrustItem2Desc || 'Genuine partnerships.' },
+                { iconName: settings?.homeTrustItem3Icon || 'Globe', title: settings?.homeTrustItem3Title || 'Global Reach', desc: settings?.homeTrustItem3Desc || 'International shipping.' }
               ].map((item, i) => {
                 const IconComponent = CustomIcons[item.iconName] || (LucideIcons as any)[item.iconName] || ShieldCheck;
                 return (
@@ -117,16 +127,16 @@ const Home: React.FC = () => {
          <div className="max-w-4xl mx-auto px-6 text-center">
             <History size={40} className="text-primary mx-auto mb-10 opacity-60" />
             <h3 className="text-3xl md:text-5xl font-serif mb-8 leading-tight tracking-tight">
-               {settings.homeBottomHookTitle.split(' ').slice(0, -1).join(' ')} <span className="italic text-primary">{settings.homeBottomHookTitle.split(' ').slice(-1)}</span>
+               {mainTitle} <span className="italic text-primary">{lastTitleWord}</span>
             </h3>
             <p className="text-slate-400 text-lg md:text-xl font-light leading-relaxed mb-12 max-w-2xl mx-auto">
-               {settings.homeBottomHookSubtitle}
+               {settings?.homeBottomHookSubtitle || "Join a community of discerning individuals who value substance over noise."}
             </p>
             <button 
                onClick={() => navigate('/about')}
                className="px-12 py-5 bg-primary text-slate-900 rounded-full font-black uppercase text-xs tracking-widest hover:bg-white transition-all shadow-2xl active:scale-95"
             >
-               {settings.homeBottomHookButtonText}
+               {settings?.homeBottomHookButtonText || "Join the Circle"}
             </button>
          </div>
       </section>
