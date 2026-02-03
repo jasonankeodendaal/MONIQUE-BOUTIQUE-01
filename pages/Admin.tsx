@@ -63,7 +63,6 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   );
 };
 
-// ... (omitting helper components to save space, but keeping them in final file is implied. Re-including required ones for context)
 const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
   <div className="space-y-2 text-left w-full min-w-0">
     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
@@ -291,7 +290,6 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
   );
 };
 
-// --- Helper for generating dynamic colors for unknown sources ---
 const stringToColor = (str: string) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -313,7 +311,6 @@ const getPlatformStyles = (sourceName: string) => {
   if (lower.includes('twitter') || lower.includes('x (')) return { icon: Twitter, color: 'text-sky-500', bg: 'bg-sky-500', border: 'border-sky-500/20' };
   if (lower.includes('linkedin')) return { icon: Linkedin, color: 'text-blue-600', bg: 'bg-blue-600', border: 'border-blue-600/20' };
   
-  // Dynamic fallback
   return { 
     icon: Globe, 
     color: 'text-white', 
@@ -589,7 +586,6 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
   return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>);
 };
 
-// ... (Rest of existing uploader components: FileUploader)
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -696,6 +692,8 @@ const IntegrationGuide: React.FC = () => (
   </div>
 );
 
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training';
+
 const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
@@ -704,12 +702,11 @@ const Admin: React.FC = () => {
   } = useSettings();
   
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training'>('enquiries');
+  const [activeTab, setActiveTab] = useState<TabId>('enquiries');
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
   const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
   
-  // Real-time error handling state
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
   const [minErrorTimestamp, setMinErrorTimestamp] = useState(0);
 
@@ -747,9 +744,48 @@ const Admin: React.FC = () => {
     return stats.filter(s => myProductIds.includes(s.productId));
   }, [stats, isOwner, displayProducts]);
 
+  const hasPermission = (tabId: TabId) => {
+    if (isOwner) return true;
+    if (!myAdminProfile) return false;
+    const perms = myAdminProfile.permissions || [];
+    
+    switch (tabId) {
+      case 'enquiries': return perms.includes('sales.view');
+      case 'analytics': return perms.includes('analytics.view');
+      case 'catalog': return perms.includes('catalog.products.view');
+      case 'hero': return perms.includes('content.hero');
+      case 'categories': return perms.includes('catalog.categories.manage');
+      case 'site_editor': return perms.some(p => p.startsWith('content.'));
+      case 'team': return perms.includes('system.team.manage');
+      case 'system': return perms.includes('system.settings.core');
+      case 'training': return true;
+      case 'guide': return true;
+      default: return false;
+    }
+  };
+
+  const ALL_TABS: { id: TabId; label: string; icon: any }[] = [
+    { id: 'enquiries', label: 'Inbox', icon: Inbox },
+    { id: 'analytics', label: 'Insights', icon: BarChart3 },
+    { id: 'catalog', label: 'Items', icon: ShoppingBag },
+    { id: 'hero', label: 'Visuals', icon: LayoutPanelTop },
+    { id: 'categories', label: 'Depts', icon: Layout },
+    { id: 'site_editor', label: 'Canvas', icon: Palette },
+    { id: 'team', label: 'Maison', icon: Users },
+    { id: 'training', label: 'Training', icon: GraduationCap },
+    { id: 'system', label: 'System', icon: Activity },
+    { id: 'guide', label: 'Pilot', icon: Rocket }
+  ];
+
+  const visibleTabs = useMemo(() => ALL_TABS.filter(t => hasPermission(t.id)), [isOwner, myAdminProfile]);
+
+  useEffect(() => {
+    if (visibleTabs.length > 0 && !visibleTabs.some(t => t.id === activeTab)) {
+       setActiveTab(visibleTabs[0].id);
+    }
+  }, [visibleTabs, activeTab]);
+
   const simulateSystemError = () => {
-    // This throws an error that is caught by the global handler in App.tsx
-    // The handler writes to traffic_logs, which we then fetch below.
     setTimeout(() => {
        throw new Error("Simulation: Database Handshake Timeout (504 Gateway)");
     }, 100);
@@ -759,11 +795,9 @@ const Admin: React.FC = () => {
     const fetchTraffic = async () => {
        try {
          if (isSupabaseConfigured) {
-            // Fetch real data from Supabase if connected
             const { data } = await supabase.from('traffic_logs').select('*').limit(2000);
             if (data) setTrafficEvents(data);
          } else {
-             // Fallback to local storage for demo/local mode
              const rawLogs = localStorage.getItem('site_traffic_logs');
              const logs = rawLogs ? JSON.parse(rawLogs) : [];
              if (Array.isArray(logs)) setTrafficEvents(logs);
@@ -777,7 +811,6 @@ const Admin: React.FC = () => {
     return () => clearInterval(interval);
   }, [isSupabaseConfigured]);
 
-  // Derived error logs from actual traffic events (persistent data)
   const errorLogs = useMemo(() => {
     return trafficEvents
       .filter(e => 
@@ -792,7 +825,7 @@ const Admin: React.FC = () => {
          type: e.text.includes('Async') ? 'PROMISE_REJECTION' : 'RUNTIME_EXCEPTION',
          source: e.source,
          message: e.text.replace('[CRITICAL] ', ''),
-         stack: null // Stack not stored in simple log schema, simplified for view
+         stack: null
       }))
       .slice(0, 50);
   }, [trafficEvents, minErrorTimestamp]);
@@ -851,8 +884,6 @@ const Admin: React.FC = () => {
   );
 
   const renderAnalytics = () => {
-    // ... (This function remains unchanged, fetching traffic stats)
-    // Safe parse visitorLogs
     let visitorLogs: any[] = [];
     try {
       const rawLogs = localStorage.getItem('site_visitor_locations');
@@ -908,19 +939,14 @@ const Admin: React.FC = () => {
     const maxHourly = Math.max(...hourlyDistribution, 1);
     const peakHour = hourlyDistribution.indexOf(Math.max(...hourlyDistribution));
 
-    // Calculate source stats from persistence log (All time)
-    // Filter only 'view' events or rely on all events having a source
     const sourceStats = trafficEvents.reduce((acc: any, log: any) => {
-        // Normalize source
         const s = log.source || 'Direct';
-        // Aggregate
         acc[s] = (acc[s] || 0) + 1;
         return acc;
     }, {});
     
     const totalSources = Object.values(sourceStats).reduce((a: any, b: any) => a + b, 0) as number;
     
-    // Sort sources by count descending
     const sortedSources = Object.entries(sourceStats)
         .sort(([,a]: any, [,b]: any) => b - a)
         .map(([key, count]) => {
@@ -952,7 +978,6 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
-        {/* Traffic Heat Map (Hero Visual) */}
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-800 shadow-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Activity size={120} className="text-primary"/></div>
             <h3 className="text-white font-bold text-xl mb-12 flex items-center gap-3"><Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
@@ -981,7 +1006,6 @@ const Admin: React.FC = () => {
             </div>
         </div>
         
-        {/* Core Metric Cards - Spacious Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
            {[
              { label: 'Click Through Rate', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
@@ -999,7 +1023,6 @@ const Admin: React.FC = () => {
            ))}
         </div>
 
-        {/* Top 15 Products Tracking */}
         <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 shadow-xl">
           <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
             <h3 className="text-white font-bold text-xl flex items-center gap-3">
@@ -1063,7 +1086,6 @@ const Admin: React.FC = () => {
           </div>
         </div>
 
-        {/* Category Performance Matrix */}
         <div className="space-y-8">
            <h3 className="text-white font-bold text-2xl flex items-center gap-3 px-2 border-b border-white/5 pb-4">
               <Layers size={24} className="text-primary"/> Department Performance
@@ -1105,12 +1127,10 @@ const Admin: React.FC = () => {
            </div>
         </div>
         
-        {/* Precise Traffic Landscape - Moved below Departments */}
         <div className="mt-8">
             <TrafficAreaChart trafficEvents={trafficEvents} />
         </div>
 
-        {/* Traffic Origins */}
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl mt-8">
              <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><Globe size={24} className="text-primary"/> Traffic Sources (Live & Historical)</h3>
              <div className="space-y-8">
@@ -1136,7 +1156,6 @@ const Admin: React.FC = () => {
   };
 
   const renderSystem = () => {
-    // Helper for formatting bytes
     const formatBytes = (bytes: number, decimals = 2) => {
         if (!+bytes) return '0 B';
         const k = 1024;
@@ -1159,7 +1178,6 @@ const Admin: React.FC = () => {
             The storage metrics below are estimates based on client-side data.
         </AdminTip>
 
-        {/* CONNECTION HEALTH & LATENCY VISUALIZER */}
         <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-slate-900 rounded-[2rem] border border-slate-800 p-8 flex flex-col justify-between shadow-xl">
                  <div className="flex justify-between items-start mb-6">
@@ -1180,7 +1198,7 @@ const Admin: React.FC = () => {
                     <div className="h-4 bg-slate-800 rounded-full overflow-hidden flex">
                         <div 
                             className={`h-full transition-all duration-500 ${latencyColor(connectionHealth?.latency || 0)}`} 
-                            style={{ width: `${Math.min((connectionHealth?.latency || 0) / 10, 100)}%` }} // Scale: 1000ms = 100%
+                            style={{ width: `${Math.min((connectionHealth?.latency || 0) / 10, 100)}%` }}
                         ></div>
                     </div>
                     <div className="flex justify-between mt-2 text-[9px] text-slate-600 font-mono">
@@ -1214,12 +1232,10 @@ const Admin: React.FC = () => {
             </div>
         </div>
 
-        {/* STORAGE BREAKDOWN */}
         <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-12 shadow-2xl">
             <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><HardDrive size={24} className="text-blue-500"/> Storage Anatomy</h3>
             
             <div className="space-y-8">
-                {/* Database Size */}
                 <div>
                     <div className="flex justify-between items-end mb-2">
                         <div className="flex items-center gap-2">
@@ -1230,12 +1246,10 @@ const Admin: React.FC = () => {
                     </div>
                     <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
                         <div className="h-full bg-slate-600 w-full animate-pulse opacity-50"></div> 
-                        {/* Note: Relative bar size is hard without a limit, so we just show activity */}
                     </div>
                     <p className="text-[10px] text-slate-500 mt-2">Includes all product text, settings configurations, and user logs.</p>
                 </div>
 
-                {/* Media Size */}
                 <div>
                     <div className="flex justify-between items-end mb-2">
                         <div className="flex items-center gap-2">
@@ -1253,7 +1267,6 @@ const Admin: React.FC = () => {
             </div>
         </div>
 
-        {/* SYNC LEDGER (TERMINAL STYLE) */}
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left font-mono">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold text-xl flex items-center gap-3"><Terminal size={24} className="text-green-500"/> Sync Ledger</h3>
@@ -1302,7 +1315,6 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
-        {/* Real-time Exception Logs (Persistent) */}
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold text-xl flex items-center gap-3">
@@ -1402,7 +1414,6 @@ const Admin: React.FC = () => {
     </div>
   );
 
-  // ... (Keeping renderHero, renderCategories, renderTeam, renderTraining, renderGuide, renderSiteEditor as originally provided)
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <AdminTip title="Hero Master Visuals">Set the tone for your bridge page with cinematic hero visuals. Videos increase dwell time by up to 40%.</AdminTip>
@@ -1613,8 +1624,8 @@ const Admin: React.FC = () => {
         <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
         <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
-            {[ { id: 'enquiries', label: 'Inbox', icon: Inbox }, { id: 'analytics', label: 'Insights', icon: BarChart3 }, { id: 'catalog', label: 'Items', icon: ShoppingBag }, { id: 'hero', label: 'Visuals', icon: LayoutPanelTop }, { id: 'categories', label: 'Depts', icon: Layout }, { id: 'site_editor', label: 'Canvas', icon: Palette }, { id: 'team', label: 'Maison', icon: Users }, { id: 'training', label: 'Training', icon: GraduationCap }, { id: 'system', label: 'System', icon: Activity }, { id: 'guide', label: 'Pilot', icon: Rocket } ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
+            {visibleTabs.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
             ))}
           </div>
           <button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center self-start"><LogOut size={14} /> Exit</button>
@@ -1634,7 +1645,6 @@ const Admin: React.FC = () => {
         {activeTab === 'guide' && renderGuide()}
       </main>
 
-      {/* Editor Drawer */}
       {editorDrawerOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
