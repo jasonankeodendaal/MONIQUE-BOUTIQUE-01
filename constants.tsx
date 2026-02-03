@@ -363,7 +363,6 @@ END $$;`,
 ];
 
 export const TRAINING_MODULES: TrainingModule[] = [
-  // ... (keeping all training modules exactly as they are)
   {
     id: 'shein-mastery',
     title: '1. Shein Affiliate Blueprint',
@@ -973,7 +972,7 @@ export const INITIAL_ADMINS: AdminUser[] = [
   {
     id: 'owner',
     name: 'Main Administrator',
-    email: 'admin@moniqueboutique.com',
+    email: 'admin@findara.com',
     role: 'owner',
     permissions: ['*'], // * implies all
     password: 'password123',
@@ -1007,9 +1006,9 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: "Monique's Curated Style",
+  companyName: "Findara",
   slogan: 'Your Bridge to Global Trends',
-  companyLogo: 'MC',
+  companyLogo: 'F',
   companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
@@ -1020,7 +1019,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
-  contactEmail: 'moniqueboutique101@gmail.com',
+  contactEmail: 'contact@findara.com',
   contactPhone: '+27 76 836 0325',
   whatsappNumber: '27768360325',
   address: 'Mokopane, Limpopo, 0601',
@@ -1071,22 +1070,22 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Monique',
+  aboutFounderName: 'Findara Curator',
   aboutLocation: 'Online',
 
   aboutHistoryTitle: 'The Bridge System',
-  aboutHistoryBody: 'This website is more than just a store; it is a bridge page system designed to market various affiliate programs. My passion for fashion led me to partner with brands like Shein to bring you the best deals.\n\nHere you will find my personal reviews, styling tips, and direct links to purchase the items I love.',
+  aboutHistoryBody: 'This website is more than just a store; it is a bridge page system designed to market various affiliate programs. Our passion for fashion led us to partner with brands like Shein to bring you the best deals.\n\nHere you will find personal reviews, styling tips, and direct links to purchase the items we love.',
   
   aboutMissionTitle: 'Marketing Mission',
   aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers.',
   aboutMissionIcon: 'Target',
 
   aboutCommunityTitle: 'Join the Community',
-  aboutCommunityBody: 'Follow my journey as I discover new trends and deals.',
+  aboutCommunityBody: 'Follow our journey as we discover new trends and deals.',
   aboutCommunityIcon: 'Users',
   
   aboutIntegrityTitle: 'Transparency',
-  aboutIntegrityBody: 'I am upfront about my role as an affiliate marketer. This system is built on trust.',
+  aboutIntegrityBody: 'We are upfront about our role as an affiliate marketer. This system is built on trust.',
   aboutIntegrityIcon: 'Shield',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
@@ -1098,7 +1097,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
   // Contact Page Content
   contactHeroTitle: 'Get in Touch.',
-  contactHeroSubtitle: 'Have questions about a product or my affiliate partners?',
+  contactHeroSubtitle: 'Have questions about a product or our affiliate partners?',
   contactFormNameLabel: 'Name',
   contactFormEmailLabel: 'Email',
   contactFormSubjectLabel: 'Subject',
@@ -1119,13 +1118,13 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
 #### 1. Introduction & Transparency Commitment
 
-Monique's Curated Style (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
+Findara (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
 
 This Disclosure Statement is intended to inform you that we participate in various affiliate marketing programs. These programs are designed to provide a means for sites to earn advertising fees by advertising and linking to third-party merchant websites.
 
 #### 2. The Nature of Affiliate Marketing (Bridge Page Notice)
 
-**IMPORTANT:** Monique's Curated Style functions exclusively as a **Bridge Page** or "curation portfolio." 
+**IMPORTANT:** Findara functions exclusively as a **Bridge Page** or "curation portfolio." 
 
 *   **We Are Not a Retailer:** We do not manufacture, stock, warehouse, package, or ship any products.
 *   **No Transactional Relationship:** We do not process payments, handle credit card information, or manage order fulfillment.
@@ -1141,7 +1140,7 @@ When you click on our affiliate links and make a qualifying purchase, we may rec
 
 #### 4. Affiliate Program Participation
 
-Monique's Curated Style is a participant in several affiliate advertising programs, including but not limited to:
+Findara is a participant in several affiliate advertising programs, including but not limited to:
 
 *   **SHEIN Affiliate Program:** We curate and link to fashion items sold on Shein.com.
 *   **Amazon Services LLC Associates Program:** An affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, we earn from qualifying purchases.
@@ -1167,7 +1166,7 @@ Because we do not manufacture or sell the products:
 If you have any questions regarding this disclosure or our affiliate relationships, please contact us at:
 
 **Compliance Dept.**
-Email: moniqueboutique101@gmail.com
+Email: contact@findara.com
 Phone: +27 76 836 0325
 Address: Mokopane, Limpopo, 0601`,
   
@@ -1178,7 +1177,7 @@ Address: Mokopane, Limpopo, 0601`,
 
 #### 1. Introduction
 
-Monique's Curated Style ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
+Findara ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
 
 This policy applies to the **Bridge Page System** and curation portfolio operated by the Site.
 
@@ -1262,7 +1261,7 @@ Under certain circumstances, you have rights under data protection laws in relat
 *   **Request transfer** of your personal data.
 *   **Right to withdraw consent.**
 
-If you wish to exercise any of the rights set out above, please contact us at moniqueboutique101@gmail.com.
+If you wish to exercise any of the rights set out above, please contact us at contact@findara.com.
 
 #### 10. Third-Party Links
 
@@ -1272,7 +1271,7 @@ This website may include links to third-party websites, plug-ins, and applicatio
 
 If you have any questions about this Privacy Policy, please contact us at:
 
-Email: moniqueboutique101@gmail.com
+Email: contact@findara.com
 Phone: +27 76 836 0325
 Address: Mokopane, Limpopo, 0601`,
 
@@ -1283,7 +1282,7 @@ Address: Mokopane, Limpopo, 0601`,
 
 #### 1. Acceptance of Terms
 
-By accessing and using the website Monique's Curated Style (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
+By accessing and using the website Findara (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
 
 #### 2. Description of Service (The "Bridge Page" Model)
 
@@ -1351,7 +1350,7 @@ These Terms shall be governed and construed in accordance with the laws of South
 
 If you have any questions about these Terms, please contact us at:
 
-Email: moniqueboutique101@gmail.com
+Email: contact@findara.com
 Phone: +27 76 836 0325
 Address: Mokopane, Limpopo, 0601`,
 
@@ -1412,7 +1411,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'p1',
     name: 'Midnight Silk Wrap',
-    sku: 'MB-APP-001',
+    sku: 'F-APP-001',
     price: 3450,
     affiliateLink: 'https://example.com/midnight-silk',
     categoryId: 'cat1',
