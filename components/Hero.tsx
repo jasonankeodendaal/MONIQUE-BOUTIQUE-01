@@ -48,24 +48,27 @@ const Hero: React.FC = () => {
     <div className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] min-h-[450px] md:min-h-[600px] w-full overflow-hidden bg-black">
       {/* Floating Logo Top Left - Aligned with Content */}
       <div className="absolute top-0 left-0 right-0 z-30">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-6">
-          <Link to="/" className="inline-flex items-center space-x-3 group">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8">
+          <Link to="/" className="inline-flex items-center space-x-4 group">
               <div className="relative">
                 {settings.companyLogoUrl ? (
                   <img 
                     src={settings.companyLogoUrl} 
                     alt={settings.companyName} 
-                    className="h-10 md:h-12 w-auto object-contain transition-transform" 
+                    className="h-16 md:h-24 w-auto object-contain transition-transform drop-shadow-lg" 
                   />
                 ) : (
-                  <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white font-black text-xs md:text-sm">
+                  <div className="w-12 h-12 md:w-20 md:h-20 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white font-black text-lg md:text-2xl shadow-2xl border border-white/10">
                     {settings.companyLogo}
                   </div>
                 )}
               </div>
               <div className={`flex flex-col -space-y-1 text-left`}>
-                <span className={`text-sm md:text-base font-serif font-bold tracking-tight text-white`}>
+                <span className={`text-lg md:text-2xl font-serif font-bold tracking-tight text-white`}>
                   {settings.companyName}
+                </span>
+                <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.3em] text-primary">
+                  {settings.slogan}
                 </span>
               </div>
           </Link>

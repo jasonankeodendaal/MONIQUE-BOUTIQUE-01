@@ -52,15 +52,15 @@ const Footer: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12 text-left">
             <div className="col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
+              <div className="flex items-center space-x-4 mb-6">
                  {settings.companyLogoUrl ? (
-                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-8 h-8 object-contain" />
+                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-12 h-12 object-contain" />
                 ) : (
-                  <div className="w-8 h-8 rounded flex items-center justify-center text-white font-bold bg-primary">
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold bg-primary text-xl">
                     {settings.companyLogo}
                   </div>
                 )}
-                <span className="text-white text-xl font-bold tracking-tighter">{settings.companyName}</span>
+                <span className="text-white text-2xl font-bold tracking-tighter">{settings.companyName}</span>
               </div>
               <p className="max-w-xs leading-relaxed text-sm mb-8 font-light">
                 {settings.footerDescription}
