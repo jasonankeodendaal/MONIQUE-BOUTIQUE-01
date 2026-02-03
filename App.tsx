@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X, RefreshCcw } from 'lucide-react';
 import Header from './components/Header';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -392,6 +392,43 @@ const App: React.FC = () => {
      checkConnection();
      const interval = setInterval(checkConnection, 10000);
      return () => clearInterval(interval);
+  }, []);
+
+  // --- REALTIME SUBSCRIPTION ENGINE ---
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, (payload) => {
+          if (payload.new) {
+              const { id, ...rest } = payload.new as any;
+              setSettings(rest);
+          }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
+          if (payload.eventType === 'INSERT') setProducts(prev => [payload.new as Product, ...prev]);
+          if (payload.eventType === 'UPDATE') setProducts(prev => prev.map(p => p.id === payload.new.id ? payload.new as Product : p));
+          if (payload.eventType === 'DELETE') setProducts(prev => prev.filter(p => p.id !== payload.old.id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, (payload) => {
+          if (payload.eventType === 'INSERT') setCategories(prev => [payload.new as Category, ...prev]);
+          if (payload.eventType === 'UPDATE') setCategories(prev => prev.map(c => c.id === payload.new.id ? payload.new as Category : c));
+          if (payload.eventType === 'DELETE') setCategories(prev => prev.filter(c => c.id !== payload.old.id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hero_slides' }, (payload) => {
+          if (payload.eventType === 'INSERT') setHeroSlides(prev => [payload.new as CarouselSlide, ...prev]);
+          if (payload.eventType === 'UPDATE') setHeroSlides(prev => prev.map(s => s.id === payload.new.id ? payload.new as CarouselSlide : s));
+          if (payload.eventType === 'DELETE') setHeroSlides(prev => prev.filter(s => s.id !== payload.old.id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'enquiries' }, (payload) => {
+          if (payload.eventType === 'INSERT') setEnquiries(prev => [payload.new as Enquiry, ...prev]);
+          if (payload.eventType === 'UPDATE') setEnquiries(prev => prev.map(e => e.id === payload.new.id ? payload.new as Enquiry : e));
+          if (payload.eventType === 'DELETE') setEnquiries(prev => prev.filter(e => e.id !== payload.old.id));
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // --- DYNAMIC META TAG SYSTEM ---
