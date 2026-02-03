@@ -108,6 +108,13 @@ export interface SocialLink {
   iconUrl: string;
 }
 
+export interface StoryMilestone {
+  id: string;
+  year: string;
+  title: string;
+  description: string;
+}
+
 export interface SiteSettings {
   // Brand & Nav
   companyName: string;
@@ -191,6 +198,7 @@ export interface SiteSettings {
 
   aboutSignatureImage: string; 
   aboutGalleryImages: string[]; 
+  aboutMilestones: StoryMilestone[];
 
   // Contact Page Content
   contactHeroTitle: string;

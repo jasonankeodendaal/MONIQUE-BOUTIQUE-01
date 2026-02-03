@@ -1,5 +1,4 @@
 
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule, Article, Subscriber } from './types';
 
 export const GUIDE_STEPS = [
@@ -842,6 +841,11 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutGalleryImages: [
     'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&q=80&w=800',
     'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800'
+  ],
+  aboutMilestones: [
+    { id: '1', year: '2024', title: 'Founding the Collective', description: 'Established as a personal project to catalog luxury fashion that actually delivers on quality.' },
+    { id: '2', year: 'The Pivot', title: 'Bridging the Gap', description: 'Transitioning into a dedicated affiliate bridge page, connecting a global community with vetted luxury retail partners.' },
+    { id: '3', year: 'Today', title: 'Curated Excellence', description: 'Today, FINDARA serves as a premier destination for fashion discovery, built on the foundation of authenticity and personal trust.' }
   ],
 
   contactHeroTitle: 'The Concierge.',

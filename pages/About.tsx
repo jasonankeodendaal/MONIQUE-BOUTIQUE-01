@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
@@ -130,7 +131,7 @@ const About: React.FC = () => {
             <div className="lg:col-span-8 order-1 lg:order-2 text-left">
                 <div className="flex items-center gap-5 mb-10">
                    <div className="h-px w-16 bg-primary"></div>
-                   <span className="text-[11px] font-black uppercase tracking-[0.6em] text-primary">Chapter One: The Vision</span>
+                   <span className="text-[11px] font-black uppercase tracking-0.6em text-primary">Chapter One: The Vision</span>
                 </div>
                 
                 <h3 className="text-4xl md:text-7xl font-serif text-slate-900 mb-16 leading-[1.1] tracking-tighter text-balance">
@@ -151,35 +152,28 @@ const About: React.FC = () => {
                    </div>
                    
                    <div className="relative pl-12 border-l-2 border-slate-100 space-y-24">
-                      {/* Milestone 1 */}
-                      <div className="relative group">
-                         <div className="absolute top-2 -left-[55px] w-6 h-6 rounded-full bg-white border-4 border-slate-200 group-hover:border-primary transition-colors shadow-lg flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-primary transition-colors"></div>
+                      {settings.aboutMilestones?.map((milestone, idx) => {
+                         const isLast = idx === (settings.aboutMilestones?.length || 0) - 1;
+                         return (
+                            <div key={milestone.id || idx} className="relative group">
+                               <div className={`absolute top-2 -left-[55px] flex items-center justify-center transition-all duration-500 shadow-lg ${isLast ? 'w-8 h-8 rounded-full bg-primary border-4 border-white -left-[56px]' : 'w-6 h-6 rounded-full bg-white border-4 border-slate-200 group-hover:border-primary'}`}>
+                                  {isLast ? (
+                                     <Sparkles size={12} className="text-white" />
+                                  ) : (
+                                     <div className="w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-primary transition-colors"></div>
+                                  )}
+                               </div>
+                               <span className="text-[11px] font-black uppercase tracking-widest text-primary mb-4 block">{milestone.year}</span>
+                               <h4 className="text-3xl font-serif text-slate-900 mb-4 group-hover:text-primary transition-colors">{milestone.title}</h4>
+                               <p className="text-slate-500 text-lg leading-relaxed font-light max-w-xl">{milestone.description}</p>
+                            </div>
+                         );
+                      })}
+                      {(!settings.aboutMilestones || settings.aboutMilestones.length === 0) && (
+                         <div className="p-8 text-center text-slate-400 border border-dashed border-slate-200 rounded-2xl italic text-sm">
+                            No milestones recorded yet.
                          </div>
-                         <span className="text-[11px] font-black uppercase tracking-widest text-primary mb-4 block">{settings.aboutEstablishedYear}</span>
-                         <h4 className="text-3xl font-serif text-slate-900 mb-4 group-hover:text-primary transition-colors">Founding the Collective</h4>
-                         <p className="text-slate-500 text-lg leading-relaxed font-light max-w-xl">Established in {settings.aboutLocation} as a personal project to catalog luxury fashion that actually delivers on quality.</p>
-                      </div>
-
-                      {/* Milestone 2 */}
-                      <div className="relative group">
-                         <div className="absolute top-2 -left-[55px] w-6 h-6 rounded-full bg-white border-4 border-slate-200 group-hover:border-primary transition-colors shadow-lg flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 rounded-full bg-transparent group-hover:bg-primary transition-colors"></div>
-                         </div>
-                         <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-4 block">The Pivot</span>
-                         <h4 className="text-3xl font-serif text-slate-900 mb-4 group-hover:text-primary transition-colors">Bridging the Gap</h4>
-                         <p className="text-slate-500 text-lg leading-relaxed font-light max-w-xl">Transitioning into a dedicated affiliate bridge page, connecting a global community with vetted luxury retail partners.</p>
-                      </div>
-
-                      {/* Milestone 3 */}
-                      <div className="relative group">
-                         <div className="absolute top-2 -left-[55px] w-8 h-8 rounded-full bg-primary border-4 border-white shadow-xl flex items-center justify-center">
-                            <Sparkles size={12} className="text-white" />
-                         </div>
-                         <span className="text-[11px] font-black uppercase tracking-widest text-primary mb-4 block">Current Era</span>
-                         <h4 className="text-3xl font-serif text-slate-900 mb-4 group-hover:text-primary transition-colors">Curated Excellence</h4>
-                         <p className="text-slate-500 text-lg leading-relaxed font-light max-w-xl">Today, {settings.companyName} serves as a premier destination for fashion discovery, built on the foundation of authenticity and personal trust.</p>
-                      </div>
+                      )}
                    </div>
                 </div>
 
