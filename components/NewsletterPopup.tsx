@@ -54,6 +54,12 @@ const NewsletterPopup: React.FC = () => {
 
   if (!isVisible) return null;
 
+  // Defensive logic for string splitting
+  const popupTitle = settings?.newsletterPopupTitle || "Exclusive Access";
+  const titleWords = popupTitle.split(' ');
+  const mainPart = titleWords.length > 2 ? titleWords.slice(0, -2).join(' ') : (titleWords.length > 1 ? titleWords[0] : "");
+  const accentPart = titleWords.length > 2 ? titleWords.slice(-2).join(' ') : (titleWords.length > 1 ? titleWords[1] : titleWords[0]);
+
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
       {/* Backdrop */}
@@ -80,11 +86,11 @@ const NewsletterPopup: React.FC = () => {
              alt="Fashion Editorial"
            />
            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
-           <div className="absolute bottom-8 left-8 text-white">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-2">{settings.newsletterPopupBadge}</p>
+           <div className="absolute bottom-8 left-8 text-white pr-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-2">{settings?.newsletterPopupBadge || "Member Only"}</p>
               <h3 className="text-3xl font-serif leading-none">
-                {settings.newsletterPopupTitle.split(' ').slice(0, -2).join(' ')} <br/> 
-                <span className="italic text-primary">{settings.newsletterPopupTitle.split(' ').slice(-2).join(' ')}</span>
+                {mainPart} <br/> 
+                <span className="italic text-primary">{accentPart}</span>
               </h3>
            </div>
         </div>
@@ -104,7 +110,7 @@ const NewsletterPopup: React.FC = () => {
                <div className="mb-8 text-left">
                  <h3 className="text-2xl font-bold text-slate-900 mb-2">Stay in the Loop</h3>
                  <p className="text-slate-500 font-light leading-relaxed text-sm">
-                   {settings.newsletterPopupSubtitle}
+                   {settings?.newsletterPopupSubtitle || "Join the circle for private updates and vetted arrivals."}
                  </p>
                </div>
 

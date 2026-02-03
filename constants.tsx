@@ -3,7 +3,7 @@ import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser,
 
 export const GUIDE_STEPS = [
   {
-    id: 'supabase-init',
+    id: '1',
     title: '1. Cloud Infrastructure Initialization',
     description: 'Set up your dedicated backend using Supabase. This provides your Postgres database, user authentication system, and media storage.',
     illustrationId: 'rocket',
@@ -11,21 +11,20 @@ export const GUIDE_STEPS = [
       'Create a free account at https://supabase.com.',
       'Start a "New Project" (e.g., "Bridge Portal").',
       'Choose a Region closest to your expected audience.',
-      'Save your Database Password securely; you will need it for advanced migrations.',
+      'Save your Database Password securely.',
       'Copy your Project URL and "anon" Public Key from Project Settings > API.'
     ]
   },
   {
-    id: 'database-master',
+    id: '2',
     title: '2. Master Schema & Security Protocol',
-    description: 'Establish the entire data architecture. This script creates all tables and implements recursion-proof Row Level Security (RLS) to prevent common "Infinite Loop" errors.',
+    description: 'Establish the entire data architecture. This script creates all tables and implements recursion-proof Row Level Security (RLS).',
     illustrationId: 'forge',
     subSteps: [
       'Open the SQL Editor in your Supabase dashboard.',
       'Create a "+ New Query".',
-      'Paste the entire SQL block provided below.',
-      'Click "Run". Ensure all status indicators return "Success".',
-      'This builds 17 synchronized tables ready for global traffic.'
+      'Paste the entire Master Architecture SQL block.',
+      'Click "Run". Ensure all status indicators return "Success".'
     ],
     codeLabel: 'Full System Architecture (v14.0 - All-in-One)',
     code: `-- 1. ENVIRONMENT CLEANUP
@@ -192,143 +191,208 @@ CREATE POLICY "Profiles_Public_View" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Profiles_User_Manage" ON profiles FOR ALL USING (auth.uid() = id);`
   },
   {
-    id: 'asset-vault',
+    id: '3',
     title: '3. Media Storage Configuration',
-    description: 'Enable hosting for high-resolution product photography, lifestyle videos, and branding assets.',
+    description: 'Enable hosting for high-resolution product photography and assets.',
     illustrationId: 'rocket',
     subSteps: [
       'In Supabase, navigate to SQL Editor.',
-      'Paste and run the Storage Script below.',
-      'This creates the "media" bucket and establishes public-read/admin-write permissions.',
-      'This step is critical to avoid "403 Forbidden" errors when uploading images.'
+      'Paste and run the Storage Script to create the "media" bucket.',
+      'Ensure "Public" access is enabled for read permissions.',
+      'Set "Admin Upload Media" policies for authenticated users.'
     ],
-    codeLabel: 'Storage Bucket & Policy Script',
-    code: `-- Create 'media' bucket
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('media', 'media', true)
-ON CONFLICT (id) DO UPDATE SET public = true;
-
--- Drop old policies
-DROP POLICY IF EXISTS "Public Read Media" ON storage.objects;
-DROP POLICY IF EXISTS "Admin Upload Media" ON storage.objects;
-
--- Public Read
-CREATE POLICY "Public Read Media"
-ON storage.objects FOR SELECT
-USING ( bucket_id = 'media' );
-
--- Auth User Upload (Admins)
-CREATE POLICY "Admin Upload Media"
-ON storage.objects FOR ALL
-TO authenticated
-WITH CHECK ( bucket_id = 'media' );`
+    codeLabel: 'Storage Bucket Script',
+    code: `INSERT INTO storage.buckets (id, name, public) VALUES ('media', 'media', true) ON CONFLICT (id) DO UPDATE SET public = true;
+CREATE POLICY "Public Read Media" ON storage.objects FOR SELECT USING ( bucket_id = 'media' );
+CREATE POLICY "Admin Upload Media" ON storage.objects FOR ALL TO authenticated WITH CHECK ( bucket_id = 'media' );`
   },
   {
-    id: 'auth-protocol',
+    id: '4',
     title: '4. Identity & Access Protocol',
     description: 'Control how you and your clients interact with the platform.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to Authentication > Providers.',
-      'Enable Email and disable "Confirm Email" for immediate access (or keep enabled for security).',
-      'Go to "URL Configuration".',
-      'Set Site URL to your production domain (e.g., https://yourbrand.style).',
-      'Add Redirect URLs for local development: http://localhost:3000/**.',
-      'Optional: Enable Google OAuth to allow one-tap social login.'
+      'Go to Supabase Authentication > Providers.',
+      'Enable Email and disable "Confirm Email" for instant setup.',
+      'Set Site URL to your production domain.',
+      'Add Redirect URLs for local development: http://localhost:3000/**.'
     ]
   },
   {
-    id: 'environment-linking',
+    id: '5',
     title: '5. Technical Handshake (.env)',
     description: 'Connect your frontend code to your cloud database securely.',
     illustrationId: 'rocket',
     subSteps: [
-      'Open your local project in your code editor.',
-      'Create or edit the ".env" file in the root directory.',
-      'Paste your Supabase URL and Anon Key as shown below.',
+      'Open your local project code editor.',
+      'Create or edit the ".env" file.',
+      'Paste your Supabase URL and Anon Key.',
       'Restart your Vite development server.'
-    ],
-    codeLabel: '.env Configuration',
-    code: `VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-long-alphanumeric-anon-key`
+    ]
   },
   {
-    id: 'bootstrap-owner',
+    id: '6',
     title: '6. Bootstrap System Owner',
-    description: 'Grant yourself "Owner" privileges to bypass all local-mode restrictions.',
+    description: 'Grant yourself "Owner" privileges to bypass all restrictions.',
     illustrationId: 'forge',
     subSteps: [
-      'Register an account via the "Client Login" page on your live site.',
+      'Register via the "Client Login" page on your live site.',
       'Go to Supabase SQL Editor.',
-      'Run the promo script below, replacing the email with your registered one.',
-      'This gives you "*" permissions and access to the full Maison Portal.'
-    ],
-    codeLabel: 'Owner Promotion SQL',
-    code: `INSERT INTO admin_users (id, name, email, role, permissions, "createdAt")
-SELECT id, raw_user_meta_data->>'full_name', email, 'owner', ARRAY['*'], extract(epoch from now()) * 1000
-FROM auth.users
-WHERE email = 'your-email@example.com'
-ON CONFLICT (id) DO UPDATE SET role = 'owner', permissions = ARRAY['*'];`
+      'Run the promo script replacing the email with your registered one.'
+    ]
   },
   {
-    id: 'admin-generator',
+    id: '7',
     title: '7. Admin Generator (RPC)',
     description: 'Enable the ability to add staff members directly from your dashboard.',
     illustrationId: 'forge',
     subSteps: [
-      'Run the SQL script below in Supabase SQL Editor.',
-      'This installs a Database Function that creates both Auth records and Admin profiles simultaneously.',
-      'Once installed, you can use the "Maison" tab to grow your team.'
-    ],
-    codeLabel: 'User Creation RPC',
-    code: `create or replace function create_admin_user(
-  email text,
-  password text,
-  name text,
-  role text,
-  permissions text[]
-)
-returns text
-language plpgsql
-security definer
-as $$
-declare
-  new_id uuid;
-begin
-  new_id := gen_random_uuid();
-  insert into auth.users (id, email, encrypted_password, email_confirmed_at, raw_user_meta_data)
-  values (new_id, email, crypt(password, gen_salt('bf')), now(), jsonb_build_object('full_name', name, 'role', role));
-  
-  insert into public.admin_users (id, name, email, role, permissions, "createdAt")
-  values (new_id::text, name, email, role, permissions, extract(epoch from now()) * 1000);
-  
-  return new_id::text;
-end;
-$$;`
+      'Run the SQL script for create_admin_user function.',
+      'This links Auth records with DB Admin profiles simultaneously.',
+      'Essential for growing your curation team.'
+    ]
   },
   {
-    id: 'pwa-global',
+    id: '8',
     title: '8. Global Deployment & PWA',
     description: 'Launch your high-performance bridge page to the world.',
     illustrationId: 'rocket',
     subSteps: [
       'Deploy your code to Vercel or Netlify.',
-      'Add your custom domain (e.g., style-curator.com).',
-      'The app will automatically generate its "PWA Manifest" using your branding.',
-      'Users will be prompted to "Add to Home Screen" on mobile devices.',
-      'This creates a high-retention "App-like" experience for your followers.'
+      'The app will automatically generate its "PWA Manifest".',
+      'Users will be prompted to "Add to Home Screen" on mobile devices.'
     ]
   },
   {
-    id: 'analytics-v2',
+    id: '9',
     title: '9. Conversion & Pixel Tracking',
     description: 'Connect your marketing tools to track ROI from TikTok, IG, and Facebook.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to the "Canvas" tab in your Portal.',
-      'Paste your Meta Pixel, TikTok ID, and Google Analytics IDs.',
-      'The app handles the script injection automatically.',
-      'Use the "Insights" tab to monitor real-time traffic spikes after social posts.'
+      'Go to the "Canvas" tab in your Maison Portal.',
+      'Paste your Meta Pixel and TikTok IDs.',
+      'The app handles script injection automatically.'
+    ]
+  },
+  {
+    id: '10',
+    title: '10. Brand Aesthetic Liquidity',
+    description: 'Define your visual DNA using the Canvas settings.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Upload your PNG Logo for high-definition rendering.',
+      'Set your Primary Hex Code (e.g., #D4AF37 for luxury gold).',
+      'Update SEO Metadata to ensure your story ranks on Google.'
+    ]
+  },
+  {
+    id: '11',
+    title: '11. Departmental Architecture',
+    description: 'Structure your bridge page for effortless discovery.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Create Categories (Departments) via the "Depts" tab.',
+      'Choose high-quality Department cover images.',
+      'Add Sub-Categories to refine the user search path.'
+    ]
+  },
+  {
+    id: '12',
+    title: '12. Masterpiece Deployment',
+    description: 'Begin populating your catalog with hand-selected items.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Use the "Items" tab to add your first product.',
+      'Write evocative descriptions that match your curation style.',
+      'Add Technical Specifications for high-trust conversions.'
+    ]
+  },
+  {
+    id: '13',
+    title: '13. Affiliate Bridge Mechanics',
+    description: 'Ensure your "Secure Acquisition" flow is flawless.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Paste valid affiliate deep-links into the Product Form.',
+      'Disable "Direct Sale" to trigger the Bridge Redirect UI.',
+      'Verify links open in a new tab with your tracking parameters.'
+    ]
+  },
+  {
+    id: '14',
+    title: '14. Direct Merchant Activation',
+    description: 'Enable native transactions for exclusive inventory.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Input your Yoco or PayFast API keys in "Canvas > Integrations".',
+      'Toggle "Enable Direct Sales" for specific premium items.',
+      'Update your Banking Details for EFT fallback payments.'
+    ]
+  },
+  {
+    id: '15',
+    title: '15. Editorial Authority (Journal)',
+    description: 'Build trust through professional style insights.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Draft your first Journal entry in the "Journal" tab.',
+      'Use Markdown to structure content with headings and lists.',
+      'Choose cinematic header images for editorial impact.'
+    ]
+  },
+  {
+    id: '16',
+    title: '16. Collective Growth (Newsletter)',
+    description: 'Convert passing traffic into long-term subscribers.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Customize the Newsletter Popup title in "Canvas > Brand".',
+      'Set the "Audience" badge to create a sense of exclusivity.',
+      'Monitor new leads in the "Audience" tab.'
+    ]
+  },
+  {
+    id: '17',
+    title: '17. Concierge Inbox Protocol',
+    description: 'Respond to styling inquiries and brand partnerships.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Check the "Inbox" tab daily for unread transmissions.',
+      'Use the "Reply" button to trigger professional email responses.',
+      'Archive completed inquiries to maintain a clean workspace.'
+    ]
+  },
+  {
+    id: '18',
+    title: '18. Academy Synchronization',
+    description: 'Equip your staff or yourself with affiliate strategies.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Create Training Modules in the "Academy" tab.',
+      'Define actionable strategies for Instagram/TikTok growth.',
+      'Use the checklists to ensure consistency across social feeds.'
+    ]
+  },
+  {
+    id: '19',
+    title: '19. Intelligence Interpretation',
+    description: 'Analyze performance data to optimize curation.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Review the "Insights" dashboard for traffic spikes.',
+      'Identify Top Products by view count and click-through rate.',
+      'Generate an "Executive Report" PDF for performance review.'
+    ]
+  },
+  {
+    id: '20',
+    title: '20. Launch Sequence & Monitoring',
+    description: 'Maintain system health for high-volume traffic.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Check the "System" tab for latency and database health.',
+      'Monitor logs for any "ERROR" types during sync.',
+      'You are now operational. Curate with purpose.'
     ]
   }
 ];
@@ -430,7 +494,7 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
     email: 'hello@example.com',
     whatsapp: '',
     subject: 'Consultation',
-    message: 'Welcome to your new dashboard. This is a sample enquiry.',
+    message: 'Welcome to your new dashboard. This is a sample inquiry.',
     createdAt: Date.now(),
     status: 'unread'
   },

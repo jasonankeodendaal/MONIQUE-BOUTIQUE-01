@@ -13,9 +13,9 @@ const AboutSection: React.FC = () => {
   const cta = settings?.homeAboutCta || "Read My Story";
   const image = settings?.homeAboutImage || "https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200";
 
-  // Safe splitting logic
-  const titleWords = title.split(' ');
-  const mainTitlePart = titleWords.length > 1 ? titleWords.slice(0, -1).join(' ') : title;
+  // Safe splitting logic - handle undefined or short strings
+  const titleWords = (title || "Me and My Story.").split(' ');
+  const mainTitlePart = titleWords.length > 1 ? titleWords.slice(0, -1).join(' ') : titleWords[0];
   const lastTitleWord = titleWords.length > 1 ? titleWords.slice(-1) : "";
 
   return (

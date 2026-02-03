@@ -25,25 +25,20 @@ const Home: React.FC = () => {
   // Defensive logic for string splitting
   const hookTitle = settings?.homeBottomHookTitle || "The Future of Taste.";
   const titleWords = hookTitle.split(' ');
-  const mainTitle = titleWords.slice(0, -1).join(' ');
-  const lastTitleWord = titleWords.slice(-1);
+  const mainTitle = titleWords.length > 1 ? titleWords.slice(0, -1).join(' ') : titleWords[0];
+  const lastTitleWord = titleWords.length > 1 ? titleWords.slice(-1) : "";
 
   return (
     <main className="pt-0">
-      {/* 1. Cinematic Hero */}
       <Hero />
-      
-      {/* 2. Primary Narrative Bridge - Me and My Story */}
       <AboutSection />
 
-      {/* 2.5 Trusted Partners Cloud (Essential for Bridge Pages) */}
       <section className="py-20 bg-white border-y border-slate-50">
         <div className="max-w-7xl mx-auto px-6">
            <div className="text-center mb-12">
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Our Curated Network</span>
            </div>
            <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
-              {/* Using generic stylish placeholders for luxury brands often linked by affiliate curators */}
               <div className="text-xl font-serif font-bold italic tracking-tighter">Nordstrom</div>
               <div className="text-xl font-serif font-bold tracking-widest">FARFETCH</div>
               <div className="text-xl font-serif font-bold italic">Saks Fifth</div>
@@ -56,7 +51,6 @@ const Home: React.FC = () => {
 
       <SectionDivider />
 
-      {/* 3. Category Quick Entry */}
       <section className="py-12 md:py-20 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
         
@@ -74,7 +68,7 @@ const Home: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
-            {categories.slice(0, 4).map((cat) => {
+            {(categories || []).slice(0, 4).map((cat) => {
               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
               return (
                 <button
@@ -96,15 +90,11 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Full Visual Gallery Bridge */}
       <CategoryGrid />
-
-      {/* 5. Trust Testimonials */}
       <TestimonialSlider />
 
       <SectionDivider />
 
-      {/* 6. Trust & Methodology - The Personal Vouch */}
       <section className="py-24 md:py-48 bg-[#FDFCFB] relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.03),transparent_70%)] pointer-events-none"></div>
 
@@ -139,7 +129,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 7. Bottom Story Hook */}
       <section className="py-24 md:py-32 bg-slate-900 text-white">
          <div className="max-w-4xl mx-auto px-6 text-center">
             <History size={40} className="text-primary mx-auto mb-10 opacity-60" />
