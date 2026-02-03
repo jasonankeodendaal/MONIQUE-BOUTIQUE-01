@@ -303,8 +303,12 @@ const Products: React.FC = () => {
             <div className="w-28 h-28 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-10">
               <ShoppingBag size={56} />
             </div>
-            <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Zero Match Detected</h3>
-            <p className="text-slate-400 max-w-sm mx-auto text-lg font-light leading-relaxed">No products found in the current selection.</p>
+            <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">
+              {settings.productsEmptyHeadline || "Zero Match Detected"}
+            </h3>
+            <p className="text-slate-400 max-w-sm mx-auto text-lg font-light leading-relaxed">
+              {settings.productsEmptyDescription || "No products found in the current selection."}
+            </p>
           </div>
         )}
       </div>

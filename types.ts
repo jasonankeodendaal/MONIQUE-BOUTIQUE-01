@@ -121,13 +121,22 @@ export interface SiteSettings {
   slogan: string; // Added Slogan
   companyLogo: string; // Text fallback
   companyLogoUrl?: string; // PNG Upload
+  faviconUrl?: string; // Added
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+
+  // SEO & Metadata
+  seoTitle: string; // Added
+  seoDescription: string; // Added
+
+  // Navigation Labels
   navHomeLabel: string;
   navProductsLabel: string;
   navAboutLabel: string;
+  navJournalLabel: string; // Added
   navContactLabel: string;
+  navPortalLabel: string; // Added
   navDashboardLabel: string;
 
   // Contact Info
@@ -164,12 +173,18 @@ export interface SiteSettings {
   homeTrustItem3Desc: string;
   homeTrustItem3Icon: string; 
 
+  homeBottomHookTitle: string;
+  homeBottomHookSubtitle: string;
+  homeBottomHookButtonText: string;
+
   // Products Page Content
   productsHeroTitle: string;
   productsHeroSubtitle: string;
   productsHeroImage: string; // Legacy support
   productsHeroImages: string[]; // New: Array of images for carousel
   productsSearchPlaceholder: string;
+  productsEmptyHeadline: string;
+  productsEmptyDescription: string;
 
   // About Page Content
   aboutHeroTitle: string;
@@ -215,6 +230,8 @@ export interface SiteSettings {
   contactHoursLabel: string;
   contactHoursWeekdays: string;
   contactHoursWeekends: string;
+  contactSuccessTitle: string;
+  contactSuccessMessage: string;
 
   // Legal Content
   disclosureTitle: string;
@@ -249,6 +266,11 @@ export interface SiteSettings {
   bankName?: string;
   accountNumber?: string;
   branchCode?: string;
+
+  // Newsletter Popup
+  newsletterPopupTitle: string;
+  newsletterPopupSubtitle: string;
+  newsletterPopupBadge: string;
 }
 
 export interface PermissionNode {

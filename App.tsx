@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X } from 'lucide-react';
@@ -571,8 +570,17 @@ const App: React.FC = () => {
 
   // --- DYNAMIC HEAD & PWA MANIFEST SYSTEM ---
   useEffect(() => {
-    // 1. Update Title
-    document.title = settings.companyName || 'FINDARA';
+    // 1. Update Title - Prioritize SEO Title
+    document.title = settings.seoTitle || settings.companyName || 'FINDARA';
+
+    // 1.5. Update General Meta Description
+    let metaDesc = document.querySelector("meta[name='description']");
+    if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', settings.seoDescription || settings.slogan || settings.footerDescription);
 
     // 2. Update Favicon (Standard)
     if (settings.companyLogoUrl) {
@@ -617,8 +625,8 @@ const App: React.FC = () => {
         meta.setAttribute('content', content);
     };
 
-    updateMeta('og:title', settings.companyName);
-    updateMeta('og:description', settings.slogan || settings.footerDescription);
+    updateMeta('og:title', settings.seoTitle || settings.companyName);
+    updateMeta('og:description', settings.seoDescription || settings.slogan || settings.footerDescription);
     if (settings.companyLogoUrl) updateMeta('og:image', settings.companyLogoUrl);
     updateMeta('og:url', window.location.href);
 
@@ -626,7 +634,7 @@ const App: React.FC = () => {
     const manifest = {
       name: settings.companyName,
       short_name: settings.companyName,
-      description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
+      description: settings.seoDescription || settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
       id: "/",
       start_url: "/",
       display: "standalone",
@@ -680,7 +688,7 @@ const App: React.FC = () => {
     }
 
     return () => URL.revokeObjectURL(manifestURL);
-  }, [settings.companyName, settings.companyLogoUrl, settings.primaryColor, settings.slogan, settings.footerDescription]);
+  }, [settings.companyName, settings.companyLogoUrl, settings.primaryColor, settings.slogan, settings.footerDescription, settings.seoTitle, settings.seoDescription]);
 
   const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
     const newLog: SystemLog = {

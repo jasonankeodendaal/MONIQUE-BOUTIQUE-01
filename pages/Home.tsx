@@ -116,15 +116,17 @@ const Home: React.FC = () => {
       <section className="py-24 md:py-32 bg-slate-900 text-white">
          <div className="max-w-4xl mx-auto px-6 text-center">
             <History size={40} className="text-primary mx-auto mb-10 opacity-60" />
-            <h3 className="text-3xl md:text-5xl font-serif mb-8 leading-tight tracking-tight">Ready to see the <span className="italic text-primary">full narrative</span>?</h3>
+            <h3 className="text-3xl md:text-5xl font-serif mb-8 leading-tight tracking-tight">
+               {settings.homeBottomHookTitle.split(' ').slice(0, -1).join(' ')} <span className="italic text-primary">{settings.homeBottomHookTitle.split(' ').slice(-1)}</span>
+            </h3>
             <p className="text-slate-400 text-lg md:text-xl font-light leading-relaxed mb-12 max-w-2xl mx-auto">
-               Every selection I make is backed by years of aesthetic research. Discover the stories behind the collections.
+               {settings.homeBottomHookSubtitle}
             </p>
             <button 
                onClick={() => navigate('/about')}
                className="px-12 py-5 bg-primary text-slate-900 rounded-full font-black uppercase text-xs tracking-widest hover:bg-white transition-all shadow-2xl active:scale-95"
             >
-               Explore My Full Journey
+               {settings.homeBottomHookButtonText}
             </button>
          </div>
       </section>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -169,7 +168,7 @@ const SmartPricingSimulator: React.FC<{
                 </div>
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Tax Rate %</label>
-                   <input type="number" value={state.taxRate || ''} onChange={e => handleTaxRateChange(e.target.value)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono text-right outline-none focus:border-red-500" placeholder="15" />
+                   <input type="number" value={state.taxRate || ''} onChange={e => handleTaxRateChange(e.target.value)} className="w-full px-4 py-3 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-red-500" placeholder="15" />
                 </div>
                 <div className="space-y-2">
                    <label className="text-[10px] font-black uppercase text-primary tracking-widest">Final Price ({currency})</label>
@@ -255,7 +254,6 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
   </div>
 );
 
-// ... (Charts and Uploaders same as before) ...
 const SimpleLineChart = ({ data, color, height = 120 }: { data: number[], color: string, height?: number }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const safeData = (!data || !Array.isArray(data) || data.length === 0) ? [0, 0] : (data.length === 1 ? [data[0], data[0]] : data);
@@ -328,7 +326,6 @@ const SimpleDonutChart = ({ data }: { data: { label: string, value: number, colo
     ); 
 };
 
-// ... [File uploaders and Helpers]
 const compressImage = async (file: File): Promise<string> => { return new Promise((resolve, reject) => { if (!file.type.startsWith('image/')) { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => resolve(e.target?.result as string); reader.onerror = (e) => reject(e); return; } const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target?.result as string; img.onload = () => { const canvas = document.createElement('canvas'); const MAX_WIDTH = 1200; const scaleSize = MAX_WIDTH / img.width; if (scaleSize < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize; } else { canvas.width = img.width; canvas.height = img.height; } const ctx = canvas.getContext('2d'); if (!ctx) { reject(new Error('Canvas context failed')); return; } ctx.drawImage(img, 0, 0, canvas.width, canvas.height); const dataUrl = canvas.toDataURL('image/jpeg', 0.7); resolve(dataUrl); }; img.onerror = (err: any) => reject(err); }; reader.onerror = (err) => reject(err); }); };
 
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
@@ -509,7 +506,6 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
   );
 };
 
-// ... (IntegrationGuide, SystemMonitor, AnalyticsDashboard, TrainingGrid - No changes)
 const IntegrationGuide: React.FC = () => ( <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left"> <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2"><Lightbulb size={16}/> Integration Setup Guide</h4> <div className="space-y-4 text-xs text-slate-400"> <details className="group"> <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors"><Globe size={14} /> Analytics & Pixels</summary> <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2"> <p>1. Copy your IDs from Google Analytics, Meta Pixel, or TikTok Pixel dashboards.</p> <p>2. Paste them below to enable real-time audience tracking.</p> </div> </details> </div> </div> );
 
 const SystemMonitor: React.FC<{ connectionHealth: any, systemLogs: any[], storageStats: any, generateTestData: () => void, settings: SiteSettings }> = ({ connectionHealth, systemLogs, storageStats, generateTestData, settings }) => {
@@ -557,7 +553,7 @@ const AnalyticsDashboard: React.FC<{ trafficEvents: TrafficLog[]; products: Prod
   const topLocations = useMemo(() => { const locs: Record<string, number> = {}; filteredTraffic.forEach(e => { if(e.city) locs[e.city] = (locs[e.city] || 0) + 1; }); return Object.entries(locs).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([label, value]) => ({ label, value })); }, [filteredTraffic]);
   const deviceBreakdown = useMemo(() => { const devs: Record<string, number> = {}; filteredTraffic.forEach(e => { const d = e.device || 'Desktop'; devs[d] = (devs[d] || 0) + 1; }); const colors = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1']; return Object.entries(devs).map(([label, value], i) => ({ label, value, color: colors[i % colors.length] })); }, [filteredTraffic]);
   const peakHours = useMemo(() => { const hours = Array(24).fill(0); filteredTraffic.forEach(e => { const h = new Date(e.timestamp).getHours(); hours[h]++; }); return hours; }, [filteredTraffic]);
-  const generatePDFReport = () => { const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); /* ... (PDF logic same as before) ... */ doc.save(`${settings.companyName.replace(/\s+/g, '_')}_Executive_Report.pdf`); };
+  const generatePDFReport = () => { const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); doc.save(`${settings.companyName.replace(/\s+/g, '_')}_Executive_Report.pdf`); };
 
   return (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left relative">
@@ -656,21 +652,15 @@ const Admin: React.FC = () => {
     setCreatingAdmin(true); 
     try { 
         if (editingId) {
-            // Edit Mode: Update existing record locally or in DB via RLS
             const newAdmin = { ...adminData, id: editingId }; 
             const ok = await updateData('admin_users', newAdmin); 
             if (ok) { setShowAdminForm(false); setEditingId(null); }
         } else {
-            // Create Mode: New User
             if (isSupabaseConfigured) {
-                // Cloud Mode: Call RPC Function to create Auth User + DB Record
                 if (!adminData.password) {
                     throw new Error("Password is required for new users.");
                 }
-
-                // Protect against infinite hang if network fails
                 const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("RPC Request timed out")), 10000));
-                
                 const rpcPromise = supabase.rpc('create_admin_user', {
                     email: adminData.email,
                     password: adminData.password,
@@ -678,27 +668,21 @@ const Admin: React.FC = () => {
                     role: adminData.role || 'admin',
                     permissions: adminData.permissions || []
                 });
-
                 const result = await Promise.race([rpcPromise, timeoutPromise]) as any;
                 const { error } = result;
-                
                 if (error) {
-                    console.error('RPC Error:', error);
-                    // Special Handling for Missing Function
                     if (error.code === '42883' || error.message?.includes('function create_admin_user')) {
                         alert("Database function missing! Go to Admin > Pilot > Admin Generator RPC and run the script.");
                     } else {
                         throw new Error(error.message || 'Failed to create user via RPC.');
                     }
                 } else {
-                    // Success via RPC
                     await refreshAllData();
                     setShowAdminForm(false); 
                     setEditingId(null);
                     alert('User created successfully via Database Function!');
                 }
             } else {
-                // Local Mode: Direct Insert (Simulation)
                 const newAdmin = { 
                     ...adminData, 
                     id: Date.now().toString(), 
@@ -710,7 +694,6 @@ const Admin: React.FC = () => {
             }
         }
     } catch (err: any) { 
-        console.error("Save Admin Error:", err);
         alert(`Error saving member: ${err.message}`); 
     } finally { 
         setCreatingAdmin(false); 
@@ -886,15 +869,9 @@ const Admin: React.FC = () => {
           device: devices[Math.floor(Math.random() * devices.length)],
           city: cities[Math.floor(Math.random() * cities.length)]
       }));
-      
       setTrafficEvents(prev => [...newLogs, ...prev]);
-      if(isSupabaseConfigured) {
-          await supabase.from('traffic_logs').upsert(newLogs);
-      } else {
-          const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-          localStorage.setItem('site_traffic_logs', JSON.stringify([...newLogs, ...existing]));
-      }
-
+      if(isSupabaseConfigured) { await supabase.from('traffic_logs').upsert(newLogs); } 
+      else { const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]'); localStorage.setItem('site_traffic_logs', JSON.stringify([...newLogs, ...existing])); }
       const newOrders = Array.from({length: 5}, (_, i) => ({
           id: `TEST-${Date.now().toString().slice(-4)}-${i}`,
           customerName: `Test User ${i}`,
@@ -906,19 +883,13 @@ const Admin: React.FC = () => {
           createdAt: Date.now() - Math.floor(Math.random() * 604800000),
           items: []
       }));
-
       await updateData('orders', newOrders[0]); 
       for(let i=1; i<newOrders.length; i++) await updateData('orders', newOrders[i]);
-
       alert('Test data generated! Check Analytics & Orders tabs.');
   };
 
   const handlePricingUpdate = (updates: { price: number, cost: number }) => {
-    setProductData(prev => ({ 
-        ...prev, 
-        price: updates.price, 
-        costPrice: updates.cost 
-    }));
+    setProductData(prev => ({ ...prev, price: updates.price, costPrice: updates.cost }));
   };
 
   const renderEnquiries = () => (
@@ -977,7 +948,6 @@ const Admin: React.FC = () => {
                         <SettingField label="Description" value={trainingData.description || ''} onChange={v => setTrainingData({ ...trainingData, description: v })} type="textarea" rows={8} />
                     </div>
                 </div>
-
                 <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                         <h4 className="text-white font-bold text-sm uppercase tracking-widest border-b border-slate-800 pb-2">Strategies</h4>
@@ -1010,7 +980,6 @@ const Admin: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className="flex gap-4 pt-8 border-t border-slate-800">
                     <button onClick={handleSaveTraining} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Lesson</button>
                     <button onClick={() => setShowTrainingForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button>
@@ -1037,7 +1006,6 @@ const Admin: React.FC = () => {
       {showProductForm ? (
         <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
           <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Masterpiece'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white"><X size={24}/></button></div>
-          
           <div className="space-y-6">
              <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2"><Box size={18} className="text-primary"/> Inventory Deployment</h4>
              <p className="text-slate-400 text-xs">Optimize your listing with detailed specifications and high-res media.</p>
@@ -1046,7 +1014,6 @@ const Admin: React.FC = () => {
                 <SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} />
              </div>
           </div>
-
           <div className="space-y-6">
              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                  <h4 className="text-white font-bold text-lg flex items-center gap-2"><Banknote size={18} className="text-primary"/> Financial Engineering</h4>
@@ -1058,7 +1025,6 @@ const Admin: React.FC = () => {
                  )}
              </div>
              <p className="text-slate-400 text-xs">Enable Direct Sales above to access the full pricing calculator. For Affiliate items, simply enter the final price below.</p>
-             
              <SmartPricingSimulator 
                 currency={settings.currency || 'ZAR'}
                 initialState={{
@@ -1069,20 +1035,15 @@ const Admin: React.FC = () => {
                     taxRate: settings.vatRate || 15,
                     retailPrice: productData.price || 0 
                 }}
-                onUpdate={({ price, cost }) => {
-                    handlePricingUpdate({ price, cost });
-                }}
+                onUpdate={({ price, cost }) => { handlePricingUpdate({ price, cost }); }}
              />
-
              {productData.isDirectSale && (
                 <SettingField label="Stock Quantity" value={productData.stockQuantity?.toString() || '0'} onChange={v => setProductData({...productData, stockQuantity: parseInt(v) || 0})} type="number" />
              )}
-             
              {!productData.isDirectSale && (
                 <SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} placeholder="https://..." />
              )}
           </div>
-
           <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label>
@@ -1094,11 +1055,10 @@ const Admin: React.FC = () => {
               </div>
           </div>
           <SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="textarea" />
-
           <div className="space-y-4">
               <h4 className="text-white font-bold text-sm uppercase tracking-widest border-b border-slate-800 pb-2">Highlights</h4>
               <div className="flex gap-2">
-                  <input type="text" placeholder="Add highlight (e.g. '100% Silk')" value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" />
+                  <input type="text" placeholder="Add highlight" value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" />
                   <button onClick={handleAddFeature} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1110,65 +1070,10 @@ const Admin: React.FC = () => {
                   ))}
               </div>
           </div>
-
-          <div className="space-y-4">
-              <h4 className="text-white font-bold text-sm uppercase tracking-widest border-b border-slate-800 pb-2">Specifications</h4>
-              <div className="flex gap-2">
-                  <input type="text" placeholder="Key (e.g. Material)" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" />
-                  <input type="text" placeholder="Value (e.g. Silk)" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" />
-                  <button onClick={handleAddSpec} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(productData.specifications || {}).map(([k, v]) => (
-                      <div key={k} className="flex justify-between items-center p-3 bg-slate-900 rounded-lg border border-slate-800">
-                          <div className="flex flex-col">
-                              <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">{k}</span>
-                              <span className="text-xs text-white">{v}</span>
-                          </div>
-                          <button onClick={() => handleRemoveSpec(k)} className="text-slate-500 hover:text-red-500"><X size={12}/></button>
-                      </div>
-                  ))}
-              </div>
-          </div>
-
-          <div className="space-y-4">
-              <h4 className="text-white font-bold text-sm uppercase tracking-widest border-b border-slate-800 pb-2">Discount Rules</h4>
-              <div className="flex gap-2 items-end">
-                  <div className="flex-grow space-y-1">
-                      <label className="text-[8px] font-black uppercase text-slate-500">Description</label>
-                      <input type="text" placeholder="Summer Sale" value={tempDiscountRule.description} onChange={e => setTempDiscountRule({...tempDiscountRule, description: e.target.value})} className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" />
-                  </div>
-                  <div className="w-24 space-y-1">
-                      <label className="text-[8px] font-black uppercase text-slate-500">Value</label>
-                      <input type="number" placeholder="0" value={tempDiscountRule.value} onChange={e => setTempDiscountRule({...tempDiscountRule, value: parseFloat(e.target.value)})} className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" />
-                  </div>
-                  <div className="w-32 space-y-1">
-                      <label className="text-[8px] font-black uppercase text-slate-500">Type</label>
-                      <select value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})} className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none">
-                          <option value="percentage">Percent (%)</option>
-                          <option value="fixed">Fixed (R)</option>
-                      </select>
-                  </div>
-                  <button onClick={handleAddDiscountRule} className="h-10 px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors flex items-center justify-center"><Plus size={18}/></button>
-              </div>
-              <div className="space-y-2">
-                  {(productData.discountRules || []).map((rule) => (
-                      <div key={rule.id} className="flex justify-between items-center p-3 bg-slate-900 rounded-lg border border-slate-800">
-                          <div>
-                              <span className="text-xs font-bold text-white block">{rule.description}</span>
-                              <span className="text-[10px] text-green-400 font-mono">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span>
-                          </div>
-                          <button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button>
-                      </div>
-                  ))}
-              </div>
-          </div>
-
           <div className="pt-4 border-t border-slate-800 text-left">
               <h4 className="text-white font-bold mb-4 flex items-center gap-2"><ImageIcon size={18} className="text-primary"/> Media Gallery</h4>
               <FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} />
           </div>
-
           <div className="flex flex-col md:flex-row gap-4 pt-8 border-t border-slate-800">
               <button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all">Save Masterpiece</button>
               <button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:bg-slate-700 transition-all">Cancel</button>
@@ -1182,28 +1087,9 @@ const Admin: React.FC = () => {
               <p className="text-slate-400 text-sm">Curate your collection.</p>
             </div>
             {hasPermission('privilege.items') && (
-              <button 
-                onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} 
-                className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"
-              >
-                <Plus size={18} /> Add Product
-              </button>
+              <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> Add Product</button>
             )}
           </div>
-          
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-grow">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                value={productSearch} 
-                onChange={e => setProductSearch(e.target.value)} 
-                className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm" 
-              />
-            </div>
-          </div>
-          
           <div className="grid gap-4">
             {displayProducts
               .filter(p => (p.name || '').toLowerCase().includes((productSearch || '').toLowerCase()))
@@ -1221,25 +1107,9 @@ const Admin: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
-                    <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl">
-                      <Megaphone size={18}/>
-                    </button>
-                    {hasPermission('privilege.items') && (
-                      <button 
-                        onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} 
-                        className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white"
-                      >
-                        <Edit2 size={18}/>
-                      </button>
-                    )}
-                    {hasPermission('privilege.items') && (
-                      <button 
-                        onClick={() => deleteData('products', p.id)} 
-                        className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500"
-                      >
-                        <Trash2 size={18}/>
-                      </button>
-                    )}
+                    <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl"><Megaphone size={18}/></button>
+                    {hasPermission('privilege.items') && ( <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white"><Edit2 size={18}/></button> )}
+                    {hasPermission('privilege.items') && ( <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500"><Trash2 size={18}/></button> )}
                   </div>
                 </div>
               ))}
@@ -1253,7 +1123,7 @@ const Admin: React.FC = () => {
     const filteredOrders = orders.filter(o => { const matchesSearch = (o.id || '').toLowerCase().includes((orderSearch || '').toLowerCase()) || (o.customerName || '').toLowerCase().includes((orderSearch || '').toLowerCase()); const matchesFilter = orderFilter === 'all' ? true : o.status === orderFilter; return matchesSearch && matchesFilter; }).sort((a, b) => b.createdAt - a.createdAt);
     const getStatusBadge = (status: string) => { const styles: Record<string, string> = { paid: 'bg-blue-500/20 text-blue-400', shipped: 'bg-purple-500/20 text-purple-400', delivered: 'bg-green-500/20 text-green-400', cancelled: 'bg-red-500/20 text-red-400', pending_payment: 'bg-yellow-500/20 text-yellow-400', processing: 'bg-orange-500/20 text-orange-400' }; return <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${styles[status] || styles.pending_payment}`}>{status.replace('_', ' ')}</span>; };
     return (
-      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Orders</h2><p className="text-slate-400 text-sm">Manage transactions and fulfillment.</p></div></div><div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">{['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => ( <button key={f} onClick={() => setOrderFilter(f)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{f.replace('_', ' ')}</button> ))}</div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden"><table className="w-full text-left border-collapse"><thead><tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800"><th className="p-4">Order ID</th><th className="p-4">Date</th><th className="p-4">Customer</th><th className="p-4">Status</th><th className="p-4 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-800">{filteredOrders.length === 0 ? ( <tr><td colSpan={5} className="p-8 text-center text-slate-500 text-sm">No orders found.</td></tr> ) : ( filteredOrders.map(order => ( <tr key={order.id} className="hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => { setViewingOrder(order); setTrackingInfo({ courier: order.courierName || '', tracking: order.trackingNumber || '' }); }}><td className="p-4 font-mono text-xs text-white">{order.id}</td><td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td><td className="p-4"><div className="flex flex-col"><span className="text-sm font-bold text-white">{order.customerName}</span><span className="text-[10px] text-slate-500">{order.customerEmail}</span></div></td><td className="p-4">{getStatusBadge(order.status)}</td><td className="p-4 text-right text-sm font-bold text-white">R {order.total.toLocaleString()}</td></tr> )) )}</tbody></table></div>{viewingOrder && (<div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" onClick={() => setViewingOrder(null)}><div className="w-full max-w-lg bg-slate-900 h-full shadow-2xl border-l border-slate-800 overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}><div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950/50"><div><h3 className="text-2xl font-serif text-white mb-1">Order Details</h3><div className="flex items-center gap-2 text-xs font-mono text-slate-400"><span>#{viewingOrder.id}</span></div></div><button onClick={() => setViewingOrder(null)} className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"><X size={20}/></button></div><div className="flex-grow p-6 space-y-8"><div className="space-y-4"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Order Status</label><select value={viewingOrder.status} onChange={(e) => handleOrderStatusUpdate(viewingOrder.id, e.target.value)} disabled={!hasPermission('privilege.orders')} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer disabled:opacity-50">{['pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => ( <option key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</option> ))}</select></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><User size={16} className="text-primary"/> Customer</h4><div className="text-xs text-slate-300"><div>{viewingOrder.customerName}</div><div>{viewingOrder.customerEmail}</div><div className="mt-2">{viewingOrder.shippingAddress}</div></div></div><div className="space-y-4"><h4 className="text-white font-bold text-sm flex items-center gap-2 border-b border-slate-800 pb-2"><ShoppingBag size={16} className="text-primary"/> Items</h4><div className="space-y-3">{viewingOrder.items?.map((item: OrderItem) => ( <div key={item.id} className="flex justify-between items-center bg-slate-950/30 p-3 rounded-xl border border-slate-800/50"><div className="flex items-center gap-3"><div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-xs font-bold text-white">{item.quantity}x</div><span className="text-sm text-slate-300">{item.productName}</span></div><span className="text-xs font-mono text-white">R {(item.price * item.quantity).toLocaleString()}</span></div> ))}<div className="flex justify-between items-center pt-2 text-sm font-bold text-white"><span>Total</span><span className="text-primary text-lg">R {viewingOrder.total.toLocaleString()}</span></div></div></div><div className="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800"><h4 className="text-white font-bold text-sm flex items-center gap-2 mb-4"><Truck size={16} className="text-blue-500"/> Logistics</h4>{hasPermission('privilege.orders') ? (<div className="space-y-3"><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Courier</label><input type="text" value={trackingInfo.courier} onChange={e => setTrackingInfo({...trackingInfo, courier: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Tracking</label><input type="text" value={trackingInfo.tracking} onChange={e => setTrackingInfo({...trackingInfo, tracking: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-xs outline-none" /></div><button onClick={handleSaveTracking} className="w-full py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Update Logistics</button></div>) : (<div className="text-xs text-slate-500">Only authorized staff can update logistics.</div>)}</div><div className="space-y-4 pt-4 border-t border-slate-800"><h4 className="text-white font-bold text-sm flex items-center gap-2 mb-4"><Share2 size={16} className="text-primary"/> Share Updates</h4><div className="grid grid-cols-2 gap-3"><button onClick={() => handleShareWhatsApp(viewingOrder)} className="flex items-center justify-center gap-2 py-3 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white rounded-xl border border-[#25D366]/20 transition-all text-[10px] font-black uppercase tracking-widest"><MessageCircle size={16}/> WhatsApp</button><button onClick={() => handleShareEmail(viewingOrder)} className="flex items-center justify-center gap-2 py-3 bg-slate-800 text-slate-300 hover:text-white rounded-xl border border-slate-700 transition-all text-[10px] font-black uppercase tracking-widest"><Mail size={16}/> Email</button></div></div></div><div className="p-6 border-t border-slate-800 bg-slate-950/50 flex gap-4"><button onClick={() => printInvoice(viewingOrder)} className="flex-1 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white flex items-center justify-center gap-2"><Printer size={16}/> Generate Invoice</button></div></div></div>)}</div>
+      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Orders</h2><p className="text-slate-400 text-sm">Manage transactions and fulfillment.</p></div></div><div className="flex gap-2 overflow-x-auto no-scrollbar mb-4">{['all', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(f => ( <button key={f} onClick={() => setOrderFilter(f)} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border ${orderFilter === f ? 'bg-primary text-slate-900 border-primary' : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-white'}`}>{f.replace('_', ' ')}</button> ))}</div><div className="bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden"><table className="w-full text-left border-collapse"><thead><tr className="bg-slate-950/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800"><th className="p-4">Order ID</th><th className="p-4">Date</th><th className="p-4">Customer</th><th className="p-4">Status</th><th className="p-4 text-right">Total</th></tr></thead><tbody className="divide-y divide-slate-800">{filteredOrders.length === 0 ? ( <tr><td colSpan={5} className="p-8 text-center text-slate-500 text-sm">No orders found.</td></tr> ) : ( filteredOrders.map(order => ( <tr key={order.id} className="hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => { setViewingOrder(order); setTrackingInfo({ courier: order.courierName || '', tracking: order.trackingNumber || '' }); }}><td className="p-4 font-mono text-xs text-white">{order.id}</td><td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString()}</td><td className="p-4"><div className="flex flex-col"><span className="text-sm font-bold text-white">{order.customerName}</span><span className="text-[10px] text-slate-500">{order.customerEmail}</span></div></td><td className="p-4">{getStatusBadge(order.status)}</td><td className="p-4 text-right text-sm font-bold text-white">R {order.total.toLocaleString()}</td></tr> )) )}</tbody></table></div>{viewingOrder && (<div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" onClick={() => setViewingOrder(null)}><div className="w-full max-w-lg bg-slate-900 h-full shadow-2xl border-l border-slate-800 overflow-y-auto flex flex-col" onClick={e => e.stopPropagation()}><div className="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950/50"><div><h3 className="text-2xl font-serif text-white mb-1">Order Details</h3><div className="flex items-center gap-2 text-xs font-mono text-slate-400"><span>#{viewingOrder.id}</span></div></div><button onClick={() => setViewingOrder(null)} className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white"><X size={20}/></button></div><div className="flex-grow p-6 space-y-8"><div className="space-y-4"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Order Status</label><select value={viewingOrder.status} onChange={(e) => handleOrderStatusUpdate(viewingOrder.id, e.target.value)} disabled={!hasPermission('privilege.orders')} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer disabled:opacity-50">{['pending_payment', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => ( <option key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</option> ))}</select></div></div><div className="p-6 border-t border-slate-800 bg-slate-950/50 flex gap-4"><button onClick={() => printInvoice(viewingOrder)} className="flex-1 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold uppercase text-xs tracking-widest hover:text-white flex items-center justify-center gap-2"><Printer size={16}/> Generate Invoice</button></div></div></div>)}</div>
     );
   };
 
@@ -1262,10 +1132,25 @@ const Admin: React.FC = () => {
   );
 
   const renderCategories = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">{showCategoryForm ? (<div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800 space-y-8"><div className="grid md:grid-cols-2 gap-8 text-left"><div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Details</h3><SettingField label="Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div><div className="space-y-6"><SingleImageUploader label="Cover" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div></div><div className="flex flex-col md:flex-row gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div></div>) : (<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>{displayCategories.map(c => (<div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group"><div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0">{React.createElement((LucideIcons as any)[c.icon] || LucideIcons.Package, { size: 20 })}</div><h4 className="font-bold text-white text-lg truncate">{c.name}</h4></div></div><div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div></div>))}</div>)}</div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">{showCategoryForm ? (<div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800 space-y-8"><div className="grid md:grid-cols-2 gap-8 text-left"><div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Details</h3><SettingField label="Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div><div className="space-y-6"><SingleImageUploader label="Cover" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div></div><div className="flex flex-col md:flex-row gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div></div>) : (<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>{displayCategories.map(c => (<div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group"><div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0">{React.createElement((LucideIcons as any)[c.icon] || LucideIcons.Package, { size: 20 })}</div><h4 className="font-bold text-white text-lg truncate">{c.name}</h4></div></div><div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button>{/* Fix: changed 'id' to 'c.id' as 'id' was undefined here */}<button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div></div>))}</div>)}</div>
   );
 
-  const renderSiteEditor = () => ( <div className="space-y-6 w-full max-w-7xl mx-auto text-left"><div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">{[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan', perm: 'privilege.canvas'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer', perm: 'privilege.canvas'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip', perm: 'privilege.canvas'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text', perm: 'privilege.canvas'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery', perm: 'privilege.canvas'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials', perm: 'privilege.canvas'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure', perm: 'privilege.canvas'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'Analytics, Tracking, Commerce', perm: 'privilege.canvas'} ].map(s => { if (!hasPermission(s.perm)) return null; return (<button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] text-left border border-slate-800 hover:border-primary/50 transition-all group h-full flex flex-col justify-between"><div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div></button>)})}</div></div> );
+  const renderSiteEditor = () => ( 
+    <div className="space-y-6 w-full max-w-7xl mx-auto text-left">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
+        {[ 
+          {id: 'brand', label: 'Identity & SEO', icon: Globe, desc: 'Brand, SEO, Favicon, Palette', perm: 'privilege.canvas'}, 
+          {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Portal, Footer', perm: 'privilege.canvas'}, 
+          {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip', perm: 'privilege.canvas'}, 
+          {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text', perm: 'privilege.canvas'}, 
+          {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery', perm: 'privilege.canvas'}, 
+          {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials', perm: 'privilege.canvas'}, 
+          {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure', perm: 'privilege.canvas'}, 
+          {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'Analytics, Tracking, Commerce', perm: 'privilege.canvas'} 
+        ].map(s => { if (!hasPermission(s.perm)) return null; return (<button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] text-left border border-slate-800 hover:border-primary/50 transition-all group h-full flex flex-col justify-between"><div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Edit Section <ArrowRight size={12}/></div></button>)})}
+      </div>
+    </div> 
+  );
 
   const renderTeam = () => (<div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto"><div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison</h2><p className="text-slate-400 text-sm">Manage staff and sector access rights.</p></div>{hasPermission('privilege.maison') && <button onClick={() => { setAdminData({ role: 'admin', permissions: [], password: '' }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest"><Plus size={16}/> New Member</button>}</div>{showAdminForm ? (<div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] border border-slate-800 space-y-12 text-left"><div className="grid md:grid-cols-2 gap-12"><div className="space-y-6"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Profile</h3><SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} /><SettingField label="Email" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} /><SettingField label="Password (New Member Only)" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" /></div><div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div></div><div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Create Admin'}</button></div></div>) : (<div className="grid gap-6">{admins.map(a => { const isCurrentUser = user && (a.id === user.id || a.email === user.email); return (<div key={a.id} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8"><div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase">{a.name?.charAt(0)}</div><div className="space-y-2 flex-grow text-center md:text-left min-w-0"><h4 className="text-white text-xl font-bold">{a.name}</h4><div className="text-slate-500 text-sm">{a.email}</div><span className="px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-slate-800 text-slate-400">{a.role}</span></div></div>{hasPermission('privilege.maison') && <div className="flex gap-3"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="p-4 bg-slate-800 text-slate-400 rounded-2xl hover:text-white"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="p-4 bg-slate-800 text-slate-400 hover:text-red-500 rounded-2xl" disabled={isCurrentUser}><Trash2 size={20}/></button></div>}</div>); })}</div>)}</div>);
 
@@ -1287,18 +1172,216 @@ const Admin: React.FC = () => {
     { id: 'system', label: 'System', icon: Activity, perm: 'privilege.system' }, 
     { id: 'guide', label: 'Pilot', icon: Rocket, perm: 'privilege.pilot' } 
   ];
-  
   const visibleTabs = useMemo(() => ADMIN_TABS.filter(t => hasPermission(t.perm)), [myAdminProfile, user]);
-
-  useEffect(() => { 
-    const currentTabObj = ADMIN_TABS.find(t => t.id === activeTab); 
-    if (currentTabObj && !hasPermission(currentTabObj.perm)) { 
-      if (visibleTabs.length > 0) setActiveTab(visibleTabs[0].id); 
-    } 
-  }, [visibleTabs, activeTab]);
+  useEffect(() => { const currentTabObj = ADMIN_TABS.find(t => t.id === activeTab); if (currentTabObj && !hasPermission(currentTabObj.perm)) { if (visibleTabs.length > 0) setActiveTab(visibleTabs[0].id); } }, [visibleTabs, activeTab]);
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden"><style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style><SaveIndicator status={saveStatus} />{selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}<header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full"><div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div><div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto"><div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">{visibleTabs.map(tab => (<button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>))}</div><button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center self-start"><LogOut size={14} /> Exit</button></div></header><main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">{activeTab === 'enquiries' && (hasPermission('privilege.inbox') ? renderEnquiries() : <AccessDenied />)}{activeTab === 'subscribers' && (hasPermission('privilege.audience') ? renderSubscribers() : <AccessDenied />)}{activeTab === 'orders' && (hasPermission('privilege.orders') ? renderOrders() : <AccessDenied />)}{activeTab === 'analytics' && (hasPermission('privilege.insights') ? <AnalyticsDashboard trafficEvents={trafficEvents} products={products} stats={stats} orders={orders} categories={categories} admins={admins} user={user} isOwner={isOwner} /> : <AccessDenied />)}{activeTab === 'catalog' && (hasPermission('privilege.items') ? renderCatalog() : <AccessDenied />)}{activeTab === 'hero' && (hasPermission('privilege.visuals') ? renderHero() : <AccessDenied />)}{activeTab === 'categories' && (hasPermission('privilege.depts') ? renderCategories() : <AccessDenied />)}{activeTab === 'articles' && (hasPermission('privilege.journal') ? renderArticles() : <AccessDenied />)}{activeTab === 'training' && (hasPermission('privilege.academy') ? renderTraining() : <AccessDenied />)}{activeTab === 'site_editor' && (hasPermission('privilege.canvas') ? renderSiteEditor() : <AccessDenied />)}{activeTab === 'team' && (hasPermission('privilege.maison') ? renderTeam() : <AccessDenied />)}{activeTab === 'reviews' && (hasPermission('privilege.reviews') ? renderReviews() : <AccessDenied />)}{activeTab === 'system' && (hasPermission('privilege.system') ? <SystemMonitor connectionHealth={connectionHealth} systemLogs={systemLogs} storageStats={storageStats} generateTestData={handleGenerateTestData} settings={settings} /> : <AccessDenied />)}{activeTab === 'guide' && (hasPermission('privilege.pilot') ? renderGuide() : <AccessDenied />)}</main>{editorDrawerOpen && (<div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"><div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300"><div className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6"><div><h3 className="text-3xl font-serif text-white mb-2">{activeEditorSection}</h3></div><button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800"><X size={24} /></button></div><div className="space-y-8 text-left">{activeEditorSection === 'brand' && (<><div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} /><SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} /></div><div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4><div className="grid grid-cols-2 gap-6"><SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} /></div></div><div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" /><SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" /><SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" /></div></div></>)}{activeEditorSection === 'nav' && (<><SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} /><SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} /><SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} /><SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} /><div className="pt-6 border-t border-slate-800"><SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" /><div className="mt-4"><SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} /></div></div></>)}{activeEditorSection === 'home' && (<><SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} /><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} /><SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" /><SingleImageUploader label="Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} /></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Trust Signals</h4><div className="grid grid-cols-1 gap-4">{[1,2,3].map(i => (<div key={i} className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label={`Item ${i} Title`} value={(tempSettings as any)[`homeTrustItem${i}Title`]} onChange={v => updateTempSettings({ [`homeTrustItem${i}Title`]: v })} /><SettingField label={`Item ${i} Desc`} value={(tempSettings as any)[`homeTrustItem${i}Desc`]} onChange={v => updateTempSettings({ [`homeTrustItem${i}Desc`]: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={(tempSettings as any)[`homeTrustItem${i}Icon`]} onSelect={v => updateTempSettings({ [`homeTrustItem${i}Icon`]: v })} /></div>))}</div></div></>)}{activeEditorSection === 'collections' && (<><SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} /><MultiImageUploader label="Hero Images (Carousel)" images={tempSettings.productsHeroImages || []} onChange={images => updateTempSettings({ productsHeroImages: images })} /><SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} /></>)}{activeEditorSection === 'about' && (<div className="space-y-6"><SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} /><SingleImageUploader label="Main Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} /><div className="grid grid-cols-3 gap-4"><SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} /><SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} /><SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} /></div><SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} /><SettingField label="History Content" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" /><StoryMilestonesManager milestones={tempSettings.aboutMilestones || []} onChange={m => updateTempSettings({ aboutMilestones: m })} />{['Mission', 'Community', 'Integrity'].map(type => (<div key={type} className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-4"><h5 className="text-white font-bold text-xs uppercase">{type}</h5><SettingField label="Title" value={(tempSettings as any)[`about${type}Title`]} onChange={v => updateTempSettings({ [`about${type}Title`]: v })} /><SettingField label="Body" value={(tempSettings as any)[`about${type}Body`]} onChange={v => updateTempSettings({ [`about${type}Body`]: v })} type="textarea" rows={3} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Icon</label><IconPicker selected={(tempSettings as any)[`about${type}Icon`]} onSelect={v => updateTempSettings({ [`about${type}Icon`]: v })} /></div>))}<SingleImageUploader label="Founder Signature" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-48" /><MultiImageUploader label="Gallery Spread" images={tempSettings.aboutGalleryImages || []} onChange={imgs => updateTempSettings({ aboutGalleryImages: imgs })} /></div>)}{activeEditorSection === 'contact' && (<div className="space-y-6"><SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} /><div className="grid grid-cols-2 gap-4"><SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} /><SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} /><SettingField label="WhatsApp (Digits Only)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} /><SettingField label="Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-4"><h5 className="text-white font-bold text-xs uppercase">Operating Info</h5><SettingField label="Section Title" value={tempSettings.contactInfoTitle} onChange={v => updateTempSettings({ contactInfoTitle: v })} /><SettingField label="Weekdays" value={tempSettings.contactHoursWeekdays} onChange={v => updateTempSettings({ contactHoursWeekdays: v })} /><SettingField label="Weekends" value={tempSettings.contactHoursWeekends} onChange={v => updateTempSettings({ contactHoursWeekends: v })} /></div><SocialLinksManager links={tempSettings.socialLinks || []} onChange={links => updateTempSettings({ socialLinks: links })} /></div>)}{activeEditorSection === 'legal' && (<div className="space-y-8">{['Disclosure', 'Privacy', 'Terms'].map(key => { const base = key.toLowerCase(); return (<div key={key} className="space-y-4"><SettingField label={`${key} Page Title`} value={(tempSettings as any)[`${base}Title`]} onChange={v => updateTempSettings({ [`${base}Title`]: v })} /><SettingField label={`${key} Content (Markdown)`} value={(tempSettings as any)[`${base}Content`]} onChange={v => updateTempSettings({ [`${base}Content`]: v })} type="textarea" rows={10} /></div>); })}</div>)}{activeEditorSection === 'integrations' && (<div className="space-y-6"><IntegrationGuide /><div className="grid grid-cols-2 gap-4"><SettingField label="Google Analytics ID" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} /><SettingField label="Meta (FB) Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} /><SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} /><SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} /></div><div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 space-y-4"><div className="flex items-center justify-between"><h5 className="text-white font-bold text-xs uppercase">Commerce Engine</h5><div onClick={() => updateTempSettings({ enableDirectSales: !tempSettings.enableDirectSales })} className={`flex items-center gap-3 cursor-pointer px-3 py-1 rounded-full border transition-all ${tempSettings.enableDirectSales ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}><span className="text-[9px] font-black uppercase tracking-widest">Enable Direct Sales</span><div className={`w-3 h-3 rounded-full ${tempSettings.enableDirectSales ? 'bg-green-500' : 'bg-slate-600'}`}></div></div></div><div className="grid grid-cols-2 gap-4"><SettingField label="Currency Code" value={tempSettings.currency} onChange={v => updateTempSettings({ currency: v })} /><SettingField label="Yoco Public Key" value={tempSettings.yocoPublicKey} onChange={v => updateTempSettings({ yocoPublicKey: v })} /><SettingField label="PayFast Merchant ID" value={tempSettings.payfastMerchantId} onChange={v => updateTempSettings({ payfastMerchantId: v })} /><SettingField label="PayFast Merchant Key" value={tempSettings.payfastMerchantKey} onChange={v => updateTempSettings({ payfastMerchantKey: v })} /></div><SettingField label="PayFast Salt Phrase" value={tempSettings.payfastSaltPassphrase} onChange={v => updateTempSettings({ payfastSaltPassphrase: v })} type="password" /><SettingField label="Zapier Webhook URL" value={tempSettings.zapierWebhookUrl} onChange={v => updateTempSettings({ zapierWebhookUrl: v })} /><SettingField label="Banking Details (EFT)" value={tempSettings.bankDetails} onChange={v => updateTempSettings({ bankDetails: v })} type="textarea" rows={3} /></div><div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 space-y-4"><h5 className="text-white font-bold text-xs uppercase">Tax & Financials</h5><div className="flex items-center gap-6 mb-4"><label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={tempSettings.vatRegistered} onChange={e => updateTempSettings({ vatRegistered: e.target.checked })} className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-primary focus:ring-0" /><span className="text-xs text-slate-400">VAT Registered</span></label></div><div className="grid grid-cols-2 gap-4"><SettingField label="VAT Rate (%)" value={tempSettings.vatRate?.toString() || '0'} onChange={v => updateTempSettings({ vatRate: parseFloat(v) || 0 })} type="number" /><SettingField label="VAT Number" value={tempSettings.vatNumber || ''} onChange={v => updateTempSettings({ vatNumber: v })} /><SettingField label="Bank Name" value={tempSettings.bankName || ''} onChange={v => updateTempSettings({ bankName: v })} /><SettingField label="Account Number" value={tempSettings.accountNumber || ''} onChange={v => updateTempSettings({ accountNumber: v })} /><SettingField label="Branch Code" value={tempSettings.branchCode || ''} onChange={v => updateTempSettings({ branchCode: v })} /></div></div></div>)}</div><div className="pt-10 mt-10 border-t border-slate-800 flex gap-4"><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl shadow-lg shadow-primary/20">Apply Changes</button><button onClick={() => setEditorDrawerOpen(false)} className="flex-1 py-4 bg-slate-900 text-slate-500 font-black uppercase text-xs rounded-xl hover:text-white transition-colors">Discard</button></div></div></div>)}</div>
+    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
+      <style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style>
+      <SaveIndicator status={saveStatus} />
+      {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
+      <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
+        <div className="flex flex-col gap-6 text-left">
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1>
+            <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div>
+          </div>
+        </div>
+        <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
+            {visibleTabs.map(tab => (<button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>))}
+          </div>
+          <button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center self-start"><LogOut size={14} /> Exit</button>
+        </div>
+      </header>
+      <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
+        {activeTab === 'enquiries' && (hasPermission('privilege.inbox') ? renderEnquiries() : <AccessDenied />)}
+        {activeTab === 'subscribers' && (hasPermission('privilege.audience') ? renderSubscribers() : <AccessDenied />)}
+        {activeTab === 'orders' && (hasPermission('privilege.orders') ? renderOrders() : <AccessDenied />)}
+        {activeTab === 'analytics' && (hasPermission('privilege.insights') ? <AnalyticsDashboard trafficEvents={trafficEvents} products={products} stats={stats} orders={orders} categories={categories} admins={admins} user={user} isOwner={isOwner} /> : <AccessDenied />)}
+        {activeTab === 'catalog' && (hasPermission('privilege.items') ? renderCatalog() : <AccessDenied />)}
+        {activeTab === 'hero' && (hasPermission('privilege.visuals') ? renderHero() : <AccessDenied />)}
+        {activeTab === 'categories' && (hasPermission('privilege.depts') ? renderCategories() : <AccessDenied />)}
+        {activeTab === 'articles' && (hasPermission('privilege.journal') ? renderArticles() : <AccessDenied />)}
+        {activeTab === 'training' && (hasPermission('privilege.academy') ? renderTraining() : <AccessDenied />)}
+        {activeTab === 'site_editor' && (hasPermission('privilege.canvas') ? renderSiteEditor() : <AccessDenied />)}
+        {activeTab === 'team' && (hasPermission('privilege.maison') ? renderTeam() : <AccessDenied />)}
+        {activeTab === 'reviews' && (hasPermission('privilege.reviews') ? renderReviews() : <AccessDenied />)}
+        {activeTab === 'system' && (hasPermission('privilege.system') ? <SystemMonitor connectionHealth={connectionHealth} systemLogs={systemLogs} storageStats={storageStats} generateTestData={handleGenerateTestData} settings={settings} /> : <AccessDenied />)}
+        {activeTab === 'guide' && (hasPermission('privilege.pilot') ? renderGuide() : <AccessDenied />)}
+      </main>
+      {editorDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
+            <div className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
+              <div><h3 className="text-3xl font-serif text-white mb-2">{activeEditorSection?.replace('_', ' ').toUpperCase()}</h3></div>
+              <button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800"><X size={24} /></button>
+            </div>
+            <div className="space-y-8 text-left">
+              {activeEditorSection === 'brand' && (
+                <>
+                  <div className="space-y-6">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4>
+                    <SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} />
+                    <SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} />
+                  </div>
+                  <div className="space-y-6">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Identity</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} />
+                      <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} />
+                      <SingleImageUploader label="Favicon (Tab Icon URL)" value={tempSettings.faviconUrl || ''} onChange={v => updateTempSettings({ faviconUrl: v })} className="h-16 w-16" />
+                    </div>
+                  </div>
+                  <div className="space-y-6 pt-6 border-t border-slate-800">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Newsletter Interaction</h4>
+                    <SettingField label="Popup Badge (Top Tag)" value={tempSettings.newsletterPopupBadge} onChange={v => updateTempSettings({ newsletterPopupBadge: v })} />
+                    <SettingField label="Popup Title" value={tempSettings.newsletterPopupTitle} onChange={v => updateTempSettings({ newsletterPopupTitle: v })} />
+                    <SettingField label="Popup Subtitle" value={tempSettings.newsletterPopupSubtitle} onChange={v => updateTempSettings({ newsletterPopupSubtitle: v })} type="textarea" rows={3} />
+                  </div>
+                  <div className="space-y-6 pt-6 border-t border-slate-800">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">SEO & Discovery</h4>
+                    <SettingField label="SEO Meta Title" value={tempSettings.seoTitle} onChange={v => updateTempSettings({ seoTitle: v })} />
+                    <SettingField label="SEO Meta Description" value={tempSettings.seoDescription} onChange={v => updateTempSettings({ seoDescription: v })} type="textarea" rows={3} />
+                  </div>
+                  <div className="space-y-6 pt-6 border-t border-slate-800">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" />
+                      <SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" />
+                      <SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" />
+                    </div>
+                  </div>
+                </>
+              )}
+              {activeEditorSection === 'nav' && (
+                <>
+                  <div className="space-y-6">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Navigation Labels</h4>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
+                      <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} />
+                      <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} />
+                      <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
+                      <SettingField label="Journal Label" value={tempSettings.navJournalLabel} onChange={v => updateTempSettings({ navJournalLabel: v })} />
+                      <SettingField label="Maison Portal Label" value={tempSettings.navPortalLabel} onChange={v => updateTempSettings({ navPortalLabel: v })} />
+                    </div>
+                  </div>
+                  <div className="pt-6 border-t border-slate-800">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Footer Signature</h4>
+                    <SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" />
+                    <div className="mt-4">
+                      <SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} />
+                    </div>
+                  </div>
+                </>
+              )}
+              {activeEditorSection === 'home' && (
+                <>
+                  <SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} />
+                  <div className="pt-6 border-t border-slate-800 space-y-6">
+                    <h4 className="text-white font-bold">About Section</h4>
+                    <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} />
+                    <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" />
+                    <SingleImageUploader label="Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} />
+                    <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} />
+                  </div>
+                  <div className="pt-6 border-t border-slate-800 space-y-6">
+                    <h4 className="text-white font-bold">Bottom Hook Section</h4>
+                    <SettingField label="Hook Title" value={tempSettings.homeBottomHookTitle} onChange={v => updateTempSettings({ homeBottomHookTitle: v })} />
+                    <SettingField label="Hook Subtitle" value={tempSettings.homeBottomHookSubtitle} onChange={v => updateTempSettings({ homeBottomHookSubtitle: v })} type="textarea" rows={3} />
+                    <SettingField label="Button Text" value={tempSettings.homeBottomHookButtonText} onChange={v => updateTempSettings({ homeBottomHookButtonText: v })} />
+                  </div>
+                  <div className="pt-6 border-t border-slate-800 space-y-6">
+                    <h4 className="text-white font-bold">Trust Signals</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {[1,2,3].map(i => (<div key={i} className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label={`Item ${i} Title`} value={(tempSettings as any)[`homeTrustItem${i}Title`]} onChange={v => updateTempSettings({ [`homeTrustItem${i}Title`]: v })} /><SettingField label={`Item ${i} Desc`} value={(tempSettings as any)[`homeTrustItem${i}Desc`]} onChange={v => updateTempSettings({ [`homeTrustItem${i}Desc`]: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={(tempSettings as any)[`homeTrustItem${i}Icon`]} onSelect={v => updateTempSettings({ [`homeTrustItem${i}Icon`]: v })} /></div>))}
+                    </div>
+                  </div>
+                </>
+              )}
+              {activeEditorSection === 'collections' && (
+                <>
+                  <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
+                  <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} />
+                  <MultiImageUploader label="Hero Images (Carousel)" images={tempSettings.productsHeroImages || []} onChange={images => updateTempSettings({ productsHeroImages: images })} />
+                  <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
+                  <div className="pt-6 border-t border-slate-800 space-y-6">
+                    <h4 className="text-white font-bold">Empty State Messaging</h4>
+                    <SettingField label="Empty Headline" value={tempSettings.productsEmptyHeadline} onChange={v => updateTempSettings({ productsEmptyHeadline: v })} />
+                    <SettingField label="Empty Description" value={tempSettings.productsEmptyDescription} onChange={v => updateTempSettings({ productsEmptyDescription: v })} type="textarea" rows={3} />
+                  </div>
+                </>
+              )}
+              {activeEditorSection === 'about' && (
+                <div className="space-y-6">
+                  <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
+                  <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} />
+                  <SingleImageUploader label="Main Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
+                  <div className="grid grid-cols-3 gap-4">
+                    <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
+                    <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
+                    <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
+                  </div>
+                  <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
+                  <SettingField label="History Content" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" />
+                  <StoryMilestonesManager milestones={tempSettings.aboutMilestones || []} onChange={m => updateTempSettings({ aboutMilestones: m })} />
+                  {['Mission', 'Community', 'Integrity'].map(type => (<div key={type} className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-4"><h5 className="text-white font-bold text-xs uppercase">{type}</h5><SettingField label="Title" value={(tempSettings as any)[`about${type}Title`]} onChange={v => updateTempSettings({ [`about${type}Title`]: v })} /><SettingField label="Body" value={(tempSettings as any)[`about${type}Body`]} onChange={v => updateTempSettings({ [`about${type}Body`]: v })} type="textarea" rows={3} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Icon</label><IconPicker selected={(tempSettings as any)[`about${type}Icon`]} onSelect={v => updateTempSettings({ [`about${type}Icon`]: v })} /></div>))}
+                  <SingleImageUploader label="Founder Signature" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-48" />
+                  <MultiImageUploader label="Gallery Spread" images={tempSettings.aboutGalleryImages || []} onChange={imgs => updateTempSettings({ aboutGalleryImages: imgs })} />
+                </div>
+              )}
+              {activeEditorSection === 'contact' && (
+                <div className="space-y-6">
+                  <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} />
+                  <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} />
+                    <SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} />
+                    <SettingField label="WhatsApp" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} />
+                    <SettingField label="Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} />
+                  </div>
+                  <div className="pt-6 border-t border-slate-800 space-y-6">
+                    <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Form Submission Feedback</h4>
+                    <div className="grid md:grid-cols-1 gap-4">
+                      <SettingField label="Success Message Title" value={tempSettings.contactSuccessTitle} onChange={v => updateTempSettings({ contactSuccessTitle: v })} />
+                      <SettingField label="Success Message Body" value={tempSettings.contactSuccessMessage} onChange={v => updateTempSettings({ contactSuccessMessage: v })} type="textarea" rows={3} />
+                    </div>
+                  </div>
+                  <SocialLinksManager links={tempSettings.socialLinks || []} onChange={links => updateTempSettings({ socialLinks: links })} />
+                </div>
+              )}
+              {activeEditorSection === 'legal' && (
+                <div className="space-y-8">
+                  {['Disclosure', 'Privacy', 'Terms'].map(key => { const base = key.toLowerCase(); return (<div key={key} className="space-y-4"><SettingField label={`${key} Page Title`} value={(tempSettings as any)[`${base}Title`]} onChange={v => updateTempSettings({ [`${base}Title`]: v })} /><SettingField label={`${key} Content (Markdown)`} value={(tempSettings as any)[`${base}Content`]} onChange={v => updateTempSettings({ [`${base}Content`]: v })} type="textarea" rows={10} /></div>); })}
+                </div>
+              )}
+              {activeEditorSection === 'integrations' && (
+                <div className="space-y-6">
+                  <IntegrationGuide />
+                  <div className="grid grid-cols-2 gap-4">
+                    <SettingField label="Google Analytics ID" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
+                    <SettingField label="Meta Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
+                    <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
+                    <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
+                  </div>
+                  <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
+                    <div className="flex items-center justify-between"><h5 className="text-white font-bold text-xs uppercase">Commerce Engine</h5><div onClick={() => updateTempSettings({ enableDirectSales: !tempSettings.enableDirectSales })} className={`flex items-center gap-3 cursor-pointer px-3 py-1 rounded-full border transition-all ${tempSettings.enableDirectSales ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}><span className="text-[9px] font-black uppercase tracking-widest">Enable Direct Sales</span><div className={`w-3 h-3 rounded-full ${tempSettings.enableDirectSales ? 'bg-green-500' : 'bg-slate-600'}`}></div></div></div>
+                    <div className="grid grid-cols-2 gap-4"><SettingField label="Currency Code" value={tempSettings.currency} onChange={v => updateTempSettings({ currency: v })} /><SettingField label="Yoco Public Key" value={tempSettings.yocoPublicKey} onChange={v => updateTempSettings({ yocoPublicKey: v })} /><SettingField label="PayFast Merchant ID" value={tempSettings.payfastMerchantId} onChange={v => updateTempSettings({ payfastMerchantId: v })} /><SettingField label="PayFast Merchant Key" value={tempSettings.payfastMerchantKey} onChange={v => updateTempSettings({ payfastMerchantKey: v })} /></div>
+                    <SettingField label="Zapier Webhook URL" value={tempSettings.zapierWebhookUrl} onChange={v => updateTempSettings({ zapierWebhookUrl: v })} />
+                    <SettingField label="Banking Details (EFT)" value={tempSettings.bankDetails} onChange={v => updateTempSettings({ bankDetails: v })} type="textarea" rows={3} />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="pt-10 mt-10 border-t border-slate-800 flex gap-4">
+              <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl shadow-lg shadow-primary/20">Apply Changes</button>
+              <button onClick={() => setEditorDrawerOpen(false)} className="flex-1 py-4 bg-slate-900 text-slate-500 font-black uppercase text-xs rounded-xl hover:text-white transition-colors">Discard</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

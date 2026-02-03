@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Mail, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { useSettings } from '../App';
 import { Subscriber } from '../types';
 
 const NewsletterPopup: React.FC = () => {
-  const { updateData } = useSettings();
+  const { settings, updateData } = useSettings();
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -80,8 +81,11 @@ const NewsletterPopup: React.FC = () => {
            />
            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
            <div className="absolute bottom-8 left-8 text-white">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-2">Exclusive Access</p>
-              <h3 className="text-3xl font-serif leading-none">Join the <br/> <span className="italic text-primary">Inner Circle</span></h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-2">{settings.newsletterPopupBadge}</p>
+              <h3 className="text-3xl font-serif leading-none">
+                {settings.newsletterPopupTitle.split(' ').slice(0, -2).join(' ')} <br/> 
+                <span className="italic text-primary">{settings.newsletterPopupTitle.split(' ').slice(-2).join(' ')}</span>
+              </h3>
            </div>
         </div>
 
@@ -97,10 +101,10 @@ const NewsletterPopup: React.FC = () => {
              </div>
            ) : (
              <>
-               <div className="mb-8">
+               <div className="mb-8 text-left">
                  <h3 className="text-2xl font-bold text-slate-900 mb-2">Stay in the Loop</h3>
                  <p className="text-slate-500 font-light leading-relaxed text-sm">
-                   Subscribe to receive curated fashion updates, secret sale notifications, and styling tips directly to your inbox.
+                   {settings.newsletterPopupSubtitle}
                  </p>
                </div>
 
