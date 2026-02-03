@@ -3,14 +3,26 @@ import React, { useState, useEffect } from 'react';
 import { X, Mail, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { useSettings } from '../App';
 import { Subscriber } from '../types';
+import { useLocation } from 'react-router-dom';
 
 const NewsletterPopup: React.FC = () => {
   const { settings, updateData } = useSettings();
+  const location = useLocation();
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
+  // Don't show popup on admin or auth pages
+  const isHiddenPage = location.pathname.startsWith('/admin') || 
+                       location.pathname === '/login' || 
+                       location.pathname === '/client-login';
+
   useEffect(() => {
+    if (isHiddenPage) {
+      setIsVisible(false);
+      return;
+    }
+
     const dismissed = sessionStorage.getItem('newsletter_popup_dismissed');
     if (!dismissed) {
       const timer = setTimeout(() => {
@@ -18,7 +30,7 @@ const NewsletterPopup: React.FC = () => {
       }, 10000); // Show after 10 seconds
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isHiddenPage]);
 
   const handleDismiss = () => {
     setIsVisible(false);
@@ -52,10 +64,10 @@ const NewsletterPopup: React.FC = () => {
     }
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || isHiddenPage) return null;
 
-  // Defensive logic for string splitting
-  const popupTitle = settings?.newsletterPopupTitle || "Exclusive Access";
+  // Extremely defensive logic for string splitting
+  const popupTitle = String(settings?.newsletterPopupTitle || "Exclusive Access");
   const titleWords = popupTitle.split(' ');
   const mainPart = titleWords.length > 2 ? titleWords.slice(0, -2).join(' ') : (titleWords.length > 1 ? titleWords[0] : "");
   const accentPart = titleWords.length > 2 ? titleWords.slice(-2).join(' ') : (titleWords.length > 1 ? titleWords[1] : titleWords[0]);

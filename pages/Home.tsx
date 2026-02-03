@@ -23,7 +23,7 @@ const Home: React.FC = () => {
   const { settings, categories } = useSettings();
 
   // Defensive logic for string splitting
-  const hookTitle = settings?.homeBottomHookTitle || "The Future of Taste.";
+  const hookTitle = String(settings?.homeBottomHookTitle || "The Future of Taste.");
   const titleWords = hookTitle.split(' ');
   const mainTitle = titleWords.length > 1 ? titleWords.slice(0, -1).join(' ') : titleWords[0];
   const lastTitleWord = titleWords.length > 1 ? titleWords.slice(-1) : "";
