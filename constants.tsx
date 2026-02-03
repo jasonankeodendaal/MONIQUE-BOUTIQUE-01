@@ -1007,10 +1007,10 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: 'Monique Boutique',
-  slogan: 'Your Bridge to Global Style',
-  companyLogo: 'MB',
-  companyLogoUrl: 'https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png',
+  companyName: "Monique's Curated Style",
+  slogan: 'Your Bridge to Global Trends',
+  companyLogo: 'MC',
+  companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
@@ -1033,7 +1033,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   footerCopyrightText: "All rights reserved.",
 
   // Home Page Content
-  homeHeroBadge: 'Kasi Couture Exclusive',
+  homeHeroBadge: 'Exclusive Curation',
   homeAboutTitle: 'Me and My Story.',
   homeAboutDescription: 'I built this bridge page to share my journey in affiliate marketing. Here I showcase my favorite finds from programs like Shein, offering you a personal look at the products I love and recommend.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
@@ -1119,13 +1119,13 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
 #### 1. Introduction & Transparency Commitment
 
-Monique Boutique (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
+Monique's Curated Style (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
 
 This Disclosure Statement is intended to inform you that we participate in various affiliate marketing programs. These programs are designed to provide a means for sites to earn advertising fees by advertising and linking to third-party merchant websites.
 
 #### 2. The Nature of Affiliate Marketing (Bridge Page Notice)
 
-**IMPORTANT:** Monique Boutique functions exclusively as a **Bridge Page** or "curation portfolio." 
+**IMPORTANT:** Monique's Curated Style functions exclusively as a **Bridge Page** or "curation portfolio." 
 
 *   **We Are Not a Retailer:** We do not manufacture, stock, warehouse, package, or ship any products.
 *   **No Transactional Relationship:** We do not process payments, handle credit card information, or manage order fulfillment.
@@ -1141,7 +1141,7 @@ When you click on our affiliate links and make a qualifying purchase, we may rec
 
 #### 4. Affiliate Program Participation
 
-Monique Boutique is a participant in several affiliate advertising programs, including but not limited to:
+Monique's Curated Style is a participant in several affiliate advertising programs, including but not limited to:
 
 *   **SHEIN Affiliate Program:** We curate and link to fashion items sold on Shein.com.
 *   **Amazon Services LLC Associates Program:** An affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, we earn from qualifying purchases.
@@ -1166,7 +1166,7 @@ Because we do not manufacture or sell the products:
 
 If you have any questions regarding this disclosure or our affiliate relationships, please contact us at:
 
-**Monique Boutique Compliance**
+**Compliance Dept.**
 Email: moniqueboutique101@gmail.com
 Phone: +27 76 836 0325
 Address: Mokopane, Limpopo, 0601`,
@@ -1178,9 +1178,9 @@ Address: Mokopane, Limpopo, 0601`,
 
 #### 1. Introduction
 
-Monique Boutique ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
+Monique's Curated Style ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
 
-This policy applies to the **Bridge Page System** and curation portfolio operated by Monique Boutique.
+This policy applies to the **Bridge Page System** and curation portfolio operated by the Site.
 
 #### 2. The Data We Collect About You
 
@@ -1225,7 +1225,7 @@ We will only use your personal data when the law allows us to. Most commonly, we
 
 Our website uses cookies to distinguish you from other users of our website. This helps us to provide you with a good experience when you browse our website and also allows us to improve our site.
 
-*   **Affiliate Cookies:** When you click a "Shop" link, a tracking cookie is placed on your device by the affiliate network (not by us directly). This cookie typically lasts 30-90 days and allows the merchant to know you came from Monique Boutique.
+*   **Affiliate Cookies:** When you click a "Shop" link, a tracking cookie is placed on your device by the affiliate network (not by us directly). This cookie typically lasts 30-90 days and allows the merchant to know you came from this site.
 *   **Analytics Cookies:** We use Google Analytics to measure traffic and usage trends.
 *   **Marketing Cookies:** We use pixels from Facebook, TikTok, and Pinterest to re-target visitors with relevant ads on those platforms.
 
@@ -1283,24 +1283,24 @@ Address: Mokopane, Limpopo, 0601`,
 
 #### 1. Acceptance of Terms
 
-By accessing and using the website Monique Boutique (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
+By accessing and using the website Monique's Curated Style (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
 
 #### 2. Description of Service (The "Bridge Page" Model)
 
-Monique Boutique operates as a content curation and affiliate marketing bridge page.
+The Site operates as a content curation and affiliate marketing bridge page.
 
-*   **NOT A RETAILER:** You acknowledge that Monique Boutique is **not** an online store, retailer, or manufacturer. We do not sell products directly.
+*   **NOT A RETAILER:** You acknowledge that this Site is **not** an online store, retailer, or manufacturer. We do not sell products directly.
 *   **CURATION ONLY:** Our service is limited to the aggregation, display, review, and linking of products sold by third-party vendors.
-*   **NO CONTRACT OF SALE:** No contract of sale is formed between you and Monique Boutique when you click a link. The contract of sale is formed solely between you and the third-party merchant (e.g., Shein) upon checkout on their respective platform.
+*   **NO CONTRACT OF SALE:** No contract of sale is formed between you and the Site when you click a link. The contract of sale is formed solely between you and the third-party merchant (e.g., Shein) upon checkout on their respective platform.
 
 #### 3. Intellectual Property Rights
 
-*   **Our Content:** The design, layout, graphics, text, logo, and code of this Site are the intellectual property of Monique Boutique and are protected by copyright and trademark laws.
+*   **Our Content:** The design, layout, graphics, text, logo, and code of this Site are the intellectual property of the Site and are protected by copyright and trademark laws.
 *   **Merchant Content:** Product images, prices, and descriptions displayed on this Site are the property of their respective owners (the merchants) and are used here under license or fair use principles for the purpose of affiliate promotion. You may not copy, reproduce, or distribute this content without express permission from the rights holder.
 
 #### 4. User Conduct
 
-You agree not to use the Site for any unlawful purpose or any purpose prohibited under this clause. You agree not to use the Site in any way that could damage the Site, the services, or the general business of Monique Boutique.
+You agree not to use the Site for any unlawful purpose or any purpose prohibited under this clause. You agree not to use the Site in any way that could damage the Site, the services, or the general business of the Site.
 
 You further agree not to:
 *   Harass, abuse, or threaten others or otherwise violate any person's legal rights.
@@ -1312,7 +1312,7 @@ You further agree not to:
 
 #### 5. Third-Party Links and Services
 
-The Site may contain links to other websites ("Linked Sites"). The Linked Sites are not under the control of Monique Boutique and we are not responsible for the contents of any Linked Site, including without limitation any link contained in a Linked Site, or any changes or updates to a Linked Site. Monique Boutique is providing these links to you only as a convenience, and the inclusion of any link does not imply endorsement by Monique Boutique of the site or any association with its operators.
+The Site may contain links to other websites ("Linked Sites"). The Linked Sites are not under the control of the Site and we are not responsible for the contents of any Linked Site, including without limitation any link contained in a Linked Site, or any changes or updates to a Linked Site. The Site is providing these links to you only as a convenience, and the inclusion of any link does not imply endorsement by the Site of the site or any association with its operators.
 
 **You acknowledge and agree that your use of third-party websites is at your own risk and subject to the terms and conditions of use for such sites.**
 
@@ -1320,7 +1320,7 @@ The Site may contain links to other websites ("Linked Sites"). The Linked Sites 
 
 THE SITE AND ITS CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT ANY WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
 
-MONIQUE BOUTIQUE DOES NOT WARRANT THAT:
+THE SITE DOES NOT WARRANT THAT:
 (A) THE SITE WILL FUNCTION UNINTERRUPTED, SECURE, OR AVAILABLE AT ANY PARTICULAR TIME OR LOCATION;
 (B) ANY ERRORS OR DEFECTS WILL BE CORRECTED;
 (C) THE SITE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS; OR
@@ -1328,7 +1328,7 @@ MONIQUE BOUTIQUE DOES NOT WARRANT THAT:
 
 #### 7. Limitation of Liability
 
-TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL MONIQUE BOUTIQUE, ITS AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY INDIRECT, PUNITIVE, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, INCLUDING WITHOUT LIMITATION DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA, OR OTHER INTANGIBLE LOSSES, ARISING OUT OF OR RELATING TO THE USE OF, OR INABILITY TO USE, THIS SITE.
+TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE SITE, ITS AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY INDIRECT, PUNITIVE, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, INCLUDING WITHOUT LIMITATION DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA, OR OTHER INTANGIBLE LOSSES, ARISING OUT OF OR RELATING TO THE USE OF, OR INABILITY TO USE, THIS SITE.
 
 SPECIFICALLY, WE ARE NOT LIABLE FOR:
 *   **PRODUCT DEFECTS:** Any issues with products purchased from third-party merchants (sizing, quality, damage).
@@ -1337,7 +1337,7 @@ SPECIFICALLY, WE ARE NOT LIABLE FOR:
 
 #### 8. Indemnification
 
-You agree to defend, indemnify and hold harmless Monique Boutique and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, or b) a breach of these Terms.
+You agree to defend, indemnify and hold harmless the Site and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, or b) a breach of these Terms.
 
 #### 9. Changes to Terms
 

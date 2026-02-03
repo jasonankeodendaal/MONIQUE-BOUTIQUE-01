@@ -448,7 +448,7 @@ const App: React.FC = () => {
 
       const metaTitle = settings.companyName;
       const metaDesc = settings.slogan || settings.footerDescription;
-      const metaImage = settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png";
+      const metaImage = settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png";
 
       updateOrAddMeta('og:title', metaTitle);
       updateOrAddMeta('og:description', metaDesc);
@@ -478,7 +478,7 @@ const App: React.FC = () => {
       description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
       id: "/", start_url: "/", display: "standalone", orientation: "portrait-primary", background_color: "#FDFCFB",
       theme_color: settings.primaryColor || "#D4AF37",
-      icons: [{ src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png", sizes: "512x512", type: "image/png", purpose: "any" }]
+      icons: [{ src: settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png", sizes: "512x512", type: "image/png", purpose: "any" }]
     };
     const stringManifest = JSON.stringify(manifest);
     const blob = new Blob([stringManifest], {type: 'application/json'});
