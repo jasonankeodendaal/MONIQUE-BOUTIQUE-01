@@ -6,7 +6,7 @@ import CategoryGrid from '../components/CategoryGrid';
 import TestimonialSlider from '../components/TestimonialSlider';
 import { useNavigate, Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight, ShoppingBag, History } from 'lucide-react';
+import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight, ShoppingBag, History, CheckCircle } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
@@ -36,11 +36,28 @@ const Home: React.FC = () => {
       {/* 2. Primary Narrative Bridge - Me and My Story */}
       <AboutSection />
 
+      {/* 2.5 Trusted Partners Cloud (Essential for Bridge Pages) */}
+      <section className="py-20 bg-white border-y border-slate-50">
+        <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center mb-12">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Our Curated Network</span>
+           </div>
+           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
+              {/* Using generic stylish placeholders for luxury brands often linked by affiliate curators */}
+              <div className="text-xl font-serif font-bold italic tracking-tighter">Nordstrom</div>
+              <div className="text-xl font-serif font-bold tracking-widest">FARFETCH</div>
+              <div className="text-xl font-serif font-bold italic">Saks Fifth</div>
+              <div className="text-xl font-serif font-bold">REVOLVE</div>
+              <div className="text-xl font-serif font-bold tracking-tight">ASOS Luxe</div>
+              <div className="text-xl font-serif font-bold italic underline">VOGUE</div>
+           </div>
+        </div>
+      </section>
+
       <SectionDivider />
 
       {/* 3. Category Quick Entry */}
       <section className="py-12 md:py-20 bg-white relative overflow-hidden">
-        {/* Abstract Background Element */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
         
         <div className="max-w-7xl mx-auto px-6 relative z-10">

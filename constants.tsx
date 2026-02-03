@@ -427,7 +427,7 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
   {
     id: 'e1',
     name: 'Sample Connection',
-    email: hello@example.com,
+    email: 'hello@example.com',
     whatsapp: '',
     subject: 'Consultation',
     message: 'Welcome to your new dashboard. This is a sample enquiry.',

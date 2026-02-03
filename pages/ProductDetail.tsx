@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Loader2, Quote, ShieldCheck, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, ShoppingBag, Loader2, Quote, ShieldCheck, Sparkles, Award } from 'lucide-react';
 import { useSettings } from '../App';
 import { useCart } from '../context/CartContext';
 import { Review, Product } from '../types';
@@ -239,7 +239,7 @@ const ProductDetail: React.FC = () => {
         </div>
 
         {/* Product Information */}
-        <div className="w-full lg:w-2/5 lg:h-full lg:overflow-y-auto bg-white p-6 md:p-12 lg:pt-32">
+        <div className="w-full lg:w-2/5 lg:h-full lg:overflow-y-auto bg-white p-6 md:p-12 lg:pt-32 border-l border-slate-50">
           <div className="max-w-xl mx-auto space-y-10 pb-20">
             
             <div className="space-y-4">
@@ -270,39 +270,42 @@ const ProductDetail: React.FC = () => {
                   </div>
                ) : (
                   <div className="space-y-4">
-                    <button onClick={handleAffiliateClick} className="w-full py-5 bg-slate-900 text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:bg-primary hover:text-slate-900 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3"><span>Secure Acquisition</span><ExternalLink size={16} /></button>
-                    <p className="text-[10px] text-center text-slate-400">Transactions processed securely by our authorized retail partner.</p>
+                    <button onClick={handleAffiliateClick} className="w-full py-5 bg-slate-900 text-white font-black uppercase tracking-[0.4em] text-[11px] rounded-2xl hover:bg-primary hover:text-slate-900 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3"><span>Secure Acquisition</span><ExternalLink size={18} /></button>
+                    <div className="flex items-center justify-center gap-2">
+                       <ShieldCheck size={12} className="text-green-500" />
+                       <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Bridging you to a verified partner</p>
+                    </div>
                   </div>
                )}
             </div>
 
             {/* CURATOR'S NOTE - Re-styled as Letter of Recommendation */}
-            <div className="bg-[#FDFBF7] rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group border-[0.5px] border-primary/30 shadow-[inset_0_0_80px_rgba(212,175,55,0.05),0_30px_60px_-15px_rgba(0,0,0,0.05)]">
+            <div className="bg-[#FDFBF7] rounded-[2.5rem] p-10 md:p-14 relative overflow-hidden group border border-primary/20 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)]">
                {/* Paper Texture Overlay */}
-               <div className="absolute inset-0 opacity-[0.25] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]"></div>
+               <div className="absolute inset-0 opacity-[0.2] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]"></div>
                
                <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="absolute top-0 right-0 p-6 opacity-20 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
-                    <Quote size={60} className="text-primary" />
+                  <div className="absolute top-4 right-4 p-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
+                    <Award size={80} className="text-primary" />
                   </div>
 
-                  <div className="mb-8 flex flex-col items-center">
-                     <span className="text-[9px] font-black uppercase tracking-[0.4em] text-primary/60 mb-2">Private Recommendation</span>
+                  <div className="mb-10 flex flex-col items-center">
+                     <span className="text-[9px] font-black uppercase tracking-[0.5em] text-primary/70 mb-3 block">Personal Recommendation</span>
                      <h4 className="text-xs font-serif italic text-slate-400">From the desk of</h4>
-                     <h3 className="text-xl font-serif text-slate-900 mt-1">{settings.aboutFounderName}</h3>
+                     <h3 className="text-2xl font-serif text-slate-900 mt-1">{settings.aboutFounderName}</h3>
                   </div>
 
-                  <div className="w-12 h-px bg-primary/20 mb-10"></div>
+                  <div className="w-16 h-px bg-primary/20 mb-12"></div>
 
-                  <p className="text-slate-800 font-serif italic text-xl md:text-2xl leading-relaxed mb-12 max-w-lg">
+                  <p className="text-slate-800 font-serif italic text-2xl md:text-3xl leading-relaxed mb-14 max-w-lg">
                      "I hand-selected this piece specifically for its timeless silhouette and exceptional material quality. It is my professional opinion that this remains a cornerstone of any discerning wardrobe."
                   </p>
                   
                   <div className="flex flex-col items-center gap-2">
-                    <Signature className="h-14 text-primary/80" />
-                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-primary/5 w-32 justify-center">
-                       <ShieldCheck size={12} className="text-primary/40" />
-                       <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Verified Access</span>
+                    <Signature className="h-16 text-primary/80" />
+                    <div className="flex items-center gap-3 mt-6 pt-6 border-t border-primary/10 w-40 justify-center">
+                       <ShieldCheck size={14} className="text-primary/50" />
+                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Verified Access</span>
                     </div>
                   </div>
                </div>
@@ -311,22 +314,22 @@ const ProductDetail: React.FC = () => {
             {/* Description & Features */}
             <div className="space-y-4 text-left">
               <p className="text-slate-600 leading-relaxed font-light">{product.description}</p>
-              {product.features && (<ul className="space-y-2">{product.features.map((feature, idx) => (<li key={idx} className="flex items-start gap-3 text-sm text-slate-600"><CheckCircle size={16} className="text-primary mt-0.5 flex-shrink-0" /><span>{feature}</span></li>))}</ul>)}
+              {product.features && (<ul className="space-y-3">{product.features.map((feature, idx) => (<li key={idx} className="flex items-start gap-3 text-sm text-slate-600"><CheckCircle size={18} className="text-primary mt-0.5 flex-shrink-0" /><span>{feature}</span></li>))}</ul>)}
             </div>
 
             {/* Specifications */}
             {product.specifications && Object.keys(product.specifications).length > 0 && (
-               <div className="border border-slate-100 rounded-2xl overflow-hidden">
-                  <button onClick={() => setOpenAccordion(openAccordion === 'specs' ? null : 'specs')} className="w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"><span className="text-xs font-black uppercase tracking-widest text-slate-900">Technical Specifications</span>{openAccordion === 'specs' ? <Minus size={14}/> : <Plus size={14}/>}</button>
-                  {openAccordion === 'specs' && (<div className="px-6 py-4 bg-white grid grid-cols-2 gap-4 text-left">{Object.entries(product.specifications).map(([key, value]) => (<div key={key}><span className="block text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">{key}</span><span className="text-sm text-slate-700">{value}</span></div>))}</div>)}
+               <div className="border border-slate-100 rounded-3xl overflow-hidden">
+                  <button onClick={() => setOpenAccordion(openAccordion === 'specs' ? null : 'specs')} className="w-full px-8 py-5 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors"><span className="text-[11px] font-black uppercase tracking-widest text-slate-900">Technical Specifications</span>{openAccordion === 'specs' ? <Minus size={14}/> : <Plus size={14}/>}</button>
+                  {openAccordion === 'specs' && (<div className="px-8 py-6 bg-white grid grid-cols-2 gap-x-8 gap-y-6 text-left">{Object.entries(product.specifications).map(([key, value]) => (<div key={key}><span className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5">{key}</span><span className="text-sm text-slate-800 font-medium">{value}</span></div>))}</div>)}
                </div>
             )}
 
             {/* Reviews */}
-            <div className="pt-8 space-y-8 text-left">
-               <div className="flex items-center justify-between"><h3 className="text-xl font-serif text-slate-900">Client Perspectives</h3><button onClick={() => setOpenAccordion(openAccordion === 'review' ? null : 'review')} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-slate-900 transition-colors">Write Review</button></div>
-               {openAccordion === 'review' && (<form onSubmit={handleSubmitReview} className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4 animate-in slide-in-from-top-4"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Rating</label><div className="flex gap-1">{[1,2,3,4,5].map(star => (<button type="button" key={star} onClick={() => setNewReview({...newReview, rating: star})} className="focus:outline-none"><Star size={20} fill={star <= newReview.rating ? "#D4AF37" : "none"} className={star <= newReview.rating ? "text-primary" : "text-slate-300"} /></button>))}</div></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Name</label><input type="text" required value={newReview.userName} onChange={e => setNewReview({...newReview, userName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white" placeholder="Your Name" /></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Experience</label><textarea rows={3} required value={newReview.comment} onChange={e => setNewReview({...newReview, comment: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white resize-none" placeholder="Share your thoughts..." /></div><button disabled={isSubmittingReview} className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-colors disabled:opacity-50">{isSubmittingReview ? 'Submitting...' : 'Post Review'}</button></form>)}
-               <div className="space-y-6">{reviews.length > 0 ? reviews.map(review => (<div key={review.id} className="border-b border-slate-100 pb-6 last:border-0"><div className="flex items-center justify-between mb-2"><span className="font-bold text-slate-900 text-sm">{review.userName}</span><span className="text-[10px] text-slate-400 uppercase font-medium">{new Date(review.createdAt).toLocaleDateString()}</span></div><div className="flex gap-0.5 text-primary mb-2">{[1,2,3,4,5].map(s => <Star key={s} size={10} fill={s <= review.rating ? "currentColor" : "none"} />)}</div><p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p></div>)) : (<div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200"><p className="text-slate-400 text-xs">No reviews yet. Be the first to share your experience.</p></div>)}</div>
+            <div className="pt-8 space-y-10 text-left">
+               <div className="flex items-center justify-between border-b border-slate-100 pb-6"><h3 className="text-2xl font-serif text-slate-900">Client Perspectives</h3><button onClick={() => setOpenAccordion(openAccordion === 'review' ? null : 'review')} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-slate-900 transition-colors bg-primary/10 px-4 py-2 rounded-full">Write Review</button></div>
+               {openAccordion === 'review' && (<form onSubmit={handleSubmitReview} className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 space-y-6 animate-in slide-in-from-top-4"><div className="space-y-3"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Rating</label><div className="flex gap-2">{[1,2,3,4,5].map(star => (<button type="button" key={star} onClick={() => setNewReview({...newReview, rating: star})} className="focus:outline-none hover:scale-110 transition-transform"><Star size={24} fill={star <= newReview.rating ? "#D4AF37" : "none"} className={star <= newReview.rating ? "text-primary" : "text-slate-300"} /></button>))}</div></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Name</label><input type="text" required value={newReview.userName} onChange={e => setNewReview({...newReview, userName: e.target.value})} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white" placeholder="Your Name" /></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Experience</label><textarea rows={4} required value={newReview.comment} onChange={e => setNewReview({...newReview, comment: e.target.value})} className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-slate-900 outline-none text-sm bg-white resize-none" placeholder="Share your thoughts..." /></div><button disabled={isSubmittingReview} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold uppercase text-[11px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-xl disabled:opacity-50">{isSubmittingReview ? 'Submitting...' : 'Post My Perspective'}</button></form>)}
+               <div className="space-y-8">{reviews.length > 0 ? reviews.map(review => (<div key={review.id} className="border-b border-slate-100 pb-8 last:border-0"><div className="flex items-center justify-between mb-3"><span className="font-bold text-slate-900 text-base">{review.userName}</span><span className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{new Date(review.createdAt).toLocaleDateString()}</span></div><div className="flex gap-1 text-primary mb-3">{[1,2,3,4,5].map(s => <Star key={s} size={12} fill={s <= review.rating ? "currentColor" : "none"} />)}</div><p className="text-slate-600 text-sm leading-relaxed font-light">"{review.comment}"</p></div>)) : (<div className="text-center py-12 bg-slate-50 rounded-[2.5rem] border border-dashed border-slate-200"><p className="text-slate-400 text-sm">No perspectives recorded yet. Be the first to share your experience.</p></div>)}</div>
             </div>
 
           </div>
@@ -335,15 +338,15 @@ const ProductDetail: React.FC = () => {
       
       {isShareOpen && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-            <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm relative shadow-2xl">
-               <button onClick={() => setIsShareOpen(false)} className="absolute top-4 right-4 p-2 bg-slate-50 rounded-full hover:bg-slate-100"><X size={20} className="text-slate-500"/></button>
-               <h3 className="text-xl font-serif text-slate-900 mb-2 text-center">Share This Piece</h3>
-               <p className="text-center text-slate-400 text-xs mb-6">Select a platform or copy the ad text below.</p>
-               <div className="grid grid-cols-4 gap-4 mb-6">
-                  {socialShares.map((s) => (<a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 group"><div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${s.color} ${s.text} group-hover:scale-110 transition-transform`}><s.icon size={20} /></div><span className="text-[10px] font-bold text-slate-500 uppercase">{s.name}</span></a>))}
+            <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-sm relative shadow-2xl">
+               <button onClick={() => setIsShareOpen(false)} className="absolute top-6 right-6 p-2 bg-slate-50 rounded-full hover:bg-slate-100 transition-colors"><X size={20} className="text-slate-500"/></button>
+               <h3 className="text-2xl font-serif text-slate-900 mb-2 text-center">Share Curation</h3>
+               <p className="text-center text-slate-400 text-xs mb-8">Spread the vision with your collective.</p>
+               <div className="grid grid-cols-4 gap-4 mb-8">
+                  {socialShares.map((s) => (<a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-3 group"><div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${s.color} ${s.text} group-hover:scale-110 transition-transform`}><s.icon size={24} /></div><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{s.name}</span></a>))}
                </div>
-               <div className="relative"><div className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 overflow-hidden whitespace-nowrap text-ellipsis">{sharePayload.text.substring(0, 40)}...</div><button onClick={() => { navigator.clipboard.writeText(`${sharePayload.text}\n${sharePayload.url}`); setCopySuccess(true); setTimeout(() => setCopySuccess(false), 2000); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-white shadow-sm border border-slate-100 rounded-lg hover:text-primary transition-colors tooltip" title="Copy full ad text">{copySuccess ? <Check size={16} className="text-green-500"/> : <Copy size={16}/>}</button></div>
-               {copySuccess && <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase tracking-widest">Ad copied to clipboard!</p>}
+               <div className="relative"><div className="w-full pl-5 pr-14 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500 overflow-hidden whitespace-nowrap text-ellipsis font-medium">{sharePayload.text.substring(0, 40)}...</div><button onClick={() => { navigator.clipboard.writeText(`${sharePayload.text}\n${sharePayload.url}`); setCopySuccess(true); setTimeout(() => setCopySuccess(false), 2000); }} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white shadow-sm border border-slate-100 rounded-xl hover:text-primary transition-colors" title="Copy full ad text">{copySuccess ? <Check size={18} className="text-green-500"/> : <Copy size={18}/>}</button></div>
+               {copySuccess && <p className="text-[10px] text-green-500 text-center mt-3 font-black uppercase tracking-widest animate-in fade-in">Link & Meta Transmitted!</p>}
             </div>
          </div>
       )}
