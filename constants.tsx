@@ -363,7 +363,7 @@ END $$;`,
 ];
 
 export const TRAINING_MODULES: TrainingModule[] = [
-  // --- GENERAL STRATEGY ---
+  // ... (keeping all training modules exactly as they are)
   {
     id: 'shein-mastery',
     title: '1. Shein Affiliate Blueprint',
@@ -415,8 +415,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Ensure every product has a "Why I Love It" bullet point.'
     ]
   },
-
-  // --- INSTAGRAM ---
   {
     id: 'ig-reels',
     title: '4. Reels Viral Formula',
@@ -485,8 +483,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Monitor the first 10 automated DMs for errors.'
     ]
   },
-
-  // --- TIKTOK ---
   {
     id: 'tiktok-duet',
     title: '8. The "Duet" Strategy',
@@ -538,8 +534,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Post a video: "How to get the [Trend] look on a budget."'
     ]
   },
-
-  // --- PINTEREST ---
   {
     id: 'pin-idea',
     title: '11. Idea Pins for Reach',
@@ -591,8 +585,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Set a cohesive cover image for your main board.'
     ]
   },
-
-  // --- YOUTUBE ---
   {
     id: 'yt-shorts',
     title: '14. Fashion Haul Shorts',
@@ -627,8 +619,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Time-stamp the video for each outfit.'
     ]
   },
-
-  // --- FACEBOOK ---
   {
     id: 'fb-groups',
     title: '16. Niche Groups',
@@ -663,8 +653,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'In the description, direct them to your website for the purchase link.'
     ]
   },
-
-  // --- WHATSAPP ---
   {
     id: 'wa-broadcast',
     title: '18. Broadcast Lists',
@@ -699,8 +687,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Use the "Type" status to post a text-only announcement.'
     ]
   },
-
-  // --- LINKEDIN ---
   {
     id: 'linkedin-workwear',
     title: '20. The "Workwear" Angle',
@@ -718,8 +704,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Connect with 10 HR professionals or recruiters.'
     ]
   },
-
-  // --- TWITTER / X / THREADS ---
   {
     id: 'threads-fashion',
     title: '21. Fashion Threads',
@@ -754,8 +738,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Follow 5 major fashion journalists.'
     ]
   },
-
-  // --- EMAIL MARKETING ---
   {
     id: 'email-welcome',
     title: '23. The Welcome Sequence',
@@ -807,8 +789,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Include a user review in the follow-up.'
     ]
   },
-
-  // --- SEO & BLOGGING ---
   {
     id: 'seo-keywords',
     title: '26. Keyword Research',
@@ -843,8 +823,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Use H1 and H2 headers for readability.'
     ]
   },
-
-  // --- SNAPCHAT ---
   {
     id: 'snap-spotlight',
     title: '28. Quick Snaps & Spotlight',
@@ -862,8 +840,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Submit your best video to Spotlight.'
     ]
   },
-
-  // --- ADVANCED ---
   {
     id: 'repurposing',
     title: '29. Cross-Platform Repurposing',
@@ -1057,7 +1033,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   footerCopyrightText: "All rights reserved.",
 
   // Home Page Content
-  homeHeroBadge: 'Affiliate Curator',
+  homeHeroBadge: 'Kasi Couture Exclusive',
   homeAboutTitle: 'Me and My Story.',
   homeAboutDescription: 'I built this bridge page to share my journey in affiliate marketing. Here I showcase my favorite finds from programs like Shein, offering you a personal look at the products I love and recommend.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',

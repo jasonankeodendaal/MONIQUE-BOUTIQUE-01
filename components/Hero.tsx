@@ -103,7 +103,9 @@ const Hero: React.FC = () => {
             }`}>
               <div className="flex items-center gap-4 mb-4 md:mb-8">
                 <div className="h-px w-8 md:w-12 bg-primary"></div>
-                <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">Kasi Couture Exclusive</span>
+                <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">
+                  {settings.homeHeroBadge || 'Curation Exclusive'}
+                </span>
               </div>
               
               {/* FLUID TYPOGRAPHY: Clamps between 2.5rem and 9rem based on viewport width */}
