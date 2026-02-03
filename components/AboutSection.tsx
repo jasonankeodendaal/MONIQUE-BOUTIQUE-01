@@ -45,25 +45,25 @@ const AboutSection: React.FC = () => {
                 </div>
               </div>
               
-              {/* Founder Signature Tag */}
-              <div className="absolute -bottom-10 -right-4 md:bottom-20 md:-right-20 z-30 bg-slate-900 p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-white/10 flex flex-col items-start min-w-[220px] md:min-w-[340px] transform transition-all duration-700 group-hover:translate-x-4 group-hover:-translate-y-4">
-                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Founder & Curator</span>
+              {/* Founder Signature Tag - Refined Size */}
+              <div className="absolute -bottom-6 -right-2 md:bottom-12 md:-right-16 z-30 bg-slate-900 p-5 md:p-8 rounded-[2rem] shadow-2xl border border-white/10 flex flex-col items-start min-w-[200px] md:min-w-[280px] transform transition-all duration-700 group-hover:translate-x-2 group-hover:-translate-y-2">
+                 <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+                    <span className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400">Founder & Curator</span>
                  </div>
-                 <h4 className="text-3xl md:text-5xl font-serif text-white mb-2 leading-none">{settings.aboutFounderName || "The Curator"}</h4>
+                 <h4 className="text-xl md:text-3xl font-serif text-white mb-1 leading-none">{settings.aboutFounderName || "The Curator"}</h4>
                  
-                 <div className="relative mt-2">
-                    <Signature className="h-16 md:h-20 text-primary opacity-90 group-hover:opacity-100 transition-opacity" />
-                    <span className="absolute -bottom-2 right-0 text-[10px] font-script text-white/40 italic">Personally Verified</span>
+                 <div className="relative mt-1">
+                    <Signature className="h-10 md:h-12 text-primary opacity-90 group-hover:opacity-100 transition-opacity" />
+                    <span className="absolute -bottom-1 right-0 text-[8px] font-script text-white/40 italic">Personally Verified</span>
                  </div>
                  
-                 <div className="mt-8 pt-8 border-t border-white/5 w-full flex items-center justify-between text-slate-500">
+                 <div className="mt-6 pt-6 border-t border-white/5 w-full flex items-center justify-between text-slate-500">
                     <div className="flex items-center gap-2">
-                      <PenTool size={14} className="text-primary" />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Expert Stylist</span>
+                      <PenTool size={12} className="text-primary" />
+                      <span className="text-[8px] font-black uppercase tracking-widest">Expert Stylist</span>
                     </div>
-                    <span className="text-[8px] font-bold uppercase text-slate-600">ID: CUR-001</span>
+                    <span className="text-[7px] font-bold uppercase text-slate-600">CUR-001</span>
                  </div>
               </div>
             </div>
