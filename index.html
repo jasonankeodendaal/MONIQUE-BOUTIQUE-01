@@ -1,12 +1,30 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#D4AF37" />
-    <title>Monique Boutique | Affiliate Bridge</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Monique Boutique | Your Bridge to Global Style</title>
+    <meta name="title" content="Monique Boutique | Your Bridge to Global Style" />
+    <meta name="description" content="A curated gateway to Shein and global fashion trends. Discover my personal favorites and professional fashion picks." />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://moniqueboutique.com/" />
+    <meta property="og:title" content="Monique Boutique | Your Bridge to Global Style" />
+    <meta property="og:description" content="A curated gateway to Shein and global fashion trends. Discover my personal favorites and professional fashion picks." />
+    <meta property="og:image" content="https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://moniqueboutique.com/" />
+    <meta property="twitter:title" content="Monique Boutique | Your Bridge to Global Style" />
+    <meta property="twitter:description" content="A curated gateway to Shein and global fashion trends. Discover my personal favorites and professional fashion picks." />
+    <meta property="twitter:image" content="https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png" />
+
     <link rel="icon" href="https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png" />
     <link rel="manifest" href="/manifest.json" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -71,10 +89,10 @@
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.0",
-    "@emailjs/browser": "https://esm.sh/@emailjs/browser@^4.4.1"
+    "@emailjs/browser": "https://esm.sh/@emailjs/browser@^4.4.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.3",
+    "vite": "https://esm.sh/vite@^7.3.1"
   }
 }
 </script>
@@ -86,12 +104,10 @@
       // Clean Service Worker registration with enhanced path detection
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          // Detect actual base path to prevent 404s in subdirectories or Vercel deployments
           const scriptUrl = '/sw.js';
           navigator.serviceWorker.register(scriptUrl)
             .then(reg => console.log('SW active:', reg.scope))
             .catch(err => {
-               // Fallback for relative path environments
                navigator.serviceWorker.register('./sw.js')
                  .catch(err2 => console.debug('Offline mode limited:', err2.message));
             });

@@ -1,4 +1,4 @@
-// Added React import to resolve namespace errors
+
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X } from 'lucide-react';
@@ -162,7 +162,6 @@ const ScrollToTop = () => {
   return null;
 };
 
-// --- Helper to inject external scripts ---
 const loadScript = (id: string, src: string, code?: string) => {
   if (document.getElementById(id)) return;
   const script = document.createElement('script');
@@ -178,7 +177,6 @@ const TrackingInjector = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Google Analytics
     if (settings.googleAnalyticsId) {
        loadScript('ga-script-src', `https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}`);
        loadScript('ga-script-code', '', `
@@ -189,7 +187,6 @@ const TrackingInjector = () => {
        `);
     }
     
-    // Facebook Pixel
     if (settings.facebookPixelId) {
         loadScript('fb-pixel', '', `
           !function(f,b,e,v,n,t,s)
@@ -205,7 +202,6 @@ const TrackingInjector = () => {
         `);
     }
 
-    // TikTok Pixel
     if (settings.tiktokPixelId) {
       loadScript('tiktok-pixel', '', `
         !function (w, d, t) {
@@ -216,7 +212,6 @@ const TrackingInjector = () => {
       `);
     }
 
-    // Pinterest Tag
     if (settings.pinterestTagId) {
       loadScript('pinterest-tag', '', `
         !function(e){if(!window.pintrk){window.pintrk = function () {
@@ -231,7 +226,6 @@ const TrackingInjector = () => {
     }
   }, [settings.googleAnalyticsId, settings.facebookPixelId, settings.tiktokPixelId, settings.pinterestTagId]);
 
-  // Track Page Views on route change
   useEffect(() => {
      if (typeof window !== 'undefined') {
         if ((window as any).gtag && settings.googleAnalyticsId) {
@@ -260,11 +254,9 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
   
   const getTrafficSource = () => {
     if (typeof document === 'undefined') return 'Direct';
-    
     const params = new URLSearchParams(window.location.search);
     const utmSource = params.get('utm_source') || params.get('source') || params.get('ref');
     const referrer = document.referrer.toLowerCase();
-    
     if (utmSource) {
       const cleanSource = utmSource.toLowerCase();
       if (cleanSource.includes('whatsapp')) return 'WhatsApp';
@@ -275,7 +267,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
       if (cleanSource.includes('twitter') || cleanSource.includes('x')) return 'X (Twitter)';
       return cleanSource.charAt(0).toUpperCase() + cleanSource.slice(1);
     }
-
     if (referrer.includes('facebook') || referrer.includes('fb')) return 'Facebook';
     if (referrer.includes('instagram')) return 'Instagram';
     if (referrer.includes('tiktok')) return 'TikTok';
@@ -284,16 +275,9 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
     if (referrer.includes('twitter') || referrer.includes('t.co') || referrer.includes('x.com')) return 'X (Twitter)';
     if (referrer.includes('linkedin')) return 'LinkedIn';
     if (referrer.includes('whatsapp') || referrer.includes('wa.me')) return 'WhatsApp';
-    
     if (referrer.length > 0) {
-      try {
-        const url = new URL(referrer);
-        return url.hostname.replace('www.', '');
-      } catch (e) {
-        return 'Referral';
-      }
+      try { const url = new URL(referrer); return url.hostname.replace('www.', ''); } catch (e) { return 'Referral'; }
     }
-    
     return 'Direct';
   };
 
@@ -302,78 +286,50 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
       const source = getTrafficSource();
       logEvent('view', location.pathname === '/' ? 'Bridge Home' : location.pathname, source);
     }
-
     const fetchGeo = async () => {
         if (hasTrackedGeo.current || sessionStorage.getItem('geo_tracked')) return;
-        
         const stored = localStorage.getItem('site_visitor_locations');
         const trafficSource = getTrafficSource();
-
         try {
             const ua = navigator.userAgent;
             let deviceType = "Desktop";
             if (/Mobi|Android/i.test(ua)) deviceType = "Mobile";
             if (/iPad|Tablet/i.test(ua)) deviceType = "Tablet";
-            
             let browser = "Unknown";
             if (ua.indexOf("Chrome") > -1) browser = "Chrome";
             else if (ua.indexOf("Safari") > -1) browser = "Safari";
             else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
-
             let os = "Unknown OS";
             if (ua.indexOf("Win") !== -1) os = "Windows";
             if (ua.indexOf("Mac") !== -1) os = "MacOS";
             if (ua.indexOf("Linux") !== -1) os = "Linux";
             if (ua.indexOf("Android") !== -1) os = "Android";
             if (ua.indexOf("like Mac") !== -1) os = "iOS";
-
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
             if (data.error) return; 
-
             const visitData = {
-                ip: data.ip,
-                city: data.city,
-                region: data.region,
-                country: data.country_name,
-                code: data.country_code,
-                lat: data.latitude,
-                lon: data.longitude,
-                org: data.org,
-                device: deviceType,
-                browser: browser,
-                os: os,
-                source: trafficSource,
-                timestamp: Date.now()
+                ip: data.ip, city: data.city, region: data.region, country: data.country_name, code: data.country_code,
+                lat: data.latitude, lon: data.longitude, org: data.org, device: deviceType, browser, os, source: trafficSource, timestamp: Date.now()
             };
-
             const existing = JSON.parse(stored || '[]');
             const updated = [visitData, ...existing].slice(0, 50);
             localStorage.setItem('site_visitor_locations', JSON.stringify(updated));
             sessionStorage.setItem('geo_tracked', 'true');
             hasTrackedGeo.current = true;
-        } catch (e) {
-            console.warn("Geo-tracking skipped/blocked");
-        }
+        } catch (e) { console.warn("Geo-tracking skipped/blocked"); }
     };
-    
     fetchGeo();
   }, [location.pathname]); 
   return null;
 };
 
-// --- Inactivity Timer Hook ---
 const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      console.log("Inactivity timeout. Logging out.");
-      logout();
-    }, timeoutMs);
+    timerRef.current = setTimeout(() => { logout(); }, timeoutMs);
   }, [logout, timeoutMs]);
-
   useEffect(() => {
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
     events.forEach(event => window.addEventListener(event, resetTimer));
@@ -385,21 +341,13 @@ const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   }, [resetTimer]);
 };
 
-// Helper for lazy state initialization
 const getLocalState = <T,>(key: string, fallback: T): T => {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch (e) {
-    return fallback;
-  }
+  try { const stored = localStorage.getItem(key); return stored ? JSON.parse(stored) : fallback; } catch (e) { return fallback; }
 };
 
 const App: React.FC = () => {
-  // IMPORTANT: State initialized lazily from localStorage to ensure instant paint
   const [settings, setSettings] = useState<SiteSettings>(() => getLocalState('site_settings', INITIAL_SETTINGS));
   const [settingsId, setSettingsId] = useState<string>('global');
-  
   const [products, setProducts] = useState<Product[]>(() => getLocalState('admin_products', INITIAL_PRODUCTS));
   const [categories, setCategories] = useState<Category[]>(() => getLocalState('admin_categories', INITIAL_CATEGORIES));
   const [subCategories, setSubCategories] = useState<SubCategory[]>(() => getLocalState('admin_subcategories', INITIAL_SUBCATEGORIES));
@@ -407,76 +355,83 @@ const App: React.FC = () => {
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
   const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
-
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  
   const [connectionHealth, setConnectionHealth] = useState<{status: 'online' | 'offline', latency: number, message: string} | null>(null);
   const [systemLogs, setSystemLogs] = useState<SystemLog[]>([]);
   const [storageStats, setStorageStats] = useState<StorageStats>({ dbSize: 0, mediaSize: 0, totalRecords: 0, mediaCount: 0 });
 
   const productsRef = useRef(products);
   const statsRef = useRef(stats);
-
   useEffect(() => { productsRef.current = products; }, [products]);
   useEffect(() => { statsRef.current = stats; }, [stats]);
 
   const performLogout = useCallback(async () => {
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
-    }
+    if (isSupabaseConfigured) await supabase.auth.signOut();
     setUser(null);
   }, []);
 
-  useInactivityTimer(() => {
-    if (user && !window.location.hash.includes('login')) {
-       performLogout();
-    }
-  });
+  useInactivityTimer(() => { if (user && !window.location.hash.includes('login')) performLogout(); });
 
   const calculateStorage = useCallback(() => {
       const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats];
       const jsonString = JSON.stringify(dataSet);
       const dbBytes = new Blob([jsonString]).size;
       const totalRecs = products.length + categories.length + subCategories.length + heroSlides.length + enquiries.length + admins.length;
-      let mediaBytes = 0;
-      let mediaCnt = 0;
-
-      products.forEach(p => {
-         if (p.media) {
-           p.media.forEach(m => {
-             mediaBytes += m.size || (500 * 1024);
-             mediaCnt++;
-           });
-         }
-      });
-      heroSlides.forEach(h => {
-         mediaBytes += 1024 * 1024;
-         mediaCnt++;
-      });
-      categories.forEach(c => {
-         if (c.image) {
-            mediaBytes += 500 * 1024;
-            mediaCnt++;
-         }
-      });
-
+      let mediaBytes = 0; let mediaCnt = 0;
+      products.forEach(p => { if (p.media) { p.media.forEach(m => { mediaBytes += m.size || (500 * 1024); mediaCnt++; }); } });
+      heroSlides.forEach(h => { mediaBytes += 1024 * 1024; mediaCnt++; });
+      categories.forEach(c => { if (c.image) { mediaBytes += 500 * 1024; mediaCnt++; } });
       setStorageStats({ dbSize: dbBytes, mediaSize: mediaBytes, totalRecords: totalRecs, mediaCount: mediaCnt });
   }, [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats]);
 
+  useEffect(() => { calculateStorage(); }, [calculateStorage]);
   useEffect(() => {
-    calculateStorage();
-  }, [calculateStorage]);
-
-  useEffect(() => {
-     const checkConnection = async () => { 
-        setConnectionHealth(await measureConnection()); 
-     };
+     const checkConnection = async () => { setConnectionHealth(await measureConnection()); };
      checkConnection();
      const interval = setInterval(checkConnection, 10000);
      return () => clearInterval(interval);
   }, []);
+
+  // --- DYNAMIC META TAG SYSTEM ---
+  useEffect(() => {
+    const updateMetaTags = () => {
+      document.title = settings.companyName;
+      
+      const updateOrAddMeta = (property: string, content: string, attr = 'property') => {
+        let el = document.querySelector(`meta[${attr}="${property}"]`);
+        if (!el) {
+          el = document.createElement('meta');
+          el.setAttribute(attr, property);
+          document.head.appendChild(el);
+        }
+        el.setAttribute('content', content);
+      };
+
+      const metaTitle = settings.companyName;
+      const metaDesc = settings.slogan || settings.footerDescription;
+      const metaImage = settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png";
+
+      updateOrAddMeta('og:title', metaTitle);
+      updateOrAddMeta('og:description', metaDesc);
+      updateOrAddMeta('og:image', metaImage);
+      updateOrAddMeta('twitter:title', metaTitle, 'name');
+      updateOrAddMeta('twitter:description', metaDesc, 'name');
+      updateOrAddMeta('twitter:image', metaImage, 'name');
+      updateOrAddMeta('title', metaTitle, 'name');
+      updateOrAddMeta('description', metaDesc, 'name');
+    };
+
+    updateMetaTags();
+    
+    // Favicon
+    if (settings.companyLogoUrl) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.href = settings.companyLogoUrl;
+    }
+  }, [settings]);
 
   // --- DYNAMIC PWA MANIFEST SYSTEM ---
   useEffect(() => {
@@ -484,106 +439,36 @@ const App: React.FC = () => {
       name: settings.companyName,
       short_name: settings.companyName,
       description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
-      id: "/",
-      start_url: "/",
-      display: "standalone",
-      orientation: "portrait-primary",
-      background_color: "#FDFCFB",
+      id: "/", start_url: "/", display: "standalone", orientation: "portrait-primary", background_color: "#FDFCFB",
       theme_color: settings.primaryColor || "#D4AF37",
-      icons: [
-        {
-          src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
-          sizes: "500x500", // Corrected size declaration for the provided image
-          type: "image/png",
-          purpose: "any"
-        },
-        {
-          src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png",
-          sizes: "192x192", // Kept for compatibility but using the same source (browser resizes)
-          type: "image/png",
-          purpose: "maskable"
-        }
-      ],
-      screenshots: [
-        {
-           src: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1280",
-           sizes: "1280x853",
-           type: "image/jpeg",
-           form_factor: "wide",
-           label: "Curated Collections"
-        },
-        {
-           src: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&q=80&w=720",
-           sizes: "720x1080",
-           type: "image/jpeg",
-           form_factor: "narrow",
-           label: "Mobile Shopping"
-        }
-      ]
+      icons: [{ src: settings.companyLogoUrl || "https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png", sizes: "512x512", type: "image/png", purpose: "any" }]
     };
-
     const stringManifest = JSON.stringify(manifest);
     const blob = new Blob([stringManifest], {type: 'application/json'});
     const manifestURL = URL.createObjectURL(blob);
-    
     let link = document.querySelector('link[rel="manifest"]');
-    if (link) {
-        link.setAttribute('href', manifestURL);
-    } else {
-        const newLink = document.createElement('link');
-        newLink.rel = 'manifest';
-        newLink.href = manifestURL;
-        document.head.appendChild(newLink);
-    }
-
+    if (link) link.setAttribute('href', manifestURL);
+    else { const newLink = document.createElement('link'); newLink.rel = 'manifest'; newLink.href = manifestURL; document.head.appendChild(newLink); }
     return () => URL.revokeObjectURL(manifestURL);
   }, [settings]);
 
   useEffect(() => {
-    let mounted = true;
-    let authSubscription: any = null;
-
     refreshAllData();
-
-    if (!isSupabaseConfigured) {
-      setLoadingAuth(false);
-      return;
-    }
-
+    if (!isSupabaseConfigured) { setLoadingAuth(false); return; }
     const setupAuth = async () => {
       try {
          const { data: { session }, error } = await supabase.auth.getSession();
-         if (error) {
-           if (error.message.includes('Refresh Token')) await supabase.auth.signOut();
-         }
-         if (mounted) setUser(session?.user ?? null);
-
-         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-           if (mounted) {
-             setUser(session?.user ?? null);
-             setLoadingAuth(false);
-           }
-         });
-         authSubscription = subscription;
-         if (mounted) setLoadingAuth(false);
-      } catch (e) {
-         if (mounted) setLoadingAuth(false);
-      }
+         if (error && error.message.includes('Refresh Token')) await supabase.auth.signOut();
+         setUser(session?.user ?? null);
+         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { setUser(session?.user ?? null); setLoadingAuth(false); });
+         setLoadingAuth(false);
+      } catch (e) { setLoadingAuth(false); }
     };
-
     setupAuth();
-    return () => {
-      mounted = false;
-      if (authSubscription) authSubscription.unsubscribe();
-    };
   }, []);
 
   const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
-    const newLog: SystemLog = {
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now(),
-      type, target, message, sizeBytes, status
-    };
+    const newLog: SystemLog = { id: Math.random().toString(36).substr(2, 9), timestamp: Date.now(), type, target, message, sizeBytes, status };
     setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
   };
 
@@ -591,98 +476,33 @@ const App: React.FC = () => {
     addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
     try {
       if (isSupabaseConfigured) {
-        const results = await Promise.allSettled([
-          fetchTableData('settings'),
-          fetchTableData('products'),
-          fetchTableData('categories'),
-          fetchTableData('subcategories'),
-          fetchTableData('hero_slides'),
-          fetchTableData('enquiries'),
-          fetchTableData('admin_users'),
-          fetchTableData('product_stats')
-        ]);
-
+        const results = await Promise.allSettled([ fetchTableData('settings'), fetchTableData('products'), fetchTableData('categories'), fetchTableData('subcategories'), fetchTableData('hero_slides'), fetchTableData('enquiries'), fetchTableData('admin_users'), fetchTableData('product_stats') ]);
         const [s, p, c, sc, hs, enq, adm, st] = results;
-
-        if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
-          const { id, ...rest } = s.value[0];
-          setSettingsId(id);
-          setSettings(rest as SiteSettings);
-          localStorage.setItem('site_settings', JSON.stringify(rest));
-        } else if (s.status === 'fulfilled' && s.value && s.value.length === 0) {
-          await upsertData('settings', { ...settings, id: 'global' });
-          setSettingsId('global');
-        }
-
-        if (p.status === 'fulfilled' && p.value !== null) {
-            setProducts(p.value);
-            localStorage.setItem('admin_products', JSON.stringify(p.value));
-        }
-        if (c.status === 'fulfilled' && c.value !== null) {
-            setCategories(c.value);
-            localStorage.setItem('admin_categories', JSON.stringify(c.value));
-        }
-        if (sc.status === 'fulfilled' && sc.value !== null) {
-            setSubCategories(sc.value);
-            localStorage.setItem('admin_subcategories', JSON.stringify(sc.value));
-        }
-        if (hs.status === 'fulfilled' && hs.value !== null) {
-            setHeroSlides(hs.value);
-            localStorage.setItem('admin_hero', JSON.stringify(hs.value));
-        }
-        if (enq.status === 'fulfilled' && enq.value !== null) {
-            setEnquiries(enq.value);
-            localStorage.setItem('admin_enquiries', JSON.stringify(enq.value));
-        }
-        if (adm.status === 'fulfilled' && adm.value !== null) {
-            setAdmins(adm.value);
-            localStorage.setItem('admin_users', JSON.stringify(adm.value));
-        }
-        if (st.status === 'fulfilled' && st.value !== null) {
-            setStats(st.value);
-            localStorage.setItem('admin_product_stats', JSON.stringify(st.value));
-        }
-
+        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { const { id, ...rest } = s.value[0]; setSettingsId(id); setSettings(rest as SiteSettings); localStorage.setItem('site_settings', JSON.stringify(rest)); }
+        else if (s.status === 'fulfilled' && s.value && s.value.length === 0) { await upsertData('settings', { ...settings, id: 'global' }); setSettingsId('global'); }
+        if (p.status === 'fulfilled' && p.value !== null) { setProducts(p.value); localStorage.setItem('admin_products', JSON.stringify(p.value)); }
+        if (c.status === 'fulfilled' && c.value !== null) { setCategories(c.value); localStorage.setItem('admin_categories', JSON.stringify(c.value)); }
+        if (sc.status === 'fulfilled' && sc.value !== null) { setSubCategories(sc.value); localStorage.setItem('admin_subcategories', JSON.stringify(sc.value)); }
+        if (hs.status === 'fulfilled' && hs.value !== null) { setHeroSlides(hs.value); localStorage.setItem('admin_hero', JSON.stringify(hs.value)); }
+        if (enq.status === 'fulfilled' && enq.value !== null) { setEnquiries(enq.value); localStorage.setItem('admin_enquiries', JSON.stringify(enq.value)); }
+        if (adm.status === 'fulfilled' && adm.value !== null) { setAdmins(adm.value); localStorage.setItem('admin_users', JSON.stringify(adm.value)); }
+        if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
-      } else {
-        // Local Mode: Data is primarily managed by state hooks initialized from local storage.
-        // We log the sync but rely on the state already being set.
-        addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0);
-      }
+      } else { addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0); }
       setSaveStatus('saved');
-    } catch (e) {
-      console.error("Data sync failed", e);
-      addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed');
-      setSaveStatus('error');
-    }
+    } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
   };
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
-    setSaveStatus('saving');
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
-    
+    setSaveStatus('saving'); const updated = { ...settings, ...newSettings }; setSettings(updated);
     localStorage.setItem('site_settings', JSON.stringify(updated));
-
-    if (isSupabaseConfigured) {
-      try {
-        await upsertData('settings', { ...updated, id: settingsId });
-        addSystemLog('UPDATE', 'settings', 'Global settings updated', 0);
-      } catch (e) { 
-        addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed');
-      }
-    }
+    if (isSupabaseConfigured) { try { await upsertData('settings', { ...updated, id: settingsId }); addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); } catch (e) { addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed'); } }
     setTimeout(() => setSaveStatus('saved'), 500);
   };
 
   const updateData = async (table: string, data: any) => {
     setSaveStatus('saving');
-    const updateLocalState = (prev: any[]) => {
-       const exists = prev.some(item => item.id === data.id);
-       if (exists) return prev.map(item => item.id === data.id ? data : item);
-       return [data, ...prev];
-    };
-
+    const updateLocalState = (prev: any[]) => { const exists = prev.some(item => item.id === data.id); return exists ? prev.map(item => item.id === data.id ? data : item) : [data, ...prev]; };
     switch(table) {
         case 'products': setProducts(updateLocalState(products)); break;
         case 'categories': setCategories(updateLocalState(categories)); break;
@@ -691,32 +511,17 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
     }
-
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
-    const updated = existing.some((i: any) => i.id === data.id) 
-       ? existing.map((i: any) => i.id === data.id ? data : i)
-       : [data, ...existing];
+    const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? data : i) : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
-
-    try {
-      if (isSupabaseConfigured) {
-        await upsertData(table, data);
-        addSystemLog('UPDATE', table, `Upserted ID: ${data.id?.substring(0,8)}`, 0);
-      }
-      setSaveStatus('saved');
-      return true;
-    } catch (e) {
-      addSystemLog('ERROR', table, `Update failed`, 0, 'failed');
-      setSaveStatus('error');
-      return false;
-    }
+    try { if (isSupabaseConfigured) { await upsertData(table, data); addSystemLog('UPDATE', table, `Upserted ID: ${data.id?.substring(0,8)}`, 0); } setSaveStatus('saved'); return true; } 
+    catch (e) { addSystemLog('ERROR', table, `Update failed`, 0, 'failed'); setSaveStatus('error'); return false; }
   };
 
   const deleteData = async (table: string, id: string) => {
     setSaveStatus('saving');
     const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
-    
     switch(table) {
         case 'products': setProducts(deleteLocalState(products)); break;
         case 'categories': setCategories(deleteLocalState(categories)); break;
@@ -725,169 +530,52 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
     }
-
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.filter((i: any) => i.id !== id);
     localStorage.setItem(key, JSON.stringify(updated));
-
-    try {
-      if (isSupabaseConfigured) {
-        await deleteSupabaseData(table, id);
-        addSystemLog('DELETE', table, `Deleted ID: ${id.substring(0,8)}`, 0);
-      }
-      setSaveStatus('saved');
-      return true;
-    } catch (e) {
-      setSaveStatus('error');
-      refreshAllData();
-      return false;
-    }
+    try { if (isSupabaseConfigured) { await deleteSupabaseData(table, id); addSystemLog('DELETE', table, `Deleted ID: ${id.substring(0,8)}`, 0); } setSaveStatus('saved'); return true; } 
+    catch (e) { setSaveStatus('error'); refreshAllData(); return false; }
   };
 
   const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
     const eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const newEvent = {
-      id: eventId,
-      type: type || 'system',
-      text: type === 'view' ? `Page View: ${label}` : label,
-      time: new Date().toLocaleTimeString(),
-      timestamp: Date.now(),
-      source: source || 'Direct'
-    };
-
-    if (isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.from('traffic_logs').insert([newEvent]);
-      } catch (err) {}
-    } else {
-      const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]');
-      localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50)));
-    }
-
+    const newEvent = { id: eventId, type: type || 'system', text: type === 'view' ? `Page View: ${label}` : label, time: new Date().toLocaleTimeString(), timestamp: Date.now(), source: source || 'Direct' };
+    if (isSupabaseConfigured) { try { await supabase.from('traffic_logs').insert([newEvent]); } catch (err) {} } 
+    else { const existing = JSON.parse(localStorage.getItem('site_traffic_logs') || '[]'); localStorage.setItem('site_traffic_logs', JSON.stringify([newEvent, ...existing].slice(0, 50))); }
     if (label.startsWith('Product: ')) {
         const productName = label.replace('Product: ', '').trim();
         const product = productsRef.current.find(p => p.name === productName);
-        
         if (product) {
-            const currentStat = statsRef.current.find(s => s.productId === product.id) || { 
-                productId: product.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: Date.now() 
-            };
-            const newStat: ProductStats = {
-                ...currentStat,
-                views: currentStat.views + (type === 'view' ? 1 : 0),
-                clicks: currentStat.clicks + (type === 'click' ? 1 : 0),
-                shares: (currentStat.shares || 0) + (type === 'share' ? 1 : 0),
-                lastUpdated: Date.now()
-            };
-            
-            setStats(prev => {
-                const filtered = prev.filter(s => s.productId !== product.id);
-                return [...filtered, newStat];
-            });
-
-            if (isSupabaseConfigured) {
-                try {
-                  await upsertData('product_stats', newStat);
-                } catch (e: any) {
-                  const { shares, ...legacyStat } = newStat as any;
-                  try { await upsertData('product_stats', legacyStat); } catch (e2) {}
-                }
-            } else {
-                const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]');
-                const otherStats = localStats.filter((s: any) => s.productId !== product.id);
-                localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat]));
-            }
+            const currentStat = statsRef.current.find(s => s.productId === product.id) || { productId: product.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: Date.now() };
+            const newStat: ProductStats = { ...currentStat, views: currentStat.views + (type === 'view' ? 1 : 0), clicks: currentStat.clicks + (type === 'click' ? 1 : 0), shares: (currentStat.shares || 0) + (type === 'share' ? 1 : 0), lastUpdated: Date.now() };
+            setStats(prev => { const filtered = prev.filter(s => s.productId !== product.id); return [...filtered, newStat]; });
+            if (isSupabaseConfigured) { try { await upsertData('product_stats', newStat); } catch (e: any) { const { shares, ...legacyStat } = newStat as any; try { await upsertData('product_stats', legacyStat); } catch (e2) {} } } 
+            else { const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]'); const otherStats = localStats.filter((s: any) => s.productId !== product.id); localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat])); }
         }
     }
   }, []);
 
   useEffect(() => {
-    // GLOBAL ERROR LISTENER: Captures errors from anywhere in the app
-    const handleGlobalError = (event: ErrorEvent) => {
-      try {
-        logEvent('system', `[CRITICAL] Runtime Exception: ${event.message}`, event.filename || 'Script');
-      } catch (e) { console.error(e); }
-    };
-
-    const handleGlobalRejection = (event: PromiseRejectionEvent) => {
-      try {
-        const reason = event.reason instanceof Error ? event.reason.message : String(event.reason);
-        logEvent('system', `[CRITICAL] Async Failure: ${reason}`, 'Promise');
-      } catch (e) { console.error(e); }
-    };
-
-    window.addEventListener('error', handleGlobalError);
-    window.addEventListener('unhandledrejection', handleGlobalRejection);
-
-    return () => {
-      window.removeEventListener('error', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handleGlobalRejection);
-    };
+    const handleGlobalError = (event: ErrorEvent) => { try { logEvent('system', `[CRITICAL] Runtime Exception: ${event.message}`, event.filename || 'Script'); } catch (e) {} };
+    const handleGlobalRejection = (event: PromiseRejectionEvent) => { try { const reason = event.reason instanceof Error ? event.reason.message : String(event.reason); logEvent('system', `[CRITICAL] Async Failure: ${reason}`, 'Promise'); } catch (e) {} };
+    window.addEventListener('error', handleGlobalError); window.addEventListener('unhandledrejection', handleGlobalRejection);
+    return () => { window.removeEventListener('error', handleGlobalError); window.removeEventListener('unhandledrejection', handleGlobalRejection); };
   }, [logEvent]);
 
   useEffect(() => {
-    if (user && isSupabaseConfigured && admins.length > 0) {
-      const existingAdmin = admins.find(a => a.id === user.id || a.email === user.email);
-      if (!existingAdmin) {
-        const newAdmin: AdminUser = {
-          id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.name || user.email?.split('@')[0] || 'Admin',
-          role: 'admin',
-          permissions: [],
-          createdAt: Date.now(),
-          lastActive: Date.now()
-        };
-        updateData('admin_users', newAdmin);
-      }
-    }
-  }, [user, admins]);
-
-  useEffect(() => {
-    const hexToRgb = (hex: string) => {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '212, 175, 55';
-    };
+    const hexToRgb = (hex: string) => { const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '212, 175, 55'; };
     document.documentElement.style.setProperty('--primary-color', settings.primaryColor);
     document.documentElement.style.setProperty('--primary-rgb', hexToRgb(settings.primaryColor));
   }, [settings.primaryColor]);
 
-  // Update document title and favicon based on settings
-  useEffect(() => {
-    document.title = settings.companyName || 'Monique Boutique';
-    
-    // Update Favicon dynamically
-    if (settings.companyLogoUrl) {
-      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = settings.companyLogoUrl;
-    }
-  }, [settings.companyName, settings.companyLogoUrl]);
-
   return (
-    <SettingsContext.Provider value={{ 
-      settings, updateSettings, 
-      products, categories, subCategories, heroSlides, enquiries, admins, stats,
-      refreshAllData, updateData, deleteData,
-      user, loadingAuth, 
-      isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent,
-      connectionHealth, systemLogs, storageStats
-    }}>
+    <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, connectionHealth, systemLogs, storageStats }}>
       <Router>
         <ScrollToTop />
         <TrackingInjector />
         <TrafficTracker logEvent={logEvent} />
-        <style>{`
-          .text-primary { color: var(--primary-color); }
-          .bg-primary { background-color: var(--primary-color); }
-          .border-primary { border-color: var(--primary-color); }
-          .hover\\:bg-primary:hover { background-color: var(--primary-color); }
-        `}</style>
+        <style>{` .text-primary { color: var(--primary-color); } .bg-primary { background-color: var(--primary-color); } .border-primary { border-color: var(--primary-color); } .hover\\:bg-primary:hover { background-color: var(--primary-color); } `}</style>
         <div className="min-h-screen flex flex-col">
           <Header />
           <div className="flex-grow">
