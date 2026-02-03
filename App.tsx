@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X } from 'lucide-react';
@@ -19,6 +18,7 @@ import Blog from './pages/Blog';
 import ArticleDetail from './pages/ArticleDetail';
 import CartDrawer from './components/CartDrawer';
 import NewsletterPopup from './components/NewsletterPopup';
+import Signature from './components/Signature';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, Order, TrafficLog, Article, Subscriber, TrainingModule } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, INITIAL_ARTICLES, INITIAL_SUBSCRIBERS, TRAINING_MODULES } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, checkAndMigrate } from './lib/supabase';
@@ -113,6 +113,10 @@ const Footer: React.FC = () => {
               <p className="max-w-xs leading-relaxed text-sm mb-8 font-light">
                 {settings.footerDescription}
               </p>
+              <div className="mt-8 flex flex-col items-start gap-2">
+                <Signature className="h-12 text-primary/60" />
+                <span className="text-[10px] font-script text-white/20 italic">Curated with Passion</span>
+              </div>
             </div>
             <div>
               <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Navigation</h4>

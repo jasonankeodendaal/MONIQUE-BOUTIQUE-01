@@ -1,7 +1,9 @@
+
 import React, { useMemo } from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
+import TestimonialSlider from '../components/TestimonialSlider';
 import { useNavigate, Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight, ShoppingBag, History } from 'lucide-react';
@@ -72,9 +74,12 @@ const Home: React.FC = () => {
       {/* 4. Full Visual Gallery Bridge */}
       <CategoryGrid />
 
+      {/* 5. Trust Testimonials */}
+      <TestimonialSlider />
+
       <SectionDivider />
 
-      {/* 5. Trust & Methodology - The Personal Vouch */}
+      {/* 6. Trust & Methodology - The Personal Vouch */}
       <section className="py-24 md:py-48 bg-[#FDFCFB] relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.03),transparent_70%)] pointer-events-none"></div>
 
@@ -107,7 +112,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Bottom Story Hook */}
+      {/* 7. Bottom Story Hook */}
       <section className="py-24 md:py-32 bg-slate-900 text-white">
          <div className="max-w-4xl mx-auto px-6 text-center">
             <History size={40} className="text-primary mx-auto mb-10 opacity-60" />
