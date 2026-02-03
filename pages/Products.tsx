@@ -293,7 +293,7 @@ const Products: React.FC = () => {
                   </div>
                 )}
                 
-                <div className="relative aspect-[3/4] overflow-hidden bg-slate-50">
+                <div className="relative aspect-square overflow-hidden bg-slate-50">
                   {renderProductMedia(product)}
                   
                   {/* Integrated Price Display */}

@@ -179,7 +179,7 @@ const ProductDetail: React.FC = () => {
             <ArrowLeft size={20} />
           </button>
 
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8 lg:p-12">
             {currentMedia ? (
               currentMedia.type.startsWith('video') ? (
                 <video 
@@ -189,14 +189,14 @@ const ProductDetail: React.FC = () => {
                   loop 
                   muted 
                   playsInline
-                  className="w-full h-full object-cover transition-all duration-1000 scale-100 group-hover:scale-105"
+                  className="w-full h-full object-contain transition-all duration-1000 scale-100 group-hover:scale-[1.02]"
                 />
               ) : (
                 <img 
                   key={currentMedia.id}
                   src={currentMedia.url} 
                   alt={product.name} 
-                  className="w-full h-full object-cover transition-all duration-1000 scale-100 group-hover:scale-105"
+                  className="w-full h-full object-contain transition-all duration-1000 scale-100 group-hover:scale-[1.02]"
                 />
               )
             ) : (
@@ -204,7 +204,7 @@ const ProductDetail: React.FC = () => {
             )}
           </div>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-40"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-40 pointer-events-none"></div>
 
           {media.length > 1 && (
             <>
@@ -224,7 +224,7 @@ const ProductDetail: React.FC = () => {
                   <button 
                     key={i} 
                     onClick={() => setActiveMediaIndex(i)}
-                    className={`h-1.5 transition-all duration-500 rounded-full ${i === activeMediaIndex ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                    className={`h-1.5 transition-all duration-500 rounded-full ${i === activeMediaIndex ? 'w-8 bg-slate-900' : 'w-2 bg-slate-300 hover:bg-slate-400'}`}
                   />
                 ))}
               </div>
