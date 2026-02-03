@@ -7,13 +7,7 @@ const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
-// Strictly check that the URL is a real Supabase URL and NOT the placeholder
-export const isSupabaseConfigured = Boolean(
-  supabaseUrl && 
-  supabaseUrl.includes('supabase.co') && 
-  !supabaseUrl.includes('placeholder') &&
-  !supabaseUrl.includes('your-unique-id')
-);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
@@ -49,13 +43,7 @@ export async function fetchTableData(table: string) {
   }
   const { data, error } = await supabase.from(table).select('*');
   if (error) {
-    // Specifically handle the Infinite Recursion error which is common when RLS policies reference themselves
-    if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
-       console.error(`CRITICAL: Database Recursion Error on table '${table}'.`);
-       console.warn("ACTION REQUIRED: Go to Admin > Pilot > Database Schema and run the updated SQL script to repair your policies.");
-    } else {
-       console.error(`Fetch error for ${table}:`, error);
-    }
+    console.error(`Fetch error for ${table}:`, error);
     return null;
   }
   return data || [];
@@ -70,7 +58,7 @@ export async function upsertData(table: string, item: any) {
   const { error } = await supabase.from(table).upsert(cleanItem);
   if (error) {
     console.error(`Upsert error for ${table}:`, error);
-    throw new Error(error.message || `Failed to update ${table}`);
+    throw error;
   }
   return true;
 }
@@ -99,13 +87,7 @@ export async function uploadMedia(file: File, bucket = 'media') {
     .from(bucket)
     .upload(filePath, file);
 
-  if (error) {
-    console.error('Upload Error:', error);
-    if (error.message && error.message.includes('row-level security')) {
-        throw new Error("Storage Permission Denied. Go to Admin > Pilot > Asset Vault and run the fix script.");
-    }
-    throw new Error(error.message || 'Upload failed');
-  }
+  if (error) throw error;
 
   const { data: publicUrl } = supabase.storage
     .from(bucket)
@@ -116,7 +98,7 @@ export async function uploadMedia(file: File, bucket = 'media') {
 
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
   if (!isSupabaseConfigured) {
-    return { status: 'offline', latency: 0, message: 'Local Mode (No Cloud)' };
+    return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };
   }
   
   const controller = new AbortController();
@@ -127,7 +109,7 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
     // We add a count and head to make it lightweight, but we use a filter to prevent caching
     // The filter 'id' 'neq' 'zero' is just a dummy logic to force a lookup
     const { error } = await supabase
-        .from('public_settings')
+        .from('settings')
         .select('id', { count: 'exact', head: true })
         .limit(1);
 
@@ -143,98 +125,9 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
 
     return { status: 'online', latency, message: 'Supabase Sync Active' };
   } catch (err: any) {
-    // Detect recursion error even in health check
-    if (err.code === '42P17' || err.message?.includes('infinite recursion')) {
-       return { status: 'offline', latency: 0, message: 'CRITICAL: DB Recursion Error. Run Repair Script.' };
-    }
     console.warn("Connection check failed:", err.message);
     return { status: 'offline', latency: 0, message: 'Cloud connection failed' };
   }
 }
 
 export const getSupabaseUrl = () => supabaseUrl;
-
-/**
- * Checks if the remote DB is empty and migrates local data if so.
- * Returns true if migration occurred.
- */
-export async function checkAndMigrate(): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
-
-  try {
-    // 1. Check if remote DB is empty (using settings table as indicator)
-    const { count, error } = await supabase
-      .from('public_settings')
-      .select('*', { count: 'exact', head: true });
-
-    if (error || (count !== null && count > 0)) {
-      return false; // Remote has data or error, skip migration
-    }
-
-    console.log("Empty remote DB detected. Migrating local data...");
-
-    // 2. Handle Settings Migration (Split Public/Private)
-    const localSettings = localStorage.getItem('site_settings');
-    let migrated = false;
-
-    if (localSettings) {
-        const data = JSON.parse(localSettings);
-        const privateKeys = ['payfastSaltPassphrase', 'zapierWebhookUrl', 'webhookUrl'];
-        const publicPayload: any = { ...data, id: 'global' };
-        const privatePayload: any = { id: 'global' };
-
-        privateKeys.forEach(k => {
-            if (k in publicPayload) {
-                privatePayload[k] = publicPayload[k];
-                delete publicPayload[k];
-            }
-        });
-
-        const { error: pubErr } = await supabase.from('public_settings').upsert(publicPayload);
-        const { error: privErr } = await supabase.from('private_secrets').upsert(privatePayload);
-        
-        if (!pubErr && !privErr) {
-            console.log("Migrated settings.");
-            migrated = true;
-        }
-    }
-
-    // 3. Migration Map: LocalStorage Key -> Supabase Table
-    const migrationMap = [
-      { table: 'products', key: 'admin_products' },
-      { table: 'categories', key: 'admin_categories' },
-      { table: 'subcategories', key: 'admin_subcategories' },
-      { table: 'hero_slides', key: 'admin_hero' },
-      { table: 'enquiries', key: 'admin_enquiries' },
-      { table: 'admin_users', key: 'admin_users' },
-      { table: 'product_stats', key: 'admin_product_stats' },
-      { table: 'orders', key: 'admin_orders' },
-      { table: 'subscribers', key: 'admin_subscribers' }
-    ];
-
-    // 4. Perform Migration for other tables
-    for (const m of migrationMap) {
-      const local = localStorage.getItem(m.key);
-      if (local) {
-        let data = JSON.parse(local);
-        if (!Array.isArray(data)) data = [data]; // Settings might be object, others array
-        
-        if (data.length > 0) {
-          const { error: upError } = await supabase.from(m.table).upsert(data);
-          
-          if (!upError) {
-            console.log(`Migrated ${data.length} records to ${m.table}`);
-            migrated = true;
-          } else {
-            console.error(`Failed to migrate ${m.table}:`, upError);
-          }
-        }
-      }
-    }
-    
-    return migrated;
-  } catch (e) {
-    console.error("Migration check failed", e);
-    return false;
-  }
-}

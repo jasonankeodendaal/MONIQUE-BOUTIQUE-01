@@ -1,3 +1,4 @@
+
 export interface Category {
   id: string;
   name: string;
@@ -31,21 +32,10 @@ export interface DiscountRule {
 
 export interface Review {
   id: string;
-  productId: string; // Foreign Key
   userName: string;
   rating: number; // 1-5
   comment: string;
   createdAt: number;
-}
-
-export interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  image: string;
-  date: number;
-  author: string;
 }
 
 export interface Product {
@@ -61,14 +51,9 @@ export interface Product {
   specifications?: Record<string, string>; // Key-value pairs like Material, Fit, etc.
   media: MediaFile[]; 
   discountRules?: DiscountRule[];
-  // reviews removed for normalization
+  reviews?: Review[];
   createdAt: number;
   createdBy?: string;
-  
-  // Commerce
-  isDirectSale?: boolean;
-  stockQuantity?: number;
-  costPrice?: number;
 }
 
 export interface ProductStats {
@@ -108,35 +93,19 @@ export interface SocialLink {
   iconUrl: string;
 }
 
-export interface StoryMilestone {
-  id: string;
-  year: string;
-  title: string;
-  description: string;
-}
-
 export interface SiteSettings {
   // Brand & Nav
   companyName: string;
   slogan: string; // Added Slogan
   companyLogo: string; // Text fallback
   companyLogoUrl?: string; // PNG Upload
-  faviconUrl?: string; // Added
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
-
-  // SEO & Metadata
-  seoTitle: string; // Added
-  seoDescription: string; // Added
-
-  // Navigation Labels
   navHomeLabel: string;
   navProductsLabel: string;
   navAboutLabel: string;
-  navJournalLabel: string; // Added
   navContactLabel: string;
-  navPortalLabel: string; // Added
   navDashboardLabel: string;
 
   // Contact Info
@@ -144,7 +113,6 @@ export interface SiteSettings {
   contactPhone: string;
   whatsappNumber: string;
   address: string;
-  googleMyBusinessUrl?: string;
   socialLinks: SocialLink[];
 
   // Footer
@@ -173,18 +141,12 @@ export interface SiteSettings {
   homeTrustItem3Desc: string;
   homeTrustItem3Icon: string; 
 
-  homeBottomHookTitle: string;
-  homeBottomHookSubtitle: string;
-  homeBottomHookButtonText: string;
-
   // Products Page Content
   productsHeroTitle: string;
   productsHeroSubtitle: string;
   productsHeroImage: string; // Legacy support
   productsHeroImages: string[]; // New: Array of images for carousel
   productsSearchPlaceholder: string;
-  productsEmptyHeadline: string;
-  productsEmptyDescription: string;
 
   // About Page Content
   aboutHeroTitle: string;
@@ -213,7 +175,6 @@ export interface SiteSettings {
 
   aboutSignatureImage: string; 
   aboutGalleryImages: string[]; 
-  aboutMilestones: StoryMilestone[];
 
   // Contact Page Content
   contactHeroTitle: string;
@@ -230,8 +191,6 @@ export interface SiteSettings {
   contactHoursLabel: string;
   contactHoursWeekdays: string;
   contactHoursWeekends: string;
-  contactSuccessTitle: string;
-  contactSuccessMessage: string;
 
   // Legal Content
   disclosureTitle: string;
@@ -242,35 +201,15 @@ export interface SiteSettings {
   termsContent: string;
 
   // Integrations
+  emailJsServiceId?: string;
+  emailJsTemplateId?: string;
+  emailJsPublicKey?: string;
   googleAnalyticsId?: string;
   facebookPixelId?: string;
   tiktokPixelId?: string;
   pinterestTagId?: string; // New
   amazonAssociateId?: string;
   webhookUrl?: string; // Zapier/Make
-
-  // Commerce & Payments
-  enableDirectSales: boolean;
-  currency: string;
-  yocoPublicKey: string;
-  payfastMerchantId: string;
-  payfastMerchantKey: string;
-  payfastSaltPassphrase: string;
-  zapierWebhookUrl: string;
-  bankDetails: string;
-
-  // Financial Settings (New)
-  vatRegistered?: boolean; // New
-  vatRate?: number;
-  vatNumber?: string;
-  bankName?: string;
-  accountNumber?: string;
-  branchCode?: string;
-
-  // Newsletter Popup
-  newsletterPopupTitle: string;
-  newsletterPopupSubtitle: string;
-  newsletterPopupBadge: string;
 }
 
 export interface PermissionNode {
@@ -292,12 +231,6 @@ export interface AdminUser {
   profileImage?: string;
   phone?: string;
   address?: string;
-  
-  // Affiliate/Creator Specifics (New)
-  commissionRate?: number;
-  totalEarnings?: number;
-  uploadLimit?: number;
-  canUpload?: boolean;
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -305,12 +238,11 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 export interface TrainingModule {
   id: string;
   title: string;
-  platform: string;
+  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General' | 'Facebook' | 'YouTube' | 'LinkedIn' | 'Twitter' | 'Threads' | 'Snapchat' | 'Email';
   description: string;
   strategies: string[];
   actionItems: string[];
   icon: string;
-  createdBy?: string;
 }
 
 export interface SystemLog {
@@ -330,80 +262,6 @@ export interface StorageStats {
   mediaCount: number;
 }
 
-export interface CartItem extends Product {
-  quantity: number;
-}
-
-export interface OrderItem {
-  id: string;
-  orderId: string;
-  productId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-}
-
-export interface Order {
-  id: string;
-  userId?: string;
-  customerName: string;
-  customerEmail: string;
-  shippingAddress: string;
-  total: number;
-  status: 'pending_payment' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentMethod: 'yoco' | 'payfast' | 'manual_eft';
-  createdAt: number;
-  items?: OrderItem[];
-  // New Tracking Fields
-  courierName?: string;
-  trackingNumber?: string;
-  trackingUrl?: string;
-  
-  // Affiliate Tracking (New)
-  affiliateId?: string;
-}
-
-export interface UserAddress {
-  building?: string;
-  street: string;
-  suburb?: string;
-  city: string;
-  province: string;
-  postalCode: string;
-}
-
-export interface Subscriber {
-  id: string;
-  email: string;
-  createdAt: number;
-}
-
-export interface TrafficLog {
-  id?: string;
-  ip?: string;
-  city?: string; // Added city
-  device?: string;
-  timestamp: number;
-  source?: string;
-  page?: string;
-  type?: string;
-  text?: string;
-  time?: string; // Added to fix type error
-  // Enhanced Telemetry
-  utmCampaign?: string;
-  utmMedium?: string;
-  scrollDepth?: number;
-  sessionDuration?: number;
-  interactionType?: string;
-}
-
-export interface ProductEvent {
-  type: 'view' | 'click' | 'share';
-  productId: string;
-  timestamp: number;
-  userId?: string;
-}
-
 export interface SettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
@@ -412,13 +270,9 @@ export interface SettingsContextType {
   categories: Category[];
   subCategories: SubCategory[];
   heroSlides: CarouselSlide[];
-  articles: Article[]; // Added articles
   enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
   admins: AdminUser[];
-  subscribers: Subscriber[];
   stats: ProductStats[];
-  orders: Order[]; // New
-  trainingModules: TrainingModule[];
   // Actions
   refreshAllData: () => Promise<void>;
   updateData: (table: string, data: any) => Promise<boolean>;
@@ -426,31 +280,13 @@ export interface SettingsContextType {
   // System State
   user: any;
   loadingAuth: boolean;
-  isDataLoaded: boolean; // Indicates if initial data fetch is complete
   isLocalMode: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
-  logEvent: (
-    type: 'view' | 'click' | 'share' | 'system' | 'interaction', 
-    label: string, 
-    source?: string, 
-    extra?: { interactionType?: string }
-  ) => void;
+  logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
   
   // Monitoring
   connectionHealth: { status: 'online' | 'offline', latency: number, message: string } | null;
   systemLogs: SystemLog[];
   storageStats: StorageStats;
-}
-
-export interface CartContextType {
-  cart: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
-  cartTotal: number;
-  itemCount: number;
-  isCartOpen: boolean;
-  toggleCart: () => void;
 }

@@ -1,19 +1,18 @@
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
-import TestimonialSlider from '../components/TestimonialSlider';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight, ShoppingBag, History, CheckCircle } from 'lucide-react';
+import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
 const SectionDivider: React.FC = () => (
-  <div className="max-w-xs mx-auto py-16 md:py-28 flex items-center justify-center gap-6 opacity-30">
+  <div className="max-w-xs mx-auto py-12 md:py-20 flex items-center justify-center gap-4 opacity-30">
     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-400 to-transparent"></div>
-    <div className="rotate-45 w-2 h-2 border border-slate-400 bg-white"></div>
+    <div className="rotate-45 w-2 h-2 border border-slate-400"></div>
     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-400 to-transparent"></div>
   </div>
 );
@@ -22,65 +21,33 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { settings, categories } = useSettings();
 
-  // Defensive logic for string splitting
-  const hookTitle = String(settings?.homeBottomHookTitle || "The Future of Taste.");
-  const titleWords = hookTitle.split(' ');
-  const mainTitle = titleWords.length > 1 ? titleWords.slice(0, -1).join(' ') : titleWords[0];
-  const lastTitleWord = titleWords.length > 1 ? titleWords.slice(-1) : "";
-
   return (
     <main className="pt-0">
       <Hero />
+      
       <AboutSection />
-
-      <section className="py-20 bg-white border-y border-slate-50">
-        <div className="max-w-7xl mx-auto px-6">
-           <div className="text-center mb-12">
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Our Curated Network</span>
-           </div>
-           <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
-              <div className="text-xl font-serif font-bold italic tracking-tighter">Nordstrom</div>
-              <div className="text-xl font-serif font-bold tracking-widest">FARFETCH</div>
-              <div className="text-xl font-serif font-bold italic">Saks Fifth</div>
-              <div className="text-xl font-serif font-bold">REVOLVE</div>
-              <div className="text-xl font-serif font-bold tracking-tight">ASOS Luxe</div>
-              <div className="text-xl font-serif font-bold italic underline">VOGUE</div>
-           </div>
-        </div>
-      </section>
 
       <SectionDivider />
 
-      <section className="py-12 md:py-20 bg-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-8">
-             <div className="text-center md:text-left">
-                <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-3">
-                  {settings?.homeCategorySectionTitle || 'Departments'}
-                </span>
-                <h3 className="text-3xl md:text-5xl font-serif text-slate-900 tracking-tight">Curated <span className="italic font-light">Departments</span></h3>
-             </div>
-             <Link to="/products" className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all">
-                Full Collection <div className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center group-hover:border-primary group-hover:translate-x-2 transition-all"><ArrowRight size={16}/></div>
-             </Link>
+      {/* Category Icons Strip */}
+      <section className="py-8 md:py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="text-center mb-6 md:mb-12">
+            <span className="text-[9px] font-black uppercase tracking-[0.5em] text-slate-300">{settings.homeCategorySectionTitle}</span>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
-            {(categories || []).slice(0, 4).map((cat) => {
+          <div className="grid grid-cols-4 md:grid-cols-4 gap-4 md:gap-8">
+            {categories.map((cat) => {
               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
               return (
                 <button
                   key={cat.id}
                   onClick={() => navigate(`/products?category=${cat.id}`)}
-                  className="flex flex-col items-center group relative"
+                  className="flex flex-col items-center group"
                 >
-                  <div className="w-20 h-20 md:w-28 md:h-28 bg-slate-50 rounded-[2.5rem] md:rounded-[3.5rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-3 transition-all duration-700 shadow-sm border border-transparent group-hover:border-primary/20 group-hover:shadow-2xl group-hover:shadow-primary/5 overflow-hidden">
-                    <Icon size={24} className="md:w-10 md:h-10 relative z-10" strokeWidth={1} />
-                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                  <div className="w-12 h-12 md:w-20 md:h-20 bg-slate-50 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-2 transition-all duration-500 shadow-sm border border-transparent group-hover:border-primary/20">
+                    <Icon size={18} className="md:w-7 md:h-7" strokeWidth={1.5} />
                   </div>
-                  <span className="mt-6 md:mt-8 text-[9px] md:text-[11px] font-black uppercase tracking-[0.3em] text-slate-500 group-hover:text-slate-900 transition-colors truncate w-full text-center">
+                  <span className="mt-3 md:mt-5 text-[7px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors truncate w-full text-center">
                     {cat.name}
                   </span>
                 </button>
@@ -91,60 +58,37 @@ const Home: React.FC = () => {
       </section>
 
       <CategoryGrid />
-      <TestimonialSlider />
 
       <SectionDivider />
 
-      <section className="py-24 md:py-48 bg-[#FDFCFB] relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.03),transparent_70%)] pointer-events-none"></div>
+      {/* Trust & Methodology Section */}
+      <section className="py-12 md:py-32 bg-[#FDFCFB] relative overflow-hidden">
+        {/* Decorative BG */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10">
-           <div className="text-center mb-20 md:mb-32">
-              <span className="text-[11px] font-black uppercase tracking-[0.7em] text-primary block mb-4">
-                {settings?.homeTrustSectionTitle || 'The Standard'}
-              </span>
-              <h3 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tighter">The <span className="italic font-light">Curator's</span> Standard</h3>
+           <div className="text-center mb-8 md:mb-16">
+              <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-2">{settings.homeTrustSectionTitle}</span>
            </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-20">
+           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-8 md:gap-16">
               {[
-                { iconName: settings?.homeTrustItem1Icon || 'ShieldCheck', title: settings?.homeTrustItem1Title || 'Vetted Quality', desc: settings?.homeTrustItem1Desc || 'Strict quality checks.' },
-                { iconName: settings?.homeTrustItem2Icon || 'Sparkles', title: settings?.homeTrustItem2Title || 'Authentic Finds', desc: settings?.homeTrustItem2Desc || 'Genuine partnerships.' },
-                { iconName: settings?.homeTrustItem3Icon || 'Globe', title: settings?.homeTrustItem3Title || 'Global Reach', desc: settings?.homeTrustItem3Desc || 'International shipping.' }
+                { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
+                { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
+                { iconName: settings.homeTrustItem3Icon || 'Globe', title: settings.homeTrustItem3Title, desc: settings.homeTrustItem3Desc }
               ].map((item, i) => {
                 const IconComponent = CustomIcons[item.iconName] || (LucideIcons as any)[item.iconName] || ShieldCheck;
                 return (
-                  <div key={i} className="flex flex-col items-center text-center group">
-                    <div className="mb-10 p-8 md:p-10 bg-white rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.08)] border border-slate-50 text-primary group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-700 group-hover:shadow-primary/10">
-                      <IconComponent size={32} className="md:w-12 md:h-12" strokeWidth={1} />
+                  <div key={i} className={`flex flex-col items-center text-center ${i === 2 ? 'col-span-2 md:col-span-1' : ''}`}>
+                    <div className="mb-4 md:mb-8 p-4 md:p-6 bg-white rounded-3xl shadow-xl border border-slate-50 text-primary group hover:scale-110 transition-transform duration-500">
+                      <IconComponent size={20} className="md:w-8 md:h-8" strokeWidth={1.5} />
                     </div>
-                    <h4 className="text-xl md:text-2xl font-serif mb-4 md:mb-6 tracking-tight text-slate-900 group-hover:text-primary transition-colors">{item.title}</h4>
-                    <p className="text-slate-500 font-light leading-relaxed max-w-xs text-sm md:text-lg">{item.desc}</p>
-                    
-                    <div className="mt-8 h-0.5 w-8 bg-primary/20 group-hover:w-16 transition-all duration-700"></div>
+                    <h4 className="text-sm md:text-lg font-bold mb-2 md:mb-4 tracking-tight">{item.title}</h4>
+                    <p className="text-slate-500 font-light leading-relaxed max-w-xs text-xs md:text-base">{item.desc}</p>
                   </div>
                 );
               })}
            </div>
         </div>
-      </section>
-
-      <section className="py-24 md:py-32 bg-slate-900 text-white">
-         <div className="max-w-4xl mx-auto px-6 text-center">
-            <History size={40} className="text-primary mx-auto mb-10 opacity-60" />
-            <h3 className="text-3xl md:text-5xl font-serif mb-8 leading-tight tracking-tight">
-               {mainTitle} <span className="italic text-primary">{lastTitleWord}</span>
-            </h3>
-            <p className="text-slate-400 text-lg md:text-xl font-light leading-relaxed mb-12 max-w-2xl mx-auto">
-               {settings?.homeBottomHookSubtitle || "Join a community of discerning individuals who value substance over noise."}
-            </p>
-            <button 
-               onClick={() => navigate('/about')}
-               className="px-12 py-5 bg-primary text-slate-900 rounded-full font-black uppercase text-xs tracking-widest hover:bg-white transition-all shadow-2xl active:scale-95"
-            >
-               {settings?.homeBottomHookButtonText || "Join the Circle"}
-            </button>
-         </div>
       </section>
     </main>
   );

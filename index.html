@@ -1,36 +1,16 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Dynamic theme-color will be injected by App.tsx -->
-    <meta name="theme-color" content="#ffffff" />
-    
-    <!-- PRIMARY META TAGS (Default placeholders - updated dynamically by App) -->
-    <title>FINDARA Fashion-Tech-Home</title>
-    <meta name="title" content="FINDARA Fashion-Tech-Home - Curated Collection">
-    <meta name="description" content="A curated luxury wardrobe and affiliate bridge system.">
-
-    <!-- OPEN GRAPH / FACEBOOK / WHATSAPP -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="">
-    <meta property="og:title" content="FINDARA Fashion-Tech-Home">
-    <meta property="og:description" content="A curated luxury wardrobe and affiliate bridge system.">
-    <meta property="og:image" content="https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png">
-
-    <!-- TWITTER -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="">
-    <meta property="twitter:title" content="FINDARA Fashion-Tech-Home">
-    <meta property="twitter:description" content="A curated luxury wardrobe and affiliate bridge system.">
-    <meta property="twitter:image" content="https://i.ibb.co/wZt02bvX/Whats-App-Image-2026-01-21-at-17-44-31-removebg-preview.png">
-
+    <meta name="theme-color" content="#D4AF37" />
+    <title>Monique Boutique | Affiliate Bridge</title>
+    <link rel="icon" href="https://i.ibb.co/5X5qJXC6/Whats-App-Image-2026-01-08-at-15-34-23-removebg-preview.png" />
     <link rel="manifest" href="/manifest.json" />
-    
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://js.yoco.com/sdk/v1/yoco-sdk-web.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <style>
       :root {
         --soft-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
@@ -46,9 +26,6 @@
       }
       .font-serif {
         font-family: 'Playfair Display', serif;
-      }
-      .font-script {
-        font-family: 'Pinyon Script', cursive;
       }
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
@@ -89,16 +66,15 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "jspdf": "https://esm.sh/jspdf@^4.0.0",
-    "jspdf-autotable": "https://esm.sh/jspdf-autotable@^5.0.7",
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.93.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
     "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.0",
+    "@emailjs/browser": "https://esm.sh/@emailjs/browser@^4.4.1"
   }
 }
 </script>
@@ -106,6 +82,21 @@
   <body class="bg-[#FDFCFB] text-slate-900 custom-scrollbar">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script src="/init.js"></script>
+    <script>
+      // Clean Service Worker registration with enhanced path detection
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          // Detect actual base path to prevent 404s in subdirectories or Vercel deployments
+          const scriptUrl = '/sw.js';
+          navigator.serviceWorker.register(scriptUrl)
+            .then(reg => console.log('SW active:', reg.scope))
+            .catch(err => {
+               // Fallback for relative path environments
+               navigator.serviceWorker.register('./sw.js')
+                 .catch(err2 => console.debug('Offline mode limited:', err2.message));
+            });
+        });
+      }
+    </script>
   </body>
 </html>

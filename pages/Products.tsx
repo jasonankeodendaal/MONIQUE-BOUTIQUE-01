@@ -27,9 +27,6 @@ const Products: React.FC = () => {
       : [settings.productsHeroImage];
   }, [settings.productsHeroImage, settings.productsHeroImages]);
 
-  // Safe Title
-  const heroTitle = settings.productsHeroTitle || "Affiliate Catalog";
-
   useEffect(() => {
     if (heroImages.length <= 1) return;
     const interval = setInterval(() => {
@@ -126,8 +123,8 @@ const Products: React.FC = () => {
           <div className="max-w-3xl">
             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.5em] text-primary mb-4 block">The Collective Catalog</span>
             <h1 className="text-3xl md:text-[5rem] font-serif text-white mb-4 md:mb-6 tracking-tighter leading-none">
-              {heroTitle.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
-              <span className="italic font-light text-primary drop-shadow-sm">{heroTitle.split(' ').slice(-1)}</span>
+              {settings.productsHeroTitle.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
+              <span className="italic font-light text-primary drop-shadow-sm">{settings.productsHeroTitle.split(' ').slice(-1)}</span>
             </h1>
             <p className="text-white/80 text-xs md:text-xl font-light leading-relaxed max-w-xl">
               {settings.productsHeroSubtitle}
@@ -136,7 +133,7 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-3 md:px-8">
+      <div className="max-w-7xl mx-auto px-3 md:px-8">
         
         {/* Search Bar - Floating Effect */}
         <div className="relative -mt-8 md:-mt-12 mb-6 md:mb-20 px-1 md:px-2 z-10">
@@ -155,7 +152,7 @@ const Products: React.FC = () => {
             </div>
         </div>
 
-        <div className="space-y-4 md:space-y-6 mb-8 md:mb-12 px-1 md:px-2">
+        <div className="space-y-4 md:space-y-6 mb-8 md:mb-20 px-1 md:px-2">
           {/* Main Category Filter */}
           <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
             <button
@@ -184,7 +181,7 @@ const Products: React.FC = () => {
           </div>
 
           {/* Sub-Category and Sort Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6 p-2 bg-white rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6 p-2 bg-white rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm">
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto px-2 md:px-4 py-2">
               <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mr-2 flex-shrink-0">Refine:</span>
               <button
@@ -248,50 +245,53 @@ const Products: React.FC = () => {
         </div>
 
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-12">
             {filteredProducts.map((product: Product) => (
               <Link 
                 to={`/product/${product.id}`}
                 key={product.id} 
-                className="bg-white rounded-[1rem] md:rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-2 flex flex-col relative"
+                className="bg-white rounded-[1.5rem] md:rounded-[3rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 group hover:-translate-y-4 flex flex-col relative"
               >
                 {product.discountRules && product.discountRules.length > 0 && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg z-20 animate-pulse">
-                     {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
+                  <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-xl z-20 animate-pulse">
+                     {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`} OFF
                   </div>
                 )}
                 
-                <div className="relative aspect-[3/4] overflow-hidden bg-slate-100">
+                <div className="relative aspect-[3/4] md:aspect-[4/5] overflow-hidden">
                   {renderProductMedia(product)}
-                  <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-black text-slate-900 shadow-lg border border-white/40 z-10">
+                  <div className="absolute top-3 left-3 md:top-8 md:left-8 bg-white/90 backdrop-blur-xl px-3 py-1.5 md:px-6 md:py-3 rounded-xl md:rounded-2xl text-xs md:text-lg font-black text-slate-900 shadow-2xl border border-white/40 z-10">
                     R {product.price}
                   </div>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hidden lg:flex z-10">
-                    <div className="bg-white text-slate-900 px-4 py-2 rounded-full font-black uppercase text-[8px] tracking-widest flex items-center gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-lg">
-                       View <ArrowRight size={10} />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hidden md:flex z-10">
+                    <div className="bg-white text-slate-900 px-8 py-4 rounded-full font-black uppercase text-[10px] tracking-widest flex items-center gap-3 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-2xl">
+                       View Selection <ArrowRight size={14} />
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-3 md:p-5 flex-grow flex flex-col text-left">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle size={10} className="text-primary" />
-                    <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Verified</span>
+                <div className="p-4 md:p-12 flex-grow flex flex-col text-left">
+                  <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-6">
+                    <CheckCircle size={10} className="text-primary md:w-4 md:h-4" />
+                    <span className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] md:tracking-[0.3em]">Verified</span>
                   </div>
-                  <h3 className="text-sm md:text-base font-serif text-slate-900 mb-2 group-hover:text-primary transition-colors duration-500 leading-tight line-clamp-2">
+                  <h3 className="text-sm md:text-3xl font-serif text-slate-900 mb-2 md:mb-6 group-hover:text-primary transition-colors duration-500 leading-tight line-clamp-2">
                     {product.name}
                   </h3>
-                  <p className="hidden md:block text-slate-500 text-xs mb-4 line-clamp-2 leading-relaxed font-light">
+                  <p className="hidden md:block text-slate-500 text-sm md:text-base mb-6 md:mb-10 line-clamp-3 leading-relaxed font-light">
                     {product.description}
                   </p>
                   
-                  <div className="mt-auto pt-3 border-t border-slate-50 flex items-center justify-between">
-                    <span className="text-[9px] font-mono text-slate-400 tracking-tighter truncate max-w-[50px]">{product.sku}</span>
+                  <div className="mt-auto pt-3 md:pt-10 border-t border-slate-50 flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[7px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest mb-0.5 md:mb-1">ID</span>
+                      <span className="text-[9px] md:text-sm font-bold text-slate-500 font-mono tracking-tighter truncate max-w-[60px] md:max-w-none">{product.sku}</span>
+                    </div>
                     <div 
-                      className="p-1.5 md:px-4 md:py-2 bg-primary hover:brightness-110 text-slate-900 font-black uppercase tracking-[0.1em] text-[8px] rounded-lg md:rounded-xl flex items-center gap-2 transition-all shadow-sm"
+                      className="p-2 md:px-10 md:py-5 bg-primary hover:brightness-110 text-slate-900 font-black uppercase tracking-[0.2em] text-[9px] md:text-[10px] rounded-full md:rounded-[2rem] flex items-center gap-0 md:gap-4 transition-all shadow-md"
                     >
-                      <span className="hidden md:inline">Shop</span>
-                      <ExternalLink size={10} />
+                      <span className="hidden md:inline">Acquire</span>
+                      <ExternalLink size={12} className="md:w-4 md:h-4" />
                     </div>
                   </div>
                 </div>
@@ -303,12 +303,8 @@ const Products: React.FC = () => {
             <div className="w-28 h-28 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-10">
               <ShoppingBag size={56} />
             </div>
-            <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">
-              {settings.productsEmptyHeadline || "Zero Match Detected"}
-            </h3>
-            <p className="text-slate-400 max-w-sm mx-auto text-lg font-light leading-relaxed">
-              {settings.productsEmptyDescription || "No products found in the current selection."}
-            </p>
+            <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Zero Match Detected</h3>
+            <p className="text-slate-400 max-w-sm mx-auto text-lg font-light leading-relaxed">No products found in the current selection.</p>
           </div>
         )}
       </div>

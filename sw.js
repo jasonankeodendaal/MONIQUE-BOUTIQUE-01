@@ -3,19 +3,14 @@ const CACHE_NAME = 'affiliate-bridge-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  // Removed explicit manifest reference from strict cache list to prevent 404 installation failures
+  '/manifest.json'
 ];
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        // Use addAll inside a try-catch equivalent to ensure the SW installs even if one file is missing
-        return cache.addAll(urlsToCache).catch(err => {
-           console.warn('SW: Failed to cache some core assets', err);
-        });
-      })
+      .then(cache => cache.addAll(urlsToCache))
   );
 });
 
@@ -36,6 +31,10 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
+  // CRITICAL STABILITY FIX:
+  // 1. Ignore non-GET requests (POST, PUT, DELETE, etc.)
+  // 2. Ignore Supabase URLS (API calls should never be cached by SW)
+  // 3. Ignore Chrome extensions or other protocols
   if (
     event.request.method !== 'GET' || 
     url.href.includes('supabase.co') || 
@@ -44,10 +43,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Strategy: Stale-While-Revalidate for assets, Network-First for HTML
   const isHTML = event.request.headers.get('accept')?.includes('text/html');
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
+      // If HTML, try network first, fallback to cache
       if (isHTML) {
         return fetch(event.request)
           .then(networkResponse => {
@@ -59,11 +60,13 @@ self.addEventListener('fetch', event => {
           .catch(() => cachedResponse || Promise.reject('Offline'));
       }
 
+      // If Asset (JS/CSS/Image), return cache if present, else fetch
       if (cachedResponse) {
         return cachedResponse;
       }
 
       return fetch(event.request).then(networkResponse => {
+        // Only cache valid responses
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
           return networkResponse;
         }
@@ -73,7 +76,8 @@ self.addEventListener('fetch', event => {
         });
         return networkResponse;
       }).catch(error => {
-        // console.log('Fetch failed:', error);
+        // If fetch fails (offline) and not in cache, just fail gracefully
+        console.log('Fetch failed:', error);
       });
     })
   );

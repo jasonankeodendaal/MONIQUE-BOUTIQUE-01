@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop, UserCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
 import { CarouselSlide } from '../types';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../App';
@@ -45,21 +45,33 @@ const Hero: React.FC = () => {
   }
 
   return (
-    <div className="relative h-[calc(100vh-80px)] w-full overflow-hidden bg-black">
-      {/* Meet the Curator Badge */}
-      <div className="absolute top-10 right-10 z-30 hidden lg:block animate-in fade-in slide-in-from-top-4 duration-1000 delay-700">
-        <Link to="/about" className="group flex items-center gap-4 bg-white/5 backdrop-blur-xl border border-white/10 p-3 pr-6 rounded-full hover:bg-white hover:border-white transition-all duration-500 shadow-2xl">
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/50 group-hover:scale-110 transition-transform">
-            <img src={settings.homeAboutImage} alt="The Curator" className="w-full h-full object-cover" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[8px] font-black uppercase tracking-widest text-primary">Meet Your Curator</span>
-            <span className="text-xs font-bold text-white group-hover:text-slate-900 transition-colors">{settings.aboutFounderName}</span>
-          </div>
-        </Link>
+    <div className="relative h-screen w-full overflow-hidden bg-black">
+      {/* Floating Logo Top Left - Aligned with Content */}
+      <div className="absolute top-0 left-0 right-0 z-30">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-6">
+          <Link to="/" className="inline-flex items-center space-x-3 group">
+              <div className="relative">
+                {settings.companyLogoUrl ? (
+                  <img 
+                    src={settings.companyLogoUrl} 
+                    alt={settings.companyName} 
+                    className="h-10 md:h-12 w-auto object-contain transition-transform" 
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white font-black text-xs md:text-sm">
+                    {settings.companyLogo}
+                  </div>
+                )}
+              </div>
+              <div className={`flex flex-col -space-y-1 text-left`}>
+                <span className={`text-sm md:text-base font-serif font-bold tracking-tight text-white`}>
+                  {settings.companyName}
+                </span>
+              </div>
+          </Link>
+        </div>
       </div>
 
-      {/* Slides */}
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -91,43 +103,29 @@ const Hero: React.FC = () => {
             }`}>
               <div className="flex items-center gap-4 mb-4 md:mb-8">
                 <div className="h-px w-8 md:w-12 bg-primary"></div>
-                <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">{settings.homeHeroBadge}</span>
+                <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">Kasi Couture Exclusive</span>
               </div>
               
-              {/* FLUID TYPOGRAPHY */}
+              {/* FLUID TYPOGRAPHY: Clamps between 2.5rem and 9rem based on viewport width */}
               <h1 className="font-serif text-white mb-6 md:mb-8 leading-[1.1] md:leading-[0.85] tracking-tighter text-balance"
                   style={{ fontSize: 'clamp(2.5rem, 8vw, 9rem)' }}>
-                {slide.title.includes(' ') ? (
-                  <>
-                    {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
-                    <span className="text-primary italic font-light lowercase">
-                      {slide.title.split(' ').slice(-1)}
-                    </span>
-                  </>
-                ) : (
-                  slide.title
-                )}
+                {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
+                <span className="text-primary italic font-light lowercase">
+                  {slide.title.split(' ').slice(-1)}
+                </span>
               </h1>
               
               <p className="text-base md:text-xl text-white/70 md:text-white/60 mb-8 md:mb-12 max-w-xs md:max-w-md font-light leading-relaxed text-balance">
                 {slide.subtitle}
               </p>
               
-              <div className="flex flex-col sm:flex-row items-start gap-6">
-                <Link 
-                  to="/products"
-                  className="inline-flex items-center gap-4 md:gap-6 px-8 py-4 md:px-12 md:py-6 bg-primary text-slate-900 font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-white transition-all hover:-translate-y-1 shadow-2xl active:scale-95 group"
-                >
-                  {slide.cta}
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link 
-                  to="/about"
-                  className="inline-flex items-center gap-4 px-8 py-4 md:px-10 md:py-6 bg-transparent text-white border border-white/20 font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-white/10 transition-all active:scale-95 group backdrop-blur-sm"
-                >
-                  My Full Story
-                </Link>
-              </div>
+              <Link 
+                to="/products"
+                className="inline-flex items-center gap-4 md:gap-6 px-8 py-4 md:px-12 md:py-6 bg-primary text-slate-900 font-black uppercase tracking-widest text-[10px] rounded-full hover:bg-white transition-all hover:-translate-y-1 shadow-2xl active:scale-95 group"
+              >
+                {slide.cta}
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </div>
         </div>

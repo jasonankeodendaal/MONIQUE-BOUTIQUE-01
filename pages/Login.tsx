@@ -1,9 +1,8 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { LogIn, Mail, Lock, AlertCircle, Info, Chrome, ArrowRight, ArrowLeft } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, Info, Chrome, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
@@ -36,27 +35,8 @@ const Login: React.FC = () => {
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-
-      // STRICT ROLE CHECK FOR ADMIN
-      if (data.user) {
-        // Check if user exists in admin_users table
-        const { data: adminCheck, error: adminError } = await supabase
-          .from('admin_users')
-          .select('id')
-          .eq('id', data.user.id)
-          .maybeSingle();
-        
-        // Also allow if it's the hardcoded initial owner email (fallback for bootstrap)
-        const isOwnerEmail = data.user.email === 'admin@kasicouture.com'; 
-        
-        if (!adminCheck && !isOwnerEmail) {
-           await supabase.auth.signOut();
-           throw new Error("Access Denied: Account not authorized for Concierge Portal.");
-        }
-      }
-
       navigate('/admin');
     } catch (err: any) {
       if (err.message === 'Invalid login credentials') {
@@ -76,8 +56,9 @@ const Login: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Explicitly redirect to /admin to ensure landing on dashboard
-          redirectTo: `${window.location.origin}/admin`, 
+          // Redirect to root, App.tsx auth listener handles navigation
+          redirectTo: window.location.origin, 
+          // Force refresh token generation and consent prompt to fix "not detecting credentials" issues
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -126,17 +107,6 @@ const Login: React.FC = () => {
 
       {/* Right Side: Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16 relative">
-        {/* Back Button */}
-        <button 
-            onClick={() => navigate('/')}
-            className="absolute top-8 left-8 z-20 flex items-center gap-2 text-slate-500 hover:text-white transition-colors group"
-        >
-            <div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-primary/50 transition-all">
-                <ArrowLeft size={14} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest">Return Home</span>
-        </button>
-
         {/* Mobile Background Effect */}
         <div className="absolute inset-0 lg:hidden overflow-hidden z-0">
            <div className="absolute top-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-primary/10 rounded-full blur-[100px]"></div>
