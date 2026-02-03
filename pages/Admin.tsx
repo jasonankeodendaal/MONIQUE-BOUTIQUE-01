@@ -1447,44 +1447,146 @@ const Admin: React.FC = () => {
     );
   };
 
-  const renderCatalog = () => (
-    <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
-      {showProductForm ? (
-        <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
-          <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
-          <AdminTip title="Inventory Deployment">Optimize your listing with detailed specifications and high-res media. The 'Highlights' section powers the shoppable bridge features.</AdminTip>
-          <div className="grid md:grid-cols-2 gap-8">
-             <div className="space-y-6"><SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} /><SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} /><SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" /><SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} /></div>
-             <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="textarea" /></div>
+  const renderCatalog = () => {
+    // Filter logic
+    const filteredBase = displayProducts.filter(p => 
+      p.name.toLowerCase().includes(productSearch.toLowerCase()) && 
+      (productCatFilter === 'all' || p.categoryId === productCatFilter)
+    );
+
+    // Grouping Logic
+    const groupedProducts = categories.map(cat => ({
+      ...cat,
+      items: filteredBase.filter(p => p.categoryId === cat.id)
+    })).filter(group => group.items.length > 0 || (productCatFilter !== 'all' && group.id === productCatFilter));
+
+    return (
+      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
+        {showProductForm ? (
+          <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
+            <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
+            <AdminTip title="Inventory Deployment">Optimize your listing with detailed specifications and high-res media. The 'Highlights' section powers the shoppable bridge features.</AdminTip>
+            <div className="grid md:grid-cols-2 gap-8">
+               <div className="space-y-6"><SettingField label="Product Name" value={productData.name || ''} onChange={v => setProductData({...productData, name: v})} /><SettingField label="SKU / Reference ID" value={productData.sku || ''} onChange={v => setProductData({...productData, sku: v})} /><SettingField label="Price (ZAR)" value={productData.price?.toString() || ''} onChange={v => setProductData({...productData, price: parseFloat(v)})} type="number" /><SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} /></div>
+               <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="textarea" /></div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-slate-800">
+                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight (e.g. '100% Silk')" value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
+                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Tag size={18} className="text-primary"/> Specifications</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Key (e.g. Material)" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="w-1/3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" /><input type="text" placeholder="Value (e.g. Silk)" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddSpec()} /><button onClick={handleAddSpec} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{Object.entries(productData.specifications || {}).map(([key, value]) => (<div key={key} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="flex flex-col"><span className="text-[10px] font-black uppercase text-slate-500">{key}</span><span className="text-sm text-slate-300">{value}</span></div><button onClick={() => handleRemoveSpec(key)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
+            </div>
+            <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
+            <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex flex-col md:flex-row gap-4 md:items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-full md:w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-full md:w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
+            <div className="flex flex-col md:flex-row gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 pt-8 border-t border-slate-800">
-              <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight (e.g. '100% Silk')" value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
-              <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Tag size={18} className="text-primary"/> Specifications</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Key (e.g. Material)" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="w-1/3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" /><input type="text" placeholder="Value (e.g. Silk)" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddSpec()} /><button onClick={handleAddSpec} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{Object.entries(productData.specifications || {}).map(([key, value]) => (<div key={key} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="flex flex-col"><span className="text-[10px] font-black uppercase text-slate-500">{key}</span><span className="text-sm text-slate-300">{value}</span></div><button onClick={() => handleRemoveSpec(key)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
-          </div>
-          <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
-          <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex flex-col md:flex-row gap-4 md:items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-full md:w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-full md:w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
-          <div className="flex flex-col md:flex-row gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left"><div className="space-y-2"><h2 className="text-3xl font-serif text-white">Catalog</h2><p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p></div><button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center"><Plus size={18} /> Add Product</button></div>
-          <AdminTip title="Inventory Management">Filter by department or keyword. Use the megaphone icon to generate shareable social assets instantly.</AdminTip>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-             <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search by name..." value={productSearch} onChange={e => setProductSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
-             <div className="relative min-w-[200px]"><Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><select value={productCatFilter} onChange={e => setProductCatFilter(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"><option value="all">All Departments</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} /></div>
-          </div>
-          <div className="grid gap-4">
-            {displayProducts.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) && (productCatFilter === 'all' || p.categoryId === productCatFilter)).map(p => (
-              <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
-                <div className="flex items-center gap-6 min-w-0 text-left"><div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0"><img src={p.media?.[0]?.url} className="w-full h-full object-cover" /></div><div className="min-w-0"><h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4><div className="flex items-center gap-2 mt-1"><span className="text-primary text-xs font-bold">R {p.price}</span><span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">• {categories.find(c => c.id === p.categoryId)?.name}</span></div></div></div>
-                <div className="flex gap-2 w-full md:w-auto flex-shrink-0"><button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button><button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button><button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button></div>
+        ) : (
+          <>
+            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-serif text-white">Catalog</h2>
+                <p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p>
               </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
+              <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center">
+                <Plus size={18} /> Add Product
+              </button>
+            </div>
+
+            <AdminTip title="Inventory Management">Products are now categorized by department for easier navigation. Use the quick-links to jump to a specific section.</AdminTip>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-[100px] z-30 bg-slate-950 py-2">
+               <div className="relative flex-grow">
+                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                 <input 
+                  type="text" 
+                  placeholder="Search by name..." 
+                  value={productSearch} 
+                  onChange={e => setProductSearch(e.target.value)} 
+                  className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" 
+                 />
+               </div>
+               <div className="relative min-w-[200px]">
+                 <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                 <select 
+                  value={productCatFilter} 
+                  onChange={e => setProductCatFilter(e.target.value)} 
+                  className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"
+                 >
+                   <option value="all">All Departments</option>
+                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                 </select>
+                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
+               </div>
+            </div>
+
+            {/* QUICK NAVIGATION STRIP */}
+            {productCatFilter === 'all' && groupedProducts.length > 1 && (
+               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 sticky top-[170px] z-20 bg-slate-950">
+                  {groupedProducts.map(group => {
+                     const Icon = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
+                     return (
+                        <button 
+                          key={group.id}
+                          onClick={() => {
+                            const el = document.getElementById(`cat-section-${group.id}`);
+                            if (el) window.scrollTo({ top: el.offsetTop - 200, behavior: 'smooth' });
+                          }}
+                          className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <Icon size={12}/> {group.name} ({group.items.length})
+                        </button>
+                     );
+                  })}
+               </div>
+            )}
+
+            <div className="space-y-12">
+              {groupedProducts.length === 0 ? (
+                <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
+                  No products matching your search found.
+                </div>
+              ) : groupedProducts.map(group => (
+                <div key={group.id} id={`cat-section-${group.id}`} className="space-y-6">
+                  <div className="flex items-center gap-4 px-4">
+                     <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                        {React.createElement(CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid, { size: 20 })}
+                     </div>
+                     <div className="flex flex-col">
+                        <h3 className="text-xl font-bold text-white uppercase tracking-tight">{group.name}</h3>
+                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{group.items.length} Curations</span>
+                     </div>
+                     <div className="flex-grow h-px bg-slate-800"></div>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    {group.items.map(p => (
+                      <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
+                        <div className="flex items-center gap-6 min-w-0 text-left">
+                          <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0">
+                            {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-primary text-xs font-bold">R {p.price}</span>
+                              <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">• SKU: {p.sku}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
+                          <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button>
+                          <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
+                          <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
