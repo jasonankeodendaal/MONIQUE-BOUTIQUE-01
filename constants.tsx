@@ -1,5 +1,4 @@
 
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule, Article, Subscriber } from './types';
 
 export const GUIDE_STEPS = [
@@ -368,92 +367,93 @@ ON CONFLICT (id) DO UPDATE SET role = 'owner', permissions = ARRAY['*'];`
       'Run the query to install the `create_admin_user` function.',
       'This allows you to add staff members instantly from the "Maison" tab.'
     ],
-    codeLabel: 'create_admin_user SQL Function',
-    code: `-- Enable pgcrypto for hashing
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+    codeLabel: 'create_admin_user SQL Function (Final Repair)',
+    code: `-- 1. Enable pgcrypto for hashing
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-create or replace function create_admin_user(
+-- 2. Drop existing function to avoid conflicts
+DROP FUNCTION IF EXISTS public.create_admin_user(text, text, text, text, text[]);
+
+-- 3. Create the function with explicit schema references
+CREATE OR REPLACE FUNCTION public.create_admin_user(
   email text,
   password text,
   name text,
   role text,
   permissions text[]
 )
-returns text
-language plpgsql
-security definer
-as $$
-declare
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER -- Essential: Runs with high-level permissions to write to 'auth' schema
+AS $$
+DECLARE
   new_id uuid;
-  encrypted_pw text;
-begin
-  -- Generate ID
+BEGIN
+  -- Generate a new UUID
   new_id := gen_random_uuid();
-  
-  -- Hash password
-  encrypted_pw := crypt(password, gen_salt('bf'));
 
-  -- Insert into auth.users
-  insert into auth.users (
+  -- Insert directly into the auth.users table (Explicitly prefixing with 'auth.')
+  INSERT INTO auth.users (
     instance_id,
     id,
     aud,
     role,
     email,
-    encrypted_password,
+    encrypted_password, -- Standard Supabase column
     email_confirmed_at,
-    recovery_sent_at,
-    last_sign_in_at,
     raw_app_meta_data,
     raw_user_meta_data,
     created_at,
     updated_at,
     confirmation_token,
-    email_change,
+    recovery_token,
     email_change_token_new,
-    recovery_token
-  ) values (
+    is_super_admin
+  )
+  VALUES (
     '00000000-0000-0000-0000-000000000000',
     new_id,
     'authenticated',
     'authenticated',
     email,
-    encrypted_password,
+    crypt(password, gen_salt('bf')), -- Securely hash the password
     now(),
-    null,
-    null,
-    '{"provider": "email", "providers": ["email"]}',
+    '{"provider":"email","providers":["email"]}',
     jsonb_build_object('full_name', name, 'role', role),
     now(),
     now(),
     '',
     '',
     '',
-    ''
+    false
   );
 
-  -- Insert into public.admin_users
-  insert into public.admin_users (
-    id,
-    name,
-    email,
-    role,
-    permissions,
-    "createdAt",
+  -- Insert into your application's public profile table
+  INSERT INTO public.admin_users (
+    id, 
+    name, 
+    email, 
+    role, 
+    permissions, 
+    "createdAt", 
     "lastActive"
-  ) values (
-    new_id::text,
-    name,
-    email,
-    role,
-    permissions,
+  )
+  VALUES (
+    new_id::text, 
+    name, 
+    email, 
+    role, 
+    permissions, 
     extract(epoch from now()) * 1000,
     extract(epoch from now()) * 1000
   );
 
-  return new_id::text;
-end;
-$$;`
+  RETURN new_id::text;
+END;
+$$;
+
+-- 4. Grant permission for the API to call this function
+GRANT EXECUTE ON FUNCTION public.create_admin_user TO anon, authenticated, service_role;`
   },
   {
     id: 'global-deployment',
@@ -808,9 +808,9 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
   productsHeroTitle: 'The Catalog',
   productsHeroSubtitle: 'Browse my hand-picked selections from top affiliate programs.',
-  productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d1?auto=format&fit=crop&q=80&w=2000',
+  productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d1?auto=format&fit=crop&q=80&w=2000',
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000'
   ],
   productsSearchPlaceholder: 'Search my finds...',
