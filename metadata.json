@@ -1,6 +1,6 @@
 {
   "name": "Findara",
-  "description": "A modern, high-conversion bridge page for affiliate marketers featuring a hero carousel, category-based product browsing, and a robust admin dashboard.",
+  "description": "A high-performance, synchronized affiliate bridge page platform with real-time Supabase integration and advanced traffic analytics.",
   "requestFramePermissions": [
     "camera"
   ]

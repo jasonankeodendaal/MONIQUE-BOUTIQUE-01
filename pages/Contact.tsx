@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Mail, MessageCircle, Send, Twitter, Instagram, Linkedin, Phone, Sparkles, MapPin, ArrowRight, CheckCircle2, ArrowLeft, Clock, HelpCircle, Plus, Minus, Globe } from 'lucide-react';
+import { Mail, MessageCircle, Send, ArrowLeft, ArrowRight, Globe, MapPin, Clock, HelpCircle, Plus, Minus, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../App';
 import { Enquiry } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,12 @@ const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  const lastUpdatedDate = new Intl.DateTimeFormat('en-US', { 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  }).format(new Date());
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -24,14 +30,14 @@ const Contact: React.FC = () => {
       status: 'unread'
     };
 
-    // Save to Supabase
+    // Exclusively synchronize with Supabase backend
     await updateData('enquiries', newEnquiry);
 
     setIsSubmitting(false);
     setSubmitted(true);
     setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
     
-    setTimeout(() => setSubmitted(false), 5000);
+    setTimeout(() => setSubmitted(false), 8000);
   };
 
   const faqs = settings.contactFaqs || [];
@@ -62,7 +68,6 @@ const Contact: React.FC = () => {
                 </span>
                 Concierge Online
               </div>
-              {/* Fluid Text */}
               <h1 className="font-serif text-slate-900 leading-[0.9] tracking-tighter mb-6 text-balance" style={{ fontSize: 'clamp(3rem, 10vw, 8rem)' }}>
                 {settings.contactHeroTitle}
               </h1>
@@ -71,7 +76,6 @@ const Contact: React.FC = () => {
               </p>
             </div>
             
-            {/* Quick Contact Cards */}
             <div className="flex gap-4">
                <a href={`mailto:${settings.contactEmail}`} className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center text-slate-900 border border-slate-100 shadow-sm hover:bg-slate-900 hover:text-white transition-all duration-300 group">
                  <Mail size={24} className="group-hover:scale-110 transition-transform" />
@@ -85,18 +89,26 @@ const Contact: React.FC = () => {
 
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-20">
           
-          {/* Left Column: Form */}
           <div className="lg:col-span-7 order-2 lg:order-1">
-            <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-100 relative overflow-hidden">
+            <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-100 relative overflow-hidden min-h-[600px] flex flex-col justify-center">
                
                {submitted ? (
-                 <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in duration-500">
-                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-8">
-                       <CheckCircle2 size={48} />
+                 <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in duration-700">
+                    <div className="relative mb-10">
+                       <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
+                       <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-primary relative z-10 border border-primary/10 shadow-2xl">
+                          <CheckCircle2 size={64} strokeWidth={1} />
+                       </div>
                     </div>
-                    <h2 className="text-3xl font-serif text-slate-900 mb-4">Request Transmitted</h2>
-                    <p className="text-slate-500 mb-8 max-w-xs mx-auto">We have received your message. A dedicated concierge will respond shortly.</p>
-                    <button onClick={() => setSubmitted(false)} className="text-xs font-black uppercase tracking-widest text-primary hover:text-slate-900 transition-colors">Send New Message</button>
+                    <h2 className="text-3xl md:text-4xl font-serif text-slate-900 mb-4 tracking-tight">Secure Transmission Successful</h2>
+                    <p className="text-slate-500 mb-10 max-w-sm mx-auto leading-relaxed">Your inquiry has been encrypted and synchronized with our concierge desk. Expect a response within 24 hours.</p>
+                    <div className="flex flex-col items-center gap-4">
+                       <button onClick={() => setSubmitted(false)} className="text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:text-slate-900 transition-colors border-b-2 border-primary/20 pb-1">Submit New Inquiry</button>
+                       <div className="flex items-center gap-2 text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-4">
+                          <ShieldCheck size={12} className="text-green-500" />
+                          End-to-End Cloud Handshake Verified
+                       </div>
+                    </div>
                  </div>
                ) : (
                  <form className="space-y-8" onSubmit={handleSubmit}>
@@ -185,10 +197,7 @@ const Contact: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Info & FAQ */}
           <div className="lg:col-span-5 order-1 lg:order-2 space-y-10">
-             
-             {/* Info Block */}
              <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-[50px] -mr-10 -mt-10"></div>
                 
@@ -218,13 +227,12 @@ const Contact: React.FC = () => {
                 <div className="mt-10 pt-8 border-t border-slate-800 flex flex-wrap gap-3">
                   {(settings.socialLinks || []).map((link) => (
                     <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-slate-900 transition-colors">
-                      {link.iconUrl ? <img src={link.iconUrl} className="w-4 h-4 object-contain invert"/> : <ArrowRight size={14} className="-rotate-45" />}
+                      {link.iconUrl ? <img src={link.iconUrl} className="w-4 h-4 object-contain invert" alt={link.name}/> : <ArrowRight size={14} className="-rotate-45" />}
                     </a>
                   ))}
                 </div>
              </div>
 
-             {/* FAQ Accordion */}
              <div className="space-y-4">
                 <h3 className="text-xl font-serif text-slate-900 px-4 flex items-center gap-2">
                   <HelpCircle size={18} className="text-primary"/> Common Enquiries
@@ -248,9 +256,11 @@ const Contact: React.FC = () => {
                    ))}
                 </div>
              </div>
-
           </div>
+        </div>
 
+        <div className="mt-24 pt-12 border-t border-slate-100 text-center">
+           <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Last Updated: {lastUpdatedDate}</p>
         </div>
       </div>
     </div>

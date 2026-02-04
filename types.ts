@@ -54,6 +54,11 @@ export interface Product {
   reviews?: Review[];
   createdAt: number;
   createdBy?: string;
+  archivedAt?: number;
+}
+
+export interface ProductHistory extends Product {
+  archivedAt: number;
 }
 
 export interface ProductStats {
@@ -96,6 +101,27 @@ export interface SocialLink {
 export interface ContactFaq {
   question: string;
   answer: string;
+}
+
+export interface TrainingStep {
+  title: string;
+  description: string;
+  mediaUrl?: string;
+  type: 'image' | 'video';
+}
+
+export interface TrainingModule {
+  id: string;
+  title: string;
+  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General' | 'Facebook' | 'YouTube' | 'LinkedIn' | 'Twitter' | 'Threads' | 'Snapchat' | 'Email';
+  description: string;
+  strategies: string[];
+  actionItems: string[];
+  icon: string;
+  steps: TrainingStep[];
+  // Added missing metadata fields for synchronization
+  createdAt?: number;
+  createdBy?: string;
 }
 
 export interface SiteSettings {
@@ -162,6 +188,7 @@ export interface SiteSettings {
   productsHeroSubtitle: string;
   productsHeroImage: string; // Legacy support
   productsHeroImages: string[]; // New: Array of images for carousel
+  productsHeroImagesArray?: string[]; // Consistency check
   productsSearchPlaceholder: string;
 
   // About Page Content
@@ -171,6 +198,7 @@ export interface SiteSettings {
   
   // New Granular About Fields
   aboutEstablishedYear: string;
+  aboutEstablishedDate?: number;
   aboutFounderName: string;
   aboutLocation: string;
 
@@ -250,16 +278,6 @@ export interface AdminUser {
 }
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
-
-export interface TrainingModule {
-  id: string;
-  title: string;
-  platform: 'Instagram' | 'Pinterest' | 'TikTok' | 'WhatsApp' | 'SEO' | 'General' | 'Facebook' | 'YouTube' | 'LinkedIn' | 'Twitter' | 'Threads' | 'Snapchat' | 'Email';
-  description: string;
-  strategies: string[];
-  actionItems: string[];
-  icon: string;
-}
 
 export interface SystemLog {
   id: string;

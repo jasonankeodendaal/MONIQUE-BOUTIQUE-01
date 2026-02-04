@@ -9,6 +9,12 @@ const Legal: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const lastUpdatedDate = new Date().toLocaleDateString('en-US', { 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+
   const getPageData = () => {
     switch (location.pathname) {
       case '/disclosure':
@@ -58,7 +64,7 @@ const Legal: React.FC = () => {
 
         <div className="prose prose-slate max-w-none text-left">
           <div className="text-slate-600 leading-relaxed font-light whitespace-pre-wrap text-sm md:text-base">
-            {content.split('\n').map((line, i) => {
+            {(content || '').split('\n').map((line, i) => {
               if (line.startsWith('###')) {
                 return <h3 key={i} className="text-xl md:text-2xl font-serif text-slate-900 mt-10 md:mt-12 mb-4 md:mb-6">{line.replace('###', '').trim()}</h3>;
               }
@@ -72,7 +78,7 @@ const Legal: React.FC = () => {
         
         <div className="mt-16 md:mt-20 pt-10 border-t border-slate-100 text-center">
           <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Last Updated</p>
-          <p className="text-xs md:text-sm text-slate-500">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          <p className="text-xs md:text-sm text-slate-500">{lastUpdatedDate}</p>
         </div>
       </div>
     </div>

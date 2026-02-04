@@ -50,6 +50,19 @@ export async function fetchTableData(table: string) {
 }
 
 /**
+ * Fetch archived product history specifically
+ */
+export async function fetchCurationHistory() {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase.from('product_history').select('*');
+  if (error) {
+    console.error('Fetch curation history error:', error);
+    return null;
+  }
+  return data || [];
+}
+
+/**
  * Upsert data to Supabase (Insert or Update)
  */
 export async function upsertData(table: string, item: any) {
@@ -61,6 +74,21 @@ export async function upsertData(table: string, item: any) {
     throw error;
   }
   return true;
+}
+
+/**
+ * Move record from one table to another (Atomic move simulation)
+ */
+export async function moveRecord(fromTable: string, toTable: string, item: any) {
+  if (!isSupabaseConfigured) return false;
+  try {
+    await upsertData(toTable, item);
+    await deleteData(fromTable, item.id);
+    return true;
+  } catch (err) {
+    console.error(`Move error from ${fromTable} to ${toTable}:`, err);
+    return false;
+  }
 }
 
 /**

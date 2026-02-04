@@ -115,7 +115,7 @@ export const GUIDE_STEPS = [
       'Click "Run". It handles tables, RLS enablement, and basic access policies.',
       'Verify tables exist in the "Table Editor".'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v3.0 (Idempotent)
+    code: `-- MASTER ARCHITECTURE SCRIPT v4.0 (Idempotent)
 
 -- 1. EXTENSIONS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -154,6 +154,17 @@ CREATE TABLE IF NOT EXISTS products (
   media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT
 );
 
+CREATE TABLE IF NOT EXISTS product_history (
+  id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT,
+  "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB,
+  media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS training_modules (
+  id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, 
+  strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT
+);
+
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
@@ -163,9 +174,10 @@ CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TE
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 
 -- 3. PERMISSIONS (ROW LEVEL SECURITY)
--- Enable RLS on all tables
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
@@ -174,24 +186,26 @@ ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
 
--- 4. POLICIES (Simplified for Anon access during migration)
--- For production, replace 'true' with proper auth checks e.g. (auth.uid() IS NOT NULL)
--- Public Read Access
+-- 4. POLICIES
 DO $$ BEGIN
+    -- Public Read
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read history') THEN CREATE POLICY "Public Read history" ON product_history FOR SELECT USING (true); END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read training') THEN CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read categories') THEN CREATE POLICY "Public Read categories" ON categories FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read subcategories') THEN CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read hero_slides') THEN CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert enquiries') THEN CREATE POLICY "Public Insert enquiries" ON enquiries FOR INSERT WITH CHECK (true); END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert traffic_logs') THEN CREATE POLICY "Public Insert traffic_logs" ON traffic_logs FOR INSERT WITH CHECK (true); END IF;
-END $$;
-
--- Admin Full Access (Allowing all for now via Anon Key, adjust per security needs)
-DO $$ BEGIN
+    
+    -- Owner Write (Assuming 'owner' role or specific ID check)
+    -- In production, replace auth.uid() checks with proper IDs
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon') THEN 
         CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
         CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
+        CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
         CREATE POLICY "Enable all for anon categories" ON categories FOR ALL USING (true);
         CREATE POLICY "Enable all for anon subcategories" ON subcategories FOR ALL USING (true);
         CREATE POLICY "Enable all for anon hero_slides" ON hero_slides FOR ALL USING (true);
@@ -201,7 +215,7 @@ DO $$ BEGIN
         CREATE POLICY "Enable all for anon product_stats" ON product_stats FOR ALL USING (true);
     END IF;
 END $$;`,
-    codeLabel: 'Full System SQL Script'
+    codeLabel: 'Full System SQL Script v4.0'
   },
   {
     id: 'storage',
@@ -362,570 +376,6 @@ END $$;`,
   }
 ];
 
-export const TRAINING_MODULES: TrainingModule[] = [
-  {
-    id: 'shein-mastery',
-    title: '1. Shein Affiliate Blueprint',
-    platform: 'General',
-    description: 'The definitive guide to launching your affiliate career with Shein. Learn the exact technical workflow to extract high-converting product data.',
-    icon: 'ShoppingBag',
-    strategies: [
-      'The Portal Protocol: Register at shein.com/affiliate-program. If denied, apply through Awin or CJ Affiliate.',
-      'Deep-Link Engineering: Never link to the home page. Use "Custom Link" tools to point directly to specific products.',
-      'Media Harvesting: Use "Image Asset" tabs to get studio shots, but prioritize "User Reviews" for authentic visuals.'
-    ],
-    actionItems: [
-      'Apply to the Shein Publisher Portal.',
-      'Generate 10 Deep Links for "New In" bestsellers.',
-      'Download 5 user-generated photos for your first campaign.'
-    ]
-  },
-  {
-    id: 'founder-brand',
-    title: '2. The Founder Brand',
-    platform: 'General',
-    description: 'Transform from a link-sharer to a tastemaker. People buy from people, not faceless pages.',
-    icon: 'User',
-    strategies: [
-      'The Origin Story: Define your specific fashion struggle (e.g., "Luxury on a Budget").',
-      'Visual Semiotics: Choose a signature color palette and recurring visual element (e.g., a specific mirror).',
-      'Radical Transparency: Disclose your affiliate status proudly to build trust.'
-    ],
-    actionItems: [
-      'Write your 500-word "Manifesto" for the About page.',
-      'Record a 60-second "Meet the Curator" video.',
-      'Audit your last 10 posts for consistent color grading.'
-    ]
-  },
-  {
-    id: 'bridge-psychology',
-    title: '3. Bridge Page Psychology',
-    platform: 'General',
-    description: 'Why bridge pages convert 3x higher than direct links. Understanding the "Pre-Frame".',
-    icon: 'Brain',
-    strategies: [
-      'The Trust Bridge: Cold traffic needs warming up. Your page acts as the endorsement.',
-      'Curated Scarcity: Don\'t list everything. List the "Best 5".',
-      'Speed to Value: Ensure the "Shop" button is above the fold on mobile.'
-    ],
-    actionItems: [
-      'Review your product descriptions: Do they sound personal?',
-      'Test your site load speed on mobile.',
-      'Ensure every product has a "Why I Love It" bullet point.'
-    ]
-  },
-  {
-    id: 'ig-reels',
-    title: '4. Reels Viral Formula',
-    platform: 'Instagram',
-    description: 'The fastest way to reach new audiences. Short, snappy, and trend-driven.',
-    icon: 'Video',
-    strategies: [
-      'The Hook: The first 1.5 seconds must stop the scroll (movement or text overlay).',
-      'Trending Audio: Use audio with < 5k uses but an upward arrow.',
-      'The Loop: Design the video to loop seamlessly for higher watch time.'
-    ],
-    actionItems: [
-      'Post a 7-second Reel showing 3 outfits rapidly.',
-      'Use the text overlay: "You won\'t believe where I got this..."',
-      'Reply to every comment in the first hour.'
-    ]
-  },
-  {
-    id: 'ig-stories',
-    title: '5. Stories for Sales',
-    platform: 'Instagram',
-    description: 'Where the actual selling happens. Connecting with your warm audience.',
-    icon: 'Smartphone',
-    strategies: [
-      'The Link Sticker Sandwich: Value -> Link -> Value.',
-      'Polls & Engagement: "This or That" polls to prime the algorithm.',
-      'Close Friends: Create a VIP list for "Early Drops".'
-    ],
-    actionItems: [
-      'Post a "This or That" poll with two products from your bridge page.',
-      'Follow up with a Link Sticker to the winner.',
-      'Show your face talking about the fabric quality.'
-    ]
-  },
-  {
-    id: 'ig-bio',
-    title: '6. Bio Optimization',
-    platform: 'Instagram',
-    description: 'Your digital business card. Converting profile visits to clicks.',
-    icon: 'Fingerprint',
-    strategies: [
-      'The One Link: Don\'t use Linktree if you can help it. Direct to your Bridge Page.',
-      'The "Help" Statement: "Helping [Target Audience] find [Result]."',
-      'Highlights: Keep "New In", "Reviews", and "About" highlights fresh.'
-    ],
-    actionItems: [
-      'Rewrite your bio to focus on the follower\'s benefit.',
-      'Create a "Start Here" highlight.',
-      'Add a call-to-action arrow emoji pointing to your link.'
-    ]
-  },
-  {
-    id: 'ig-dm-automation',
-    title: '7. DM Automation (ManyChat)',
-    platform: 'Instagram',
-    description: 'Scale your responses without typing all day. "Comment LINK for the outfit details".',
-    icon: 'MessageCircle',
-    strategies: [
-      'Keyword Triggers: Set up automation for keywords like "DRESS" or "BOOTS".',
-      'The Double Opt-In: Ask them to confirm they want the link to boost engagement.',
-      'Safe Delays: Add random delays to avoid spam detection.'
-    ],
-    actionItems: [
-      'Set up a basic "Comment to DM" automation.',
-      'Post a Reel with the CTA: "Comment LINK for details".',
-      'Monitor the first 10 automated DMs for errors.'
-    ]
-  },
-  {
-    id: 'tiktok-duet',
-    title: '8. The "Duet" Strategy',
-    platform: 'TikTok',
-    description: 'Leveraging other people\'s viral content to build your authority.',
-    icon: 'Users',
-    strategies: [
-      'React & Review: Duet a fashion fail or a viral haul with your expert take.',
-      'The "Cheaper Option": Duet a luxury item showing your affordable dupe.',
-      'Blind Reacts: Genuine reactions to new drops.'
-    ],
-    actionItems: [
-      'Find 3 viral fashion videos from yesterday.',
-      'Duet one showing a similar item from your bridge page.',
-      'Use the hashtag #duet and tag the original creator.'
-    ]
-  },
-  {
-    id: 'tiktok-seo',
-    title: '9. SEO on TikTok',
-    platform: 'TikTok',
-    description: 'TikTok is a search engine. optimizing your content to be found.',
-    icon: 'Search',
-    strategies: [
-      'Keyword Overlays: Put text on screen that disappears (e.g., "Summer Wedding Guest Dress").',
-      'Caption Keywords: Write descriptive sentences, not just hashtags.',
-      'Speech Search: Say the keywords out loud in the video.'
-    ],
-    actionItems: [
-      'Search your niche on TikTok and note the bolded search suggestions.',
-      'Create a video specifically answering a "How to style..." search query.',
-      'Rename your raw video file with keywords before uploading.'
-    ]
-  },
-  {
-    id: 'tiktok-trends',
-    title: '10. Trend Hacking',
-    platform: 'TikTok',
-    description: 'Riding the wave of "cores" (e.g., Cottagecore, Mob Wife Aesthetic).',
-    icon: 'TrendingUp',
-    strategies: [
-      'Identify the Core: Watch the "For You" page for recurring aesthetics.',
-      'Curate a Collection: Create a specific category on your bridge page for the trend.',
-      'The "Get the Look": Break down a trending outfit piece by piece.'
-    ],
-    actionItems: [
-      'Identify the current top fashion trend on TikTok.',
-      'Create a "Trend Edit" section on your bridge page.',
-      'Post a video: "How to get the [Trend] look on a budget."'
-    ]
-  },
-  {
-    id: 'pin-idea',
-    title: '11. Idea Pins for Reach',
-    platform: 'Pinterest',
-    description: 'Pinterest\'s version of Stories. High organic reach for inspiration.',
-    icon: 'Image',
-    strategies: [
-      'Step-by-Step Styling: 5 slides showing how to accessorize a dress.',
-      'Video Covers: Use a video for the first slide to grab attention.',
-      'No Links (Yet): Use Idea Pins to grow followers, standard pins to drive traffic.'
-    ],
-    actionItems: [
-      'Create one Idea Pin with 5 outfit variations.',
-      'Tag the products (if available in your region) or mention the link in bio.',
-      'Add text overlay on every slide.'
-    ]
-  },
-  {
-    id: 'pin-seo',
-    title: '12. Pinterest SEO & Rich Pins',
-    platform: 'Pinterest',
-    description: 'Pinterest is a visual search engine, not social media.',
-    icon: 'SearchCode',
-    strategies: [
-      'Keyword Titles: "Black Silk Dress" is better than "Cute Outfit".',
-      'Board SEO: Name your boards with search terms (e.g., "Summer 2025 Fashion").',
-      'Fresh Pins: Don\'t just repin; upload new images regularly.'
-    ],
-    actionItems: [
-      'Rename your boards to be search-friendly.',
-      'Write 100-word descriptions for your top 5 pins using keywords.',
-      'Apply for Rich Pins to show real-time pricing.'
-    ]
-  },
-  {
-    id: 'pin-aesthetic',
-    title: '13. Board Aesthetics',
-    platform: 'Pinterest',
-    description: 'Curating a lifestyle, not just a catalog.',
-    icon: 'Layout',
-    strategies: [
-      'The 80/20 Rule: 80% lifestyle/inspiration, 20% your products.',
-      'Cover Images: Design uniform covers for your boards.',
-      'Color Coding: Organize boards by color palette for visual appeal.'
-    ],
-    actionItems: [
-      'Create a "Mood Board" for the current season.',
-      'Pin 20 non-product aesthetic images (coffee, architecture) that match your brand.',
-      'Set a cohesive cover image for your main board.'
-    ]
-  },
-  {
-    id: 'yt-shorts',
-    title: '14. Fashion Haul Shorts',
-    platform: 'YouTube',
-    description: 'Repurpose your Reels/TikToks to tap into YouTube\'s massive search traffic.',
-    icon: 'Video',
-    strategies: [
-      'Vertical Value: Ensure content is strictly 9:16 aspect ratio.',
-      'Pinned Comment: Put your bridge page link in the pinned comment, not just description.',
-      'Sound Library: Use YouTube\'s audio library to avoid copyright strikes.'
-    ],
-    actionItems: [
-      'Upload your top 3 performing TikToks as YouTube Shorts.',
-      'Add the direct link to the product in the Pinned Comment.',
-      'Use #Shorts in the title.'
-    ]
-  },
-  {
-    id: 'yt-reviews',
-    title: '15. Long-Form Deep Dives',
-    platform: 'YouTube',
-    description: 'High-intent traffic. People watching 10-minute reviews are ready to buy.',
-    icon: 'Monitor',
-    strategies: [
-      'Honest Reviews: "The Truth About Shein Sizing".',
-      'Try-On Hauls: Show how the fabric moves and fits on a real body.',
-      'The "Capsule Wardrobe": How to style 5 items in 20 ways.'
-    ],
-    actionItems: [
-      'Film a 5-minute "Honest Review" of your favorite item.',
-      'Include your measurements in the description for reference.',
-      'Time-stamp the video for each outfit.'
-    ]
-  },
-  {
-    id: 'fb-groups',
-    title: '16. Niche Groups',
-    platform: 'Facebook',
-    description: 'Building a dedicated community around a specific interest.',
-    icon: 'Users',
-    strategies: [
-      'The "Help" Approach: Join groups like "Wedding Guest Outfits" and answer questions with your links.',
-      'Start Your Own: "Affordable Luxury Fashion Finds [Country]".',
-      'Live Unboxings: Go live in your group when a package arrives.'
-    ],
-    actionItems: [
-      'Join 5 fashion-related Facebook groups.',
-      'Comment on 3 posts helping someone find an item (link to your bridge page).',
-      'Create a private group for your "VIP" followers.'
-    ]
-  },
-  {
-    id: 'fb-marketplace',
-    title: '17. Marketplace Arbitrage',
-    platform: 'Facebook',
-    description: 'Driving local traffic to your digital storefront.',
-    icon: 'Store',
-    strategies: [
-      'Free Listings: List items as "Order Only" or "Link in Description".',
-      'Local SEO: Target specific affluent areas in your city.',
-      'The "Lookalike": "Love this designer bag? Here is the dupe."'
-    ],
-    actionItems: [
-      'Create a listing for a popular item.',
-      'Set the location to a major city center.',
-      'In the description, direct them to your website for the purchase link.'
-    ]
-  },
-  {
-    id: 'wa-broadcast',
-    title: '18. Broadcast Lists',
-    platform: 'WhatsApp',
-    description: 'The highest open rate channel. Direct access to your top customers.',
-    icon: 'MessageCircle',
-    strategies: [
-      'The "Save My Number" Rule: They must save your number to receive broadcasts.',
-      'VIP Drops: Send links to new collections 1 hour before posting on social.',
-      'Personal Stylist: Offer 1-on-1 advice via chat.'
-    ],
-    actionItems: [
-      'Add a "Join VIP List" button to your Contact page.',
-      'Send a "Happy Friday" broadcast with your top pick of the week.',
-      'Ask a question to provoke replies (e.g., "Gold or Silver?").'
-    ]
-  },
-  {
-    id: 'wa-status',
-    title: '19. Status Updates (FOMO)',
-    platform: 'WhatsApp',
-    description: '24-hour ephemeral content for your contacts.',
-    icon: 'Clock',
-    strategies: [
-      'Behind the Scenes: Show the packaging or you working on the site.',
-      'Limited Time Deals: "Flash sale ends in 3 hours".',
-      'Social Proof: Screenshot happy messages from clients.'
-    ],
-    actionItems: [
-      'Post 3 photos to your Status: Outfit, Coffee, Link.',
-      'Check who viewed it and personally message your warm leads.',
-      'Use the "Type" status to post a text-only announcement.'
-    ]
-  },
-  {
-    id: 'linkedin-workwear',
-    title: '20. The "Workwear" Angle',
-    platform: 'LinkedIn',
-    description: 'High-ticket affiliate marketing for the corporate world.',
-    icon: 'Briefcase',
-    strategies: [
-      'Corporate Fashion: "How to look professional on a budget".',
-      'Personal Branding: Positioning fashion as a tool for career confidence.',
-      'Article Writing: Write newsletters about office style trends.'
-    ],
-    actionItems: [
-      'Create a "Workwear Edit" category on your bridge page.',
-      'Post a photo of a blazer with a caption about "Dressing for the job you want".',
-      'Connect with 10 HR professionals or recruiters.'
-    ]
-  },
-  {
-    id: 'threads-fashion',
-    title: '21. Fashion Threads',
-    platform: 'Threads',
-    description: 'Micro-blogging for fashion education and rapid-fire links.',
-    icon: 'AlignLeft',
-    strategies: [
-      'The "Thread" Format: "10 Dresses under R500 for Summer (A Thread) 🧵".',
-      'Visual Heavy: Post the photo first, link in the reply.',
-      'Polls: Ask opinions on celebrity red carpet looks.'
-    ],
-    actionItems: [
-      'Write a thread breaking down a celebrity outfit with dupe links.',
-      'Reply to a trending fashion topic.',
-      'Cross-post your Thread to your Instagram Story.'
-    ]
-  },
-  {
-    id: 'twitter-hot-takes',
-    title: '22. Hot Takes & Commentary',
-    platform: 'Twitter',
-    description: 'Building authority through opinion and trend forecasting.',
-    icon: 'MessageSquare',
-    strategies: [
-      'Trend Spotting: "Skinny jeans are out. Here is what to wear instead."',
-      'Tagging Brands: Engage with the official brand accounts.',
-      'Retweet with Comment: Add value to viral fashion tweets.'
-    ],
-    actionItems: [
-      'Tweet a controversial (but harmless) fashion opinion.',
-      'Search for "Need an outfit" and reply with your bridge page link.',
-      'Follow 5 major fashion journalists.'
-    ]
-  },
-  {
-    id: 'email-welcome',
-    title: '23. The Welcome Sequence',
-    platform: 'Email',
-    description: 'Automating the relationship building process.',
-    icon: 'Mail',
-    strategies: [
-      'Email 1: The Delivery (The freebie/discount code).',
-      'Email 2: The Story (Who you are and why you curate).',
-      'Email 3: The Best Sellers (Direct links to top products).'
-    ],
-    actionItems: [
-      'Set up a Mailchimp or ConvertKit free account.',
-      'Create a landing page to capture emails (or use your Contact form).',
-      'Write the "Welcome" email.'
-    ]
-  },
-  {
-    id: 'email-weekly',
-    title: '24. The Weekly Curated Edit',
-    platform: 'Email',
-    description: 'Consistent value to keep your list warm.',
-    icon: 'Calendar',
-    strategies: [
-      'The "Sunday Edit": Send a recap of the week\'s best finds.',
-      'Thematic Newsletters: "Wedding Season Special" or "Cozy Knits".',
-      'Exclusive Access: Give subscribers first dibs on limited stock.'
-    ],
-    actionItems: [
-      'Plan your next 4 newsletter themes.',
-      'Include at least 3 direct product links in every email.',
-      'Ask subscribers to hit "Reply" to boost deliverability.'
-    ]
-  },
-  {
-    id: 'email-cart',
-    title: '25. Abandoned Cart (Psychology)',
-    platform: 'Email',
-    description: 'Although you don\'t own the cart, you can simulate recovery.',
-    icon: 'ShoppingCart',
-    strategies: [
-      'The "Did you see this?" Email: Re-send the link to a popular item.',
-      'Scarcity: "Low stock alert on the Silk Dress".',
-      'Social Proof: "See how others styled this".'
-    ],
-    actionItems: [
-      'Segment your list by clicks (who clicked but didn\'t buy?).',
-      'Send a follow-up email 24 hours after a major link drop.',
-      'Include a user review in the follow-up.'
-    ]
-  },
-  {
-    id: 'email-cart',
-    title: '25. Abandoned Cart (Psychology)',
-    platform: 'Email',
-    description: 'Although you don\'t own the cart, you can simulate recovery.',
-    icon: 'ShoppingCart',
-    strategies: [
-      'The "Did you see this?" Email: Re-send the link to a popular item.',
-      'Scarcity: "Low stock alert on the Silk Dress".',
-      'Social Proof: "See how others styled this".'
-    ],
-    actionItems: [
-      'Segment your list by clicks (who clicked but didn\'t buy?).',
-      'Send a follow-up email 24 hours after a major link drop.',
-      'Include a user review in the follow-up.'
-    ]
-  },
-  {
-    id: 'seo-keywords',
-    title: '26. Keyword Research',
-    platform: 'SEO',
-    description: 'Finding what people are actually typing into Google.',
-    icon: 'Search',
-    strategies: [
-      'Long-Tail Keywords: "Black maxi dress for wedding guest south africa".',
-      'Question Keywords: "How to style oversized blazer".',
-      'Tools: Use Google Trends or AnswerThePublic.'
-    ],
-    actionItems: [
-      'List 10 questions your target audience asks.',
-      'Incorporate these phrases into your Product descriptions.',
-      'Rename your product images with these keywords.'
-    ]
-  },
-  {
-    id: 'seo-articles',
-    title: '27. "Best X for Y" Articles',
-    platform: 'SEO',
-    description: 'The highest converting content format on the web.',
-    icon: 'FileText',
-    strategies: [
-      'Listicles: "10 Best Winter Coats under R1000".',
-      'Comparison: "Silk vs Satin: Which is better?".',
-      'Seasonal Guides: "The Ultimate Festival Packing List".'
-    ],
-    actionItems: [
-      'Write one blog post/article for your About or Home page.',
-      'Ensure it has at least 5 outbound links to products.',
-      'Use H1 and H2 headers for readability.'
-    ]
-  },
-  {
-    id: 'snap-spotlight',
-    title: '28. Quick Snaps & Spotlight',
-    platform: 'Snapchat',
-    description: 'Reaching Gen Z with raw, unfiltered content.',
-    icon: 'Ghost',
-    strategies: [
-      'Spotlight: Repurpose vertical video content here.',
-      'No Filter Fashion: Show the clothes in bad lighting to prove quality.',
-      'Direct Links: Snapchat allows links in snaps.'
-    ],
-    actionItems: [
-      'Post a "Get Ready With Me" on Snap.',
-      'Attach your bridge page URL to the snap.',
-      'Submit your best video to Spotlight.'
-    ]
-  },
-  {
-    id: 'repurposing',
-    title: '29. Cross-Platform Repurposing',
-    platform: 'General',
-    description: 'Work smarter, not harder. One piece of content, five platforms.',
-    icon: 'RefreshCcw',
-    strategies: [
-      'Watermark Removal: Remove TikTok logo before posting to Reels.',
-      'text Tweaks: Change the caption to suit the platform vibe.',
-      'Timing: Stagger posts so followers don\'t see the same thing everywhere at once.'
-    ],
-    actionItems: [
-      'Take one TikTok video.',
-      'Post it to Reels, YouTube Shorts, and Pinterest Idea Pins.',
-      'Embed it on your Bridge Page product description.'
-    ]
-  },
-  {
-    id: 'seasonal-campaigns',
-    title: '30. Seasonal Campaigns',
-    platform: 'General',
-    description: 'Planning ahead for major retail moments.',
-    icon: 'Calendar',
-    strategies: [
-      'Black Friday Prep: Build your list in October.',
-      'Christmas Gift Guides: "Gifts for Him", "Gifts for Her".',
-      'Payday Spikes: Post heavily on the 25th of the month.'
-    ],
-    actionItems: [
-      'Create a "Gift Guide" category on your site.',
-      'Schedule posts for the next Payday.',
-      'Design a themed banner for your Home page.'
-    ]
-  },
-  {
-    id: 'micro-influencing',
-    title: '31. Influencer Collabs',
-    platform: 'General',
-    description: 'Collaborating with others to grow your bridge page.',
-    icon: 'Users',
-    strategies: [
-      'S4S (Shoutout for Shoutout): Trade stories with a peer.',
-      'Guest Curation: "Guest Picks by [Name]" section.',
-      'Affiliate Recruiting: Teach others to sell your products (advanced).'
-    ],
-    actionItems: [
-      'DM 3 accounts with similar size to yours.',
-      'Propose a "Style Swap" challenge.',
-      'Feature another creator on your page.'
-    ]
-  },
-  {
-    id: 'data-analysis',
-    title: '32. Reading the Data',
-    platform: 'General',
-    description: 'Using your Admin Dashboard to make decisions.',
-    icon: 'BarChart',
-    strategies: [
-      'Click-Through Rate (CTR): If views are high but clicks low, change the button text.',
-      'Bounce Rate: If high, check page speed or mobile layout.',
-      'Top Performers: Double down on what works.'
-    ],
-    actionItems: [
-      'Check your "Insights" tab in the Admin panel.',
-      'Identify your lowest performing product and delete it.',
-      'Find your top product and make a new video about it.'
-    ]
-  }
-];
-
 export const PERMISSION_TREE: PermissionNode[] = [
   {
     id: 'sales',
@@ -1024,7 +474,7 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 
 export const INITIAL_SETTINGS: SiteSettings = {
   companyName: "Findara",
-  slogan: 'Your Bridge to Global Trends',
+  slogan: 'Curating the Exceptional',
   companyLogo: 'F',
   companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
   primaryColor: '#D4AF37',
@@ -1032,7 +482,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   accentColor: '#F59E0B',
   navHomeLabel: 'Home',
   navProductsLabel: 'Collections',
-  navAboutLabel: 'My Story',
+  navAboutLabel: 'My Journey',
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
@@ -1062,17 +512,17 @@ export const INITIAL_SETTINGS: SiteSettings = {
   productAcquisitionLabel: 'Secure Acquisition',
   productSpecsLabel: 'Technical Specifications',
 
-  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to Shein and global fashion trends.",
+  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to global fashion trends.",
   footerCopyrightText: "All rights reserved.",
   footerNavHeader: 'Navigation',
   footerPolicyHeader: 'Policy',
 
   // Home Page Content
-  homeHeroBadge: 'Exclusive Curation',
-  homeAboutTitle: 'Me and My Story.',
-  homeAboutDescription: 'I built this bridge page to share my journey in affiliate marketing. Here I showcase my favorite finds from programs like Shein, offering you a personal look at the products I love and recommend.',
+  homeHeroBadge: 'Curator Exclusive',
+  homeAboutTitle: 'The Curator\'s Journey.',
+  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Read My Story',
+  homeAboutCta: 'Explore My Story',
   homeCategorySectionTitle: 'Curated Departments',
   homeCategorySectionSubtitle: 'The Collection',
   homeNicheHeader: 'Shop by Niche',
@@ -1105,27 +555,27 @@ export const INITIAL_SETTINGS: SiteSettings = {
   productsSearchPlaceholder: 'Search selections...',
 
   // About Page Content
-  aboutHeroTitle: 'My Story.',
-  aboutHeroSubtitle: 'Welcome to my bridge page. I curate the best fashion so you don\'t have to.',
+  aboutHeroTitle: 'My Narrative. Your Style.',
+  aboutHeroSubtitle: 'Authenticity is the thread that weaves every selection together. Welcome to my curated world.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
   aboutFounderName: 'Findara Curator',
-  aboutLocation: 'Online',
+  aboutLocation: 'Cape Town, Online',
 
   aboutHistoryTitle: 'The Bridge System',
-  aboutHistoryBody: 'This website is more than just a store; it is a bridge page system designed to market various affiliate programs. Our passion for fashion led us to partner with brands like Shein to bring you the best deals.\n\nHere you will find personal reviews, styling tips, and direct links to purchase the items we love.',
+  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a platform. Findara isn\'t just about affiliate links; it\'s about the story behind every garment. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nThis bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator.',
   
   aboutMissionTitle: 'Marketing Mission',
-  aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers.',
+  aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers with transparency and taste.',
   aboutMissionIcon: 'Target',
 
   aboutCommunityTitle: 'Join the Community',
-  aboutCommunityBody: 'Follow our journey as we discover new trends and deals.',
+  aboutCommunityBody: 'Follow our journey as we discover new trends and deals that define modern luxury.',
   aboutCommunityIcon: 'Users',
   
   aboutIntegrityTitle: 'Transparency',
-  aboutIntegrityBody: 'We are upfront about our role as an affiliate marketer. This system is built on trust.',
+  aboutIntegrityBody: 'We are upfront about our role as an affiliate marketer. This system is built on trust and curation integrity.',
   aboutIntegrityIcon: 'Shield',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
@@ -1136,19 +586,19 @@ export const INITIAL_SETTINGS: SiteSettings = {
   ],
 
   // Contact Page Content
-  contactHeroTitle: 'Get in Touch.',
-  contactHeroSubtitle: 'Have questions about a product or our affiliate partners?',
+  contactHeroTitle: 'Connect with Us.',
+  contactHeroSubtitle: 'Have questions about a specific find or our curation process? Our concierge desk is here to assist.',
   contactFormNameLabel: 'Name',
   contactFormEmailLabel: 'Email',
   contactFormSubjectLabel: 'Subject',
   contactFormMessageLabel: 'Message',
-  contactFormButtonText: 'Send Message',
+  contactFormButtonText: 'Transmit Message',
   
-  contactInfoTitle: 'Contact',
+  contactInfoTitle: 'Headquarters',
   contactAddressLabel: 'Location',
-  contactHoursLabel: 'Hours',
-  contactHoursWeekdays: 'Online 24/7',
-  contactHoursWeekends: '',
+  contactHoursLabel: 'Concierge Hours',
+  contactHoursWeekdays: 'Monday - Friday: 09:00 - 18:00',
+  contactHoursWeekends: 'Weekends: 10:00 - 14:00 (Digital Response)',
 
   // Legal Content
   disclosureTitle: 'Affiliate Disclosure',
@@ -1480,5 +930,83 @@ export const INITIAL_PRODUCTS: Product[] = [
         createdAt: Date.now() - 10000000
       }
     ]
+  }
+];
+
+/**
+ * TRAINING_MODULES constant for the Academy section in Admin.tsx
+ */
+export const TRAINING_MODULES: TrainingModule[] = [
+  {
+    id: 'tm1',
+    title: 'Instagram Aesthetic Curation',
+    platform: 'Instagram',
+    description: 'Master the art of visual storytelling on Instagram to drive high-intent traffic to your bridge page.',
+    strategies: [
+      'Use high-contrast editorial photography.',
+      'Maintain a consistent color palette aligned with your brand.',
+      'Utilize Instagram Stories for "New Drop" alerts with direct links.'
+    ],
+    actionItems: [
+      'Create 5 "Outfit of the Day" reels.',
+      'Set up your bridge page URL in bio.',
+      'Engage with 20 niche-related accounts daily.'
+    ],
+    icon: 'Instagram',
+    steps: []
+  },
+  {
+    id: 'tm2',
+    title: 'Pinterest Viral Pins Strategy',
+    platform: 'Pinterest',
+    description: 'Pinterest is a search engine. Learn how to create evergreen traffic using aesthetic product pins.',
+    strategies: [
+      'Create vertical pins (2:3 ratio) for maximum visibility.',
+      'Use keywords in pin titles and descriptions (SEO).',
+      'Organize pins into niche-specific boards.'
+    ],
+    actionItems: [
+      'Design 10 high-quality pins using the Ad Generator.',
+      'Schedule pins during peak engagement hours.',
+      'Join 3 group boards in the fashion niche.'
+    ],
+    icon: 'Pin',
+    steps: []
+  },
+  {
+    id: 'tm3',
+    title: 'TikTok Trend Jacking',
+    platform: 'TikTok',
+    description: 'Leverage viral sounds and trends to showcase your curated collections to a massive audience.',
+    strategies: [
+      'Participate in trending fashion challenges.',
+      'Show "Behind the Scenes" of your curation process.',
+      'Use fast-paced editing to keep viewers engaged.'
+    ],
+    actionItems: [
+      'Identify 3 trending sounds this week.',
+      'Record a "Selection Reveal" video.',
+      'Link your bridge page in the TikTok bio.'
+    ],
+    icon: 'Zap',
+    steps: []
+  },
+  {
+    id: 'tm4',
+    title: 'SEO for Luxury Curation',
+    platform: 'SEO',
+    description: 'Optimize your department descriptions and product titles to rank for high-value fashion search terms.',
+    strategies: [
+      'Use descriptive titles with niche keywords.',
+      'Write unique, engaging descriptions for categories.',
+      'Optimize image alt tags for search visibility.'
+    ],
+    actionItems: [
+      'Perform keyword research for targeted niches.',
+      'Update 5 product descriptions with keywords.',
+      'Ensure all images have descriptive filenames.'
+    ],
+    icon: 'Search',
+    steps: []
   }
 ];

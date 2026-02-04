@@ -12,15 +12,15 @@ import {
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
   FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Minus, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer
+  Minus, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
+  ListChecks, MoveVertical, PlayCircle
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
-import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq } from '../types';
+import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule, TrainingStep } from '../types';
 import { useSettings } from '../App';
-import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupabaseUrl } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupabaseUrl, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import emailjs from '@emailjs/browser';
 import { CustomIcons } from '../components/CustomIcons';
 
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -104,7 +104,7 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
 
   return (
     <div className="space-y-2 text-left w-full min-w-0">
-       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
+       {label && <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>}
        <div 
         onClick={() => !uploading && inputRef.current?.click()}
         className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`}
@@ -590,17 +590,6 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
   return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>);
 };
 
-const EmailReplyModal: React.FC<{ enquiry: Enquiry; onClose: () => void }> = ({ enquiry, onClose }) => {
-  const { settings, products } = useSettings();
-  const [subject, setSubject] = useState(`Re: ${enquiry.subject}`);
-  const [message, setMessage] = useState(`Dear ${enquiry.name},\n\nThank you for contacting ${settings.companyName}.\n\n[Your response here]\n\nBest regards,\n${settings.companyName}\n${settings.address}\n${settings.contactEmail}`);
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const [sending, setSending] = useState(false); const [success, setSuccess] = useState(false); const [error, setError] = useState<string | null>(null);
-  const handleSend = async () => { const serviceId = settings.emailJsServiceId?.trim(); const templateId = settings.emailJsTemplateId?.trim(); const publicKey = settings.emailJsPublicKey?.trim(); if (!serviceId || !templateId || !publicKey) { setError("Email.js is not configured."); return; } setSending(true); setError(null); try { const fileLinks: string[] = []; if (attachments.length > 0) { if (!isSupabaseConfigured) throw new Error("Supabase is required for attachments."); for (const file of attachments) { const url = await uploadMedia(file, 'media'); if (url) fileLinks.push(`${file.name}: ${url}`); } } let finalMessage = message.replace(/\n/g, '<br>'); if (fileLinks.length > 0) finalMessage += `<br><br><strong>Attachments:</strong><br>${fileLinks.map(l => `<a href="${l.split(': ')[1]}">${l.split(': ')[0]}</a>`).join('<br>')}`; let logoUrl = settings.companyLogoUrl || ''; const productsHtml = ''; const socialsHtml = ''; const templateParams = { to_name: enquiry.name, to_email: enquiry.email, subject, message: finalMessage, reply_to: enquiry.email, company_name: settings.companyName, company_address: settings.address, company_website: window.location.origin, company_logo_url: logoUrl, products_html: productsHtml, socials_html: socialsHtml, year: new Date().getFullYear().toString() }; await emailjs.send(serviceId, templateId, templateParams, publicKey); setSuccess(true); setTimeout(onClose, 2000); } catch (err: any) { console.error('EmailJS Error:', err); setError(err.text || err.message); } finally { setSending(false); } };
-  if (success) return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"><div className="bg-white rounded-3xl p-10 text-center animate-in zoom-in"><div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mx-auto mb-4"><CheckCircle size={40} /></div><h3 className="text-2xl font-bold text-slate-900">Email Sent!</h3></div></div>);
-  return (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div className="bg-slate-900 border border-slate-700 w-full max-w-3xl rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"><div className="p-6 border-b border-slate-800 flex justify-between items-center"><h3 className="text-white font-bold flex items-center gap-3"><Reply size={20} className="text-primary"/> Reply to {enquiry.name}</h3><button onClick={onClose} className="text-slate-500 hover:text-white"><X size={24}/></button></div><div className="p-6 overflow-y-auto space-y-6 text-left">{error && <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">{error}</div>}<div className="space-y-4"><div className="grid grid-cols-2 gap-4"><SettingField label="To" value={enquiry.email} onChange={() => {}} type="text" /><SettingField label="Subject" value={subject} onChange={setSubject} /></div><SettingField label="Message (HTML Support Enabled)" value={message} onChange={setMessage} type="textarea" rows={12} /><div className="space-y-2 text-left"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Paperclip size={12}/> Attachments (Requires Storage)</label><input type="file" multiple onChange={e => e.target.files && setAttachments(Array.from(e.target.files))} className="block w-full text-xs text-slate-400 file:bg-slate-800 file:text-primary file:rounded-full file:border-0 file:py-2 file:px-4" /></div></div></div><div className="p-6 border-t border-slate-800 flex justify-end gap-3"><button onClick={onClose} className="px-6 py-3 rounded-xl text-slate-400 font-bold text-xs uppercase tracking-widest">Cancel</button><button onClick={handleSend} disabled={sending} className="px-8 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50">{sending ? <Loader2 size={16} className="animate-spin"/> : <Send size={16}/>} Send Email</button></div></div></div>);
-};
-
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
 const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => {
   const { settings } = useSettings(); const [copied, setCopied] = useState(false); const [platform, setPlatform] = useState(PLATFORMS[0]); const [customText, setCustomText] = useState('');
@@ -731,22 +720,11 @@ const IntegrationGuide: React.FC = () => (
      <div className="space-y-4 text-xs text-slate-400">
         <details className="group">
           <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
-            <Mail size={14} /> EmailJS (Forms)
-          </summary>
-          <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p>1. Sign up at <a href="https://www.emailjs.com" target="_blank" className="text-white underline">EmailJS.com</a>.</p>
-            <p>2. Create a new "Email Service" (e.g., Gmail) to get your <strong>Service ID</strong>.</p>
-            <p>3. Create an "Email Template". Use variables like <code>{`{{name}}`}</code>, <code>{`{{message}}`}</code>. Get your <strong>Template ID</strong>.</p>
-            <p>4. Go to Account &gt; API Keys to copy your <strong>Public Key</strong>.</p>
-          </div>
-        </details>
-        <details className="group">
-          <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
             <BarChart size={14} /> Google Analytics 4
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
             <p>1. Go to <a href="https://analytics.google.com" target="_blank" className="text-white underline">Google Analytics</a>.</p>
-            <p>2. Create a property. Go to Admin &gt; Data Streams &gt; Web.</p>
+            <p>2. Create a property. Go to Admin > Data Streams > Web.</p>
             <p>3. Copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</p>
           </div>
         </details>
@@ -755,8 +733,8 @@ const IntegrationGuide: React.FC = () => (
             <Target size={14} /> Meta / TikTok Pixels
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p><strong>Meta (Facebook):</strong> Go to Events Manager &gt; Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
-            <p><strong>TikTok:</strong> Go to Ads Manager &gt; Assets &gt; Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
+            <p><strong>Meta (Facebook):</strong> Go to Events Manager > Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
+            <p><strong>TikTok:</strong> Go to Ads Manager > Assets > Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
           </div>
         </details>
      </div>
@@ -1029,7 +1007,6 @@ const Admin: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedTraining, setExpandedTraining] = useState<string | null>(null);
   const [selectedAdProduct, setSelectedAdProduct] = useState<Product | null>(null);
-  const [replyEnquiry, setReplyEnquiry] = useState<Enquiry | null>(null);
   const [productData, setProductData] = useState<Partial<Product>>({});
   const [catData, setCatData] = useState<Partial<Category>>({});
   const [heroData, setHeroData] = useState<Partial<CarouselSlide>>({});
@@ -1041,21 +1018,76 @@ const Admin: React.FC = () => {
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
-  const [curatorFilter, setCuratorFilter] = useState<string>('all'); // Owner curation switcher
+  const [curatorFilter, setCuratorFilter] = useState<string>('all'); 
   const [showEliteReport, setShowEliteReport] = useState(false);
+
+  // Manual Purge State
+  const [showPurgeModal, setShowPurgeModal] = useState(false);
+  const [purgeConfirmText, setPurgeConfirmText] = useState('');
+  const [isPurging, setIsPurging] = useState(false);
+
+  const [catalogView, setCatalogView] = useState<'active' | 'history'>('active');
+  const [historyProducts, setHistoryProducts] = useState<ProductHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Phase Overhaul: Training Management
+  const [isTrainingManagementMode, setIsTrainingManagementMode] = useState(false);
+  const [showTrainingForm, setShowTrainingForm] = useState(false);
+  const [trainingData, setTrainingData] = useState<Partial<TrainingModule>>({ strategies: [], actionItems: [], steps: [] });
+  const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(INITIAL_TRAINING);
+  const [isLoadingTraining, setIsLoadingTraining] = useState(false);
+  const [tempTrainingStrat, setTempTrainingStrat] = useState('');
+  const [tempTrainingAction, setTempTrainingAction] = useState('');
 
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@findara.com');
   const userId = user?.id;
 
-  // Data display logic updated with Owner-level curation switcher
-  const displayProducts = useMemo(() => {
-    if (isOwner) {
-      if (curatorFilter === 'all') return products;
-      return products.filter(p => p.createdBy === curatorFilter);
+  const loadHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const data = await fetchCurationHistory();
+      if (data) setHistoryProducts(data as ProductHistory[]);
+    } catch (err) {
+      console.error("Failed to load history", err);
+    } finally {
+      setLoadingHistory(false);
     }
-    return products.filter(p => !p.createdBy || p.createdBy === userId);
-  }, [products, isOwner, userId, curatorFilter]);
+  };
+
+  const loadTrainingModules = async () => {
+    if (!isSupabaseConfigured) return;
+    setIsLoadingTraining(true);
+    try {
+      const data = await fetchTableData('training_modules');
+      if (data) setTrainingModules(data as TrainingModule[]);
+    } catch (err) {
+      console.error("Failed to load training", err);
+    } finally {
+      setIsLoadingTraining(false);
+    }
+  };
+
+  useEffect(() => {
+    if (catalogView === 'history') {
+      loadHistory();
+    }
+  }, [catalogView]);
+
+  useEffect(() => {
+    if (activeTab === 'training') {
+      loadTrainingModules();
+    }
+  }, [activeTab]);
+
+  const displayProducts = useMemo(() => {
+    const baseSet = catalogView === 'active' ? products : historyProducts;
+    if (isOwner) {
+      if (curatorFilter === 'all') return baseSet;
+      return baseSet.filter(p => p.createdBy === curatorFilter);
+    }
+    return baseSet.filter(p => !p.createdBy || p.createdBy === userId);
+  }, [products, historyProducts, catalogView, isOwner, userId, curatorFilter]);
 
   const displayCategories = useMemo(() => isOwner ? categories : categories.filter(c => !c.createdBy || c.createdBy === userId), [categories, isOwner, userId]);
   const displayHeroSlides = useMemo(() => isOwner ? heroSlides : heroSlides.filter(s => !s.createdBy || s.createdBy === userId), [heroSlides, isOwner, userId]);
@@ -1160,6 +1192,55 @@ const Admin: React.FC = () => {
   const handleSaveHero = async () => { const newSlide = { ...heroData, id: editingId || Date.now().toString(), createdBy: heroData.createdBy || user?.id }; const ok = await updateData('hero_slides', newSlide); if (ok) { setShowHeroForm(false); setEditingId(null); } };
   const handleSaveAdmin = async () => { if (!adminData.email) return; setCreatingAdmin(true); try { const newAdmin = { ...adminData, id: editingId || Date.now().toString(), createdAt: adminData.createdAt || Date.now() }; const ok = await updateData('admin_users', newAdmin); if (ok) { setShowAdminForm(false); setEditingId(null); } } catch (err: any) { alert(`Error saving member: ${err.message}`); } finally { setCreatingAdmin(false); } };
 
+  const handleSaveTraining = async () => {
+     setSaveStatus('saving');
+     const moduleToSave = {
+        ...trainingData,
+        id: editingId || Date.now().toString(),
+        createdAt: trainingData.createdAt || Date.now(),
+        createdBy: trainingData.createdBy || user?.id
+     };
+     try {
+       const ok = await updateData('training_modules', moduleToSave);
+       if (ok) {
+          setShowTrainingForm(false);
+          setEditingId(null);
+          loadTrainingModules();
+       }
+     } catch (e) {
+       setSaveStatus('error');
+     }
+  };
+
+  const handleManualPurge = async () => {
+    if (purgeConfirmText !== 'PURGE') return;
+    setIsPurging(true);
+    setSaveStatus('saving');
+    
+    try {
+      const ownerId = 'owner';
+      const nonOwnerProducts = products.filter(p => p.createdBy && p.createdBy !== ownerId);
+      
+      if (nonOwnerProducts.length > 0) {
+        for (const product of nonOwnerProducts) {
+          const archivedItem = { ...product, archivedAt: Date.now() };
+          await moveRecord('products', 'product_history', archivedItem);
+        }
+        await refreshAllData();
+        alert(`Successfully archived ${nonOwnerProducts.length} curator items.`);
+      } else {
+        alert("No non-owner products found to archive.");
+      }
+    } catch (err) {
+      console.error("Purge failed", err);
+      setSaveStatus('error');
+    } finally {
+      setIsPurging(false);
+      setShowPurgeModal(false);
+      setPurgeConfirmText('');
+    }
+  };
+
   const toggleEnquiryStatus = async (enquiry: Enquiry) => { const updated = { ...enquiry, status: enquiry.status === 'read' ? 'unread' : 'read' }; await updateData('enquiries', updated); };
   const handleAddSubCategory = async (categoryId: string) => { if (!tempSubCatName.trim()) return; const newSub: SubCategory = { id: Date.now().toString(), categoryId, name: tempSubCatName, createdBy: user?.id }; await updateData('subcategories', newSub); setTempSubCatName(''); };
   const handleDeleteSubCategory = async (id: string) => await deleteData('subcategories', id);
@@ -1184,7 +1265,7 @@ const Admin: React.FC = () => {
             <button onClick={exportEnquiries} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><FileSpreadsheet size={16}/> Export CSV</button>
          </div>
       </div>
-      <AdminTip title="Communication Hub">This is your central command for client interactions. All inquiries from your contact form are routed here. Use the reply button to open a pre-filled email template, or archive messages to keep your inbox clean.</AdminTip>
+      <AdminTip title="Communication Hub">This is your central command for client interactions. All inquiries from your contact form are routed here. Use the reply button to open your device's email client, or archive messages to keep your inbox clean.</AdminTip>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
          <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'unread', 'read'].map(filter => (<button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
@@ -1194,7 +1275,17 @@ const Admin: React.FC = () => {
           <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-6 text-left ${e.status === 'unread' ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
             <div className="flex-grow space-y-2 min-w-0"><div className="flex items-center gap-3"><h4 className="text-white font-bold truncate">{e.name}</h4><span className="text-[9px] font-black text-slate-500 uppercase flex-shrink-0">{new Date(e.createdAt).toLocaleDateString()}</span></div><p className="text-primary text-sm font-bold truncate">{e.email}</p><div className="p-4 bg-slate-800/50 rounded-2xl text-slate-400 text-sm italic leading-relaxed break-words">"{e.message}"</div></div>
             <div className="flex gap-2 items-start w-full md:w-auto flex-shrink-0 min-w-0">
-              <button onClick={() => setReplyEnquiry(e)} className="flex-1 md:flex-none p-4 bg-primary/20 text-primary rounded-2xl hover:bg-primary hover:text-slate-900 transition-colors" title="Reply"><Reply size={20}/></button>
+              <button 
+                onClick={() => {
+                  const subject = encodeURIComponent(`Re: ${e.subject}`);
+                  const body = encodeURIComponent(`Dear ${e.name},\n\nRegarding your enquiry: "${e.message}"\n\n`);
+                  window.location.href = `mailto:${e.email}?subject=${subject}&body=${body}`;
+                }} 
+                className="flex-1 md:flex-none p-4 bg-primary/20 text-primary rounded-2xl hover:bg-primary hover:text-slate-900 transition-colors" 
+                title="Reply via Email Client"
+              >
+                <Reply size={20}/>
+              </button>
               <button onClick={() => toggleEnquiryStatus(e)} className={`flex-1 md:flex-none p-4 rounded-2xl transition-colors ${e.status === 'read' ? 'bg-slate-800 text-slate-500' : 'bg-green-500/20 text-green-500'}`} title={e.status === 'read' ? 'Mark Unread' : 'Mark Read'}><CheckCircle size={20}/></button>
               <button onClick={() => deleteData('enquiries', e.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-500 rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={20}/></button>
             </div>
@@ -1214,8 +1305,8 @@ const Admin: React.FC = () => {
       visitorLogs = [];
     }
     
-    const sortedProducts = [...displayProducts].map(p => {
-      const pStats = displayStats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
+    const sortedProducts = [...products].map(p => {
+      const pStats = stats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
       const reviewCount = p.reviews?.length || 0;
       return { ...p, ...pStats, reviewCount, ctr: pStats.views > 0 ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
     }).sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks));
@@ -1223,7 +1314,7 @@ const Admin: React.FC = () => {
     const topProducts = sortedProducts.slice(0, 15);
 
     const categoryPerformance = categories.map(cat => {
-      const catProducts = displayProducts.filter(p => p.categoryId === cat.id);
+      const catProducts = products.filter(p => p.categoryId === cat.id);
       const catProductIds = catProducts.map(p => p.id);
       const catMetrics = stats.filter(s => catProductIds.includes(s.productId));
       
@@ -1240,10 +1331,10 @@ const Admin: React.FC = () => {
       };
     }).sort((a, b) => b.views - a.views);
     
-    const totalViews = displayStats.reduce((acc, s) => acc + s.views, 0);
-    const totalClicks = displayStats.reduce((acc, s) => acc + s.clicks, 0);
-    const totalShares = displayStats.reduce((acc, s) => acc + (s.shares || 0), 0);
-    const totalSessionTime = displayStats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
+    const totalViews = stats.reduce((acc, s) => acc + s.views, 0);
+    const totalClicks = stats.reduce((acc, s) => acc + s.clicks, 0);
+    const totalShares = stats.reduce((acc, s) => acc + (s.shares || 0), 0);
+    const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
 
     const totalUniqueVisitors = visitorLogs.length;
@@ -1288,7 +1379,6 @@ const Admin: React.FC = () => {
            </div>
            
            <div className="flex flex-col md:flex-row gap-8 items-center">
-              {/* Owner Curator Switcher for Report */}
               {isOwner && (
                 <div className="relative min-w-[220px]">
                    <label className="text-[8px] font-black uppercase text-slate-600 tracking-widest block mb-2 px-1">Curator Context</label>
@@ -1357,7 +1447,7 @@ const Admin: React.FC = () => {
              { label: 'Click Through Rate', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
              { label: 'Social Shares', value: totalShares, icon: Share2, color: 'text-blue-400' },
              { label: 'Avg Session Time', value: `${avgSessionTime}s`, icon: Timer, color: 'text-green-400' },
-             { label: 'Verified Reviews', value: displayProducts.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
+             { label: 'Verified Reviews', value: products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
            ].map((m, i) => (
              <div key={i} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 hover:border-primary/50 transition-colors flex flex-col justify-between h-48 shadow-lg group">
                 <div className="flex justify-between items-start">
@@ -1718,30 +1808,83 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 text-left">
+        <div className="grid md:grid-cols-3 gap-6 text-left">
            <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4">
               <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Catalog Export</h3>
               <p className="text-slate-500 text-xs leading-relaxed">Save a complete snapshot of all products, settings, and analytical data to JSON.</p>
               <button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2 border border-slate-700">Download Data</button>
            </div>
+           
+           <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4 relative group overflow-hidden">
+              <History className="absolute -right-4 -bottom-4 w-24 h-24 text-primary/5 -rotate-12 transition-transform group-hover:scale-110" />
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Clock size={18} className="text-primary"/> Monthly Archive</h3>
+              <p className="text-slate-500 text-xs leading-relaxed">Manually trigger the curation cycle. Moves all non-owner items to the history vault for catalog refreshment.</p>
+              <button onClick={() => setShowPurgeModal(true)} className="px-6 py-4 bg-primary text-slate-900 rounded-xl text-xs uppercase font-black hover:bg-white transition-all w-full flex items-center justify-center gap-2 shadow-lg shadow-primary/10">Trigger Cycle</button>
+           </div>
+
            <div className="bg-red-950/10 p-8 rounded-[2rem] border border-red-500/20 text-left space-y-4">
               <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> System Purge</h3>
               <p className="text-slate-500 text-xs leading-relaxed">Immediately factory reset all local storage data. Supabase cloud data is preserved unless manually wiped.</p>
               <button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Purge</button>
            </div>
         </div>
+
+        {/* Manual Purge High-Friction Modal */}
+        {showPurgeModal && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+             <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+                <div className="p-8 text-center border-b border-slate-800">
+                   <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary border border-primary/20">
+                      <Flame size={40} className="animate-pulse" />
+                   </div>
+                   <h3 className="text-2xl font-serif text-white mb-2">Execute Archive Cycle?</h3>
+                   <p className="text-slate-400 text-sm leading-relaxed">This will immediately move all curator-submitted items to the history vault. This action is recorded in the Maison Ledger.</p>
+                </div>
+                <div className="p-8 bg-slate-950">
+                   <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] text-center">Type <span className="text-primary">PURGE</span> to confirm security protocol</p>
+                      <input 
+                        type="text" 
+                        value={purgeConfirmText}
+                        onChange={(e) => setPurgeConfirmText(e.target.value.toUpperCase())}
+                        placeholder="SECURITY_KEY"
+                        className="w-full px-6 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white text-center font-mono font-bold tracking-[0.5em] outline-none focus:border-primary transition-all uppercase placeholder:opacity-20"
+                      />
+                      <div className="flex gap-4 pt-4">
+                         <button 
+                            onClick={() => { setShowPurgeModal(false); setPurgeConfirmText(''); }}
+                            className="flex-1 py-4 text-slate-500 font-bold uppercase text-xs tracking-widest hover:text-white"
+                         >
+                            Abort
+                         </button>
+                         <button 
+                            disabled={purgeConfirmText !== 'PURGE' || isPurging}
+                            onClick={handleManualPurge}
+                            className={`flex-1 py-4 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-2 ${
+                               purgeConfirmText === 'PURGE' 
+                               ? 'bg-red-600 text-white shadow-xl shadow-red-600/20 hover:brightness-110 active:scale-95' 
+                               : 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                            }`}
+                         >
+                            {isPurging ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+                            Execute
+                         </button>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+        )}
      </div>
     );
   };
 
   const renderCatalog = () => {
-    // Filter logic
     const filteredBase = displayProducts.filter(p => 
       p.name.toLowerCase().includes(productSearch.toLowerCase()) && 
       (productCatFilter === 'all' || p.categoryId === productCatFilter)
     );
 
-    // Grouping Logic
     const groupedProducts = categories.map(cat => ({
       ...cat,
       items: filteredBase.filter(p => p.categoryId === cat.id)
@@ -1769,11 +1912,25 @@ const Admin: React.FC = () => {
           <>
             <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left">
               <div className="space-y-2">
-                <h2 className="text-3xl font-serif text-white">Catalog</h2>
-                <p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p>
+                <h2 className="text-3xl font-serif text-white">{catalogView === 'active' ? 'Active Collection' : 'Curation History'}</h2>
+                <p className="text-slate-400 text-sm">{catalogView === 'active' ? 'Manage your live collections.' : 'Archives of past curation selections.'}</p>
               </div>
-              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                {/* Owner Curator Switcher for Catalog */}
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto items-center">
+                <div className="p-1 bg-slate-900 border border-slate-800 rounded-2xl flex">
+                   <button 
+                    onClick={() => setCatalogView('active')}
+                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${catalogView === 'active' ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                   >
+                     <ShoppingBag size={14}/> Active
+                   </button>
+                   <button 
+                    onClick={() => setCatalogView('history')}
+                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${catalogView === 'history' ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                   >
+                     <History size={14}/> History
+                   </button>
+                </div>
+
                 {isOwner && (
                   <div className="relative min-w-[200px]">
                     <select 
@@ -1787,20 +1944,26 @@ const Admin: React.FC = () => {
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
                   </div>
                 )}
-                <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center">
-                    <Plus size={18} /> Add Product
-                </button>
+                {catalogView === 'active' && (
+                  <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center">
+                      <Plus size={18} /> Add Product
+                  </button>
+                )}
               </div>
             </div>
 
-            <AdminTip title="Inventory Management">Products are now categorized by department for easier navigation. {isOwner ? "As an owner, you can toggle curators to manage specific catalogs." : "Use the search to quickly find items."}</AdminTip>
+            {catalogView === 'active' ? (
+              <AdminTip title="Inventory Management">Products are now categorized by department for easier navigation. {isOwner ? "As an owner, you can toggle curators to manage specific catalogs." : "Use the search to quickly find items."}</AdminTip>
+            ) : (
+              <AdminTip title="History Vault">This section contains items that have been cycled out of the main collection. You can view their performance or permanently remove them from the maison records.</AdminTip>
+            )}
 
             <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-[100px] z-30 bg-slate-950 py-2">
                <div className="relative flex-grow">
                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                  <input 
                   type="text" 
-                  placeholder="Search by name..." 
+                  placeholder={`Search ${catalogView} collections...`} 
                   value={productSearch} 
                   onChange={e => setProductSearch(e.target.value)} 
                   className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" 
@@ -1820,7 +1983,6 @@ const Admin: React.FC = () => {
                </div>
             </div>
 
-            {/* QUICK NAVIGATION STRIP */}
             {productCatFilter === 'all' && groupedProducts.length > 1 && (
                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 sticky top-[170px] z-20 bg-slate-950">
                   {groupedProducts.map(group => {
@@ -1842,7 +2004,12 @@ const Admin: React.FC = () => {
             )}
 
             <div className="space-y-12">
-              {groupedProducts.length === 0 ? (
+              {loadingHistory ? (
+                <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
+                  <Loader2 className="animate-spin mx-auto mb-4" size={32} />
+                  <p className="font-bold uppercase text-[10px] tracking-widest">Retrieving Archives...</p>
+                </div>
+              ) : groupedProducts.length === 0 ? (
                 <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
                   No products matching your search found.
                 </div>
@@ -1854,22 +2021,33 @@ const Admin: React.FC = () => {
                      </div>
                      <div className="flex flex-col">
                         <h3 className="text-xl font-bold text-white uppercase tracking-tight">{group.name}</h3>
-                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{group.items.length} Curations</span>
+                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{group.items.length} {catalogView === 'active' ? 'Curations' : 'Archives'}</span>
                      </div>
                      <div className="flex-grow h-px bg-slate-800"></div>
                   </div>
                   
                   <div className="grid gap-4">
                     {group.items.map(p => (
-                      <div key={p.id} className="bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4">
+                      <div key={p.id} className={`bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4 ${catalogView === 'history' ? 'opacity-70 grayscale-[0.5]' : ''}`}>
                         <div className="flex items-center gap-6 min-w-0 text-left">
                           <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0">
                             {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
+                            {catalogView === 'history' && (
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                 <History size={16} className="text-white/50" />
+                              </div>
+                            )}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4>
+                            <div className="flex items-center gap-2 mb-1">
+                               <h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4>
+                               {catalogView === 'history' && <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 text-[8px] font-black uppercase border border-slate-700">ARCHIVED</span>}
+                            </div>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-primary text-xs font-bold">R {p.price}</span>
+                              <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest">
+                                • {catalogView === 'active' ? 'SKU:' : 'Archived:'} {catalogView === 'active' ? p.sku : new Date((p as any).archivedAt || Date.now()).toLocaleDateString()}
+                              </span>
                               {curatorFilter === 'all' && isOwner && (
                                 <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">
                                   • Curator: {admins.find(a=>a.id===p.createdBy)?.name || 'Central'}
@@ -1879,9 +2057,18 @@ const Admin: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
-                          <button onClick={() => setSelectedAdProduct(p)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button>
-                          <button onClick={() => { setProductData(p); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
-                          <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                          {catalogView === 'active' ? (
+                            <>
+                              <button onClick={() => setSelectedAdProduct(p as Product)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button>
+                              <button onClick={() => { setProductData(p as Product); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
+                              <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => { /* Potential Restore Action */ }} className="flex-1 md:flex-none p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors" title="Restore to Active"><RotateCcw size={18}/></button>
+                              <button onClick={() => { if(confirm("Permanently delete this archive?")) deleteData('product_history', p.id).then(() => loadHistory()); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash size={18}/></button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -2000,46 +2187,274 @@ const Admin: React.FC = () => {
   const renderTraining = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Academy</h2><p className="text-slate-400 text-sm">Curation marketing mastery across {TRAINING_MODULES.length} channels.</p></div>
-         <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2"><Video size={16}/> Mastering the Algorithm</a>
+         <div className="space-y-2">
+            <h2 className="text-3xl font-serif text-white">Academy</h2>
+            <p className="text-slate-400 text-sm">Curation marketing mastery across {trainingModules.length} channels.</p>
+         </div>
+         <div className="flex items-center gap-6">
+            {isOwner && (
+               <div className="flex items-center gap-3 p-1 bg-slate-900 border border-slate-800 rounded-2xl">
+                  <button 
+                    onClick={() => setIsTrainingManagementMode(!isTrainingManagementMode)}
+                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${isTrainingManagementMode ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                  >
+                    {isTrainingManagementMode ? <SettingsIcon size={14}/> : <Eye size={14}/>}
+                    {isTrainingManagementMode ? 'Management Active' : 'Owner Control'}
+                  </button>
+               </div>
+            )}
+            {!isTrainingManagementMode && (
+              <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2">
+                <Video size={16}/> Mastering the Algorithm
+              </a>
+            )}
+            {isTrainingManagementMode && (
+               <button onClick={() => { setTrainingData({ title: '', platform: 'Instagram', description: '', strategies: [], actionItems: [], steps: [], icon: 'GraduationCap' }); setEditingId(null); setShowTrainingForm(true); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3">
+                  <Plus size={18} /> New Module
+               </button>
+            )}
+         </div>
       </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {TRAINING_MODULES.map((module) => {
-          const isExpanded = expandedTraining === module.id;
-          const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
-          return (
-            <div key={module.id} className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}>
-              <button onClick={() => setExpandedTraining(isExpanded ? null : module.id)} className="w-full p-6 md:p-8 flex items-start text-left group h-full">
-                 <div className="flex items-start gap-4 md:gap-6 w-full">
-                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${module.platform === 'Pinterest' ? 'bg-red-600' : module.platform === 'TikTok' ? 'bg-black border border-slate-700' : module.platform === 'Instagram' ? 'bg-pink-600' : module.platform === 'WhatsApp' ? 'bg-green-500' : module.platform === 'SEO' ? 'bg-blue-600' : 'bg-slate-800 text-slate-300'}`}><Icon size={28} /></div>
-                    <div className="flex-grow min-w-0"><div className="flex justify-between items-start"><h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>{!isExpanded && <ChevronDown size={20} className="text-slate-500 mt-1" />}</div><p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>{!isExpanded && (<div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">View Training <ArrowRight size={12}/></div>)}</div>
-                 </div>
-              </button>
-              {isExpanded && (
-                <div className="px-6 md:px-10 pb-10 pt-0 animate-in fade-in">
-                  <div className="w-full h-px bg-slate-800 mb-8"></div>
-                  <div className="grid md:grid-cols-2 gap-10">
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4></div>
-                      <ul className="space-y-4">{module.strategies.map((strat, idx) => (<li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div><span className="leading-relaxed">{strat}</span></li>))}</ul>
-                    </div>
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3"><div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4></div>
-                      <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">{module.actionItems.map((item, idx) => (<div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer"><div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div><span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span></div>))}</div>
-                    </div>
+
+      {showTrainingForm ? (
+         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-12 animate-in slide-in-from-bottom-8">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-8">
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-xl">
+                     <GraduationCap size={24}/>
                   </div>
-                  <div className="mt-10 pt-6 border-t border-slate-800 flex justify-end"><button onClick={() => setExpandedTraining(null)} className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">Complete Session</button></div>
-                </div>
-              )}
+                  <div>
+                    <h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Syllabus' : 'Curate New Training'}</h3>
+                    <p className="text-slate-500 text-xs mt-1 uppercase tracking-widest font-black">Module Engineering Console</p>
+                  </div>
+               </div>
+               <button onClick={() => setShowTrainingForm(false)} className="p-3 bg-slate-800 text-slate-500 rounded-full hover:text-white transition-colors"><X size={24}/></button>
             </div>
-          );
-        })}
-      </div>
+
+            <div className="grid md:grid-cols-2 gap-12 text-left">
+               <div className="space-y-8">
+                  <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4">I. Core Metadata</h4>
+                  <SettingField label="Module Title" value={trainingData.title || ''} onChange={v => setTrainingData({...trainingData, title: v})} />
+                  <div className="grid grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Primary Platform</label>
+                        <select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm appearance-none cursor-pointer" value={trainingData.platform} onChange={e => setTrainingData({...trainingData, platform: e.target.value as any})}>
+                           {['Instagram', 'Pinterest', 'TikTok', 'WhatsApp', 'SEO', 'Facebook', 'YouTube', 'LinkedIn', 'Threads', 'Twitter', 'Snapchat', 'Email', 'General'].map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Module Icon</label>
+                        <IconPicker selected={trainingData.icon || 'GraduationCap'} onSelect={v => setTrainingData({...trainingData, icon: v})} />
+                     </div>
+                  </div>
+                  <SettingField label="High-Level Summary" value={trainingData.description || ''} onChange={v => setTrainingData({...trainingData, description: v})} type="textarea" />
+               </div>
+
+               <div className="space-y-8">
+                  <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4">II. Strategem & Actions</h4>
+                  <div className="bg-slate-800/20 p-6 rounded-3xl border border-slate-800/50 space-y-6">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Add Strategies</label>
+                        <div className="flex gap-2">
+                           <input type="text" value={tempTrainingStrat} onChange={e => setTempTrainingStrat(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}), setTempTrainingStrat(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Optimized Reel Timings" />
+                           <button onClick={() => { setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}); setTempTrainingStrat(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.strategies || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, strategies: trainingData.strategies?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
+                     </div>
+                     <div className="space-y-2 pt-6 border-t border-slate-800">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mandatory Action Items</label>
+                        <div className="flex gap-2">
+                           <input type="text" value={tempTrainingAction} onChange={e => setTempTrainingAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}), setTempTrainingAction(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Schedule 30 Pins" />
+                           <button onClick={() => { setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}); setTempTrainingAction(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.actionItems || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, actionItems: trainingData.actionItems?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div className="pt-12 border-t border-slate-800 text-left">
+               <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4 mb-8">III. Dynamic Step Builder</h4>
+               <div className="space-y-8">
+                  {(trainingData.steps || []).map((step, idx) => (
+                    <div key={idx} className="bg-slate-950 border border-slate-800 rounded-[2.5rem] p-8 md:p-10 relative group/step animate-in slide-in-from-left duration-300">
+                       <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary text-slate-900 flex items-center justify-center font-black shadow-xl z-10 border-4 border-slate-900">
+                          {idx + 1}
+                       </div>
+                       <div className="absolute top-6 right-6">
+                          <button onClick={() => {
+                             const newSteps = [...(trainingData.steps || [])];
+                             newSteps.splice(idx, 1);
+                             setTrainingData({...trainingData, steps: newSteps});
+                          }} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
+                       </div>
+                       
+                       <div className="grid lg:grid-cols-12 gap-10">
+                          <div className="lg:col-span-8 space-y-6">
+                             <SettingField label="Step Heading" value={step.title} onChange={v => {
+                                const newSteps = [...(trainingData.steps || [])];
+                                newSteps[idx] = {...newSteps[idx], title: v};
+                                setTrainingData({...trainingData, steps: newSteps});
+                             }} />
+                             <SettingField label="Methodology Instruction" value={step.description} onChange={v => {
+                                const newSteps = [...(trainingData.steps || [])];
+                                newSteps[idx] = {...newSteps[idx], description: v};
+                                setTrainingData({...trainingData, steps: newSteps});
+                             }} type="textarea" rows={4} />
+                          </div>
+                          <div className="lg:col-span-4 space-y-6">
+                             <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Step Modality</label>
+                                <div className="p-1 bg-slate-900 border border-slate-800 rounded-xl flex">
+                                   <button 
+                                      onClick={() => {
+                                        const newSteps = [...(trainingData.steps || [])];
+                                        newSteps[idx] = {...newSteps[idx], type: 'image'};
+                                        setTrainingData({...trainingData, steps: newSteps});
+                                      }}
+                                      className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${step.type === 'image' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                                   >
+                                      <Image size={10}/> Static
+                                   </button>
+                                   <button 
+                                      onClick={() => {
+                                        const newSteps = [...(trainingData.steps || [])];
+                                        newSteps[idx] = {...newSteps[idx], type: 'video'};
+                                        setTrainingData({...trainingData, steps: newSteps});
+                                      }}
+                                      className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${step.type === 'video' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                                   >
+                                      <PlayCircle size={10}/> Dynamic
+                                   </button>
+                                </div>
+                             </div>
+                             <SingleImageUploader 
+                                label="Instructional Media" 
+                                value={step.mediaUrl || ''} 
+                                onChange={v => {
+                                   const newSteps = [...(trainingData.steps || [])];
+                                   newSteps[idx] = {...newSteps[idx], mediaUrl: v};
+                                   setTrainingData({...trainingData, steps: newSteps});
+                                }} 
+                                accept={step.type === 'video' ? 'video/*' : 'image/*'}
+                                className="w-full h-40 rounded-3xl"
+                             />
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+                  
+                  <button 
+                    onClick={() => setTrainingData({...trainingData, steps: [...(trainingData.steps || []), { title: '', description: '', type: 'image' }]})}
+                    className="w-full py-12 border-2 border-dashed border-slate-800 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-slate-600 hover:text-primary hover:border-primary/50 transition-all group"
+                  >
+                     <Plus className="group-hover:scale-125 transition-transform" size={48}/>
+                     <span className="font-black uppercase text-xs tracking-widest">Append Deployment Step</span>
+                  </button>
+               </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-6 pt-12 border-t border-slate-800">
+               <button onClick={handleSaveTraining} className="flex-1 py-6 bg-primary text-slate-900 font-black uppercase text-xs rounded-2xl shadow-2xl shadow-primary/20 hover:brightness-110 active:scale-95 transition-all">Synchronize Module</button>
+               <button onClick={() => setShowTrainingForm(false)} className="flex-1 py-6 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-2xl hover:text-white transition-all">Cancel Draft</button>
+            </div>
+         </div>
+      ) : (
+         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {isLoadingTraining ? (
+               <div className="col-span-full py-20 bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-800 flex flex-col items-center">
+                  <Loader2 className="animate-spin text-primary mb-4" size={48} />
+                  <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest">Retrieving Syllabus...</p>
+               </div>
+            ) : trainingModules.length === 0 ? (
+               <div className="col-span-full text-center py-32 bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-800 text-slate-500">
+                  No specialized training nodes deployed.
+               </div>
+            ) : trainingModules.map((module) => {
+               const isExpanded = expandedTraining === module.id;
+               const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
+               return (
+                  <div key={module.id} className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}>
+                     <div className="relative group/module">
+                        <button onClick={() => setExpandedTraining(isExpanded ? null : module.id)} className="w-full p-6 md:p-8 flex items-start text-left group h-full">
+                           <div className="flex items-start gap-4 md:gap-6 w-full">
+                              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${module.platform === 'Pinterest' ? 'bg-red-600' : module.platform === 'TikTok' ? 'bg-black border border-slate-700' : module.platform === 'Instagram' ? 'bg-pink-600' : module.platform === 'WhatsApp' ? 'bg-green-500' : module.platform === 'SEO' ? 'bg-blue-600' : 'bg-slate-800 text-slate-300'}`}><Icon size={28} /></div>
+                              <div className="flex-grow min-w-0">
+                                 <div className="flex justify-between items-start">
+                                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>
+                                    {!isExpanded && <ChevronDown size={20} className="text-slate-500 mt-1" />}
+                                 </div>
+                                 <p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>
+                                 {!isExpanded && (<div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">View Training <ArrowRight size={12}/></div>)}
+                              </div>
+                           </div>
+                        </button>
+                        
+                        {isTrainingManagementMode && !isExpanded && (
+                           <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover/module:opacity-100 transition-opacity">
+                              <button onClick={(e) => { e.stopPropagation(); setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-primary hover:text-slate-900 transition-colors shadow-xl"><Edit2 size={14}/></button>
+                              <button onClick={(e) => { e.stopPropagation(); if(confirm("Purge this training module?")) deleteData('training_modules', module.id).then(loadTrainingModules); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-red-500 transition-colors shadow-xl"><Trash2 size={14}/></button>
+                           </div>
+                        )}
+                     </div>
+
+                     {isExpanded && (
+                        <div className="px-6 md:px-10 pb-10 pt-0 animate-in fade-in">
+                           <div className="w-full h-px bg-slate-800 mb-8"></div>
+                           <div className="grid md:grid-cols-2 gap-10">
+                              <div className="space-y-6">
+                                 <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4></div>
+                                 <ul className="space-y-4">{module.strategies.map((strat, idx) => (<li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div><span className="leading-relaxed">{strat}</span></li>))}</ul>
+                              </div>
+                              <div className="space-y-6">
+                                 <div className="flex items-center gap-3"><div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4></div>
+                                 <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">{module.actionItems.map((item, idx) => (<div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer"><div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div><span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span></div>))}</div>
+                              </div>
+                           </div>
+                           
+                           {module.steps && module.steps.length > 0 && (
+                             <div className="mt-12 pt-12 border-t border-slate-800 space-y-8">
+                                <h4 className="text-white font-black text-xs uppercase tracking-[0.4em] text-center">Implementation Steps</h4>
+                                <div className="grid lg:grid-cols-2 gap-6">
+                                   {module.steps.map((step, idx) => (
+                                     <div key={idx} className="bg-slate-800/40 rounded-3xl p-8 border border-slate-800 flex flex-col gap-6 text-left">
+                                        <div className="flex items-center gap-4">
+                                           <span className="w-8 h-8 rounded-xl bg-primary text-slate-900 flex items-center justify-center font-black text-sm">{idx + 1}</span>
+                                           <h5 className="text-white font-bold text-lg">{step.title}</h5>
+                                        </div>
+                                        <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
+                                        {step.mediaUrl && (
+                                          <div className="mt-2 rounded-2xl overflow-hidden aspect-video bg-slate-950 border border-slate-700">
+                                             {step.type === 'video' ? <video src={step.mediaUrl} className="w-full h-full object-cover" controls muted /> : <img src={step.mediaUrl} className="w-full h-full object-cover" />}
+                                          </div>
+                                        )}
+                                     </div>
+                                   ))}
+                                </div>
+                             </div>
+                           )}
+
+                           <div className="mt-10 pt-6 border-t border-slate-800 flex justify-between items-center">
+                              {isTrainingManagementMode && (
+                                 <div className="flex gap-2">
+                                    <button onClick={() => { setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-700"><Edit2 size={14}/> Edit Syallbus</button>
+                                    <button onClick={() => { if(confirm("Purge module?")) deleteData('training_modules', module.id).then(loadTrainingModules); }} className="px-6 py-3 bg-slate-800 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-slate-700"><Trash2 size={14}/> Delete</button>
+                                 </div>
+                              )}
+                              <button onClick={() => setExpandedTraining(null)} className="ml-auto px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">Complete Session</button>
+                           </div>
+                        </div>
+                     )}
+                  </div>
+               );
+            })}
+         </div>
+      )}
     </div>
   );
 
   const renderGuide = () => (
-     <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
+     <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
         <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
             <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
             <div className="max-w-3xl relative z-10 text-left">
@@ -2093,7 +2508,7 @@ const Admin: React.FC = () => {
             {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, 
             {id: 'login', label: 'Login Page', icon: Lock, desc: 'Auth Experience visuals'},
             {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, 
-            {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} 
+            {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'Tracking, Webhooks'} 
           ].map(s => ( 
             <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
                <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
@@ -2109,7 +2524,6 @@ const Admin: React.FC = () => {
       <style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style>
       <SaveIndicator status={saveStatus} />
       {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
-      {replyEnquiry && <EmailReplyModal enquiry={replyEnquiry} onClose={() => setReplyEnquiry(null)} />}
 
       <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
         <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
@@ -2168,7 +2582,7 @@ const Admin: React.FC = () => {
                   <><SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} /><SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} /><SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} /><SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} /><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Footer Content</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Nav Header" value={tempSettings.footerNavHeader} onChange={v => updateTempSettings({ footerNavHeader: v })} /><SettingField label="Policy Header" value={tempSettings.footerPolicyHeader} onChange={v => updateTempSettings({ footerPolicyHeader: v })} /></div><SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" /><div className="mt-4"><SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} /></div></div></>
                )}
                {activeEditorSection === 'home' && (
-                  <><div className="space-y-6"><h4 className="text-white font-bold">Hero & Niches</h4><SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} /><div className="grid grid-cols-2 gap-4"><SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} /><SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} /></div></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} /><SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" /><SingleImageUploader label="Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} /></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Trust Signals</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Trust Header" value={tempSettings.homeTrustHeader} onChange={v => updateTempSettings({ homeTrustHeader: v })} /><SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} /></div><div className="grid grid-cols-1 gap-4"><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} /><SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} /><SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} /><SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} /></div></div></div></>
+                  <><div className="space-y-6"><h4 className="text-white font-bold">Hero & Niches</h4><SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} /><div className="grid grid-cols-2 gap-4"><SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} /><SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} /></div></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} /><SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" /><SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} /></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Trust Signals</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Trust Header" value={tempSettings.homeTrustHeader} onChange={v => updateTempSettings({ homeTrustHeader: v })} /><SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} /></div><div className="grid grid-cols-1 gap-4"><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} /><SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} /><SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} /><SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} /></div></div></div></>
                )}
                {activeEditorSection === 'collections' && (
                   <><SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" /><MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: v[0] || '' })} /><SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} /><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Product Detail Labels</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Buy Button Label" value={tempSettings.productAcquisitionLabel} onChange={v => updateTempSettings({ productAcquisitionLabel: v })} /><SettingField label="Specs Title Label" value={tempSettings.productSpecsLabel} onChange={v => updateTempSettings({ productSpecsLabel: v })} /></div></div></>
@@ -2225,10 +2639,10 @@ const Admin: React.FC = () => {
                   <><div className="space-y-6"><SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} /><SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} /><SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} /><SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} /></div></>
                )}
                {activeEditorSection === 'integrations' && (
-                  <><IntegrationGuide /><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Mail size={16} /> EmailJS Configuration</h4><div className="space-y-4"><SettingField label="Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} /><SettingField label="Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} /><SettingField label="Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} /></div></div><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4><div className="space-y-4"><SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} /><SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} /><SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} /><SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} /></div></div></>
+                  <><IntegrationGuide /><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4><div className="space-y-4"><SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} /><SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} /><SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} /><SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} /></div></div></>
                )}
              </div>
-             <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4"><button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-colors shadow-lg shadow-primary/20">Publish Changes</button></div>
+             <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4"><button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20">Publish Changes</button></div>
           </div>
         </div>
       )}

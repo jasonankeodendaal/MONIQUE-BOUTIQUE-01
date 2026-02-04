@@ -11,9 +11,9 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS } from './constants';
-import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection } from './lib/supabase';
+import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, moveRecord } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -341,6 +341,35 @@ const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   }, [resetTimer]);
 };
 
+const useMonthlyCleanup = (isSupabaseConfigured: boolean, products: Product[], refresh: () => void) => {
+  useEffect(() => {
+    if (!isSupabaseConfigured || products.length === 0) return;
+    
+    const lastPurge = localStorage.getItem('last_purge_month');
+    const now = new Date();
+    const currentMonth = `${now.getMonth() + 1}-${now.getFullYear()}`;
+    
+    if (lastPurge !== currentMonth) {
+      const executeArchive = async () => {
+        const ownerId = 'owner'; // System owner ID placeholder
+        const nonOwnerProducts = products.filter(p => p.createdBy && p.createdBy !== ownerId);
+        
+        if (nonOwnerProducts.length > 0) {
+          console.log(`Executing monthly archive for ${nonOwnerProducts.length} items...`);
+          for (const product of nonOwnerProducts) {
+            const archivedItem = { ...product, archivedAt: Date.now() };
+            await moveRecord('products', 'product_history', archivedItem);
+          }
+          refresh();
+        }
+        localStorage.setItem('last_purge_month', currentMonth);
+      };
+      
+      executeArchive();
+    }
+  }, [isSupabaseConfigured, products, refresh]);
+};
+
 const getLocalState = <T,>(key: string, fallback: T): T => {
   try { const stored = localStorage.getItem(key); return stored ? JSON.parse(stored) : fallback; } catch (e) { return fallback; }
 };
@@ -393,6 +422,9 @@ const App: React.FC = () => {
      const interval = setInterval(checkConnection, 10000);
      return () => clearInterval(interval);
   }, []);
+
+  // ARCHIVE AUTOMATION
+  useMonthlyCleanup(isSupabaseConfigured, products, () => refreshAllData());
 
   // --- REALTIME SUBSCRIPTION ENGINE ---
   useEffect(() => {
