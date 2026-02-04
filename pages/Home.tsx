@@ -5,7 +5,7 @@ import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight, MapPin } from 'lucide-react';
+import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
@@ -71,15 +71,15 @@ const Home: React.FC = () => {
         {/* Decorative BG */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-        <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 text-center">
-           <div className="text-center mb-12 md:mb-24">
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.8em] text-primary block mb-4">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
-              <h2 className="text-2xl md:text-6xl font-serif text-slate-900 tracking-tight leading-none">
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+           <div className="text-center mb-16 md:mb-24">
+              <span className="text-[10px] font-black uppercase tracking-[0.8em] text-primary block mb-4">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
+              <h2 className="text-3xl md:text-6xl font-serif text-slate-900 tracking-tight leading-none">
                  {settings.homeTrustHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary">{settings.homeTrustHeader?.split(' ').slice(-1)}</span>
               </h2>
            </div>
            
-           <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-16">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16">
               {[
                 { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
                 { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
@@ -88,23 +88,23 @@ const Home: React.FC = () => {
                 const IconComponent = CustomIcons[item.iconName] || (LucideIcons as any)[item.iconName] || ShieldCheck;
                 return (
                   <div key={i} className="flex flex-col items-center group">
-                    <div className="mb-4 md:mb-10 w-12 h-12 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-white rounded-xl sm:rounded-[2.5rem] md:rounded-[3.5rem] shadow-xl border border-slate-50 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
-                      <IconComponent className="w-5 h-5 sm:w-8 sm:h-8 md:w-12 md:h-12" strokeWidth={1} />
+                    <div className="mb-6 md:mb-10 w-20 h-20 md:w-28 md:h-28 bg-white rounded-[2.5rem] md:rounded-[3.5rem] shadow-xl border border-slate-50 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
+                      <IconComponent size={32} className="md:w-12 md:h-12" strokeWidth={1} />
                     </div>
-                    <h4 className="text-[9px] sm:text-lg md:text-2xl font-bold mb-1 md:mb-5 tracking-tight line-clamp-1">{item.title}</h4>
-                    <p className="text-slate-500 font-light leading-relaxed max-w-[90%] md:max-w-xs text-[7px] sm:text-sm md:text-lg line-clamp-2 md:line-clamp-none">{item.desc}</p>
+                    <h4 className="text-lg md:text-2xl font-bold mb-3 md:mb-5 tracking-tight">{item.title}</h4>
+                    <p className="text-slate-500 font-light leading-relaxed max-w-xs text-sm md:text-lg">{item.desc}</p>
                   </div>
                 );
               })}
            </div>
            
-           <div className="mt-16 md:mt-32">
+           <div className="mt-20 md:mt-32">
               <button 
                 onClick={() => navigate('/about')}
-                className="inline-flex items-center gap-2 md:gap-4 px-6 md:px-10 py-3 md:py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-2xl group"
+                className="inline-flex items-center gap-4 px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-2xl group"
               >
                 Read Full Curation Story
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform md:w-4 md:h-4" />
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
            </div>
         </div>
