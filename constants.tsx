@@ -540,10 +540,10 @@ export const INITIAL_SETTINGS: SiteSettings = {
   footerNavHeader: 'Navigation',
   footerPolicyHeader: 'Policy',
 
-  // Home Page Content
+  // Home Page Content - SHORTER TEASER VERSION
   homeHeroBadge: 'Curator Exclusive',
   homeAboutTitle: 'The Curator\'s Journey.',
-  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.',
+  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Explore My Story',
   homeCategorySectionTitle: 'Curated Departments',
@@ -577,7 +577,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   ],
   productsSearchPlaceholder: 'Search selections...',
 
-  // About Page Content
+  // About Page Content - COMPREHENSIVE STORY
   aboutHeroTitle: 'My Narrative. Your Style.',
   aboutHeroSubtitle: 'Authenticity is the thread that weaves every selection together. Welcome to my curated world.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
@@ -587,7 +587,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutLocation: 'Cape Town, Online',
 
   aboutHistoryTitle: 'The Bridge System',
-  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a platform. Findara isn\'t just about affiliate links; it\'s about the story behind every garment. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nThis bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator.',
+  aboutHistoryBody: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.\n\nI’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a platform. Findara isn\'t just about affiliate links; it\'s about the story behind every garment. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nThis bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator.',
   
   aboutMissionTitle: 'Marketing Mission',
   aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers with transparency and taste.',
@@ -752,7 +752,7 @@ We may share your personal data with the parties set out below:
 *   **Regulators:** Reporting processing activities to relevant authorities if required by law.
 *   **Third Parties:** We may perform a business transfer (merger or acquisition) where data is an asset.
 
-We require all third parties to respect the security of your personal data and to treat it in accordance with the law. We do not allow our third-party service providers to use your personal data for their own purposes and only permit them to process your personal data for specified purposes and in accordance with our instructions.
+We require all third parties to respect the security of your personal data and to treat it in accordance with the law. we do not allow our third-party service providers to use your personal data for their own purposes and only permit them to process your personal data for specified purposes and in accordance with our instructions.
 
 #### 7. Data Security
 
