@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { LogIn, Mail, Lock, AlertCircle, Info, Chrome, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Info, Chrome, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
@@ -79,7 +79,7 @@ const Login: React.FC = () => {
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         <div className="absolute inset-0 bg-slate-900">
           <img 
-            src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000" 
+            src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000"} 
             alt="Editorial Fashion" 
             className="w-full h-full object-cover opacity-60"
           />
@@ -114,10 +114,10 @@ const Login: React.FC = () => {
 
         <div className="w-full max-w-md space-y-12 relative z-10">
           <div>
-            <h2 className="text-3xl font-serif text-white mb-2 flex items-center gap-3">
-              <Lock size={24} className="text-primary"/> Concierge Access
+            <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
+              <Lock size={24} className="text-primary"/> {settings.adminLoginTitle || "Concierge Access"}
             </h2>
-            <p className="text-slate-500">Authenticate to enter the bridge dashboard.</p>
+            <p className="text-slate-500">{settings.adminLoginSubtitle || "Authenticate to enter the bridge dashboard."}</p>
           </div>
 
           {error && (

@@ -3,23 +3,22 @@ import {
   Plus, Edit2, Trash2, 
   Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
   Monitor, Smartphone, User, ShieldCheck,
-  LayoutGrid, Globe, Mail, Phone, Palette, Hash, MessageCircle, MapPin, 
-  BookOpen, FileText, Share2, Tag, ArrowRight, Video, Image, ShoppingBag,
-  LayoutPanelTop, Inbox, Calendar, MoreHorizontal, CheckCircle, Percent, LogOut,
-  Rocket, Terminal, Copy, Check, Database, Github, Server, AlertTriangle, ExternalLink, RefreshCcw, Flame, Trash,
-  Megaphone, Sparkles, Wand2, CopyCheck, Loader2, Users, Key, Lock, Briefcase, Download, UploadCloud, FileJson, Link as LinkIcon, Reply, Paperclip, Send, AlertOctagon,
-  ArrowLeft, Eye, MessageSquare, CreditCard, Shield, Award, PenTool, Globe2, HelpCircle, PenLine, Images, Instagram, Twitter, ChevronRight, Layers, FileCode, Search, Grid,
-  Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
-  BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
-  FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Minus, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
-  ListChecks, MoveVertical, PlayCircle
+  LayoutGrid, Globe, Mail, Phone, Palette, MessageCircle, MapPin, 
+  Share2, Tag, ArrowRight, Video, Image, ShoppingBag,
+  LayoutPanelTop, Inbox, CheckCircle, Percent, LogOut,
+  Rocket, Terminal, Copy, Check, Database, Server, AlertTriangle, ExternalLink, RefreshCcw, Flame, Trash,
+  Megaphone, Sparkles, Loader2, Users, Key, Lock, Download, FileJson, Link as LinkIcon, Reply, AlertOctagon,
+  Eye, CreditCard, Shield, Award, HelpCircle, Instagram, Twitter, Layers, FileCode, Search,
+  CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer,
+  BarChart, Activity as ActivityIcon, Wifi, Facebook, Linkedin,
+  Lightbulb, Tablet, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, HardDrive, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
+  PlayCircle
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule, TrainingStep } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule } from '../types';
 import { useSettings } from '../App';
-import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, getSupabaseUrl, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { CustomIcons } from '../components/CustomIcons';
 
@@ -390,7 +389,7 @@ const getPlatformStyles = (sourceName: string) => {
   };
 };
 
-const TrafficAreaChart: React.FC<{ trafficEvents: any[] }> = ({ trafficEvents }) => {
+const TrafficAreaChart: React.FC = () => {
   const [geoStats, setGeoStats] = useState<any[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
   const [deviceStats, setDeviceStats] = useState<{mobile: number, desktop: number, tablet: number}>({mobile: 0, desktop: 0, tablet: 0});
@@ -591,7 +590,7 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
   const [search, setSearch] = useState(''); const [isOpen, setIsOpen] = useState(false); const [limit, setLimit] = useState(100);
   const CUSTOM_KEYS = Object.keys(CustomIcons); const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { const val = (LucideIcons as any)[key]; return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); });
   const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; const displayed = filtered.slice(0, limit); const SelectedIconComponent = CustomIcons[selected] || (LucideIcons as any)[selected] || LucideIcons.Package;
-  return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><Grid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>);
+  return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><LayoutGrid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>);
 };
 
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
@@ -1634,7 +1633,7 @@ const Admin: React.FC = () => {
         </div>
         
         <div className="mt-8">
-            <TrafficAreaChart trafficEvents={trafficEvents} />
+            <TrafficAreaChart />
         </div>
 
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl mt-8">
@@ -2781,113 +2780,74 @@ const Admin: React.FC = () => {
                     </div>
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4>
                     <SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} />
-                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Social Media</h4>
+                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Socials</h4>
                     <SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} />
                   </>
                )}
                { (activeEditorSection === 'login') && (
-                 <div className="space-y-8 animate-in slide-in-from-right duration-300">
-                    <AdminTip title="Portal Aesthetics">The login page is the first gate to your maison infrastructure. Use high-fashion, high-contrast imagery to maintain brand consistency.</AdminTip>
-                    <div className="space-y-6">
-                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Hero Experience</h4>
-                       <SingleImageUploader 
-                          label="Main Hero Background" 
-                          value={(tempSettings as any).adminLoginHeroImage || 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000'} 
-                          onChange={v => updateTempSettings({ ['adminLoginHeroImage' as any]: v } as any)} 
-                          className="h-64 w-full rounded-2xl border-slate-700"
+                  <>
+                    <SettingField label="Login Title" value={tempSettings.adminLoginTitle || ''} onChange={v => updateTempSettings({ adminLoginTitle: v })} />
+                    <SettingField label="Login Subtitle" value={tempSettings.adminLoginSubtitle || ''} onChange={v => updateTempSettings({ adminLoginSubtitle: v })} />
+                    <SingleImageUploader label="Login Hero Image" value={tempSettings.adminLoginHeroImage || ''} onChange={v => updateTempSettings({ adminLoginHeroImage: v })} />
+                    <div className="flex items-center gap-4 mt-6">
+                       <input 
+                          type="checkbox" 
+                          checked={tempSettings.adminLoginAccentEnabled || false} 
+                          onChange={e => updateTempSettings({ adminLoginAccentEnabled: e.target.checked })} 
+                          className="w-5 h-5 rounded border-slate-700 bg-slate-900"
                        />
+                       <span className="text-white font-bold text-sm">Enable Primary Glow Effect</span>
                     </div>
-                    <div className="space-y-6">
-                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Content Matrix</h4>
-                       <SettingField 
-                          label="Entrance Header" 
-                          value={(tempSettings as any).adminLoginTitle || 'Concierge Access'} 
-                          onChange={v => updateTempSettings({ ['adminLoginTitle' as any]: v } as any)} 
-                       />
-                       <SettingField 
-                          label="Entrance Subtitle" 
-                          value={(tempSettings as any).adminLoginSubtitle || 'Authenticate to enter the bridge dashboard.'} 
-                          onChange={v => updateTempSettings({ ['adminLoginSubtitle' as any]: v } as any)} 
-                          type="textarea"
-                       />
-                       <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800">
-                          <div className="flex justify-between items-center">
-                             <div>
-                                <h5 className="text-white font-bold text-sm">Enhanced Security UI</h5>
-                                <p className="text-slate-500 text-[10px] uppercase tracking-widest mt-1">Glow accent & visual prompts</p>
-                             </div>
-                             <button 
-                                onClick={() => updateTempSettings({ ['adminLoginAccentEnabled' as any]: !(tempSettings as any).adminLoginAccentEnabled } as any)}
-                                className={`w-12 h-6 rounded-full transition-all relative ${ (tempSettings as any).adminLoginAccentEnabled ? 'bg-primary' : 'bg-slate-700' }`}
-                             >
-                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${ (tempSettings as any).adminLoginAccentEnabled ? 'left-7' : 'left-1' }`} />
-                             </button>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
+                  </>
                )}
                { (activeEditorSection === 'legal') && (
                   <>
                     <div className="space-y-6">
-                      <SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
-                      <SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} />
+                      <h4 className="text-white font-bold">Disclosure</h4>
+                      <SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
+                      <SettingField label="Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={8} />
                     </div>
                     <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
-                      <SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} />
+                      <h4 className="text-white font-bold">Privacy Policy</h4>
+                      <SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
+                      <SettingField label="Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={8} />
                     </div>
                     <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
-                      <SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} />
+                      <h4 className="text-white font-bold">Terms of Service</h4>
+                      <SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
+                      <SettingField label="Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={8} />
                     </div>
                   </>
                )}
                { (activeEditorSection === 'integrations') && (
                   <>
+                    <AdminTip title="Third-Party Tracking">
+                       Add your tracking IDs here. These scripts will automatically inject into the head of your site for analytics and retargeting.
+                    </AdminTip>
                     <IntegrationGuide />
-                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-                      <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4>
-                      <div className="space-y-4">
-                        <SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
-                        <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
-                        <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
-                        <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
-                      </div>
+                    <div className="space-y-6">
+                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Analytics & Pixels</h4>
+                       <SettingField label="Google Analytics 4 (G-XXXXXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
+                       <SettingField label="Meta Pixel ID (Dataset ID)" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
+                       <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
+                       <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
+                    </div>
+                    <div className="space-y-6 pt-6 border-t border-slate-800">
+                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Communications</h4>
+                       <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl mb-4 text-xs text-yellow-500">
+                          <strong>Note:</strong> EmailJS is currently hardcoded for reliability. Update 'constants.tsx' for custom email logic if required.
+                       </div>
                     </div>
                   </>
                )}
              </div>
-             <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4"><button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20">Publish Changes</button></div>
+             <div className="flex flex-col md:flex-row gap-4 pt-12 border-t border-slate-800 mt-8">
+                <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Publish Changes</button>
+                <button onClick={() => setEditorDrawerOpen(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Discard</button>
+             </div>
           </div>
         </div>
       )}
-
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/80 backdrop-blur-md border-t border-white/5 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-widest">
-           <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-slate-600'}`}></div>
-                 <span className="text-slate-500">Supabase: <span className={isSupabaseConfigured ? 'text-green-500' : 'text-slate-400'}>{isSupabaseConfigured ? 'Synced' : 'Local'}</span></span>
-              </div>
-              <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${ (connectionHealth?.status === 'online') ? 'bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]' : 'bg-red-500 animate-ping shadow-[0_0_8px_#ef4444]' }`}></div>
-                 <span className="text-slate-500">Latency: <span className="text-white">{connectionHealth?.latency || 0}ms</span></span>
-              </div>
-           </div>
-           <div className="flex items-center gap-6">
-              <span className="text-slate-600">Session ID: <span className="text-white font-mono">{userId?.substring(0, 8) || 'LOCAL'}</span></span>
-              <button onClick={() => refreshAllData()} className="flex items-center gap-2 text-primary hover:text-white transition-colors">
-                 <RefreshCcw size={12} className={saveStatus === 'saving' ? 'animate-spin' : ''} /> Force Resync
-              </button>
-           </div>
-           <div className="flex items-center gap-2">
-              <span className="text-slate-600">Maison Portal v3.0.0</span>
-              <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
-              <span className="text-slate-500">100% Secure Handshake</span>
-           </div>
-        </div>
-      </footer>
     </div>
   );
 };

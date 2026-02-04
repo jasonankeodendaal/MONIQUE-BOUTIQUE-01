@@ -236,6 +236,12 @@ export interface SiteSettings {
   contactHoursWeekdays: string;
   contactHoursWeekends: string;
 
+  // Admin Login Configuration
+  adminLoginHeroImage?: string;
+  adminLoginTitle?: string;
+  adminLoginSubtitle?: string;
+  adminLoginAccentEnabled?: boolean;
+
   // Legal Content
   disclosureTitle: string;
   disclosureContent: string;
