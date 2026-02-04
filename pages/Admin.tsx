@@ -444,7 +444,7 @@ const TrafficAreaChart: React.FC<{ trafficEvents: any[] }> = ({ trafficEvents })
       });
 
       setDeviceStats(dev);
-      const sorted = Object.values(agg).sort((a: any, b: any) => b.count - a.count).slice(0, 15);
+      const sorted = Object.values(agg).sort((a: any, b: any) => (b.count - a.count)).slice(0, 15);
       setGeoStats(sorted);
     };
 
@@ -455,7 +455,8 @@ const TrafficAreaChart: React.FC<{ trafficEvents: any[] }> = ({ trafficEvents })
 
   const getSourceIcon = (source: string) => {
     const styles = getPlatformStyles(source);
-    return <styles.icon size={12} className={styles.color} />;
+    const IconComp = styles.icon;
+    return <IconComp size={12} className={styles.color} />;
   };
 
   return (
@@ -542,23 +543,26 @@ const TrafficAreaChart: React.FC<{ trafficEvents: any[] }> = ({ trafficEvents })
               { label: 'Mobile', count: deviceStats.mobile, icon: Smartphone, color: 'text-primary', bar: 'bg-primary' },
               { label: 'Desktop', count: deviceStats.desktop, icon: Monitor, color: 'text-blue-500', bar: 'bg-blue-500' },
               { label: 'Tablet', count: deviceStats.tablet, icon: Tablet, color: 'text-purple-500', bar: 'bg-purple-500' }
-            ].map((d, i) => (
-              <div key={i} className="bg-slate-800/50 p-6 rounded-3xl border border-slate-800 hover:border-slate-700 transition-colors">
-                 <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-4">
-                       <div className={`p-3 bg-slate-800 rounded-2xl ${d.color}`}><d.icon size={20}/></div>
-                       <span className="text-white font-bold text-base">{d.label}</span>
-                    </div>
-                    <span className="text-white font-mono font-bold text-lg">{d.count}</span>
-                 </div>
-                 <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
-                    <div className={`h-full ${d.bar} transition-all duration-1000`} style={{ width: `${totalTraffic > 0 ? (d.count / totalTraffic) * 100 : 0}%` }}></div>
-                 </div>
-                 <div className="mt-3 text-right">
-                    <span className="text-[10px] text-slate-500 font-bold">{totalTraffic > 0 ? Math.round((d.count / totalTraffic) * 100) : 0}% share</span>
-                 </div>
-              </div>
-            ))}
+            ].map((d, i) => {
+              const IconComp = d.icon;
+              return (
+                <div key={i} className="bg-slate-800/50 p-6 rounded-3xl border border-slate-800 hover:border-slate-700 transition-colors">
+                   <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-4">
+                         <div className={`p-3 bg-slate-800 rounded-2xl ${d.color}`}><IconComp size={20}/></div>
+                         <span className="text-white font-bold text-base">{d.label}</span>
+                      </div>
+                      <span className="text-white font-mono font-bold text-lg">{d.count}</span>
+                   </div>
+                   <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
+                      <div className={`h-full ${d.bar} transition-all duration-1000`} style={{ width: `${ (totalTraffic > 0) ? (d.count / totalTraffic) * 100 : 0 }%` }}></div>
+                   </div>
+                   <div className="mt-3 text-right">
+                      <span className="text-[10px] text-slate-500 font-bold">{ (totalTraffic > 0) ? Math.round((d.count / totalTraffic) * 100) : 0 }% share</span>
+                   </div>
+                </div>
+              );
+            })}
          </div>
       </div>
     </div>
@@ -638,7 +642,72 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
     }
   };
 
-  return (<div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300"><div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative"><div className="p-8 flex justify-between items-center border-b border-slate-800"><span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span><button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button></div><div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"><div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative"><div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center"><div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div></div><div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100"><div className="w-8 h-8 rounded-full bg-slate-200"></div><span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span><platform.icon size={14} style={{ color: platform.color }} className="ml-auto"/></div><div className="aspect-square bg-slate-100 relative text-left"><img src={product.media[0]?.url} className="w-full h-full object-cover" /></div><div className="p-4 text-left"><p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p></div></div></div></div><div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left"><button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button><div className="max-w-xl mx-auto space-y-8 w-full"><div><h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3><p className="text-slate-500 text-sm">Generate optimized assets.</p></div><div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">{PLATFORMS.map(p => (<button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}><p.icon size={24} style={{ color: platform.id === p.id ? '#fff' : p.color }} /><span className="text-[10px] font-bold uppercase">{p.name}</span></button>))}</div><div className="space-y-2"><div className="flex justify-between"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label><span className={`text-[10px] font-bold ${customText.length > platform.maxLength ? 'text-red-500' : 'text-slate-600'}`}>{customText.length} / {platform.maxLength}</span></div><textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/></div><div className="grid grid-cols-2 gap-4"><button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">{copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First</button><button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"><Share2 size={16}/> 2. Share Bundle (Img + Text)</button><div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div></div></div></div></div>);
+  const PlatformIcon = platform.icon;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300">
+      <div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative">
+        <div className="p-8 flex justify-between items-center border-b border-slate-800">
+          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span>
+          <button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button>
+        </div>
+        <div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
+          <div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative">
+            <div className="bg-slate-100 h-6 w-full absolute top-0 left-0 z-20 flex justify-center">
+              <div className="w-20 h-4 bg-slate-900 rounded-b-xl"></div>
+            </div>
+            <div className="mt-8 px-4 pb-2 flex items-center gap-2 border-b border-slate-100">
+              <div className="w-8 h-8 rounded-full bg-slate-200"></div>
+              <span className="text-xs font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>
+              <PlatformIcon size={14} style={{ color: platform.color }} className="ml-auto"/>
+            </div>
+            <div className="aspect-square bg-slate-100 relative text-left">
+              <img src={product.media[0]?.url} className="w-full h-full object-cover" />
+            </div>
+            <div className="p-4 text-left">
+              <p className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed"><span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>{customText}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left">
+        <button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button>
+        <div className="max-w-xl mx-auto space-y-8 w-full">
+          <div>
+            <h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3>
+            <p className="text-slate-500 text-sm">Generate optimized assets.</p>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+            {PLATFORMS.map(p => {
+              const PIcon = p.icon;
+              return (
+                <button key={p.id} onClick={() => setPlatform(p)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all min-w-[100px] ${platform.id === p.id ? 'bg-slate-800 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'}`}>
+                  <PIcon size={24} style={{ color: (platform.id === p.id) ? '#fff' : p.color }} />
+                  <span className="text-[10px] font-bold uppercase">{p.name}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Caption</label>
+              <span className={`text-[10px] font-bold ${ (customText.length > platform.maxLength) ? 'text-red-500' : 'text-slate-600' }`}>{customText.length} / {platform.maxLength}</span>
+            </div>
+            <textarea rows={10} value={customText} onChange={e => setCustomText(e.target.value)} className="w-full p-6 bg-slate-900 border border-slate-800 rounded-2xl text-slate-300 text-sm leading-relaxed outline-none focus:border-primary resize-none font-sans"/>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">
+              {copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First
+            </button>
+            <button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+              <Share2 size={16}/> 2. Share Bundle (Img + Text)
+            </button>
+            <div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => {
@@ -760,10 +829,10 @@ const EliteReportModal: React.FC<{
 
   const reportData = useMemo(() => {
     // Correct mapping and filtering based on curatorId
-    const targetAdmins = curatorId === 'all' ? admins : admins.filter(a => a.id === curatorId);
+    const targetAdmins = (curatorId === 'all') ? admins : admins.filter(a => a.id === curatorId);
     const targetAdmin = targetAdmins[0];
     
-    const targetProducts = curatorId === 'all' 
+    const targetProducts = (curatorId === 'all') 
       ? products 
       : products.filter(p => p.createdBy === curatorId);
     
@@ -774,18 +843,15 @@ const EliteReportModal: React.FC<{
     const totalViews = targetStats.reduce((acc, s) => acc + s.views, 0);
     const totalClicks = targetStats.reduce((acc, s) => acc + s.clicks, 0);
     const totalShares = targetStats.reduce((acc, s) => acc + (s.shares || 0), 0);
-    const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
+    const ctr = (totalViews > 0) ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
     
     const now = Date.now();
     const dayMs = 86400000;
     
-    // Traffic filtering for projection logic
-    // In a real environment, we'd filter trafficEvents by source or metadata associated with the curator's specific ID if tracked.
-    // For now, if we filter by user, we'll assume traffic relates proportional to their catalog footprint.
-    const last7DaysCount = trafficEvents.filter(e => e.timestamp > now - (7 * dayMs)).length;
-    const prev7DaysCount = trafficEvents.filter(e => e.timestamp <= now - (7 * dayMs) && e.timestamp > now - (14 * dayMs)).length;
+    const last7DaysCount = trafficEvents.filter(e => e.timestamp > (now - (7 * dayMs))).length;
+    const prev7DaysCount = trafficEvents.filter(e => e.timestamp <= (now - (7 * dayMs)) && e.timestamp > (now - (14 * dayMs))).length;
     
-    const growthRate = prev7DaysCount > 0 ? ((last7DaysCount - prev7DaysCount) / prev7DaysCount) * 100 : 100;
+    const growthRate = (prev7DaysCount > 0) ? (((last7DaysCount - prev7DaysCount) / prev7DaysCount) * 100) : 100;
     const projectedNextMonth = last7DaysCount * 4 * (1 + (growthRate / 100));
 
     const staffPerformance = admins.map(admin => {
@@ -799,7 +865,7 @@ const EliteReportModal: React.FC<{
 
     return { 
       totalViews, totalClicks, totalShares, ctr, growthRate, projectedNextMonth, staffPerformance, last7DaysCount, 
-      curatorName: curatorId === 'all' ? 'All Global Curators' : targetAdmin?.name || 'Unknown Curator'
+      curatorName: (curatorId === 'all') ? 'All Global Curators' : (targetAdmin?.name || 'Unknown Curator')
     };
   }, [stats, products, admins, trafficEvents, curatorId]);
 
@@ -837,7 +903,7 @@ const EliteReportModal: React.FC<{
               </div>
            </div>
 
-           {/* PDF Body Container - FIXED SCROLLING BUG */}
+           {/* PDF Body Container */}
            <div className="flex-grow overflow-y-auto custom-scrollbar p-12 md:p-20 text-slate-900 text-left print:p-8 print:overflow-visible">
               {/* Branding Section */}
               <div className="flex justify-between items-start mb-20 border-b-2 border-slate-100 pb-12">
@@ -884,7 +950,7 @@ const EliteReportModal: React.FC<{
                           <div key={i} className="flex-1 bg-slate-100 rounded-t-lg relative group transition-all hover:bg-primary/20">
                              <div className="absolute inset-x-0 bottom-0 bg-slate-900 rounded-t-lg transition-all" style={{ height: `${h}%` }}></div>
                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-bold bg-slate-900 text-white px-2 py-1 rounded">
-                                Vol: {h * 12}
+                                Vol: { (h * 12) }
                              </div>
                           </div>
                        ))}
@@ -904,8 +970,8 @@ const EliteReportModal: React.FC<{
                           <div>
                              <span className="text-[10px] text-slate-400 uppercase font-black block mb-1">Growth Trajectory</span>
                              <div className="flex items-center gap-2">
-                                {reportData.growthRate >= 0 ? <TrendingUp size={24} className="text-green-500"/> : <TrendingDown size={24} className="text-red-500"/>}
-                                <span className="text-3xl font-bold">{Math.abs(reportData.growthRate).toFixed(1)}%</span>
+                                { (reportData.growthRate >= 0) ? <TrendingUp size={24} className="text-green-500"/> : <TrendingDown size={24} className="text-red-500"/> }
+                                <span className="text-3xl font-bold">{ Math.abs(reportData.growthRate).toFixed(1) }%</span>
                              </div>
                           </div>
                           <span className="text-[10px] bg-green-500/20 text-green-500 px-3 py-1 rounded-full font-bold">STABLE</span>
@@ -916,7 +982,7 @@ const EliteReportModal: React.FC<{
                           <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
                              <div className="flex justify-between mb-2">
                                 <span className="text-xs font-bold">Estimated Visits</span>
-                                <span className="text-xs font-bold text-primary">{Math.round(reportData.projectedNextMonth).toLocaleString()}</span>
+                                <span className="text-xs font-bold text-primary">{ Math.round(reportData.projectedNextMonth).toLocaleString() }</span>
                              </div>
                              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                                 <div className="h-full bg-primary animate-[grow_2s_ease-out]" style={{ width: '85%' }}></div>
@@ -929,7 +995,7 @@ const EliteReportModal: React.FC<{
               </div>
 
               {/* Staff / Curator Impact Illustrations */}
-              {curatorId === 'all' && (
+              { curatorId === 'all' && (
                  <div className="mb-20">
                     <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
                        <Users size={20} className="text-primary"/> Curator Performance Metrics
@@ -1081,7 +1147,7 @@ const Admin: React.FC = () => {
   }, [activeTab]);
 
   const displayProducts = useMemo(() => {
-    const baseSet = catalogView === 'active' ? products : historyProducts;
+    const baseSet = (catalogView === 'active') ? products : historyProducts;
     if (isOwner) {
       if (curatorFilter === 'all') return baseSet;
       return baseSet.filter(p => p.createdBy === curatorFilter);
@@ -1130,6 +1196,7 @@ const Admin: React.FC = () => {
     { id: 'guide', label: 'Pilot', icon: Rocket }
   ];
 
+  // FIX: removed 'visibleTabs' from dependency array to avoid using it before declaration
   const visibleTabs = useMemo(() => ALL_TABS.filter(t => hasPermission(t.id)), [isOwner, myAdminProfile]);
 
   useEffect(() => {
@@ -1270,9 +1337,9 @@ const Admin: React.FC = () => {
          <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'unread', 'read'].map(filter => (<button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
       </div>
-      {filteredEnquiries.length === 0 ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] md:rounded-[3rem] border border-dashed border-slate-800 text-slate-500">No enquiries found.</div> : 
+      { (filteredEnquiries.length === 0) ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] md:rounded-[3rem] border border-dashed border-slate-800 text-slate-500">No enquiries found.</div> : 
         filteredEnquiries.map(e => (
-          <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-6 text-left ${e.status === 'unread' ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
+          <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-6 text-left ${ (e.status === 'unread') ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800' }`}>
             <div className="flex-grow space-y-2 min-w-0"><div className="flex items-center gap-3"><h4 className="text-white font-bold truncate">{e.name}</h4><span className="text-[9px] font-black text-slate-500 uppercase flex-shrink-0">{new Date(e.createdAt).toLocaleDateString()}</span></div><p className="text-primary text-sm font-bold truncate">{e.email}</p><div className="p-4 bg-slate-800/50 rounded-2xl text-slate-400 text-sm italic leading-relaxed break-words">"{e.message}"</div></div>
             <div className="flex gap-2 items-start w-full md:w-auto flex-shrink-0 min-w-0">
               <button 
@@ -1286,7 +1353,7 @@ const Admin: React.FC = () => {
               >
                 <Reply size={20}/>
               </button>
-              <button onClick={() => toggleEnquiryStatus(e)} className={`flex-1 md:flex-none p-4 rounded-2xl transition-colors ${e.status === 'read' ? 'bg-slate-800 text-slate-500' : 'bg-green-500/20 text-green-500'}`} title={e.status === 'read' ? 'Mark Unread' : 'Mark Read'}><CheckCircle size={20}/></button>
+              <button onClick={() => toggleEnquiryStatus(e)} className={`flex-1 md:flex-none p-4 rounded-2xl transition-colors ${ (e.status === 'read') ? 'bg-slate-800 text-slate-500' : 'bg-green-500/20 text-green-500' }`} title={ (e.status === 'read') ? 'Mark Unread' : 'Mark Read' }><CheckCircle size={20}/></button>
               <button onClick={() => deleteData('enquiries', e.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-500 rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={20}/></button>
             </div>
           </div>
@@ -1308,8 +1375,8 @@ const Admin: React.FC = () => {
     const sortedProducts = [...products].map(p => {
       const pStats = stats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
       const reviewCount = p.reviews?.length || 0;
-      return { ...p, ...pStats, reviewCount, ctr: pStats.views > 0 ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
-    }).sort((a, b) => (b.views + b.clicks) - (a.views + a.clicks));
+      return { ...p, ...pStats, reviewCount, ctr: (pStats.views > 0) ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
+    }).sort((a, b) => ( (b.views + b.clicks) - (a.views + a.clicks) ));
 
     const topProducts = sortedProducts.slice(0, 15);
 
@@ -1327,15 +1394,15 @@ const Admin: React.FC = () => {
         views,
         clicks,
         shares,
-        ctr: views > 0 ? ((clicks / views) * 100).toFixed(1) : 0
+        ctr: (views > 0) ? ((clicks / views) * 100).toFixed(1) : 0
       };
-    }).sort((a, b) => b.views - a.views);
+    }).sort((a, b) => (b.views - a.views));
     
     const totalViews = stats.reduce((acc, s) => acc + s.views, 0);
     const totalClicks = stats.reduce((acc, s) => acc + s.clicks, 0);
     const totalShares = stats.reduce((acc, s) => acc + (s.shares || 0), 0);
     const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
-    const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
+    const avgSessionTime = (totalViews > 0) ? (totalSessionTime / totalViews).toFixed(1) : 0;
 
     const totalUniqueVisitors = visitorLogs.length;
 
@@ -1360,7 +1427,7 @@ const Admin: React.FC = () => {
     const totalSources = Object.values(sourceStats).reduce((a: any, b: any) => a + b, 0) as number;
     
     const sortedSources = Object.entries(sourceStats)
-        .sort(([,a]: any, [,b]: any) => b - a)
+        .sort(([, a]: any, [, b]: any) => (b - a))
         .map(([key, count]) => {
            const styles = getPlatformStyles(key);
            return {
@@ -1379,7 +1446,7 @@ const Admin: React.FC = () => {
            </div>
            
            <div className="flex flex-col md:flex-row gap-8 items-center">
-              {isOwner && (
+              { isOwner && (
                 <div className="relative min-w-[220px]">
                    <label className="text-[8px] font-black uppercase text-slate-600 tracking-widest block mb-2 px-1">Curator Context</label>
                    <select 
@@ -1421,13 +1488,13 @@ const Admin: React.FC = () => {
                {hourlyDistribution.map((count, i) => (
                  <div key={i} className="flex-1 group/bar relative h-full flex flex-col justify-end">
                     <div 
-                      className={`w-full ${i === peakHour ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : 'bg-slate-800 group-hover/bar:bg-slate-600'} transition-all duration-500 rounded-t-sm`} 
-                      style={{ height: `${(count / maxHourly) * 100}%` }}
+                      className={`w-full ${ (i === peakHour) ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : 'bg-slate-800 group-hover/bar:bg-slate-600' } transition-all duration-500 rounded-t-sm`} 
+                      style={{ height: `${ (count / maxHourly) * 100 }%` }}
                     ></div>
                     <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none shadow-xl z-20 whitespace-nowrap">
                       {count} Hits @ {i}:00
                     </div>
-                    <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-[9px] font-bold ${i % 3 === 0 ? 'text-slate-500' : 'text-transparent'}`}>
+                    <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-[9px] font-bold ${ (i % 3 === 0) ? 'text-slate-500' : 'text-transparent' }`}>
                        {i}
                     </div>
                  </div>
@@ -1444,29 +1511,32 @@ const Admin: React.FC = () => {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
            {[
-             { label: 'Click Through Rate', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
+             { label: 'Click Through Rate', value: `${ (totalViews > 0) ? ((totalClicks / totalViews) * 100).toFixed(1) : 0 }%`, icon: MousePointerClick, color: 'text-primary' },
              { label: 'Social Shares', value: totalShares, icon: Share2, color: 'text-blue-400' },
              { label: 'Avg Session Time', value: `${avgSessionTime}s`, icon: Timer, color: 'text-green-400' },
              { label: 'Verified Reviews', value: products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
-           ].map((m, i) => (
-             <div key={i} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 hover:border-primary/50 transition-colors flex flex-col justify-between h-48 shadow-lg group">
-                <div className="flex justify-between items-start">
-                   <div className={`w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center ${m.color} group-hover:scale-110 transition-transform`}><m.icon size={24}/></div>
-                   <m.icon size={48} className={`${m.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
-                </div>
-                <div><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">{m.label}</span><span className="text-3xl font-bold text-white">{m.value}</span></div>
-             </div>
-           ))}
+           ].map((m, i) => {
+             const IconComp = m.icon;
+             return (
+               <div key={i} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 hover:border-primary/50 transition-colors flex flex-col justify-between h-48 shadow-lg group">
+                  <div className="flex justify-between items-start">
+                     <div className={`w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center ${m.color} group-hover:scale-110 transition-transform`}><IconComp size={24}/></div>
+                     <IconComp size={48} className={`${m.color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+                  </div>
+                  <div><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">{m.label}</span><span className="text-3xl font-bold text-white">{m.value}</span></div>
+               </div>
+             );
+           })}
         </div>
 
         <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 shadow-xl">
           <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
             <h3 className="text-white font-bold text-xl flex items-center gap-3">
-              <TrendingUp size={24} className="text-primary"/> Top Performing Products ({curatorFilter === 'all' ? 'Maison wide' : admins.find(a=>a.id===curatorFilter)?.name})
+              <TrendingUp size={24} className="text-primary"/> Top Performing Products ({ (curatorFilter === 'all') ? 'Maison wide' : admins.find(a => a.id === curatorFilter)?.name })
             </h3>
             <button onClick={() => {
                const csv = "Rank,Product,Category,Views,Clicks,CTR,Shares\n" +
-                 topProducts.map((p, i) => `${i+1},"${p.name}",${categories.find(c=>c.id===p.categoryId)?.name || 'N/A'},${p.views},${p.clicks},${p.ctr}%,${p.shares}`).join("\n");
+                 topProducts.map((p, i) => `${i + 1},"${p.name}",${ categories.find(c => c.id === p.categoryId)?.name || 'N/A' },${p.views},${p.clicks},${p.ctr}%,${p.shares}`).join("\n");
                const blob = new Blob([csv], { type: 'text/csv' });
                const url = window.URL.createObjectURL(blob);
                const a = document.createElement('a'); a.href = url; a.download = 'top_products.csv'; a.click();
@@ -1501,7 +1571,7 @@ const Admin: React.FC = () => {
                      </td>
                      <td className="py-4 text-xs">
                         <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300">
-                           {categories.find(c => c.id === p.categoryId)?.name || 'Uncategorized'}
+                           { categories.find(c => c.id === p.categoryId)?.name || 'Uncategorized' }
                         </span>
                      </td>
                      <td className="py-4 text-right font-mono text-white">{p.views.toLocaleString()}</td>
@@ -1510,7 +1580,7 @@ const Admin: React.FC = () => {
                         <div className="flex items-center justify-end gap-2">
                            <span className="font-bold text-white">{p.ctr}%</span>
                            <div className="w-16 h-1 bg-slate-800 rounded-full overflow-hidden">
-                              <div className="h-full bg-primary" style={{ width: `${Math.min(parseFloat(p.ctr as string), 100)}%` }}></div>
+                              <div className="h-full bg-primary" style={{ width: `${ Math.min(parseFloat(p.ctr as string), 100) }%` }}></div>
                            </div>
                         </div>
                      </td>
@@ -1554,7 +1624,7 @@ const Admin: React.FC = () => {
                          </div>
                       </div>
                       <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                         <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${totalViews > 0 ? (cat.views / totalViews) * 100 : 0}%` }}></div>
+                         <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${ (totalViews > 0) ? (cat.views / totalViews) * 100 : 0 }%` }}></div>
                       </div>
                    </div>
                  </div>
@@ -1570,21 +1640,24 @@ const Admin: React.FC = () => {
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl mt-8">
              <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><Globe size={24} className="text-primary"/> Traffic Sources (Live & Historical)</h3>
              <div className="space-y-8">
-                 {sortedSources.map((s, i) => (
-                    <div key={i} className="flex items-center gap-6">
-                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 border shadow-xl ${s.bg} ${s.border}`}><s.icon size={24} className="text-white"/></div>
-                       <div className="flex-grow">
-                          <div className="flex justify-between mb-3">
-                             <span className="text-base text-white font-bold">{s.label}</span>
-                             <span className="text-xs text-slate-400 font-mono">{s.count} hits ({totalSources > 0 ? Math.round((s.count / totalSources) * 100) : 0}%)</span>
-                          </div>
-                          <div className="h-4 bg-slate-800 rounded-full overflow-hidden">
-                             <div className={`h-full ${s.bg} transition-all duration-1000 ease-out`} style={{ width: `${totalSources > 0 ? (s.count / totalSources) * 100 : 0}%` }}></div>
-                          </div>
-                       </div>
-                    </div>
-                 ))}
-                 {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4 italic">Awaiting source data...</p>}
+                 {sortedSources.map((s, i) => {
+                    const SIcon = s.icon;
+                    return (
+                      <div key={i} className="flex items-center gap-6">
+                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 border shadow-xl ${s.bg} ${s.border}`}><SIcon size={24} className="text-white"/></div>
+                         <div className="flex-grow">
+                            <div className="flex justify-between mb-3">
+                               <span className="text-base text-white font-bold">{s.label}</span>
+                               <span className="text-xs text-slate-400 font-mono">{s.count} hits ({ (totalSources > 0) ? Math.round((s.count / totalSources) * 100) : 0 }%)</span>
+                            </div>
+                            <div className="h-4 bg-slate-800 rounded-full overflow-hidden">
+                               <div className={`h-full ${s.bg} transition-all duration-1000 ease-out`} style={{ width: `${ (totalSources > 0) ? (s.count / totalSources) * 100 : 0 }%` }}></div>
+                            </div>
+                         </div>
+                      </div>
+                    );
+                 })}
+                 { (totalSources === 0) && <p className="text-slate-500 text-xs text-center py-4 italic">Awaiting source data...</p> }
               </div>
         </div>
 
@@ -1608,10 +1681,10 @@ const Admin: React.FC = () => {
     const formatBytes = (bytes: number, decimals = 2) => {
         if (!+bytes) return '0 B';
         const k = 1024;
-        const dm = decimals < 0 ? 0 : decimals;
+        const dm = (decimals < 0) ? 0 : decimals;
         const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        return `${ parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) } ${sizes[i]}`;
     };
 
     const latencyColor = (l: number) => {
@@ -1634,7 +1707,7 @@ const Admin: React.FC = () => {
                         <h3 className="text-white font-bold text-lg flex items-center gap-2"><Wifi size={20} className="text-primary"/> Network Heartbeat</h3>
                         <p className="text-slate-500 text-xs mt-1">{connectionHealth?.message || 'Connecting...'}</p>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${connectionHealth?.status === 'online' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ (connectionHealth?.status === 'online') ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20' }`}>
                         {connectionHealth?.status || 'UNKNOWN'}
                     </div>
                  </div>
@@ -1646,8 +1719,8 @@ const Admin: React.FC = () => {
                     </div>
                     <div className="h-4 bg-slate-800 rounded-full overflow-hidden flex">
                         <div 
-                            className={`h-full transition-all duration-500 ${latencyColor(connectionHealth?.latency || 0)}`} 
-                            style={{ width: `${Math.min((connectionHealth?.latency || 0) / 10, 100)}%` }}
+                            className={`h-full transition-all duration-500 ${ latencyColor(connectionHealth?.latency || 0) }`} 
+                            style={{ width: `${ Math.min((connectionHealth?.latency || 0) / 10, 100) }%` }}
                         ></div>
                     </div>
                     <div className="flex justify-between mt-2 text-[9px] text-slate-600 font-mono">
@@ -1664,7 +1737,7 @@ const Admin: React.FC = () => {
                         <h3 className="text-white font-bold text-lg flex items-center gap-2"><Server size={20} className="text-primary"/> Database Status</h3>
                         <p className="text-slate-500 text-xs mt-1">{isSupabaseConfigured ? 'Connected to Cloud' : 'Local Storage Mode'}</p>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isSupabaseConfigured ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
+                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ isSupabaseConfigured ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' }`}>
                         {isSupabaseConfigured ? 'POSTGRES' : 'LOCAL'}
                     </div>
                  </div>
@@ -1734,15 +1807,15 @@ const Admin: React.FC = () => {
                        </tr>
                    </thead>
                    <tbody className="text-slate-300">
-                       {systemLogs.length > 0 ? systemLogs.map((log) => (
+                       { (systemLogs.length > 0) ? systemLogs.map((log) => (
                            <tr key={log.id} className="border-b border-slate-800/50 hover:bg-white/5 transition-colors">
                                <td className="py-3 pl-4 text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</td>
                                <td className="py-3">
                                    <span className={`px-2 py-1 rounded text-[10px] font-black ${
-                                       log.type === 'SYNC' ? 'bg-blue-500/20 text-blue-400' : 
-                                       log.type === 'UPDATE' ? 'bg-yellow-500/20 text-yellow-400' :
-                                       log.type === 'DELETE' ? 'bg-red-500/20 text-red-400' :
-                                       log.type === 'ERROR' ? 'bg-red-600 text-white' :
+                                       (log.type === 'SYNC') ? 'bg-blue-500/20 text-blue-400' : 
+                                       (log.type === 'UPDATE') ? 'bg-yellow-500/20 text-yellow-400' :
+                                       (log.type === 'DELETE') ? 'bg-red-500/20 text-red-400' :
+                                       (log.type === 'ERROR') ? 'bg-red-600 text-white' :
                                        'bg-slate-700 text-slate-300'
                                    }`}>
                                        {log.type}
@@ -1751,7 +1824,7 @@ const Admin: React.FC = () => {
                                <td className="py-3 font-bold">{log.target}</td>
                                <td className="py-3 text-slate-500">{log.sizeBytes ? formatBytes(log.sizeBytes, 0) : '-'}</td>
                                <td className="py-3 pr-4 text-right">
-                                   {log.status === 'success' ? <span className="text-green-500 font-bold">OK</span> : <span className="text-red-500 font-bold">FAIL</span>}
+                                   { (log.status === 'success') ? <span className="text-green-500 font-bold">OK</span> : <span className="text-red-500 font-bold">FAIL</span>}
                                </td>
                            </tr>
                        )) : (
@@ -1783,12 +1856,12 @@ const Admin: React.FC = () => {
               <div className="absolute top-0 right-0 p-2 opacity-50 pointer-events-none">
                  <Activity size={120} className="text-slate-800"/>
               </div>
-              {errorLogs.length > 0 ? (
+              { (errorLogs.length > 0) ? (
                  errorLogs.map((err, i) => (
                     <div key={err.id} className="mb-4 border-b border-slate-900 pb-3 last:border-0 relative z-10 animate-in slide-in-from-left duration-300">
                        <div className="flex flex-wrap items-center gap-2 mb-1">
                           <span className="text-slate-500">[{err.timestamp}]</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${err.type === 'RUNTIME_EXCEPTION' ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${ (err.type === 'RUNTIME_EXCEPTION') ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400' }`}>
                              {err.type}
                           </span>
                           <span className="text-slate-600">{err.source}</span>
@@ -1858,10 +1931,10 @@ const Admin: React.FC = () => {
                             Abort
                          </button>
                          <button 
-                            disabled={purgeConfirmText !== 'PURGE' || isPurging}
+                            disabled={ (purgeConfirmText !== 'PURGE') || isPurging }
                             onClick={handleManualPurge}
                             className={`flex-1 py-4 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-2 ${
-                               purgeConfirmText === 'PURGE' 
+                               (purgeConfirmText === 'PURGE') 
                                ? 'bg-red-600 text-white shadow-xl shadow-red-600/20 hover:brightness-110 active:scale-95' 
                                : 'bg-slate-800 text-slate-600 cursor-not-allowed'
                             }`}
@@ -1882,13 +1955,13 @@ const Admin: React.FC = () => {
   const renderCatalog = () => {
     const filteredBase = displayProducts.filter(p => 
       p.name.toLowerCase().includes(productSearch.toLowerCase()) && 
-      (productCatFilter === 'all' || p.categoryId === productCatFilter)
+      ( (productCatFilter === 'all') || p.categoryId === productCatFilter )
     );
 
     const groupedProducts = categories.map(cat => ({
       ...cat,
       items: filteredBase.filter(p => p.categoryId === cat.id)
-    })).filter(group => group.items.length > 0 || (productCatFilter !== 'all' && group.id === productCatFilter));
+    })).filter(group => (group.items.length > 0) || ( (productCatFilter !== 'all') && (group.id === productCatFilter) ));
 
     return (
       <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
@@ -1912,26 +1985,26 @@ const Admin: React.FC = () => {
           <>
             <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8 text-left">
               <div className="space-y-2">
-                <h2 className="text-3xl font-serif text-white">{catalogView === 'active' ? 'Active Collection' : 'Curation History'}</h2>
-                <p className="text-slate-400 text-sm">{catalogView === 'active' ? 'Manage your live collections.' : 'Archives of past curation selections.'}</p>
+                <h2 className="text-3xl font-serif text-white">{ (catalogView === 'active') ? 'Active Collection' : 'Curation History' }</h2>
+                <p className="text-slate-400 text-sm">{ (catalogView === 'active') ? 'Manage your live collections.' : 'Archives of past curation selections.' }</p>
               </div>
               <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto items-center">
                 <div className="p-1 bg-slate-900 border border-slate-800 rounded-2xl flex">
                    <button 
                     onClick={() => setCatalogView('active')}
-                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${catalogView === 'active' ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${ (catalogView === 'active') ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                    >
                      <ShoppingBag size={14}/> Active
                    </button>
                    <button 
                     onClick={() => setCatalogView('history')}
-                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${catalogView === 'history' ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${ (catalogView === 'history') ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                    >
                      <History size={14}/> History
                    </button>
                 </div>
 
-                {isOwner && (
+                { isOwner && (
                   <div className="relative min-w-[200px]">
                     <select 
                         value={curatorFilter} 
@@ -1944,7 +2017,7 @@ const Admin: React.FC = () => {
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
                   </div>
                 )}
-                {catalogView === 'active' && (
+                { (catalogView === 'active') && (
                   <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center">
                       <Plus size={18} /> Add Product
                   </button>
@@ -1952,8 +2025,8 @@ const Admin: React.FC = () => {
               </div>
             </div>
 
-            {catalogView === 'active' ? (
-              <AdminTip title="Inventory Management">Products are now categorized by department for easier navigation. {isOwner ? "As an owner, you can toggle curators to manage specific catalogs." : "Use the search to quickly find items."}</AdminTip>
+            { (catalogView === 'active') ? (
+              <AdminTip title="Inventory Management">Products are now categorized by department for easier navigation. { isOwner ? "As an owner, you can toggle curators to manage specific catalogs." : "Use the search to quickly find items." }</AdminTip>
             ) : (
               <AdminTip title="History Vault">This section contains items that have been cycled out of the main collection. You can view their performance or permanently remove them from the maison records.</AdminTip>
             )}
@@ -1983,10 +2056,10 @@ const Admin: React.FC = () => {
                </div>
             </div>
 
-            {productCatFilter === 'all' && groupedProducts.length > 1 && (
+            { (productCatFilter === 'all') && (groupedProducts.length > 1) && (
                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 sticky top-[170px] z-20 bg-slate-950">
                   {groupedProducts.map(group => {
-                     const Icon = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
+                     const IconComp = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
                      return (
                         <button 
                           key={group.id}
@@ -1996,7 +2069,7 @@ const Admin: React.FC = () => {
                           }}
                           className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
                         >
-                          <Icon size={12}/> {group.name} ({group.items.length})
+                          <IconComp size={12}/> {group.name} ({group.items.length})
                         </button>
                      );
                   })}
@@ -2004,77 +2077,80 @@ const Admin: React.FC = () => {
             )}
 
             <div className="space-y-12">
-              {loadingHistory ? (
+              { loadingHistory ? (
                 <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
                   <Loader2 className="animate-spin mx-auto mb-4" size={32} />
                   <p className="font-bold uppercase text-[10px] tracking-widest">Retrieving Archives...</p>
                 </div>
-              ) : groupedProducts.length === 0 ? (
+              ) : (groupedProducts.length === 0) ? (
                 <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
                   No products matching your search found.
                 </div>
-              ) : groupedProducts.map(group => (
-                <div key={group.id} id={`cat-section-${group.id}`} className="space-y-6">
-                  <div className="flex items-center gap-4 px-4">
-                     <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                        {React.createElement(CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid, { size: 20 })}
-                     </div>
-                     <div className="flex flex-col">
-                        <h3 className="text-xl font-bold text-white uppercase tracking-tight">{group.name}</h3>
-                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{group.items.length} {catalogView === 'active' ? 'Curations' : 'Archives'}</span>
-                     </div>
-                     <div className="flex-grow h-px bg-slate-800"></div>
-                  </div>
-                  
-                  <div className="grid gap-4">
-                    {group.items.map(p => (
-                      <div key={p.id} className={`bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4 ${catalogView === 'history' ? 'opacity-70 grayscale-[0.5]' : ''}`}>
-                        <div className="flex items-center gap-6 min-w-0 text-left">
-                          <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0">
-                            {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
-                            {catalogView === 'history' && (
-                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                 <History size={16} className="text-white/50" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                               <h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4>
-                               {catalogView === 'history' && <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 text-[8px] font-black uppercase border border-slate-700">ARCHIVED</span>}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-primary text-xs font-bold">R {p.price}</span>
-                              <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest">
-                                • {catalogView === 'active' ? 'SKU:' : 'Archived:'} {catalogView === 'active' ? p.sku : new Date((p as any).archivedAt || Date.now()).toLocaleDateString()}
-                              </span>
-                              {curatorFilter === 'all' && isOwner && (
-                                <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">
-                                  • Curator: {admins.find(a=>a.id===p.createdBy)?.name || 'Central'}
-                                </span>
+              ) : groupedProducts.map(group => {
+                const GroupIcon = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
+                return (
+                  <div key={group.id} id={`cat-section-${group.id}`} className="space-y-6">
+                    <div className="flex items-center gap-4 px-4">
+                       <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                          <GroupIcon size={20} />
+                       </div>
+                       <div className="flex flex-col">
+                          <h3 className="text-xl font-bold text-white uppercase tracking-tight">{group.name}</h3>
+                          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{group.items.length} { (catalogView === 'active') ? 'Curations' : 'Archives' }</span>
+                       </div>
+                       <div className="flex-grow h-px bg-slate-800"></div>
+                    </div>
+                    
+                    <div className="grid gap-4">
+                      {group.items.map(p => (
+                        <div key={p.id} className={`bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4 ${ (catalogView === 'history') ? 'opacity-70 grayscale-[0.5]' : '' }`}>
+                          <div className="flex items-center gap-6 min-w-0 text-left">
+                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0">
+                              {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
+                              { (catalogView === 'history') && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                   <History size={16} className="text-white/50" />
+                                </div>
                               )}
                             </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                 <h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4>
+                                 { (catalogView === 'history') && <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 text-[8px] font-black uppercase border border-slate-700">ARCHIVED</span> }
+                              </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-primary text-xs font-bold">R {p.price}</span>
+                                <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest">
+                                  • { (catalogView === 'active') ? 'SKU:' : 'Archived:' } { (catalogView === 'active') ? p.sku : new Date((p as any).archivedAt || Date.now()).toLocaleDateString() }
+                                </span>
+                                { (curatorFilter === 'all') && isOwner && (
+                                  <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">
+                                    • Curator: { admins.find(a => a.id === p.createdBy)?.name || 'Central' }
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
+                            { (catalogView === 'active') ? (
+                              <>
+                                <button onClick={() => setSelectedAdProduct(p as Product)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button>
+                                <button onClick={() => { setProductData(p as Product); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
+                                <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => { /* Potential Restore Action */ }} className="flex-1 md:flex-none p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors" title="Restore to Active"><RotateCcw size={18}/></button>
+                                <button onClick={() => { if(confirm("Permanently delete this archive?")) deleteData('product_history', p.id).then(() => loadHistory()); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash size={18}/></button>
+                              </>
+                            )}
                           </div>
                         </div>
-                        <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
-                          {catalogView === 'active' ? (
-                            <>
-                              <button onClick={() => setSelectedAdProduct(p as Product)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button>
-                              <button onClick={() => { setProductData(p as Product); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
-                              <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => { /* Potential Restore Action */ }} className="flex-1 md:flex-none p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors" title="Restore to Active"><RotateCcw size={18}/></button>
-                              <button onClick={() => { if(confirm("Permanently delete this archive?")) deleteData('product_history', p.id).then(() => loadHistory()); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash size={18}/></button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
@@ -2090,7 +2166,7 @@ const Admin: React.FC = () => {
               <div className="grid md:grid-cols-2 gap-6"><SettingField label="Title" value={heroData.title || ''} onChange={v => setHeroData({...heroData, title: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={heroData.type} onChange={e => setHeroData({...heroData, type: e.target.value as any})}><option value="image">Image</option><option value="video">Video</option></select></div></div>
               <SettingField label="Subtitle" value={heroData.subtitle || ''} onChange={v => setHeroData({...heroData, subtitle: v})} type="textarea" />
               <SettingField label="Button Label" value={heroData.cta || ''} onChange={v => setHeroData({...heroData, cta: v})} />
-              <SingleImageUploader label="Media Asset" value={heroData.image || ''} onChange={v => setHeroData({...heroData, image: v})} accept={heroData.type === 'video' ? "video/*" : "image/*"} />
+              <SingleImageUploader label="Media Asset" value={heroData.image || ''} onChange={v => setHeroData({...heroData, image: v})} accept={ (heroData.type === 'video') ? "video/*" : "image/*" } />
               <div className="flex gap-4"><button onClick={handleSaveHero} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Slide</button><button onClick={() => setShowHeroForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
            </div> 
         ) : ( 
@@ -2123,12 +2199,15 @@ const Admin: React.FC = () => {
             <AdminTip title="Collections Navigation">Each department acts as a portal. Use high-fashion imagery to attract attention to specific collections.</AdminTip>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
-               {displayCategories.map(c => (
-                  <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
-                     <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0">{React.createElement((LucideIcons as any)[c.icon] || LucideIcons.Package, { size: 20 })}</div><h4 className="font-bold text-white text-lg truncate">{c.name}</h4></div></div>
-                     <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div>
-                  </div>
-               ))}
+               {displayCategories.map(c => {
+                  const IconComp = (LucideIcons as any)[c.icon] || LucideIcons.Package;
+                  return (
+                    <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
+                       <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0"><IconComp size={20} /></div><h4 className="font-bold text-white text-lg truncate">{c.name}</h4></div></div>
+                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div>
+                    </div>
+                  );
+               })}
             </div>
           </>
        )}
@@ -2154,7 +2233,7 @@ const Admin: React.FC = () => {
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
                     <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed">Manage passkeys via the Supabase cloud dashboard.</p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
                  </div>
-                 <div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: e.target.value === 'owner' ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
+                 <div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: (e.target.value === 'owner') ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
            </div>
@@ -2163,15 +2242,15 @@ const Admin: React.FC = () => {
              <AdminTip title="Role Management">Manage your staff here. Only Owners can delete other members or factory reset the system.</AdminTip>
              <div className="grid gap-6">
                {admins.map(a => {
-                 const isCurrentUser = user && (a.id === user.id || a.email === user.email);
+                 const isCurrentUser = user && ( (a.id === user.id) || (a.email === user.email) );
                  return (
                  <div key={a.id} className={`bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group ${isCurrentUser ? 'border-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
                    <div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0">
                       <div className="relative flex-shrink-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>{isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}</div>
                       <div className="space-y-2 flex-grow text-center md:text-left min-w-0">
-                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${a.role === 'owner' ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400'}`}>{a.role}</span></div>
+                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${ (a.role === 'owner') ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400' }`}>{a.role}</span></div>
                         <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm break-words"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div>
-                        <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{a.role === 'owner' ? 'Full System' : `${a.permissions.length} modules`}</span></div>
+                        <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ (a.role === 'owner') ? 'Full System' : `${a.permissions.length} modules` }</span></div>
                       </div>
                    </div>
                    <div className="flex gap-3 w-full md:w-auto flex-shrink-0"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={20}/></button></div>
@@ -2192,7 +2271,7 @@ const Admin: React.FC = () => {
             <p className="text-slate-400 text-sm">Curation marketing mastery across {trainingModules.length} channels.</p>
          </div>
          <div className="flex items-center gap-6">
-            {isOwner && (
+            { isOwner && (
                <div className="flex items-center gap-3 p-1 bg-slate-900 border border-slate-800 rounded-2xl">
                   <button 
                     onClick={() => setIsTrainingManagementMode(!isTrainingManagementMode)}
@@ -2256,7 +2335,7 @@ const Admin: React.FC = () => {
                      <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Add Strategies</label>
                         <div className="flex gap-2">
-                           <input type="text" value={tempTrainingStrat} onChange={e => setTempTrainingStrat(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}), setTempTrainingStrat(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Optimized Reel Timings" />
+                           <input type="text" value={tempTrainingStrat} onChange={e => setTempTrainingStrat(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}), setTempTrainingStrat(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Optimized Reel Timings" />
                            <button onClick={() => { setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}); setTempTrainingStrat(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
                         </div>
                         <div className="flex flex-wrap gap-2 pt-4">{(trainingData.strategies || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, strategies: trainingData.strategies?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
@@ -2264,7 +2343,7 @@ const Admin: React.FC = () => {
                      <div className="space-y-2 pt-6 border-t border-slate-800">
                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mandatory Action Items</label>
                         <div className="flex gap-2">
-                           <input type="text" value={tempTrainingAction} onChange={e => setTempTrainingAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && (setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}), setTempTrainingAction(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Schedule 30 Pins" />
+                           <input type="text" value={tempTrainingAction} onChange={e => setTempTrainingAction(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}), setTempTrainingAction(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Schedule 30 Pins" />
                            <button onClick={() => { setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}); setTempTrainingAction(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
                         </div>
                         <div className="flex flex-wrap gap-2 pt-4">{(trainingData.actionItems || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, actionItems: trainingData.actionItems?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
@@ -2312,7 +2391,7 @@ const Admin: React.FC = () => {
                                         newSteps[idx] = {...newSteps[idx], type: 'image'};
                                         setTrainingData({...trainingData, steps: newSteps});
                                       }}
-                                      className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${step.type === 'image' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                                      className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${ (step.type === 'image') ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                                    >
                                       <Image size={10}/> Static
                                    </button>
@@ -2322,7 +2401,7 @@ const Admin: React.FC = () => {
                                         newSteps[idx] = {...newSteps[idx], type: 'video'};
                                         setTrainingData({...trainingData, steps: newSteps});
                                       }}
-                                      className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${step.type === 'video' ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                                      className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${ (step.type === 'video') ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                                    >
                                       <PlayCircle size={10}/> Dynamic
                                    </button>
@@ -2336,7 +2415,7 @@ const Admin: React.FC = () => {
                                    newSteps[idx] = {...newSteps[idx], mediaUrl: v};
                                    setTrainingData({...trainingData, steps: newSteps});
                                 }} 
-                                accept={step.type === 'video' ? 'video/*' : 'image/*'}
+                                accept={ (step.type === 'video') ? 'video/*' : 'image/*' }
                                 className="w-full h-40 rounded-3xl"
                              />
                           </div>
@@ -2361,24 +2440,24 @@ const Admin: React.FC = () => {
          </div>
       ) : (
          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoadingTraining ? (
+            { isLoadingTraining ? (
                <div className="col-span-full py-20 bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-800 flex flex-col items-center">
                   <Loader2 className="animate-spin text-primary mb-4" size={48} />
                   <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest">Retrieving Syllabus...</p>
                </div>
-            ) : trainingModules.length === 0 ? (
+            ) : (trainingModules.length === 0) ? (
                <div className="col-span-full text-center py-32 bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-800 text-slate-500">
                   No specialized training nodes deployed.
                </div>
             ) : trainingModules.map((module) => {
                const isExpanded = expandedTraining === module.id;
-               const Icon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
+               const ModuleIcon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
                return (
                   <div key={module.id} className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}>
                      <div className="relative group/module">
                         <button onClick={() => setExpandedTraining(isExpanded ? null : module.id)} className="w-full p-6 md:p-8 flex items-start text-left group h-full">
                            <div className="flex items-start gap-4 md:gap-6 w-full">
-                              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${module.platform === 'Pinterest' ? 'bg-red-600' : module.platform === 'TikTok' ? 'bg-black border border-slate-700' : module.platform === 'Instagram' ? 'bg-pink-600' : module.platform === 'WhatsApp' ? 'bg-green-500' : module.platform === 'SEO' ? 'bg-blue-600' : 'bg-slate-800 text-slate-300'}`}><Icon size={28} /></div>
+                              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${ (module.platform === 'Pinterest') ? 'bg-red-600' : (module.platform === 'TikTok') ? 'bg-black border border-slate-700' : (module.platform === 'Instagram') ? 'bg-pink-600' : (module.platform === 'WhatsApp') ? 'bg-green-500' : (module.platform === 'SEO') ? 'bg-blue-600' : 'bg-slate-800 text-slate-300' }`}><ModuleIcon size={28} /></div>
                               <div className="flex-grow min-w-0">
                                  <div className="flex justify-between items-start">
                                     <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>
@@ -2390,7 +2469,7 @@ const Admin: React.FC = () => {
                            </div>
                         </button>
                         
-                        {isTrainingManagementMode && !isExpanded && (
+                        { isTrainingManagementMode && !isExpanded && (
                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover/module:opacity-100 transition-opacity">
                               <button onClick={(e) => { e.stopPropagation(); setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-primary hover:text-slate-900 transition-colors shadow-xl"><Edit2 size={14}/></button>
                               <button onClick={(e) => { e.stopPropagation(); if(confirm("Purge this training module?")) deleteData('training_modules', module.id).then(loadTrainingModules); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-red-500 transition-colors shadow-xl"><Trash2 size={14}/></button>
@@ -2412,7 +2491,7 @@ const Admin: React.FC = () => {
                               </div>
                            </div>
                            
-                           {module.steps && module.steps.length > 0 && (
+                           { module.steps && (module.steps.length > 0) && (
                              <div className="mt-12 pt-12 border-t border-slate-800 space-y-8">
                                 <h4 className="text-white font-black text-xs uppercase tracking-[0.4em] text-center">Implementation Steps</h4>
                                 <div className="grid lg:grid-cols-2 gap-6">
@@ -2425,7 +2504,7 @@ const Admin: React.FC = () => {
                                         <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
                                         {step.mediaUrl && (
                                           <div className="mt-2 rounded-2xl overflow-hidden aspect-video bg-slate-950 border border-slate-700">
-                                             {step.type === 'video' ? <video src={step.mediaUrl} className="w-full h-full object-cover" controls muted /> : <img src={step.mediaUrl} className="w-full h-full object-cover" />}
+                                             { (step.type === 'video') ? <video src={step.mediaUrl} className="w-full h-full object-cover" controls muted /> : <img src={step.mediaUrl} className="w-full h-full object-cover" /> }
                                           </div>
                                         )}
                                      </div>
@@ -2435,7 +2514,7 @@ const Admin: React.FC = () => {
                            )}
 
                            <div className="mt-10 pt-6 border-t border-slate-800 flex justify-between items-center">
-                              {isTrainingManagementMode && (
+                              { isTrainingManagementMode && (
                                  <div className="flex gap-2">
                                     <button onClick={() => { setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-700"><Edit2 size={14}/> Edit Syallbus</button>
                                     <button onClick={() => { if(confirm("Purge module?")) deleteData('training_modules', module.id).then(loadTrainingModules); }} className="px-6 py-3 bg-slate-800 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-slate-700"><Trash2 size={14}/> Delete</button>
@@ -2476,7 +2555,7 @@ const Admin: React.FC = () => {
                             <h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{step.title}</h3>
                             <p className="text-slate-400 text-sm md:text-lg leading-relaxed">{step.description}</p>
                         </div>
-                        {step.subSteps && (
+                        { (step.subSteps) && (
                             <div className="grid gap-4 text-left">
                                 {step.subSteps.map((sub, i) => (
                                     <div key={i} className="flex items-start gap-4 p-4 md:p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
@@ -2486,7 +2565,7 @@ const Admin: React.FC = () => {
                                 ))}
                             </div>
                         )}
-                        {step.code && (<CodeBlock code={step.code} label={step.codeLabel} />)}
+                        { (step.code) && (<CodeBlock code={step.code} label={step.codeLabel} />)}
                     </div>
                     <div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0"><GuideIllustration id={step.illustrationId} /></div>
                 </div>
@@ -2509,11 +2588,14 @@ const Admin: React.FC = () => {
             {id: 'login', label: 'Login Page', icon: Lock, desc: 'Auth Experience visuals'},
             {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, 
             {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'Tracking, Webhooks'} 
-          ].map(s => ( 
-            <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
-               <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
-            </button> 
-          ))}
+          ].map(s => {
+            const SIcon = s.icon;
+            return ( 
+              <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
+                 <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><SIcon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
+              </button> 
+            );
+          })}
        </div>
        <style>{`.edit-hover { opacity: 0; } .group:hover .edit-hover { opacity: 1; }`}</style>
      </div>
@@ -2523,31 +2605,34 @@ const Admin: React.FC = () => {
     <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
       <style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style>
       <SaveIndicator status={saveStatus} />
-      {selectedAdProduct && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} />}
+      { (selectedAdProduct) && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} /> }
 
       <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
         <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
         <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
-            {visibleTabs.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><tab.icon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
-            ))}
+            {visibleTabs.map(tab => {
+              const TabIcon = tab.icon;
+              return (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><TabIcon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
+              );
+            })}
           </div>
           <button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center self-start"><LogOut size={14} /> Exit</button>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
-        {activeTab === 'enquiries' && renderEnquiries()}
-        {activeTab === 'analytics' && renderAnalytics()}
-        {activeTab === 'catalog' && renderCatalog()}
-        {activeTab === 'hero' && renderHero()}
-        {activeTab === 'categories' && renderCategories()}
-        {activeTab === 'site_editor' && renderSiteEditor()}
-        {activeTab === 'team' && renderTeam()}
-        {activeTab === 'training' && renderTraining()}
-        {activeTab === 'system' && renderSystem()}
-        {activeTab === 'guide' && renderGuide()}
+        { (activeTab === 'enquiries') && renderEnquiries() }
+        { (activeTab === 'analytics') && renderAnalytics() }
+        { (activeTab === 'catalog') && renderCatalog() }
+        { (activeTab === 'hero') && renderHero() }
+        { (activeTab === 'categories') && renderCategories() }
+        { (activeTab === 'site_editor') && renderSiteEditor() }
+        { (activeTab === 'team') && renderTeam() }
+        { (activeTab === 'training') && renderTraining() }
+        { (activeTab === 'system') && renderSystem() }
+        { (activeTab === 'guide') && renderGuide() }
       </main>
 
       {editorDrawerOpen && (
@@ -2556,44 +2641,151 @@ const Admin: React.FC = () => {
              <div className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
                 <div>
                   <h3 className="text-3xl font-serif text-white mb-2">
-                    {activeEditorSection === 'brand' && 'Brand Identity'}
-                    {activeEditorSection === 'nav' && 'Navigation & Footer'}
-                    {activeEditorSection === 'home' && 'Home Page'}
-                    {activeEditorSection === 'collections' && 'Collections Page'}
-                    {activeEditorSection === 'about' && 'About Page'}
-                    {activeEditorSection === 'contact' && 'Contact Page'}
-                    {activeEditorSection === 'login' && 'Login Experience'}
-                    {activeEditorSection === 'legal' && 'Legal & Policy'}
-                    {activeEditorSection === 'integrations' && 'Integrations'}
+                    { (activeEditorSection === 'brand') && 'Brand Identity' }
+                    { (activeEditorSection === 'nav') && 'Navigation & Footer' }
+                    { (activeEditorSection === 'home') && 'Home Page' }
+                    { (activeEditorSection === 'collections') && 'Collections Page' }
+                    { (activeEditorSection === 'about') && 'About Page' }
+                    { (activeEditorSection === 'contact') && 'Contact Page' }
+                    { (activeEditorSection === 'login') && 'Login Experience' }
+                    { (activeEditorSection === 'legal') && 'Legal & Policy' }
+                    { (activeEditorSection === 'integrations') && 'Integrations' }
                   </h3>
                   <p className="text-slate-500 text-sm">Real-time configuration.</p>
                 </div>
                 <button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800"><X size={24} /></button>
              </div>
              <div className="space-y-8 text-left">
-               {activeEditorSection === 'brand' && (
+               { (activeEditorSection === 'brand') && (
                  <>
                    <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} /><SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} /></div>
                    <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4><div className="grid grid-cols-2 gap-6"><SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} /></div></div>
                    <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" /><SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" /><SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" /></div></div>
                  </>
                )}
-               {activeEditorSection === 'nav' && (
-                  <><SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} /><SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} /><SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} /><SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} /><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Footer Content</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Nav Header" value={tempSettings.footerNavHeader} onChange={v => updateTempSettings({ footerNavHeader: v })} /><SettingField label="Policy Header" value={tempSettings.footerPolicyHeader} onChange={v => updateTempSettings({ footerPolicyHeader: v })} /></div><SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" /><div className="mt-4"><SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} /></div></div></>
+               { (activeEditorSection === 'nav') && (
+                  <>
+                    <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
+                    <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} />
+                    <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} />
+                    <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Footer Content</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Nav Header" value={tempSettings.footerNavHeader} onChange={v => updateTempSettings({ footerNavHeader: v })} />
+                        <SettingField label="Policy Header" value={tempSettings.footerPolicyHeader} onChange={v => updateTempSettings({ footerPolicyHeader: v })} />
+                      </div>
+                      <SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" />
+                      <div className="mt-4">
+                        <SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} />
+                      </div>
+                    </div>
+                  </>
                )}
-               {activeEditorSection === 'home' && (
-                  <><div className="space-y-6"><h4 className="text-white font-bold">Hero & Niches</h4><SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} /><div className="grid grid-cols-2 gap-4"><SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} /><SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} /></div></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">About Section</h4><SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} /><SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" /><SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} /><SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} /></div><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Trust Signals</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Trust Header" value={tempSettings.homeTrustHeader} onChange={v => updateTempSettings({ homeTrustHeader: v })} /><SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} /></div><div className="grid grid-cols-1 gap-4"><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} /><SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} /><SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} /></div><div className="p-4 bg-slate-900 rounded-xl border border-slate-800"><SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} /><SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} /><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label><IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} /></div></div></div></>
+               { (activeEditorSection === 'home') && (
+                  <>
+                    <div className="space-y-6">
+                      <h4 className="text-white font-bold">Hero & Niches</h4>
+                      <SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} />
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} />
+                        <SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} />
+                      </div>
+                    </div>
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">About Section</h4>
+                      <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} />
+                      <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" />
+                      <SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} />
+                      <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} />
+                    </div>
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Trust Signals</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Trust Header" value={tempSettings.homeTrustHeader} onChange={v => updateTempSettings({ homeTrustHeader: v })} />
+                        <SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} />
+                      </div>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
+                          <SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} />
+                          <SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} />
+                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
+                          <IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} />
+                        </div>
+                        <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
+                          <SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} />
+                          <SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} />
+                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
+                          <IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} />
+                        </div>
+                        <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
+                          <SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} />
+                          <SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} />
+                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
+                          <IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} />
+                        </div>
+                      </div>
+                    </div>
+                  </>
                )}
-               {activeEditorSection === 'collections' && (
-                  <><SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" /><MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: v[0] || '' })} /><SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} /><div className="pt-6 border-t border-slate-800 space-y-6"><h4 className="text-white font-bold">Product Detail Labels</h4><div className="grid grid-cols-2 gap-4"><SettingField label="Buy Button Label" value={tempSettings.productAcquisitionLabel} onChange={v => updateTempSettings({ productAcquisitionLabel: v })} /><SettingField label="Specs Title Label" value={tempSettings.productSpecsLabel} onChange={v => updateTempSettings({ productSpecsLabel: v })} /></div></div></>
+               { (activeEditorSection === 'collections') && (
+                  <>
+                    <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
+                    <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
+                    <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
+                    <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Product Detail Labels</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Buy Button Label" value={tempSettings.productAcquisitionLabel} onChange={v => updateTempSettings({ productAcquisitionLabel: v })} />
+                        <SettingField label="Specs Title Label" value={tempSettings.productSpecsLabel} onChange={v => updateTempSettings({ productSpecsLabel: v })} />
+                      </div>
+                    </div>
+                  </>
                )}
-               {activeEditorSection === 'about' && (
-                  <><SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" /><SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} /><div className="grid grid-cols-3 gap-4"><SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} /><SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} /><SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} /></div><SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} /><SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} /><SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" /><h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4><SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} /><SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" /><SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} /><SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" /><SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} /><SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" /><MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} /></>
+               { (activeEditorSection === 'about') && (
+                  <>
+                    <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
+                    <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
+                    <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
+                    <div className="grid grid-cols-3 gap-4">
+                      <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
+                      <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
+                      <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
+                    </div>
+                    <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
+                    <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
+                    <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
+                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
+                    <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
+                    <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
+                    <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
+                    <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
+                    <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
+                    <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
+                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
+                  </>
                )}
-               {activeEditorSection === 'contact' && (
-                  <><SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" /><div className="grid grid-cols-2 gap-4"><SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} /><SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} /></div><SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} /><SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" /><div className="pt-6 border-t border-slate-800 space-y-6"><FaqsManager faqs={tempSettings.contactFaqs || []} onChange={v => updateTempSettings({ contactFaqs: v })} /></div><h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4><SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} /><h4 className="text-white font-bold border-t border-slate-800 pt-6">Social Media</h4><SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} /></>
+               { (activeEditorSection === 'contact') && (
+                  <>
+                    <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} />
+                    <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} />
+                      <SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} />
+                    </div>
+                    <SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} />
+                    <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" />
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <FaqsManager faqs={tempSettings.contactFaqs || []} onChange={v => updateTempSettings({ contactFaqs: v })} />
+                    </div>
+                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4>
+                    <SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} />
+                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Social Media</h4>
+                    <SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} />
+                  </>
                )}
-               {activeEditorSection === 'login' && (
+               { (activeEditorSection === 'login') && (
                  <div className="space-y-8 animate-in slide-in-from-right duration-300">
                     <AdminTip title="Portal Aesthetics">The login page is the first gate to your maison infrastructure. Use high-fashion, high-contrast imagery to maintain brand consistency.</AdminTip>
                     <div className="space-y-6">
@@ -2635,11 +2827,35 @@ const Admin: React.FC = () => {
                     </div>
                  </div>
                )}
-               {activeEditorSection === 'legal' && (
-                  <><div className="space-y-6"><SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} /><SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} /><SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} /><SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} /></div></>
+               { (activeEditorSection === 'legal') && (
+                  <>
+                    <div className="space-y-6">
+                      <SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
+                      <SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} />
+                    </div>
+                    <div className="space-y-6 pt-6 border-t border-slate-800">
+                      <SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
+                      <SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} />
+                    </div>
+                    <div className="space-y-6 pt-6 border-t border-slate-800">
+                      <SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
+                      <SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} />
+                    </div>
+                  </>
                )}
-               {activeEditorSection === 'integrations' && (
-                  <><IntegrationGuide /><div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4><div className="space-y-4"><SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} /><SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} /><SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} /><SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} /></div></div></>
+               { (activeEditorSection === 'integrations') && (
+                  <>
+                    <IntegrationGuide />
+                    <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Globe size={16} /> Analytics & Tracking</h4>
+                      <div className="space-y-4">
+                        <SettingField label="Google Analytics ID (G-XXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
+                        <SettingField label="Facebook Pixel ID" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
+                        <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
+                        <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
+                      </div>
+                    </div>
+                  </>
                )}
              </div>
              <div className="sticky bottom-0 bg-slate-950 pt-6 pb-2 border-t border-slate-800 mt-8 flex gap-4"><button onClick={() => { setEditorDrawerOpen(false); setTempSettings(settings); }} className="flex-1 py-4 bg-slate-800 text-slate-400 font-bold uppercase text-xs rounded-xl hover:text-white transition-colors">Cancel</button><button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-4 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20">Publish Changes</button></div>
@@ -2655,7 +2871,7 @@ const Admin: React.FC = () => {
                  <span className="text-slate-500">Supabase: <span className={isSupabaseConfigured ? 'text-green-500' : 'text-slate-400'}>{isSupabaseConfigured ? 'Synced' : 'Local'}</span></span>
               </div>
               <div className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]' : 'bg-red-500 animate-ping shadow-[0_0_8px_#ef4444]'}`}></div>
+                 <div className={`w-2 h-2 rounded-full ${ (connectionHealth?.status === 'online') ? 'bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]' : 'bg-red-500 animate-ping shadow-[0_0_8px_#ef4444]' }`}></div>
                  <span className="text-slate-500">Latency: <span className="text-white">{connectionHealth?.latency || 0}ms</span></span>
               </div>
            </div>
