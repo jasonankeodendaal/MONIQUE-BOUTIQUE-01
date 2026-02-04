@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { Target, Users, Award, Star, Quote, Sparkles, MapPin, Calendar, Heart, ArrowDown } from 'lucide-react';
@@ -27,21 +26,18 @@ const About: React.FC = () => {
   const renderIcon = (iconName: string, defaultIcon: React.ReactNode) => {
     if (!iconName) return defaultIcon;
     const IconComponent = CustomIcons[iconName] || (LucideIcons as any)[iconName];
-    return IconComponent ? <IconComponent size={32} /> : defaultIcon;
+    return IconComponent ? <IconComponent size={24} /> : defaultIcon;
   };
 
   return (
     <div className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
-      {/* Editorial Hero Spread (Phase 1B: High-Fidelity Split Screen) */}
-      <div className="relative h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
-        
-        {/* Fixed Background Text Layer for Depth */}
+      {/* Editorial Hero Spread */}
+      <div className="relative h-[70vh] md:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none hidden lg:block">
            <span className="text-[25vw] font-serif font-black text-white/[0.03] leading-none select-none tracking-tighter">EST. {settings.aboutEstablishedYear}</span>
         </div>
 
-        {/* Left Side: Parallax Image */}
         <div className="w-full lg:w-1/2 h-1/2 lg:h-full relative overflow-hidden">
            <div 
              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out scale-110"
@@ -51,146 +47,88 @@ const About: React.FC = () => {
              }}
            />
            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-950/10 to-slate-950/40 lg:to-slate-950"></div>
-           
-           {/* Vertical "Narrative" Sidebar Label */}
-           <div className="absolute left-6 top-1/2 -translate-y-1/2 hidden xl:flex flex-col items-center gap-8">
-              <div className="w-px h-24 bg-primary/40"></div>
-              <span className="text-[10px] font-black uppercase tracking-[1em] text-primary -rotate-90 origin-center whitespace-nowrap">THE JOURNEY</span>
-              <div className="w-px h-24 bg-primary/40"></div>
-           </div>
         </div>
         
-        {/* Right Side: Content Matrix */}
-        <div className="w-full lg:w-1/2 flex items-center p-8 md:p-16 lg:p-24 relative z-10">
+        <div className="w-full lg:w-1/2 flex items-center p-6 md:p-24 relative z-10">
            <div className="max-w-2xl text-left">
-              <div className="inline-flex items-center gap-4 px-5 py-2.5 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-[0.6em] mb-12 border border-primary/20">
-                  <Sparkles size={14} className="animate-pulse"/> {settings.aboutFounderName}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[7px] md:text-[9px] font-black uppercase tracking-[0.4em] mb-6 md:mb-12 border border-primary/20">
+                  <Sparkles size={10} className="animate-pulse"/> {settings.aboutFounderName}
               </div>
               
-              <h1 className="font-serif text-white leading-[0.8] tracking-tighter mb-12 text-balance animate-in slide-in-from-bottom-12 duration-1000" style={{ fontSize: 'clamp(3.5rem, 9vw, 9rem)' }}>
+              <h1 className="font-serif text-white leading-[0.8] tracking-tighter mb-6 md:mb-12 text-balance animate-in slide-in-from-bottom-12 duration-1000" style={{ fontSize: 'clamp(2rem, 7vw, 7rem)' }}>
                   {settings.aboutHeroTitle.split(' ').map((word, i) => (
                       <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block" : "block"}>{word}</span>
                   ))}
               </h1>
 
-              <div className="relative mb-12 pl-12 group">
-                 <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-primary/40 to-transparent group-hover:h-full transition-all duration-1000"></div>
-                 <p className="text-xl md:text-3xl text-slate-400 font-light leading-relaxed italic text-pretty group-hover:text-white transition-colors duration-500">
-                    "{settings.aboutHeroSubtitle}"
-                 </p>
-              </div>
-
-              <div className="flex flex-wrap gap-10 pt-12 border-t border-white/10">
-                 <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Location</span>
-                    <span className="text-lg font-serif text-white flex items-center gap-2">
-                       <MapPin size={16} className="text-primary" /> {settings.aboutLocation}
-                    </span>
-                 </div>
-                 <div className="flex flex-col border-l border-white/10 pl-10">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-2">Est.</span>
-                    <span className="text-lg font-serif text-white flex items-center gap-2">
-                       <Calendar size={16} className="text-primary" /> {settings.aboutEstablishedYear}
-                    </span>
-                 </div>
-              </div>
+              <p className="text-sm md:text-2xl text-slate-400 font-light leading-relaxed italic text-pretty border-l border-primary/30 pl-4 md:pl-10">
+                "{settings.aboutHeroSubtitle}"
+              </p>
            </div>
-        </div>
-
-        {/* Bottom indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-4 animate-bounce text-primary/40">
-           <span className="text-[8px] font-black uppercase tracking-[0.5em]">Scroll</span>
-           <ArrowDown size={14} />
         </div>
       </div>
 
-      {/* Main Narrative Spread (Phase 1B: Two-column text flow & Drop Caps) */}
-      <section className="py-24 md:py-48 max-w-7xl mx-auto px-6 sm:px-8 relative">
-        <div className="grid lg:grid-cols-12 gap-16 md:gap-32">
+      {/* Narrative Spread - Side-by-Side on all devices */}
+      <section className="py-12 md:py-48 max-w-7xl mx-auto px-4 relative">
+        <div className="grid grid-cols-12 gap-4 md:gap-32">
             
-            <div className="lg:col-span-4 lg:sticky lg:top-32 h-fit order-2 lg:order-1">
-                <div className="bg-white p-10 md:p-16 rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] border border-slate-50 space-y-16 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                    
-                    <div className="space-y-6 text-left relative z-10">
-                        <div className="flex items-center gap-4 text-primary mb-6">
-                           <div className="p-3 bg-primary/10 rounded-2xl">{renderIcon(settings.aboutMissionIcon, <Target size={28}/>)}</div>
-                           <h4 className="text-2xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
+            {/* Smaller Sidebar Column (Always Side-by-Side) */}
+            <div className="col-span-4 h-fit">
+                <div className="bg-white p-4 md:p-16 rounded-2xl md:rounded-[3rem] shadow-xl border border-slate-50 space-y-8 md:space-y-16 relative overflow-hidden">
+                    <div className="space-y-4 text-left relative z-10">
+                        <div className="flex items-center gap-2 text-primary">
+                           <div className="p-1.5 md:p-3 bg-primary/10 rounded-lg md:rounded-2xl">{renderIcon(settings.aboutMissionIcon, <Target size={16}/>)}</div>
+                           <h4 className="text-xs md:text-2xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
                         </div>
-                        <p className="text-slate-500 text-sm leading-relaxed font-light">{settings.aboutMissionBody}</p>
+                        <p className="text-[8px] md:text-sm text-slate-500 leading-tight md:leading-relaxed font-light">{settings.aboutMissionBody}</p>
                     </div>
 
-                    <div className="space-y-6 text-left relative z-10">
-                        <div className="flex items-center gap-4 text-primary mb-6">
-                           <div className="p-3 bg-primary/10 rounded-2xl">{renderIcon(settings.aboutCommunityIcon, <Users size={28}/>)}</div>
-                           <h4 className="text-2xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
+                    <div className="space-y-4 text-left relative z-10">
+                        <div className="flex items-center gap-2 text-primary">
+                           <div className="p-1.5 md:p-3 bg-primary/10 rounded-lg md:rounded-2xl">{renderIcon(settings.aboutCommunityIcon, <Users size={16}/>)}</div>
+                           <h4 className="text-xs md:text-2xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
                         </div>
-                        <p className="text-slate-500 text-sm leading-relaxed font-light">{settings.aboutCommunityBody}</p>
+                        <p className="text-[8px] md:text-sm text-slate-500 leading-tight md:leading-relaxed font-light">{settings.aboutCommunityBody}</p>
                     </div>
 
                     {settings.aboutSignatureImage && (
-                       <div className="pt-12 border-t border-slate-100 flex flex-col items-center relative z-10">
-                          <img 
-                            src={settings.aboutSignatureImage} 
-                            alt="Founder Signature" 
-                            className="h-24 w-auto object-contain opacity-40 hover:opacity-100 transition-opacity duration-700 mb-4 mix-blend-multiply" 
-                          />
-                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.5em]">The Authenticity Seal</span>
+                       <div className="pt-4 md:pt-12 border-t border-slate-100 flex flex-col items-center">
+                          <img src={settings.aboutSignatureImage} className="h-10 md:h-24 w-auto object-contain opacity-40 mix-blend-multiply" alt="Sig" />
                        </div>
                     )}
                 </div>
             </div>
 
-            <div className="lg:col-span-8 order-1 lg:order-2 text-left">
-                <div className="flex items-center gap-6 mb-12">
-                   <div className="h-[2px] w-20 bg-primary"></div>
-                   <span className="text-[12px] font-black uppercase tracking-[0.8em] text-primary">The Manifesto</span>
+            {/* Main Story Column (Always Side-by-Side) */}
+            <div className="col-span-8 text-left">
+                <div className="flex items-center gap-2 md:gap-6 mb-4 md:mb-12">
+                   <div className="h-[1px] md:h-[2px] w-8 md:w-20 bg-primary"></div>
+                   <span className="text-[8px] md:text-[12px] font-black uppercase tracking-[0.4em] text-primary">The Manifesto</span>
                 </div>
                 
-                <h3 className="text-4xl md:text-7xl font-serif text-slate-900 mb-16 leading-[0.9] tracking-tighter text-balance">
+                <h3 className="text-lg md:text-7xl font-serif text-slate-900 mb-6 md:mb-16 leading-[1] tracking-tighter">
                    {settings.aboutHistoryTitle}
                 </h3>
                 
-                {/* Editorial Columns with Drop Cap */}
-                <div className="md:columns-2 gap-16 text-slate-500 font-light leading-relaxed text-lg text-pretty">
+                <div className="text-slate-500 font-light leading-relaxed text-[10px] md:text-lg">
                     <div className="whitespace-pre-wrap 
-                      first-letter:text-8xl 
+                      first-letter:text-4xl md:first-letter:text-8xl 
                       first-letter:font-serif 
                       first-letter:font-black 
                       first-letter:text-slate-900 
                       first-letter:float-left 
-                      first-letter:mr-8 
-                      first-letter:mt-4
-                      first-letter:leading-[0.8]
-                      [&>p]:mb-6
+                      first-letter:mr-2 md:first-letter:mr-8 
+                      first-letter:leading-none
                     ">
                         {settings.aboutHistoryBody}
                     </div>
                 </div>
 
-                {/* Staggered Editorial Gallery (Phase 1B: Offset Layout) */}
-                {settings.aboutGalleryImages && settings.aboutGalleryImages.length > 0 && (
-                  <div className="mt-32 md:mt-56 grid grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12 items-start">
-                    {settings.aboutGalleryImages.map((img, i) => (
-                      <div 
-                        key={i} 
-                        className={`
-                          rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-2xl 
-                          transition-all duration-1000 group
-                          ${i === 0 ? 'lg:translate-y-20 lg:scale-105' : ''}
-                          ${i === 1 ? 'lg:-translate-y-12' : ''}
-                          ${i === 2 ? 'lg:translate-y-32' : ''}
-                          ${i > 2 && i % 2 === 0 ? 'lg:translate-y-16' : ''}
-                        `}
-                      >
-                         <div className="relative overflow-hidden aspect-[3/4]">
-                           <img 
-                            src={img} 
-                            alt={`Moment ${i}`} 
-                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
-                           />
-                           <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                         </div>
+                {settings.aboutGalleryImages && (
+                  <div className="mt-12 md:mt-56 grid grid-cols-3 gap-2 md:gap-12">
+                    {settings.aboutGalleryImages.slice(0,3).map((img, i) => (
+                      <div key={i} className="rounded-xl md:rounded-[4rem] overflow-hidden shadow-lg aspect-[3/4]">
+                        <img src={img} className="w-full h-full object-cover" alt="Gallery" />
                       </div>
                     ))}
                   </div>
@@ -199,59 +137,51 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Trust & Transparency Block (Enhanced Contrast) */}
-      <section className="py-32 md:py-64 bg-slate-950 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--primary-color) 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
-        <div className="absolute -top-60 -right-60 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[150px] pointer-events-none"></div>
-        <div className="absolute -bottom-60 -left-60 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
-        
-        <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
-           <div className="inline-block p-6 md:p-10 bg-white/5 rounded-3xl mb-16 backdrop-blur-3xl border border-white/10 text-primary shadow-2xl animate-soft-flicker">
-              {renderIcon(settings.aboutIntegrityIcon, <Award size={56}/>)}
-           </div>
-           
-           <h2 className="text-4xl md:text-8xl font-serif mb-12 tracking-tight leading-none text-balance">
-              {settings.aboutIntegrityTitle}
-           </h2>
-           
-           <div className="relative mb-20">
-              <Quote className="absolute -top-12 -left-4 md:-top-20 md:-left-16 text-primary/10 w-24 h-24 md:w-48 md:h-48 -z-10" />
-              <p className="text-2xl md:text-5xl font-light text-slate-300 leading-tight italic text-balance">
-                "{settings.aboutIntegrityBody}"
-              </p>
-           </div>
+      {/* Shrink down Transparency Block - side-by-side row */}
+      <section className="py-12 md:py-40 bg-slate-950 text-white relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 relative z-10">
+           <div className="flex flex-row items-center gap-6 md:gap-20 text-left">
+              
+              {/* Icon & Title Group */}
+              <div className="w-1/3 flex flex-col items-start gap-3">
+                 <div className="p-3 md:p-6 bg-white/5 rounded-xl md:rounded-3xl border border-white/10 text-primary animate-soft-flicker">
+                    {renderIcon(settings.aboutIntegrityIcon, <Award size={24}/>)}
+                 </div>
+                 <h2 className="text-base md:text-6xl font-serif tracking-tight leading-tight">
+                    {settings.aboutIntegrityTitle}
+                 </h2>
+              </div>
 
-           <div className="flex flex-wrap justify-center gap-12 md:gap-24 border-t border-white/10 pt-20">
-              <div className="flex flex-col items-center group">
-                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
-                    <Heart size={28}/>
+              {/* Body Text Group */}
+              <div className="w-2/3 border-l border-white/10 pl-6 md:pl-20">
+                 <p className="text-xs md:text-4xl font-light text-slate-300 leading-tight italic">
+                    "{settings.aboutIntegrityBody}"
+                 </p>
+                 <div className="mt-6 flex flex-row gap-4 md:gap-12 opacity-50">
+                    <div className="flex flex-col gap-1">
+                       <Heart size={12} className="text-primary"/>
+                       <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">Verified</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                       <Calendar size={12} className="text-primary"/>
+                       <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">Fresh</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                       <MapPin size={12} className="text-primary"/>
+                       <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">Global</span>
+                    </div>
                  </div>
-                 <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Verified Pieces</span>
               </div>
-              <div className="flex flex-col items-center group">
-                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
-                    <Calendar size={28}/>
-                 </div>
-                 <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Refreshed Daily</span>
-              </div>
-              <div className="flex flex-col items-center group">
-                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
-                    <MapPin size={28}/>
-                 </div>
-                 <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Global Selection</span>
-              </div>
+
            </div>
         </div>
       </section>
 
       {/* Editorial Footer Meta */}
-      <div className="py-20 border-t border-slate-100 text-center bg-white relative">
-         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-            <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.6em]">Narrative Authenticity Verified: {lastUpdatedDate}</p>
-            <div className="flex items-center gap-4">
-               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Document No.</span>
-               <span className="font-mono text-[9px] px-2 py-1 bg-slate-50 text-slate-400 rounded">AB-992-JOURNEY-025</span>
-            </div>
+      <div className="py-10 border-t border-slate-100 text-center bg-white relative">
+         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center opacity-40">
+            <p className="text-[7px] md:text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Narrative Verified: {lastUpdatedDate}</p>
+            <span className="font-mono text-[7px] md:text-[9px] text-slate-400">AB-992-JOURNEY-025</span>
          </div>
       </div>
 
