@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { Target, Users, Award, Star, Quote, Sparkles, MapPin, Calendar, Heart, ArrowDown } from 'lucide-react';
@@ -199,46 +198,46 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Trust & Transparency Block (Enhanced Contrast) */}
-      <section className="py-32 md:py-64 bg-slate-950 text-white relative overflow-hidden">
+      {/* Trust & Transparency Block (Enhanced Contrast & Shrinked for Mobile) */}
+      <section className="py-16 md:py-64 bg-slate-950 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--primary-color) 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
         <div className="absolute -top-60 -right-60 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[150px] pointer-events-none"></div>
         <div className="absolute -bottom-60 -left-60 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
         
         <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
-           <div className="inline-block p-6 md:p-10 bg-white/5 rounded-3xl mb-16 backdrop-blur-3xl border border-white/10 text-primary shadow-2xl animate-soft-flicker">
-              {renderIcon(settings.aboutIntegrityIcon, <Award size={56}/>)}
+           <div className="inline-block p-4 md:p-10 bg-white/5 rounded-2xl md:rounded-3xl mb-8 md:mb-16 backdrop-blur-3xl border border-white/10 text-primary shadow-2xl animate-soft-flicker">
+              {renderIcon(settings.aboutIntegrityIcon, <Award className="w-8 h-8 md:w-14 md:h-14"/>)}
            </div>
            
-           <h2 className="text-4xl md:text-8xl font-serif mb-12 tracking-tight leading-none text-balance">
+           <h2 className="text-3xl md:text-8xl font-serif mb-8 md:mb-12 tracking-tight leading-none text-balance">
               {settings.aboutIntegrityTitle}
            </h2>
            
-           <div className="relative mb-20">
-              <Quote className="absolute -top-12 -left-4 md:-top-20 md:-left-16 text-primary/10 w-24 h-24 md:w-48 md:h-48 -z-10" />
-              <p className="text-2xl md:text-5xl font-light text-slate-300 leading-tight italic text-balance">
+           <div className="relative mb-12 md:mb-20">
+              <Quote className="absolute -top-8 -left-2 md:-top-20 md:-left-16 text-primary/10 w-12 h-12 md:w-48 md:h-48 -z-10" />
+              <p className="text-lg md:text-5xl font-light text-slate-300 leading-tight italic text-balance">
                 "{settings.aboutIntegrityBody}"
               </p>
            </div>
 
-           <div className="flex flex-wrap justify-center gap-12 md:gap-24 border-t border-white/10 pt-20">
+           <div className="flex flex-wrap justify-center gap-6 md:gap-24 border-t border-white/10 pt-12 md:pt-20">
               <div className="flex flex-col items-center group">
-                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
-                    <Heart size={28}/>
+                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center mb-2 md:mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
+                    <Heart className="w-5 h-5 md:w-7 md:h-7"/>
                  </div>
-                 <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Verified Pieces</span>
+                 <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Verified Pieces</span>
               </div>
               <div className="flex flex-col items-center group">
-                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
-                    <Calendar size={28}/>
+                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center mb-2 md:mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
+                    <Calendar className="w-5 h-5 md:w-7 md:h-7"/>
                  </div>
-                 <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Refreshed Daily</span>
+                 <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Refreshed Daily</span>
               </div>
               <div className="flex flex-col items-center group">
-                 <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
-                    <MapPin size={28}/>
+                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center mb-2 md:mb-4 group-hover:bg-primary group-hover:text-slate-900 transition-all duration-500">
+                    <MapPin className="w-5 h-5 md:w-7 md:h-7"/>
                  </div>
-                 <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Global Selection</span>
+                 <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.4em] text-slate-400 group-hover:text-white transition-colors">Global Selection</span>
               </div>
            </div>
         </div>
