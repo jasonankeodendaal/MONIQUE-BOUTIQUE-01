@@ -33,7 +33,7 @@ export const EMAIL_TEMPLATE_HTML = `
     
     /* BUTTON */
     .btn-container { text-align: center; margin: 35px 0; }
-    .btn { display: inline-block; background-color: #D4AF37; color: #FFFFFF; padding: 16px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); }
+    .btn { display: inline-block; background-color: #D4AF37; color: #FFFFFF; padding: 166px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); }
     
     /* FOOTER */
     .footer { background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
@@ -93,34 +93,43 @@ export const EMAIL_TEMPLATE_HTML = `
 
 export const GUIDE_STEPS = [
   {
-    id: 'supabase-init',
-    title: '1. Supabase Infrastructure',
-    description: 'Establish your cloud nerve center. Create a free account at Supabase.com and initialize a new project named "Affiliate Bridge".',
+    id: 'mission-brief',
+    title: '1. Mission & Brand Brief',
+    description: 'Define your aesthetic territory. Before touching code, establish your bridge page\'s niche (e.g., Luxury Footwear, Tech Accessories).',
     illustrationId: 'rocket',
     subSteps: [
-      'Sign in to Supabase.com.',
-      'Click "New Project" and select a region (e.g., Cape Town or London).',
-      'Choose a secure Database Password and save it.',
-      'Wait for the database to provision (approx. 2 minutes).'
+      'Select a focus niche with high affiliate commission potential.',
+      'Decide on your brand voice (Minimalist, Avant-Garde, or High-Street).',
+      'Prepare 3 high-resolution hero images that represent your style.',
+      'Write your unique "Curator Story" for the About section.'
+    ]
+  },
+  {
+    id: 'supabase-init',
+    title: '2. Cloud Nerve Center (Supabase)',
+    description: 'Establish your cloud database infrastructure. This allows your bridge page to sync data in real-time across all devices.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Create a free account at Supabase.com.',
+      'Initialize a new project named "Findara Bridge".',
+      'Choose a strong database password (store it securely).',
+      'Navigate to "Settings" > "API" to find your project credentials.'
     ]
   },
   {
     id: 'database',
-    title: '2. Database Schema (SQL Engine)',
-    description: 'Execute the master architecture script. This version is idempotent (run-safe) and includes security policies for permissions.',
-    illustrationId: 'forge',
+    title: '3. Architectural Blueprint (SQL)',
+    description: 'Inject the master data schema into your database. This creates the tables for products, analytics, and settings.',
+    illustrationId: 'rocket',
     subSteps: [
-      'Navigate to the "SQL Editor" tab in Supabase.',
-      'Click "New Query" and paste the comprehensive SQL block below.',
-      'Click "Run". It handles tables, RLS enablement, and basic access policies.',
-      'Verify tables exist in the "Table Editor".'
+      'Open the "SQL Editor" in your Supabase dashboard.',
+      'Click "New Query" and paste the Master SQL Script provided below.',
+      'Click "Run". Ensure all 11 tables are created in the "Table Editor".',
+      'Verify that RLS (Row Level Security) is enabled for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v4.0 (Idempotent)
-
--- 1. EXTENSIONS
+    code: `-- MASTER ARCHITECTURE SCRIPT v5.0
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. TABLES
 CREATE TABLE IF NOT EXISTS settings (
   id TEXT PRIMARY KEY DEFAULT 'global',
   "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
@@ -148,23 +157,7 @@ CREATE TABLE IF NOT EXISTS settings (
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS products (
-  id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT,
-  "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB,
-  media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT
-);
-
-CREATE TABLE IF NOT EXISTS product_history (
-  id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT,
-  "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB,
-  media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT
-);
-
-CREATE TABLE IF NOT EXISTS training_modules (
-  id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, 
-  strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT
-);
-
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
@@ -172,206 +165,236 @@ CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT
 CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
+CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 
--- 3. PERMISSIONS (ROW LEVEL SECURITY)
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
-ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
+-- ENABLE PUBLIC READ
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
+ALTER TABLE products ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
+ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
+ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
+ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
 
--- 4. POLICIES
-DO $$ BEGIN
-    -- Public Read
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read history') THEN CREATE POLICY "Public Read history" ON product_history FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read training') THEN CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read categories') THEN CREATE POLICY "Public Read categories" ON categories FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read subcategories') THEN CREATE POLICY "Public Read subcategories" ON subcategories FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read hero_slides') THEN CREATE POLICY "Public Read hero_slides" ON hero_slides FOR SELECT USING (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert enquiries') THEN CREATE POLICY "Public Insert enquiries" ON enquiries FOR INSERT WITH CHECK (true); END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Insert traffic_logs') THEN CREATE POLICY "Public Insert traffic_logs" ON traffic_logs FOR INSERT WITH CHECK (true); END IF;
-    
-    -- Owner Write (Assuming 'owner' role or specific ID check)
-    -- In production, replace auth.uid() checks with proper IDs
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon') THEN 
-        CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon categories" ON categories FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon subcategories" ON subcategories FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon hero_slides" ON hero_slides FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon admin_users" ON admin_users FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon traffic_logs" ON traffic_logs FOR ALL USING (true);
-        CREATE POLICY "Enable all for anon product_stats" ON product_stats FOR ALL USING (true);
-    END IF;
-END $$;`,
-    codeLabel: 'Full System SQL Script v4.0'
+-- ENABLE ALL FOR ANON (DEMO/QUICKSTART)
+CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
+CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
+CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
+CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true);
+CREATE POLICY "Enable all for anon admins" ON admin_users FOR ALL USING (true);
+CREATE POLICY "Enable all for anon stats" ON product_stats FOR ALL USING (true);
+CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
+CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
+CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
+CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
+CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);`,
+    codeLabel: 'Full System SQL Script v5.0'
   },
   {
-    id: 'storage',
-    title: '3. Asset Vault (Storage)',
-    description: 'Setup high-speed CDN hosting for your product images and videos.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Go to the "Storage" tab in Supabase.',
-      'Create a new bucket named "media".',
-      'Set bucket visibility to "Public" (Required for bridge display).',
-      'In "Policies", allow all operations (SELECT, INSERT, UPDATE) for Public access.'
-    ]
-  },
-  {
-    id: 'auth',
-    title: '4. Authentication (Security)',
-    description: 'Configure your staff access and login protocols.',
+    id: 'security-auth',
+    title: '4. Guard Protocol (Auth)',
+    description: 'Configure how your team accesses the Maison Portal. This secures your collections from unauthorized changes.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to "Authentication" > "Settings".',
+      'Go to "Authentication" > "Providers" in Supabase.',
+      'Enable "Email" and "Google" (optional but recommended).',
       'Disable "Confirm Email" if you want instant staff onboarding.',
-      'Add "http://localhost:3000" to Redirect URLs for local testing.',
-      'Add your production Vercel URL once deployed.'
+      'Add your production URL to "Redirect URLs" in "Auth Settings".'
     ]
   },
   {
-    id: 'environment',
-    title: '5. Local Infrastructure (.env)',
-    description: 'Link your local development engine to your Supabase cloud project.',
+    id: 'asset-vault',
+    title: '5. Asset Vault (Storage)',
+    description: 'Prepare high-speed CDN hosting for your product imagery and cinematic videos.',
     illustrationId: 'rocket',
     subSteps: [
-      'Copy "Project URL" and "Anon Key" from Settings > API.',
-      'Create a file named ".env" in your project root.',
-      'Paste the variables exactly as shown below.'
+      'Navigate to "Storage" in the Supabase dashboard.',
+      'Create a new Bucket exactly named "media".',
+      'Set the bucket to "Public" visibility.',
+      'In "Policies", create a policy allowing SELECT, INSERT, and UPDATE for all users.'
+    ]
+  },
+  {
+    id: 'local-infrastructure',
+    title: '6. Local Infrastructure (.env)',
+    description: 'Link your local development engine to your cloud project using environment variables.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Create a file named ".env" in your project root folder.',
+      'Copy your "Project URL" and "Anon Key" from Supabase API settings.',
+      'Paste them into the .env file exactly as shown below.',
+      'Restart your development server to apply the link.'
     ],
-    code: 'VITE_SUPABASE_URL=https://your-project.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-key-here',
-    codeLabel: '.env Variables'
+    code: 'VITE_SUPABASE_URL=https://xxxx.supabase.co\nVITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    codeLabel: '.env Credentials'
   },
   {
-    id: 'github',
-    title: '6. Version Control (GitHub)',
-    description: 'Secure your codebase and enable continuous deployment (CI/CD).',
-    illustrationId: 'forge',
-    subSteps: [
-      'Create a new repository on GitHub (Private recommended).',
-      'Run "git init" in your local project folder.',
-      'Run "git remote add origin [your-repo-url]".',
-      'Push your code: "git add .", "git commit", "git push".'
-    ]
-  },
-  {
-    id: 'emailjs-account',
-    title: '7. EmailJS: Service Protocol',
-    description: 'Configure the automated mail server to handle client inquiries.',
+    id: 'version-control',
+    title: '7. Version Control (GitHub)',
+    description: 'Secure your codebase and enable automated production deployments.',
     illustrationId: 'rocket',
     subSteps: [
-      'Create an account at EmailJS.com.',
-      'Go to "Email Services" and add your Gmail or Outlook.',
-      'Note the "Service ID" for your settings.'
+      'Initialize a new Git repository: "git init".',
+      'Create a new Private Repository on GitHub.',
+      'Commit your current build: "git add .", "git commit -m \'Initial Launch\'".',
+      'Push your code to the GitHub remote main branch.'
     ]
   },
   {
-    id: 'emailjs-template',
-    title: '8. EmailJS: Template Engineering',
-    description: 'Design the professional reply template your clients will receive.',
+    id: 'email-protocol',
+    title: '8. Email Server (EmailJS)',
+    description: 'Setup the automated communication bridge for client enquiries.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to "Email Templates" > "Create New".',
-      'Map these variables: {{to_name}}, {{message}}, {{subject}}, {{company_name}}.',
-      'Paste the HTML code below into the "Code" editor of the template.',
-      'Note the "Template ID" and "Public Key".'
-    ],
-    code: EMAIL_TEMPLATE_HTML,
-    codeLabel: 'EmailJS HTML Template'
-  },
-  {
-    id: 'google-analytics',
-    title: '9. Marketing: Google Analytics (G4)',
-    description: 'Install tracking sensors to monitor global traffic origins.',
-    illustrationId: 'rocket',
-    subSteps: [
-      'Create a property in Google Analytics.',
-      'Go to Admin > Data Streams > Web.',
-      'Copy the "Measurement ID" (starts with G-).',
-      'Paste into Portal > Canvas > Integrations.'
+      'Sign up at EmailJS.com.',
+      'Connect your professional email service (Gmail, Outlook, etc.).',
+      'Navigate to "Account" to find your "Public Key".',
+      'Navigate to "Email Services" to find your "Service ID".'
     ]
   },
   {
-    id: 'meta-pixel',
-    title: '10. Marketing: Meta Pixel (Facebook)',
-    description: 'Enable conversion tracking for Facebook and Instagram ads.',
+    id: 'template-engineering',
+    title: '9. Response Engineering',
+    description: 'Design the luxury reply template your clients receive when you answer an enquiry.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'In EmailJS, create a "New Template".',
+      'Mapping Variables: {{to_name}}, {{message}}, {{subject}}, {{company_name}}.',
+      'Paste the Elegant HTML Code (found in constants.tsx) into the code editor.',
+      'Save the template and note the "Template ID".'
+    ]
+  },
+  {
+    id: 'production-launch',
+    title: '10. Production Launch (Vercel)',
+    description: 'Deploy your bridge page to the global web for high-performance viewing.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to Meta Events Manager.',
-      'Create a new "Web" Data Source (Pixel).',
-      'Copy the numeric "Dataset ID".',
-      'Paste into the Integrations tab.'
+      'Sign into Vercel.com and click "Add New Project".',
+      'Import your GitHub repository created in Step 7.',
+      'Configure Build Command: "npm run build" and Output: "dist".',
+      'Wait for the deployment to finish and click your new URL.'
     ]
   },
   {
-    id: 'tiktok-pixel',
-    title: '11. Marketing: TikTok Monitoring',
-    description: 'Track viral trends and referral performance from TikTok.',
+    id: 'cloud-injectors',
+    title: '11. Cloud Injectors (Secrets)',
+    description: 'Securely transfer your private API keys to the production environment.',
     illustrationId: 'rocket',
     subSteps: [
-      'Go to TikTok Ads Manager > Assets > Events.',
+      'In Vercel, go to "Settings" > "Environment Variables".',
+      'Add "VITE_SUPABASE_URL" and "VITE_SUPABASE_ANON_KEY".',
+      'Redeploy your project to enable cloud synchronization.',
+      'Verify the "System Status" indicator in your Admin footer is green.'
+    ]
+  },
+  {
+    id: 'domain-authority',
+    title: '12. Domain Authority (DNS)',
+    description: 'Finalize your brand identity with a custom .com or .luxury domain.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Purchase a domain from a registrar (GoDaddy, Namecheap).',
+      'Add the domain in Vercel "Settings" > "Domains".',
+      'Update your DNS records (A and CNAME) as instructed by Vercel.',
+      'Wait for SSL propagation (usually 1-2 hours).'
+    ]
+  },
+  {
+    id: 'analytics-ga4',
+    title: '13. Vitality Sensors (GA4)',
+    description: 'Install Google Analytics to monitor visitor origins and engagement duration.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Create a "Web Data Stream" in Google Analytics.',
+      'Copy the "Measurement ID" (G-XXXXXXXXXX).',
+      'Go to Maison Portal > Canvas > Integrations and paste the ID.',
+      'Test live tracking via the "Realtime" view in GA4.'
+    ]
+  },
+  {
+    id: 'meta-conversions',
+    title: '14. Meta Pixel Deployment',
+    description: 'Enable retargeting and conversion tracking for Instagram and Facebook ads.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Go to Meta Events Manager and Create a "Web Data Source".',
+      'Copy the numeric "Pixel ID".',
+      'Paste into the Integrations tab of your site editor.',
+      'Verify tracking using the "Meta Pixel Helper" browser extension.'
+    ]
+  },
+  {
+    id: 'tiktok-tracking',
+    title: '15. TikTok Viral Tracking',
+    description: 'Monitor high-traffic trends and referral performance from TikTok.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'In TikTok Ads Manager, navigate to "Assets" > "Events".',
       'Create a "Web Event" and select "Manual Setup".',
-      'Copy the "Pixel ID".',
-      'Paste into the Integrations tab.'
+      'Copy the generated "Pixel ID".',
+      'Synchronize it via your Maison Portal Integrations tab.'
     ]
   },
   {
-    id: 'pinterest-tag',
-    title: '12. Marketing: Pinterest Tag',
-    description: 'Capture aesthetic shoppers from the Pinterest ecosystem.',
+    id: 'pinterest-aesthetic',
+    title: '16. Pinterest Aesthetic Tracking',
+    description: 'Capture aesthetic-driven shoppers from the Pinterest ecosystem.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to Pinterest Business Hub > Ads > Conversions.',
+      'Navigate to Pinterest Business Hub > Ads > Conversions.',
       'Create a "Pinterest Tag".',
       'Copy the "Unique Tag ID".',
-      'Paste into the Integrations tab.'
+      'Apply it to your site via the Canvas > Integrations menu.'
     ]
   },
   {
-    id: 'vercel-deploy',
-    title: '13. Deployment: Vercel Production',
-    description: 'Launch your bridge page to the global web with high-performance hosting.',
+    id: 'canvas-personalization',
+    title: '17. Identity Calibration (Canvas)',
+    description: 'Calibrate your site\'s visual identity to match your unique curation style.',
     illustrationId: 'rocket',
     subSteps: [
-      'Sign in to Vercel.com.',
-      'Click "Add New" > "Project".',
-      'Import your GitHub repository created in Step 6.',
-      'Wait for the "Configure Project" screen.'
+      'Open Maison Portal > Canvas > Identity.',
+      'Upload your logo and select your Primary Gold/Accent colors.',
+      'Set your Slogan and Navigation labels (e.g., "The Vault" vs "Collections").',
+      'Preview changes instantly on your mobile device.'
     ]
   },
   {
-    id: 'vercel-env',
-    title: '14. Deployment: Cloud Injectors',
-    description: 'Securely inject your API keys into the production environment.',
+    id: 'catalog-deployment',
+    title: '18. Catalog Strategy (Items)',
+    description: 'Populate your bridge page with high-commission, personally curated items.',
     illustrationId: 'forge',
     subSteps: [
-      'In Vercel "Environment Variables", add "VITE_SUPABASE_URL".',
-      'Add "VITE_SUPABASE_ANON_KEY".',
-      'Click "Deploy". Your site is now live at a .vercel.app domain.'
+      'Go to Items and create logical "Departments" first.',
+      'Add products with "Why We Love It" highlights to increase trust.',
+      'Ensure every "Affiliate Link" includes your unique tracking ID.',
+      'Use the "Ad Generator" to create social media assets for each item.'
     ]
   },
   {
-    id: 'final-polish',
-    title: '15. Final Polish: Custom Domain',
-    description: 'Complete your brand identity with a custom .com or .co.za domain.',
+    id: 'academy-deployment',
+    title: '19. Growth Blueprint (Academy)',
+    description: 'Utilize the training modules to master the algorithms of social platforms.',
     illustrationId: 'rocket',
     subSteps: [
-      'Purchase a domain (GoDaddy, Namecheap, etc.).',
-      'In Vercel, go to Settings > Domains.',
-      'Add your domain and update the DNS records as instructed.',
-      'Test your bridge page on your new custom URL!'
+      'Review the "Instagram Aesthetic" training for visual consistency.',
+      'Apply the "Pinterest Viral Pins" strategy for evergreen traffic.',
+      'Follow "TikTok Trend Jacking" to capture viral fashion moments.',
+      'Complete "SEO for Luxury" to rank for high-intent search terms.'
+    ]
+  },
+  {
+    id: 'maintenance-scaling',
+    title: '20. Scaling & Maintenance',
+    description: 'Establish a rhythm for catalog refreshes and analytical auditing.',
+    illustrationId: 'forge',
+    subSteps: [
+      'Weekly: Audit "Elite Performance Report" for conversion drop-offs.',
+      'Monthly: Trigger a "Curation Cycle" to move stale items to History.',
+      'Quarterly: Backup your catalog data to JSON via System settings.',
+      'Scaling: Add "Maison Staff" members as your traffic grows.'
     ]
   }
 ];
