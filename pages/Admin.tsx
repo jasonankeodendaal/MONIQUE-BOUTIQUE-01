@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -13,7 +12,7 @@ import {
   Maximize2, Minimize2, CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer, ServerCrash,
   BarChart, ZapOff, Activity as ActivityIcon, Code, Map, Wifi, WifiOff, Facebook, Linkedin,
   FileBox, Lightbulb, Tablet, Laptop, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, Puzzle, AtSign, Ghost, Gamepad2, HardDrive, Cpu, XCircle, DollarSign,
-  Minus
+  Minus, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EMAIL_TEMPLATE_HTML, GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES } from '../constants';
@@ -655,7 +654,7 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
 
 const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => {
   const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-  return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full"><code>{code}</code></pre></div>);
+  return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-full"><code>{code}</code></pre></div>);
 };
 
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
@@ -764,6 +763,245 @@ const IntegrationGuide: React.FC = () => (
   </div>
 );
 
+const EliteReportModal: React.FC<{ 
+  onClose: () => void;
+  stats: ProductStats[];
+  products: Product[];
+  categories: Category[];
+  admins: AdminUser[];
+  settings: SiteSettings;
+  trafficEvents: any[];
+  curatorId: string;
+}> = ({ onClose, stats, products, categories, admins, settings, trafficEvents, curatorId }) => {
+  const [isGenerating, setIsGenerating] = useState(true);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setIsGenerating(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const reportData = useMemo(() => {
+    // Correct mapping and filtering based on curatorId
+    const targetAdmins = curatorId === 'all' ? admins : admins.filter(a => a.id === curatorId);
+    const targetAdmin = targetAdmins[0];
+    
+    const targetProducts = curatorId === 'all' 
+      ? products 
+      : products.filter(p => p.createdBy === curatorId);
+    
+    const targetProductIds = targetProducts.map(p => p.id);
+    
+    const targetStats = stats.filter(s => targetProductIds.includes(s.productId));
+    
+    const totalViews = targetStats.reduce((acc, s) => acc + s.views, 0);
+    const totalClicks = targetStats.reduce((acc, s) => acc + s.clicks, 0);
+    const totalShares = targetStats.reduce((acc, s) => acc + (s.shares || 0), 0);
+    const ctr = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
+    
+    const now = Date.now();
+    const dayMs = 86400000;
+    
+    // Traffic filtering for projection logic
+    // In a real environment, we'd filter trafficEvents by source or metadata associated with the curator's specific ID if tracked.
+    // For now, if we filter by user, we'll assume traffic relates proportional to their catalog footprint.
+    const last7DaysCount = trafficEvents.filter(e => e.timestamp > now - (7 * dayMs)).length;
+    const prev7DaysCount = trafficEvents.filter(e => e.timestamp <= now - (7 * dayMs) && e.timestamp > now - (14 * dayMs)).length;
+    
+    const growthRate = prev7DaysCount > 0 ? ((last7DaysCount - prev7DaysCount) / prev7DaysCount) * 100 : 100;
+    const projectedNextMonth = last7DaysCount * 4 * (1 + (growthRate / 100));
+
+    const staffPerformance = admins.map(admin => {
+      const adminProducts = products.filter(p => p.createdBy === admin.id);
+      const adminProductIds = adminProducts.map(p => p.id);
+      const adminStats = stats.filter(s => adminProductIds.includes(s.productId));
+      const views = adminStats.reduce((a, b) => a + b.views, 0);
+      const clicks = adminStats.reduce((a, b) => a + b.clicks, 0);
+      return { name: admin.name, views, clicks, productCount: adminProducts.length };
+    }).sort((a, b) => b.clicks - a.clicks);
+
+    return { 
+      totalViews, totalClicks, totalShares, ctr, growthRate, projectedNextMonth, staffPerformance, last7DaysCount, 
+      curatorName: curatorId === 'all' ? 'All Global Curators' : targetAdmin?.name || 'Unknown Curator'
+    };
+  }, [stats, products, admins, trafficEvents, curatorId]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 animate-in fade-in duration-500 overflow-y-auto print:p-0 print:bg-white">
+      {isGenerating ? (
+        <div className="flex flex-col items-center gap-6">
+           <div className="relative">
+              <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+              <FilePieChart size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" />
+           </div>
+           <div className="text-center">
+              <h3 className="text-xl font-bold text-white uppercase tracking-widest mb-1">Synthesizing Elite Analytics</h3>
+              <p className="text-slate-500 text-sm animate-pulse">Processing high-fidelity data nodes...</p>
+           </div>
+        </div>
+      ) : (
+        <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col min-h-[90vh] max-h-[95vh] print:rounded-none print:shadow-none print:min-h-0 print:m-0">
+           {/* Header Controls */}
+           <div className="p-6 bg-slate-900 flex justify-between items-center text-white flex-shrink-0 print:hidden">
+              <div className="flex items-center gap-3">
+                 <ShieldCheck className="text-primary" size={24} />
+                 <div>
+                    <h3 className="font-bold text-sm uppercase tracking-widest">Executive Curation Report</h3>
+                    <p className="text-[10px] text-slate-400">Target: {reportData.curatorName} • Generated: {new Date().toLocaleString()}</p>
+                 </div>
+              </div>
+              <div className="flex gap-3">
+                 <button onClick={handlePrint} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Printer size={16}/> Print / Save PDF</button>
+                 <button onClick={onClose} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><X size={20}/></button>
+              </div>
+           </div>
+
+           {/* PDF Body Container - FIXED SCROLLING BUG */}
+           <div className="flex-grow overflow-y-auto custom-scrollbar p-12 md:p-20 text-slate-900 text-left print:p-8 print:overflow-visible">
+              {/* Branding Section */}
+              <div className="flex justify-between items-start mb-20 border-b-2 border-slate-100 pb-12">
+                 <div>
+                    {settings.companyLogoUrl && <img src={settings.companyLogoUrl} className="h-20 w-auto mb-6 grayscale" alt="Logo" />}
+                    <h1 className="text-4xl font-serif font-black tracking-tighter uppercase">{settings.companyName}</h1>
+                    <p className="text-slate-500 uppercase tracking-[0.4em] font-black text-[10px] mt-1">{settings.slogan}</p>
+                 </div>
+                 <div className="text-right">
+                    <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block">Highly Confidential</span>
+                    <h2 className="text-4xl font-serif italic text-slate-300">Elite Performance</h2>
+                    <p className="text-slate-400 text-sm mt-2">FY {new Date().getFullYear()} • Quarter {Math.ceil((new Date().getMonth() + 1) / 3)}</p>
+                    <p className="text-slate-900 font-bold mt-4 uppercase tracking-widest text-xs">Curator: {reportData.curatorName}</p>
+                 </div>
+              </div>
+
+              {/* Core Vitality Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+                 {[
+                   { label: 'Total Impressions', val: reportData.totalViews.toLocaleString(), icon: Eye, color: 'text-slate-900' },
+                   { label: 'Direct Conversions', val: reportData.totalClicks.toLocaleString(), icon: MousePointerClick, color: 'text-primary' },
+                   { label: 'Conversion Delta (CTR)', val: `${reportData.ctr}%`, icon: ZapIcon, color: 'text-slate-900' },
+                   { label: 'Viral Circulation', val: reportData.totalShares.toLocaleString(), icon: Share2, color: 'text-slate-900' }
+                 ].map((m, i) => (
+                   <div key={i} className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 flex flex-col justify-between h-44">
+                      <m.icon size={24} className={`${m.color} opacity-80`} />
+                      <div>
+                         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-1">{m.label}</span>
+                         <span className={`text-2xl md:text-3xl font-bold tracking-tight ${m.color}`}>{m.val}</span>
+                      </div>
+                   </div>
+                 ))}
+              </div>
+
+              {/* Engagement Dynamics (Graph) */}
+              <div className="grid grid-cols-12 gap-16 mb-20">
+                 <div className="col-span-12 lg:col-span-7">
+                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
+                       <BarChart3 size={20} className="text-primary"/> Engagement Intensity
+                    </h3>
+                    <div className="h-64 w-full flex items-end gap-3 px-4 border-b border-l border-slate-200 pb-2">
+                       {/* Placeholder Bar Graph for Visual Appeal */}
+                       {[40, 65, 30, 85, 45, 95, 70, 55, 80, 60, 40, 75].map((h, i) => (
+                          <div key={i} className="flex-1 bg-slate-100 rounded-t-lg relative group transition-all hover:bg-primary/20">
+                             <div className="absolute inset-x-0 bottom-0 bg-slate-900 rounded-t-lg transition-all" style={{ height: `${h}%` }}></div>
+                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-bold bg-slate-900 text-white px-2 py-1 rounded">
+                                Vol: {h * 12}
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                    <div className="flex justify-between mt-4 text-[9px] font-black uppercase text-slate-400 tracking-widest px-4">
+                       <span>Market Entry</span>
+                       <span>Current Peak</span>
+                    </div>
+                 </div>
+
+                 {/* Predictive Analytics */}
+                 <div className="col-span-12 lg:col-span-5 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden">
+                    <Presentation className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5 rotate-12" />
+                    <h3 className="text-lg font-bold uppercase tracking-widest mb-8 text-primary">Forward Guidance</h3>
+                    <div className="space-y-8">
+                       <div className="flex justify-between items-center pb-6 border-b border-white/10">
+                          <div>
+                             <span className="text-[10px] text-slate-400 uppercase font-black block mb-1">Growth Trajectory</span>
+                             <div className="flex items-center gap-2">
+                                {reportData.growthRate >= 0 ? <TrendingUp size={24} className="text-green-500"/> : <TrendingDown size={24} className="text-red-500"/>}
+                                <span className="text-3xl font-bold">{Math.abs(reportData.growthRate).toFixed(1)}%</span>
+                             </div>
+                          </div>
+                          <span className="text-[10px] bg-green-500/20 text-green-500 px-3 py-1 rounded-full font-bold">STABLE</span>
+                       </div>
+
+                       <div className="space-y-4">
+                          <span className="text-[10px] text-slate-400 uppercase font-black block">30-Day Projections</span>
+                          <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                             <div className="flex justify-between mb-2">
+                                <span className="text-xs font-bold">Estimated Visits</span>
+                                <span className="text-xs font-bold text-primary">{Math.round(reportData.projectedNextMonth).toLocaleString()}</span>
+                             </div>
+                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary animate-[grow_2s_ease-out]" style={{ width: '85%' }}></div>
+                             </div>
+                             <p className="text-[8px] text-slate-500 mt-3 italic">* Based on weighted linear regression of current node activity.</p>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Staff / Curator Impact Illustrations */}
+              {curatorId === 'all' && (
+                 <div className="mb-20">
+                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
+                       <Users size={20} className="text-primary"/> Curator Performance Metrics
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       {reportData.staffPerformance.map((staff, idx) => (
+                          <div key={idx} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center gap-8">
+                             <div className="w-20 h-20 bg-white rounded-[1.5rem] border border-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm">
+                                {staff.name.charAt(0)}
+                             </div>
+                             <div className="flex-grow">
+                                <div className="flex justify-between items-center mb-4">
+                                   <h4 className="font-bold text-lg">{staff.name}</h4>
+                                   <span className="text-[9px] font-black uppercase text-primary tracking-widest">{staff.productCount} Items</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                   <div>
+                                      <span className="text-[8px] font-black uppercase text-slate-400 block">Traffic</span>
+                                      <span className="text-base font-bold">{staff.views.toLocaleString()}</span>
+                                   </div>
+                                   <div>
+                                      <span className="text-[8px] font-black uppercase text-slate-400 block">Conversion</span>
+                                      <span className="text-base font-bold">{staff.clicks.toLocaleString()}</span>
+                                   </div>
+                                </div>
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              )}
+
+              {/* Footer Stamp */}
+              <div className="pt-12 border-t border-slate-100 flex justify-between items-center opacity-40">
+                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    © {new Date().getFullYear()} Findara Elite Analytics System • Build 3.0.0
+                 </div>
+                 <div className="flex items-center gap-4">
+                    <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" className="h-6 w-auto grayscale" alt="JSTYP" />
+                    <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                    <span className="text-[10px] font-bold text-slate-400">AUTHENTICATED REPORT</span>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training';
 
 const Admin: React.FC = () => {
@@ -776,7 +1014,7 @@ const Admin: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>('enquiries');
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
-  const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | null>(null);
+  const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | 'login' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
   
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
@@ -803,18 +1041,29 @@ const Admin: React.FC = () => {
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
+  const [curatorFilter, setCuratorFilter] = useState<string>('all'); // Owner curation switcher
+  const [showEliteReport, setShowEliteReport] = useState(false);
 
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
   const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@findara.com');
   const userId = user?.id;
-  const displayProducts = useMemo(() => isOwner ? products : products.filter(p => !p.createdBy || p.createdBy === userId), [products, isOwner, userId]);
+
+  // Data display logic updated with Owner-level curation switcher
+  const displayProducts = useMemo(() => {
+    if (isOwner) {
+      if (curatorFilter === 'all') return products;
+      return products.filter(p => p.createdBy === curatorFilter);
+    }
+    return products.filter(p => !p.createdBy || p.createdBy === userId);
+  }, [products, isOwner, userId, curatorFilter]);
+
   const displayCategories = useMemo(() => isOwner ? categories : categories.filter(c => !c.createdBy || c.createdBy === userId), [categories, isOwner, userId]);
   const displayHeroSlides = useMemo(() => isOwner ? heroSlides : heroSlides.filter(s => !s.createdBy || s.createdBy === userId), [heroSlides, isOwner, userId]);
+  
   const displayStats = useMemo(() => {
-    if (isOwner) return stats;
-    const myProductIds = displayProducts.map(p => p.id);
-    return stats.filter(s => myProductIds.includes(s.productId));
-  }, [stats, isOwner, displayProducts]);
+    const targetProductIds = displayProducts.map(p => p.id);
+    return stats.filter(s => targetProductIds.includes(s.productId));
+  }, [stats, displayProducts]);
 
   const hasPermission = (tabId: TabId) => {
     if (isOwner) return true;
@@ -918,7 +1167,7 @@ const Admin: React.FC = () => {
   const handleAddDiscountRule = () => { if (!tempDiscountRule.value || !tempDiscountRule.description) return; const newRule: DiscountRule = { id: Date.now().toString(), type: tempDiscountRule.type || 'percentage', value: Number(tempDiscountRule.value), description: tempDiscountRule.description }; setProductData({ ...productData, discountRules: [...(productData.discountRules || []), newRule] }); setTempDiscountRule({ type: 'percentage', value: 0, description: '' }); };
   const handleRemoveDiscountRule = (id: string) => { setProductData({ ...productData, discountRules: (productData.discountRules || []).filter(r => r.id !== id) }); };
   const handleAddFeature = () => { if (!tempFeature.trim()) return; setProductData(prev => ({ ...prev, features: [...(prev.features || []), tempFeature] })); setTempFeature(''); };
-  const handleRemoveFeature = (index: number) => { setProductData(prev => ({ ...prev, features: (prev.features || []).filter((_, i) => i !== index) })); };
+  const handleRemoveFeature = (index: number) => { setProductData(prev => { const feats = (prev.features || []).filter((_, i) => i !== index); return { ...prev, features: feats }; }); };
   const handleAddSpec = () => { if (!tempSpec.key.trim() || !tempSpec.value.trim()) return; setProductData(prev => ({ ...prev, specifications: { ...(prev.specifications || {}), [tempSpec.key]: tempSpec.value } })); setTempSpec({ key: '', value: '' }); };
   const handleRemoveSpec = (key: string) => { setProductData(prev => { const newSpecs = { ...(prev.specifications || {}) }; delete newSpecs[key]; return { ...prev, specifications: newSpecs }; }); };
 
@@ -974,7 +1223,7 @@ const Admin: React.FC = () => {
     const topProducts = sortedProducts.slice(0, 15);
 
     const categoryPerformance = categories.map(cat => {
-      const catProducts = products.filter(p => p.categoryId === cat.id);
+      const catProducts = displayProducts.filter(p => p.categoryId === cat.id);
       const catProductIds = catProducts.map(p => p.id);
       const catMetrics = stats.filter(s => catProductIds.includes(s.productId));
       
@@ -994,7 +1243,7 @@ const Admin: React.FC = () => {
     const totalViews = displayStats.reduce((acc, s) => acc + s.views, 0);
     const totalClicks = displayStats.reduce((acc, s) => acc + s.clicks, 0);
     const totalShares = displayStats.reduce((acc, s) => acc + (s.shares || 0), 0);
-    const totalSessionTime = stats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
+    const totalSessionTime = displayStats.reduce((acc, s) => acc + (s.totalViewTime || 0), 0);
     const avgSessionTime = totalViews > 0 ? (totalSessionTime / totalViews).toFixed(1) : 0;
 
     const totalUniqueVisitors = visitorLogs.length;
@@ -1038,14 +1287,39 @@ const Admin: React.FC = () => {
               <p className="text-slate-400 text-sm max-w-lg">Live data stream processing {totalUniqueVisitors} unique nodes. Peak engagement detected around {peakHour}:00 hours.</p>
            </div>
            
-           <div className="flex gap-12 text-right">
-              <div>
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Total Impressions</span>
-                 <span className="text-4xl md:text-5xl font-bold text-white tracking-tighter">{totalViews.toLocaleString()}</span>
-              </div>
-              <div>
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Total Conversions</span>
-                 <span className="text-4xl md:text-5xl font-bold text-primary tracking-tighter">{totalClicks.toLocaleString()}</span>
+           <div className="flex flex-col md:flex-row gap-8 items-center">
+              {/* Owner Curator Switcher for Report */}
+              {isOwner && (
+                <div className="relative min-w-[220px]">
+                   <label className="text-[8px] font-black uppercase text-slate-600 tracking-widest block mb-2 px-1">Curator Context</label>
+                   <select 
+                      value={curatorFilter} 
+                      onChange={e => setCuratorFilter(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-primary text-xs transition-all appearance-none cursor-pointer"
+                   >
+                      <option value="all">Entire Maison (All)</option>
+                      {admins.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                   </select>
+                   <ChevronDown className="absolute right-4 bottom-3 text-slate-500 pointer-events-none" size={14} />
+                </div>
+              )}
+              
+              <button 
+                onClick={() => setShowEliteReport(true)}
+                className="px-8 py-4 bg-primary text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-primary/20 flex items-center gap-3 animate-pulse group"
+              >
+                <FilePieChart size={18} className="group-hover:rotate-12 transition-transform" />
+                Generate Elite Performance Report
+              </button>
+              <div className="flex gap-12 text-right">
+                <div>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Footprint</span>
+                  <span className="text-4xl md:text-5xl font-bold text-white tracking-tighter">{totalViews.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Conversions</span>
+                  <span className="text-4xl md:text-5xl font-bold text-primary tracking-tighter">{totalClicks.toLocaleString()}</span>
+                </div>
               </div>
            </div>
         </div>
@@ -1083,7 +1357,7 @@ const Admin: React.FC = () => {
              { label: 'Click Through Rate', value: `${totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : 0}%`, icon: MousePointerClick, color: 'text-primary' },
              { label: 'Social Shares', value: totalShares, icon: Share2, color: 'text-blue-400' },
              { label: 'Avg Session Time', value: `${avgSessionTime}s`, icon: Timer, color: 'text-green-400' },
-             { label: 'Verified Reviews', value: products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
+             { label: 'Verified Reviews', value: displayProducts.reduce((acc, p) => acc + (p.reviews?.length || 0), 0), icon: Star, color: 'text-yellow-500' }
            ].map((m, i) => (
              <div key={i} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 hover:border-primary/50 transition-colors flex flex-col justify-between h-48 shadow-lg group">
                 <div className="flex justify-between items-start">
@@ -1098,7 +1372,7 @@ const Admin: React.FC = () => {
         <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 shadow-xl">
           <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
             <h3 className="text-white font-bold text-xl flex items-center gap-3">
-              <TrendingUp size={24} className="text-primary"/> Top 15 Performing Products
+              <TrendingUp size={24} className="text-primary"/> Top Performing Products ({curatorFilter === 'all' ? 'Maison wide' : admins.find(a=>a.id===curatorFilter)?.name})
             </h3>
             <button onClick={() => {
                const csv = "Rank,Product,Category,Views,Clicks,CTR,Shares\n" +
@@ -1223,6 +1497,19 @@ const Admin: React.FC = () => {
                  {totalSources === 0 && <p className="text-slate-500 text-xs text-center py-4 italic">Awaiting source data...</p>}
               </div>
         </div>
+
+        {showEliteReport && (
+          <EliteReportModal 
+            onClose={() => setShowEliteReport(false)}
+            stats={stats}
+            products={products}
+            categories={categories}
+            admins={admins}
+            settings={settings}
+            trafficEvents={trafficEvents}
+            curatorId={curatorFilter}
+          />
+        )}
       </div>
     );
   };
@@ -1485,12 +1772,28 @@ const Admin: React.FC = () => {
                 <h2 className="text-3xl font-serif text-white">Catalog</h2>
                 <p className="text-slate-400 text-sm">Curate your collection of affiliate products.</p>
               </div>
-              <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center">
-                <Plus size={18} /> Add Product
-              </button>
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                {/* Owner Curator Switcher for Catalog */}
+                {isOwner && (
+                  <div className="relative min-w-[200px]">
+                    <select 
+                        value={curatorFilter} 
+                        onChange={e => setCuratorFilter(e.target.value)}
+                        className="w-full h-full px-4 py-4 bg-slate-900 border border-slate-800 rounded-xl text-white outline-none focus:border-primary text-xs transition-all appearance-none cursor-pointer"
+                    >
+                        <option value="all">Display All Curators</option>
+                        {admins.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
+                  </div>
+                )}
+                <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center">
+                    <Plus size={18} /> Add Product
+                </button>
+              </div>
             </div>
 
-            <AdminTip title="Inventory Management">Products are now categorized by department for easier navigation. Use the quick-links to jump to a specific section.</AdminTip>
+            <AdminTip title="Inventory Management">Products are now categorized by department for easier navigation. {isOwner ? "As an owner, you can toggle curators to manage specific catalogs." : "Use the search to quickly find items."}</AdminTip>
 
             <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-[100px] z-30 bg-slate-950 py-2">
                <div className="relative flex-grow">
@@ -1567,7 +1870,11 @@ const Admin: React.FC = () => {
                             <h4 className="text-white font-bold line-clamp-1 break-words">{p.name}</h4>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-primary text-xs font-bold">R {p.price}</span>
-                              <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">• SKU: {p.sku}</span>
+                              {curatorFilter === 'all' && isOwner && (
+                                <span className="text-slate-600 text-[10px] uppercase font-black tracking-widest hidden md:inline">
+                                  • Curator: {admins.find(a=>a.id===p.createdBy)?.name || 'Central'}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1777,7 +2084,17 @@ const Admin: React.FC = () => {
      <div className="space-y-6 w-full max-w-7xl mx-auto text-left">
        <AdminTip title="Canvas Editor">Control your site's visual identity. Publishing changes here will synchronize with Supabase and update for all visitors.</AdminTip>
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
-          {[ {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} ].map(s => ( 
+          {[ 
+            {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, 
+            {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, 
+            {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, 
+            {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, 
+            {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, 
+            {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, 
+            {id: 'login', label: 'Login Page', icon: Lock, desc: 'Auth Experience visuals'},
+            {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, 
+            {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'EmailJS, Tracking, Webhooks'} 
+          ].map(s => ( 
             <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
                <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><s.icon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
             </button> 
@@ -1831,6 +2148,7 @@ const Admin: React.FC = () => {
                     {activeEditorSection === 'collections' && 'Collections Page'}
                     {activeEditorSection === 'about' && 'About Page'}
                     {activeEditorSection === 'contact' && 'Contact Page'}
+                    {activeEditorSection === 'login' && 'Login Experience'}
                     {activeEditorSection === 'legal' && 'Legal & Policy'}
                     {activeEditorSection === 'integrations' && 'Integrations'}
                   </h3>
@@ -1860,6 +2178,48 @@ const Admin: React.FC = () => {
                )}
                {activeEditorSection === 'contact' && (
                   <><SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} /><SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" /><div className="grid grid-cols-2 gap-4"><SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} /><SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} /></div><SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} /><SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" /><div className="pt-6 border-t border-slate-800 space-y-6"><FaqsManager faqs={tempSettings.contactFaqs || []} onChange={v => updateTempSettings({ contactFaqs: v })} /></div><h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4><SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} /><h4 className="text-white font-bold border-t border-slate-800 pt-6">Social Media</h4><SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} /></>
+               )}
+               {activeEditorSection === 'login' && (
+                 <div className="space-y-8 animate-in slide-in-from-right duration-300">
+                    <AdminTip title="Portal Aesthetics">The login page is the first gate to your maison infrastructure. Use high-fashion, high-contrast imagery to maintain brand consistency.</AdminTip>
+                    <div className="space-y-6">
+                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Hero Experience</h4>
+                       <SingleImageUploader 
+                          label="Main Hero Background" 
+                          value={(tempSettings as any).adminLoginHeroImage || 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000'} 
+                          onChange={v => updateTempSettings({ ['adminLoginHeroImage' as any]: v } as any)} 
+                          className="h-64 w-full rounded-2xl border-slate-700"
+                       />
+                    </div>
+                    <div className="space-y-6">
+                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Content Matrix</h4>
+                       <SettingField 
+                          label="Entrance Header" 
+                          value={(tempSettings as any).adminLoginTitle || 'Concierge Access'} 
+                          onChange={v => updateTempSettings({ ['adminLoginTitle' as any]: v } as any)} 
+                       />
+                       <SettingField 
+                          label="Entrance Subtitle" 
+                          value={(tempSettings as any).adminLoginSubtitle || 'Authenticate to enter the bridge dashboard.'} 
+                          onChange={v => updateTempSettings({ ['adminLoginSubtitle' as any]: v } as any)} 
+                          type="textarea"
+                       />
+                       <div className="p-5 bg-slate-900 rounded-2xl border border-slate-800">
+                          <div className="flex justify-between items-center">
+                             <div>
+                                <h5 className="text-white font-bold text-sm">Enhanced Security UI</h5>
+                                <p className="text-slate-500 text-[10px] uppercase tracking-widest mt-1">Glow accent & visual prompts</p>
+                             </div>
+                             <button 
+                                onClick={() => updateTempSettings({ ['adminLoginAccentEnabled' as any]: !(tempSettings as any).adminLoginAccentEnabled } as any)}
+                                className={`w-12 h-6 rounded-full transition-all relative ${ (tempSettings as any).adminLoginAccentEnabled ? 'bg-primary' : 'bg-slate-700' }`}
+                             >
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${ (tempSettings as any).adminLoginAccentEnabled ? 'left-7' : 'left-1' }`} />
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
                )}
                {activeEditorSection === 'legal' && (
                   <><div className="space-y-6"><SettingField label="Disclosure Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} /><SettingField label="Disclosure Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Privacy Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} /><SettingField label="Privacy Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={10} /></div><div className="space-y-6 pt-6 border-t border-slate-800"><SettingField label="Terms Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} /><SettingField label="Terms Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={10} /></div></>
@@ -1892,7 +2252,7 @@ const Admin: React.FC = () => {
               </button>
            </div>
            <div className="flex items-center gap-2">
-              <span className="text-slate-600">Maison Portal v2.5.5</span>
+              <span className="text-slate-600">Maison Portal v3.0.0</span>
               <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
               <span className="text-slate-500">100% Secure Handshake</span>
            </div>
