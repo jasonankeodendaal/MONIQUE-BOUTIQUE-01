@@ -33,7 +33,7 @@ const About: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
-      {/* --- REFINED EDITORIAL HERO: SHRINK TO FIT IMAGE --- */}
+      {/* --- REFINED EDITORIAL HERO: FREE FLOATING IMAGE --- */}
       <section className="relative min-h-screen w-full flex flex-col justify-center bg-white pt-24 pb-12 md:py-0 overflow-hidden">
         
         {/* Massive Background Brand Text (Subtle Layer) */}
@@ -96,26 +96,24 @@ const About: React.FC = () => {
               </div>
             </div>
 
-            {/* Image Column: SHRINK TO FIT IMPLEMENTATION */}
+            {/* Image Column: FREE FLOATING IMPLEMENTATION */}
             <div className="order-1 lg:order-2 relative group flex justify-center items-center">
-              {/* Decorative Frame */}
-              <div className="absolute inset-0 bg-slate-50 rounded-[3rem] -rotate-3 scale-95 transition-transform group-hover:rotate-0 duration-1000"></div>
-              
-              <div className="relative w-full aspect-[4/5] bg-white rounded-[2.5rem] shadow-3xl overflow-hidden border border-slate-100 p-4 md:p-8">
+              {/* Boxed containers removed to allow image to float */}
+              <div className="relative w-full flex items-center justify-center">
                 <img 
                   src={settings.aboutMainImage} 
                   alt="The Curator" 
-                  className="w-full h-full object-contain animate-in zoom-in-95 duration-1000"
+                  className="w-full h-auto max-h-[75vh] object-contain animate-in zoom-in-95 duration-1000 transition-transform group-hover:scale-[1.03] drop-shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
                 />
                 
-                {/* Floating Signature Overlay */}
-                <div className="absolute bottom-10 right-10 w-32 md:w-48 opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000">
+                {/* Floating Signature Overlay - Now overlaps the free image more naturally */}
+                <div className="absolute -bottom-4 right-0 w-32 md:w-56 opacity-60 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000 transform group-hover:-rotate-3 group-hover:translate-x-2">
                   <img src={settings.aboutSignatureImage} alt="Signature" className="w-full h-auto" />
                 </div>
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute -top-6 -right-6 w-24 h-24 md:w-32 md:h-32 bg-primary rounded-full flex items-center justify-center text-slate-900 p-4 text-center shadow-2xl rotate-12 animate-soft-flicker">
+              <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-primary rounded-full flex items-center justify-center text-slate-900 p-4 text-center shadow-2xl rotate-12 animate-soft-flicker z-20">
                 <span className="text-[10px] md:text-xs font-black uppercase tracking-widest leading-tight">Verified Curation</span>
               </div>
             </div>
