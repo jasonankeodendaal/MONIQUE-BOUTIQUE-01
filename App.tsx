@@ -119,7 +119,7 @@ const Footer: React.FC = () => {
 
       {showCreatorModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-           <div className="relative w-full max-w-md bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+           <div className="relative w-full max-md bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
               <div className="absolute inset-0">
                  <img src="https://i.ibb.co/dsh2c2hp/unnamed.jpg" className="w-full h-full object-cover opacity-60" alt="Creator Background" />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent"></div>
@@ -435,35 +435,37 @@ const App: React.FC = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, (payload) => {
           if (payload.new) {
               const { id, ...rest } = payload.new as any;
-              if (id === 'global' || id === settingsId) {
-                setSettings(rest);
-                localStorage.setItem('site_settings', JSON.stringify(rest));
-              }
+              // CRITICAL: Merge updates instead of overwriting, and handle 'global' context
+              setSettings(prev => {
+                const updated = { ...prev, ...rest };
+                localStorage.setItem('site_settings', JSON.stringify(updated));
+                return updated;
+              });
           }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
           if (payload.eventType === 'INSERT') setProducts(prev => [payload.new as Product, ...prev]);
-          if (payload.eventType === 'UPDATE') setProducts(prev => prev.map(p => p.id === payload.new.id ? payload.new as Product : p));
+          if (payload.eventType === 'UPDATE') setProducts(prev => prev.map(p => p.id === payload.new.id ? { ...p, ...payload.new } : p));
           if (payload.eventType === 'DELETE') setProducts(prev => prev.filter(p => p.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, (payload) => {
           if (payload.eventType === 'INSERT') setCategories(prev => [payload.new as Category, ...prev]);
-          if (payload.eventType === 'UPDATE') setCategories(prev => prev.map(c => c.id === payload.new.id ? payload.new as Category : c));
+          if (payload.eventType === 'UPDATE') setCategories(prev => prev.map(c => c.id === payload.new.id ? { ...c, ...payload.new } : c));
           if (payload.eventType === 'DELETE') setCategories(prev => prev.filter(c => c.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'subcategories' }, (payload) => {
           if (payload.eventType === 'INSERT') setSubCategories(prev => [payload.new as SubCategory, ...prev]);
-          if (payload.eventType === 'UPDATE') setSubCategories(prev => prev.map(s => s.id === payload.new.id ? payload.new as SubCategory : s));
+          if (payload.eventType === 'UPDATE') setSubCategories(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
           if (payload.eventType === 'DELETE') setSubCategories(prev => prev.filter(s => s.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'hero_slides' }, (payload) => {
           if (payload.eventType === 'INSERT') setHeroSlides(prev => [payload.new as CarouselSlide, ...prev]);
-          if (payload.eventType === 'UPDATE') setHeroSlides(prev => prev.map(s => s.id === payload.new.id ? payload.new as CarouselSlide : s));
+          if (payload.eventType === 'UPDATE') setHeroSlides(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
           if (payload.eventType === 'DELETE') setHeroSlides(prev => prev.filter(s => s.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'enquiries' }, (payload) => {
           if (payload.eventType === 'INSERT') setEnquiries(prev => [payload.new as Enquiry, ...prev]);
-          if (payload.eventType === 'UPDATE') setEnquiries(prev => prev.map(e => e.id === payload.new.id ? payload.new as Enquiry : e));
+          if (payload.eventType === 'UPDATE') setEnquiries(prev => prev.map(e => e.id === payload.new.id ? { ...e, ...payload.new } : e));
           if (payload.eventType === 'DELETE') setEnquiries(prev => prev.filter(e => e.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'product_stats' }, (payload) => {
@@ -475,13 +477,16 @@ const App: React.FC = () => {
           }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'training_modules' }, (payload) => {
-          // Training modules are handled by separate fetch but can benefit from reload
           refreshAllData();
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.debug('Supabase Realtime synchronized successfully');
+        }
+      });
 
     return () => { supabase.removeChannel(channel); };
-  }, [settingsId]);
+  }, []); // Remove dependency on settingsId to prevent unnecessary reconnects
 
   // --- DYNAMIC META TAG SYSTEM ---
   useEffect(() => {
@@ -610,33 +615,48 @@ const App: React.FC = () => {
 
   const updateData = async (table: string, data: any) => {
     setSaveStatus('saving');
-    const updateLocalState = (prev: any[]) => { const exists = prev.some(item => item.id === data.id); return exists ? prev.map(item => item.id === data.id ? data : item) : [data, ...prev]; };
+    const updateLocalState = (prev: any[]) => { const exists = prev.some(item => item.id === data.id); return exists ? prev.map(item => item.id === data.id ? { ...item, ...data } : item) : [data, ...prev]; };
+    
+    // OPTIMISTIC UPDATE
     switch(table) {
-        case 'products': setProducts(updateLocalState(products)); break;
-        case 'categories': setCategories(updateLocalState(categories)); break;
-        case 'subcategories': setSubCategories(updateLocalState(subCategories)); break;
-        case 'hero_slides': setHeroSlides(updateLocalState(heroSlides)); break;
-        case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
-        case 'admin_users': setAdmins(updateLocalState(admins)); break;
+        case 'products': setProducts(updateLocalState); break;
+        case 'categories': setCategories(updateLocalState); break;
+        case 'subcategories': setSubCategories(updateLocalState); break;
+        case 'hero_slides': setHeroSlides(updateLocalState); break;
+        case 'enquiries': setEnquiries(updateLocalState); break;
+        case 'admin_users': setAdmins(updateLocalState); break;
     }
+    
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
-    const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? data : i) : [data, ...existing];
+    const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? { ...i, ...data } : i) : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
-    try { if (isSupabaseConfigured) { await upsertData(table, data); addSystemLog('UPDATE', table, `Upserted ID: ${data.id?.substring(0,8)}`, 0); } setSaveStatus('saved'); return true; } 
-    catch (e) { addSystemLog('ERROR', table, `Update failed`, 0, 'failed'); setSaveStatus('error'); return false; }
+    
+    try { 
+      if (isSupabaseConfigured) { 
+        await upsertData(table, data); 
+        addSystemLog('UPDATE', table, `Upserted ID: ${data.id?.substring(0,8)}`, 0); 
+      } 
+      setSaveStatus('saved'); 
+      return true; 
+    } 
+    catch (e) { 
+      addSystemLog('ERROR', table, `Update failed`, 0, 'failed'); 
+      setSaveStatus('error'); 
+      return false; 
+    }
   };
 
   const deleteData = async (table: string, id: string) => {
     setSaveStatus('saving');
     const deleteLocalState = (prev: any[]) => prev.filter(item => item.id !== id);
     switch(table) {
-        case 'products': setProducts(deleteLocalState(products)); break;
-        case 'categories': setCategories(deleteLocalState(categories)); break;
-        case 'subcategories': setSubCategories(deleteLocalState(subCategories)); break;
-        case 'hero_slides': setHeroSlides(deleteLocalState(heroSlides)); break;
-        case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
-        case 'admin_users': setAdmins(deleteLocalState(admins)); break;
+        case 'products': setProducts(deleteLocalState); break;
+        case 'categories': setCategories(deleteLocalState); break;
+        case 'subcategories': setSubCategories(deleteLocalState); break;
+        case 'hero_slides': setHeroSlides(deleteLocalState); break;
+        case 'enquiries': setEnquiries(deleteLocalState); break;
+        case 'admin_users': setAdmins(deleteLocalState); break;
     }
     const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
