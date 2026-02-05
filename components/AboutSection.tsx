@@ -42,7 +42,7 @@ const AboutSection: React.FC = () => {
             </h2>
             
             <div className="relative mb-6 md:mb-16">
-              <p className="text-sm md:text-4xl text-slate-900 font-light leading-snug md:leading-tight text-pretty pr-2 md:pr-20 tracking-tight">
+              <p className="text-sm md:text-4xl text-slate-900 font-light leading-snug md:leading-tight text-pretty pr-2 md:pr-20 tracking-tight line-clamp-5">
                 {settings.homeAboutDescription}
               </p>
             </div>
