@@ -16,7 +16,7 @@ const Login: React.FC = () => {
   // Redirect to Admin if already authenticated
   useEffect(() => {
     if (user) {
-      navigate('/admin');
+      navigate('/admin', { replace: true });
     }
   }, [user, navigate]);
 
@@ -29,7 +29,7 @@ const Login: React.FC = () => {
     if (isLocalMode) {
       setTimeout(() => {
         setLoading(false);
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       }, 1000);
       return;
     }
@@ -37,7 +37,8 @@ const Login: React.FC = () => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      navigate('/admin');
+      // Success will trigger the useEffect above, but we navigate here for immediate feedback
+      navigate('/admin', { replace: true });
     } catch (err: any) {
       if (err.message === 'Invalid login credentials') {
         setError('Incorrect email or password. Please verify your credentials.');
@@ -56,8 +57,8 @@ const Login: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Redirect to root, App.tsx auth listener handles navigation
-          redirectTo: window.location.origin, 
+          // Point specifically to the admin dashboard route to satisfy "land directly in dashboard"
+          redirectTo: `${window.location.origin}/#/admin`, 
           // Force refresh token generation and consent prompt to fix "not detecting credentials" issues
           queryParams: {
             access_type: 'offline',
