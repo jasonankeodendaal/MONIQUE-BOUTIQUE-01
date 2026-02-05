@@ -35,10 +35,14 @@
         --primary-glow: 0 20px 40px -10px rgba(var(--primary-rgb), 0.3);
         --brand-pink: #FF3366;
         --brand-green: #22c55e;
+        --bg-copper: #FAF3E6;
+        --bg-copper-fade: linear-gradient(135deg, #FAF3E6 0%, #FEFBF9 100%);
       }
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #FDFCFB;
+        background: var(--bg-copper-fade);
+        background-attachment: fixed;
+        min-height: 100vh;
         overflow-x: hidden;
       }
       .font-serif {
@@ -76,10 +80,13 @@
         transform: translateY(-8px) scale(1.01);
       }
       .glass-card {
-        background: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.4);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      .bg-copper-wash {
+        background: var(--bg-copper-fade);
       }
       .text-balance {
         text-wrap: balance;
@@ -108,7 +115,7 @@
 }
 </script>
 </head>
-  <body class="bg-[#FDFCFB] text-slate-900 custom-scrollbar">
+  <body class="text-slate-900 custom-scrollbar">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>

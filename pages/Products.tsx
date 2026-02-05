@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Search, ExternalLink, ShoppingBag, CheckCircle, FileText, Video as VideoIcon, ChevronDown, Filter, ArrowUpDown, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -113,7 +112,7 @@ const Products: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDFCFB] max-w-full overflow-x-hidden pt-24">
+    <div className="min-h-screen pb-20 md:pb-32 bg-copper-wash max-w-full overflow-x-hidden pt-24">
       
       {/* KINETIC CONTEXT HERO */}
       <div className="relative h-[45vh] md:h-[60vh] w-full overflow-hidden bg-slate-950">
@@ -193,7 +192,7 @@ const Products: React.FC = () => {
               className={`px-4 py-2 md:px-8 md:py-3 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${
                 selectedCat === 'all' 
                 ? 'bg-primary text-white shadow-lg shadow-primary/20 border-primary' 
-                : 'bg-white text-slate-500 border-slate-100 hover:bg-slate-50'
+                : 'bg-white/60 backdrop-blur-md text-slate-500 border-slate-100/50 hover:bg-white'
               }`}
             >
               All
@@ -205,7 +204,7 @@ const Products: React.FC = () => {
                 className={`px-4 py-2 md:px-8 md:py-3 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${
                   selectedCat === cat.id 
                   ? 'bg-primary text-white shadow-lg shadow-primary/20 border-primary' 
-                  : 'bg-white text-slate-500 border-slate-100 hover:bg-slate-50'
+                  : 'bg-white/60 backdrop-blur-md text-slate-500 border-slate-100/50 hover:bg-white'
                 }`}
               >
                 {cat.name}
@@ -214,9 +213,9 @@ const Products: React.FC = () => {
           </div>
 
           {/* Sub-Category and Sort Bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-2 bg-white rounded-3xl md:rounded-full border border-slate-100 shadow-sm">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-2 bg-white/40 backdrop-blur-xl rounded-3xl md:rounded-full border border-white/40 shadow-sm">
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto px-4 py-1">
-              <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mr-2 flex-shrink-0">Refine:</span>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mr-2 flex-shrink-0">Refine:</span>
               <button
                 onClick={() => setSelectedSub('all')}
                 className={`px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
@@ -242,7 +241,7 @@ const Products: React.FC = () => {
               <div className="relative w-full" ref={sortRef}>
                 <button 
                   onClick={() => setIsSortOpen(!isSortOpen)}
-                  className="w-full flex items-center justify-between gap-4 px-6 py-2.5 bg-slate-50 border border-slate-100 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-white transition-all shadow-sm"
+                  className="w-full flex items-center justify-between gap-4 px-6 py-2.5 bg-white/50 border border-white/60 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-600 hover:bg-white transition-all shadow-sm"
                 >
                   <div className="flex items-center gap-2">
                     <ArrowUpDown size={12} className="text-primary" />
@@ -277,14 +276,14 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {/* HIGH DENSITY GRID: 2 on mobile, 3 on sm, 4 on lg, 5 on xl */}
+        {/* HIGH DENSITY GRID */}
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
             {filteredProducts.map((product: Product) => (
               <Link 
                 to={`/product/${product.id}`}
                 key={product.id} 
-                className="bg-white rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-2 flex flex-col relative"
+                className="bg-white/40 backdrop-blur-md rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-white/50 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-2 flex flex-col relative"
               >
                 {/* Slow Flickering Discount Badge */}
                 {product.discountRules && product.discountRules.length > 0 && (
@@ -293,7 +292,7 @@ const Products: React.FC = () => {
                   </div>
                 )}
                 
-                <div className="relative aspect-square overflow-hidden bg-slate-50">
+                <div className="relative aspect-square overflow-hidden bg-white/20">
                   {renderProductMedia(product)}
                   
                   {/* Integrated Price Display */}
@@ -315,7 +314,7 @@ const Products: React.FC = () => {
                     {product.name}
                   </h3>
                   
-                  <div className="mt-auto pt-2 border-t border-slate-50 flex items-center justify-between">
+                  <div className="mt-auto pt-2 border-t border-black/5 flex items-center justify-between">
                     <span className="text-[7px] md:text-[9px] font-bold text-slate-400 font-mono tracking-tighter truncate max-w-[60px]">{product.sku}</span>
                     <div className="text-primary group-hover:translate-x-1 transition-transform">
                       <ArrowRight size={12} />
@@ -326,8 +325,8 @@ const Products: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-32 bg-white rounded-3xl border border-dashed border-slate-200 mx-1">
-            <div className="w-20 h-20 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="text-center py-32 bg-white/20 rounded-3xl border border-dashed border-white/40 mx-1">
+            <div className="w-20 h-20 bg-white/20 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6">
               <ShoppingBag size={40} />
             </div>
             <h3 className="text-xl font-black text-slate-900 mb-3 tracking-tighter uppercase">No Results</h3>

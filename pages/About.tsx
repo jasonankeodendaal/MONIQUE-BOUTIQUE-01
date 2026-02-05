@@ -31,7 +31,7 @@ const About: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`min-h-screen bg-copper-wash transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
       {/* Editorial Hero Spread */}
       <div className="relative h-[70vh] md:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
@@ -75,7 +75,7 @@ const About: React.FC = () => {
             
             {/* Smaller Sidebar Column */}
             <div className="col-span-4 h-fit sticky top-32">
-                <div className="bg-white p-4 md:p-16 rounded-2xl md:rounded-[3rem] shadow-xl border border-slate-50 space-y-8 md:space-y-16 relative overflow-hidden">
+                <div className="bg-white/60 backdrop-blur-md p-4 md:p-16 rounded-2xl md:rounded-[3rem] shadow-xl border border-white/50 space-y-8 md:space-y-16 relative overflow-hidden">
                     <div className="space-y-4 text-left relative z-10">
                         <div className="flex items-center gap-2 text-primary">
                            <div className="p-1.5 md:p-3 bg-primary/10 rounded-lg md:rounded-2xl">{renderIcon(settings.aboutMissionIcon, <Target size={16}/>)}</div>
@@ -93,7 +93,7 @@ const About: React.FC = () => {
                     </div>
 
                     {settings.aboutSignatureImage && (
-                       <div className="pt-4 md:pt-12 border-t border-slate-100 flex flex-col items-center">
+                       <div className="pt-4 md:pt-12 border-t border-black/5 flex flex-col items-center">
                           <img src={settings.aboutSignatureImage} className="h-10 md:h-24 w-auto object-contain opacity-40 mix-blend-multiply" alt="Sig" />
                        </div>
                     )}
@@ -139,8 +139,8 @@ const About: React.FC = () => {
       </section>
 
       {/* Curator's Edit / Favorites Section */}
-      <section className="py-24 bg-white relative overflow-hidden">
-         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+      <section className="py-24 bg-white/20 relative overflow-hidden backdrop-blur-sm">
+         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
          
          <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
@@ -155,7 +155,7 @@ const About: React.FC = () => {
                </div>
                <Link 
                  to="/products" 
-                 className="hidden md:inline-flex items-center gap-3 px-6 py-3 bg-slate-50 border border-slate-100 rounded-full text-xs font-bold uppercase tracking-widest text-slate-900 hover:bg-slate-900 hover:text-white transition-all group"
+                 className="hidden md:inline-flex items-center gap-3 px-6 py-3 bg-white/40 border border-white/50 rounded-full text-xs font-bold uppercase tracking-widest text-slate-900 hover:bg-slate-900 hover:text-white transition-all group"
                >
                   Explore Catalog <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform"/>
                </Link>
@@ -165,7 +165,7 @@ const About: React.FC = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-10">
                  {products.slice(0, 4).map((product, idx) => (
                     <Link to={`/product/${product.id}`} key={product.id} className="group block text-left">
-                       <div className="aspect-[3/4] overflow-hidden rounded-[1.5rem] bg-slate-50 relative mb-5 shadow-sm border border-slate-100">
+                       <div className="aspect-[3/4] overflow-hidden rounded-[1.5rem] bg-white/40 relative mb-5 shadow-sm border border-white/50">
                           {product.media?.[0]?.url ? (
                             <img 
                               src={product.media[0].url} 
@@ -205,7 +205,7 @@ const About: React.FC = () => {
                  ))}
               </div>
             ) : (
-              <div className="w-full py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200 text-center text-slate-400 text-xs uppercase tracking-widest">
+              <div className="w-full py-20 bg-white/20 rounded-3xl border border-dashed border-white/40 text-center text-slate-400 text-xs uppercase tracking-widest">
                  Curator hasn't selected favorites yet.
               </div>
             )}
@@ -259,7 +259,7 @@ const About: React.FC = () => {
       </section>
 
       {/* Editorial Footer Meta */}
-      <div className="py-10 border-t border-slate-100 text-center bg-white relative">
+      <div className="py-10 border-t border-black/5 text-center bg-transparent relative">
          <div className="max-w-7xl mx-auto px-6 flex justify-between items-center opacity-40">
             <p className="text-[7px] md:text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Narrative Verified: {lastUpdatedDate}</p>
             <span className="font-mono text-[7px] md:text-[9px] text-slate-400">AB-992-JOURNEY-025</span>

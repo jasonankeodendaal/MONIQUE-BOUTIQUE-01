@@ -9,7 +9,7 @@ import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
 const SectionDivider: React.FC = () => (
-  <div className="max-w-xs mx-auto py-12 md:py-20 flex items-center justify-center gap-4 opacity-30">
+  <div className="max-w-xs mx-auto py-12 md:py-20 flex items-center justify-center gap-4 opacity-20">
     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-400 to-transparent"></div>
     <div className="rotate-45 w-2 h-2 border border-slate-400"></div>
     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-400 to-transparent"></div>
@@ -25,7 +25,7 @@ const Home: React.FC = () => {
       <Hero />
       
       {/* Editorial Story Preview - Centered more for branding */}
-      <div className="bg-white relative overflow-hidden">
+      <div className="bg-copper-wash relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
         <AboutSection />
       </div>
@@ -33,7 +33,7 @@ const Home: React.FC = () => {
       <SectionDivider />
 
       {/* Category Icons Strip */}
-      <section className="py-8 md:py-16 bg-white">
+      <section className="py-8 md:py-16 bg-copper-wash">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-8 md:mb-16">
             <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-2 text-contrast-shadow">{settings.homeNicheSubheader || 'Curated Portals'}</span>
@@ -50,7 +50,7 @@ const Home: React.FC = () => {
                   onClick={() => navigate(`/products?category=${cat.id}`)}
                   className="flex flex-col items-center group"
                 >
-                  <div className="w-16 h-16 md:w-28 md:h-28 bg-slate-50 rounded-[2rem] md:rounded-[3rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-3 transition-all duration-500 shadow-sm border border-transparent group-hover:border-primary/20">
+                  <div className="w-16 h-16 md:w-28 md:h-28 bg-white/40 backdrop-blur-sm rounded-[2rem] md:rounded-[3rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-3 transition-all duration-500 shadow-sm border border-slate-100/50 group-hover:border-primary/20">
                     <Icon size={24} className="md:w-10 md:h-10" strokeWidth={1.2} />
                   </div>
                   <span className="mt-4 md:mt-6 text-[8px] md:text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors truncate w-full text-center">
@@ -63,10 +63,12 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <CategoryGrid />
+      <div className="bg-copper-wash">
+        <CategoryGrid />
+      </div>
 
       {/* Trust & Methodology Section */}
-      <section className="py-20 md:py-40 bg-[#FDFCFB] relative overflow-hidden border-t border-slate-50">
+      <section className="py-20 md:py-40 bg-copper-wash relative overflow-hidden border-t border-slate-100/20">
         {/* Decorative BG */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
@@ -87,7 +89,7 @@ const Home: React.FC = () => {
                 const IconComponent = CustomIcons[item.iconName] || (LucideIcons as any)[item.iconName] || ShieldCheck;
                 return (
                   <div key={i} className="flex flex-col items-center group">
-                    <div className="mb-6 md:mb-10 w-20 h-20 md:w-28 md:h-28 bg-white rounded-[2.5rem] md:rounded-[3.5rem] shadow-xl border border-slate-50 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
+                    <div className="mb-6 md:mb-10 w-20 h-20 md:w-28 md:h-28 bg-white/60 backdrop-blur-md rounded-[2.5rem] md:rounded-[3.5rem] shadow-xl border border-white/40 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
                       <IconComponent size={32} className="md:w-12 md:h-12" strokeWidth={1} />
                     </div>
                     <h4 className="text-lg md:text-2xl font-bold mb-3 md:mb-5 tracking-tight">{item.title}</h4>

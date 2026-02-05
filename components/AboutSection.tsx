@@ -7,7 +7,7 @@ const AboutSection: React.FC = () => {
   const { settings } = useSettings();
 
   return (
-    <section className="py-8 md:py-32 bg-[#FDFCFB] overflow-hidden relative border-y border-slate-50">
+    <section className="py-8 md:py-32 bg-copper-wash overflow-hidden relative border-y border-slate-100/20">
       <div className="max-w-7xl mx-auto px-4 md:px-20">
         {/* Forced Flex-Row for Side-by-Side on Mobile */}
         <div className="flex flex-row items-start gap-4 md:gap-24">
