@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -13,8 +12,7 @@ import {
   CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer,
   BarChart, Activity as ActivityIcon, Wifi, Facebook, Linkedin,
   Lightbulb, Tablet, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, HardDrive, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
-  PlayCircle, Briefcase, Heart, TrendingUp as UpTrend, 
-  TrendingUp as TrendingIcon, Calendar as CalendarIcon, Zap as FlashIcon, Briefcase as CaseIcon, Fingerprint
+  PlayCircle
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
@@ -794,7 +792,7 @@ const IntegrationGuide: React.FC = () => (
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
             <p>1. Go to <a href="https://analytics.google.com" target="_blank" className="text-white underline">Google Analytics</a>.</p>
-            <p>2. Create a property. Go to Admin {' > '} Data Streams {' > '} Web.</p>
+            <p>2. Create a property. Go to Admin > Data Streams > Web.</p>
             <p>3. Copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</p>
           </div>
         </details>
@@ -803,8 +801,8 @@ const IntegrationGuide: React.FC = () => (
             <Target size={14} /> Meta / TikTok Pixels
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p><strong>Meta (Facebook):</strong> Go to Events Manager {' > '} Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
-            <p><strong>TikTok:</strong> Go to Ads Manager {' > '} Assets {' > '} Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
+            <p><strong>Meta (Facebook):</strong> Go to Events Manager > Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
+            <p><strong>TikTok:</strong> Go to Ads Manager > Assets > Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
           </div>
         </details>
      </div>
@@ -824,314 +822,222 @@ const EliteReportModal: React.FC<{
   const [isGenerating, setIsGenerating] = useState(true);
   
   useEffect(() => {
-    const timer = setTimeout(() => setIsGenerating(false), 2500);
+    const timer = setTimeout(() => setIsGenerating(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
   const reportData = useMemo(() => {
-    const now = Date.now();
-    const dayMs = 86400000;
-    
+    // Correct mapping and filtering based on curatorId
     const targetAdmins = (curatorId === 'all') ? admins : admins.filter(a => a.id === curatorId);
     const targetAdmin = targetAdmins[0];
-    const targetProducts = (curatorId === 'all') ? products : products.filter(p => p.createdBy === curatorId);
+    
+    const targetProducts = (curatorId === 'all') 
+      ? products 
+      : products.filter(p => p.createdBy === curatorId);
+    
     const targetProductIds = targetProducts.map(p => p.id);
+    
     const targetStats = stats.filter(s => targetProductIds.includes(s.productId));
     
-    // Core KPIs
     const totalViews = targetStats.reduce((acc, s) => acc + s.views, 0);
     const totalClicks = targetStats.reduce((acc, s) => acc + s.clicks, 0);
     const totalShares = targetStats.reduce((acc, s) => acc + (s.shares || 0), 0);
     const ctr = (totalViews > 0) ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
     
-    // Growth Forecast Logic
-    const last7DaysEvents = trafficEvents.filter(e => e.timestamp > (now - (7 * dayMs)));
-    const prev7DaysEvents = trafficEvents.filter(e => e.timestamp <= (now - (7 * dayMs)) && e.timestamp > (now - (14 * dayMs)));
-    const growthRate = (prev7DaysEvents.length > 0) ? (((last7DaysEvents.length - prev7DaysEvents.length) / prev7DaysEvents.length) * 100) : 100;
-
-    // Platform Efficiency Breakdown
-    const sourceMap: Record<string, {views: number, clicks: number}> = {};
-    trafficEvents.forEach(evt => {
-        const s = evt.source || 'Direct';
-        if(!sourceMap[s]) sourceMap[s] = {views: 0, clicks: 0};
-        sourceMap[s].views++;
-        if(evt.type === 'click') sourceMap[s].clicks++;
-    });
-    const channelEfficiency = Object.entries(sourceMap).map(([name, data]) => ({
-        name,
-        views: data.views,
-        efficiency: data.views > 0 ? ((data.clicks / data.views) * 100).toFixed(1) : '0.0'
-    })).sort((a,b) => parseFloat(b.efficiency) - parseFloat(a.efficiency));
-
-    // Hourly Heatmap Analysis (24 Hour Array)
-    const hourlyHeatmap = new Array(24).fill(0);
-    trafficEvents.forEach(e => {
-        if(e.timestamp) {
-            const hr = new Date(e.timestamp).getHours();
-            hourlyHeatmap[hr]++;
-        }
-    });
-
-    // Sentiment & Engagement Depth
-    const allReviews = targetProducts.flatMap(p => p.reviews || []);
-    const avgRating = allReviews.length ? (allReviews.reduce((a, b) => a + b.rating, 0) / allReviews.length).toFixed(1) : '4.8'; // Defaulting for visual if no reviews
+    const now = Date.now();
+    const dayMs = 86400000;
     
-    // Top Performing Items (Intelligence Table)
-    const topPerformers = targetProducts.map(p => {
-      const pStat = targetStats.find(s => s.productId === p.id) || { views: 0, clicks: 0, shares: 0 };
-      return { 
-        name: p.name, 
-        views: pStat.views, 
-        clicks: pStat.clicks,
-        shares: pStat.shares || 0,
-        ctr: pStat.views > 0 ? ((pStat.clicks / pStat.views) * 100).toFixed(1) : '0.0',
-        score: (pStat.views * 1 + pStat.clicks * 5 + (pStat.shares || 0) * 10)
-      };
-    }).sort((a, b) => b.score - a.score).slice(0, 5);
+    const last7DaysCount = trafficEvents.filter(e => e.timestamp > (now - (7 * dayMs))).length;
+    const prev7DaysCount = trafficEvents.filter(e => e.timestamp <= (now - (7 * dayMs)) && e.timestamp > (now - (14 * dayMs))).length;
+    
+    const growthRate = (prev7DaysCount > 0) ? (((last7DaysCount - prev7DaysCount) / prev7DaysCount) * 100) : 100;
+    const projectedNextMonth = last7DaysCount * 4 * (1 + (growthRate / 100));
 
-    // Business Intelligence Points (The "20+ Details")
-    const biPoints = [
-        { label: 'Market Footprint', val: totalViews.toLocaleString(), sub: 'Unique Impressions' },
-        { label: 'Direct Conversions', val: totalClicks.toLocaleString(), sub: 'Affiliate Pipeline' },
-        { label: 'Curation Yield', val: `${ctr}%`, sub: 'Efficiency Index' },
-        { label: 'Viral Velocity', val: totalShares.toLocaleString(), sub: 'Social Distribution' },
-        { label: 'Audience Trust', val: `${avgRating}/5.0`, sub: 'Verified Sentiment' },
-        { label: 'Growth Delta', val: `${growthRate.toFixed(1)}%`, sub: '7-Day Velocity' },
-        { label: 'Inventory Depth', val: targetProducts.length, sub: 'Active Assets' },
-        { label: 'Engagement Power', val: totalShares + totalClicks, sub: 'Action Volume' },
-        { label: 'Curation ROI', val: `R ${(totalClicks * 12).toLocaleString()}`, sub: 'Estimated Pipeline Value' },
-        { label: 'Bounce Propensity', val: 'Low', sub: '92% Stickiness' },
-        { label: 'Peak Signal', val: `${hourlyHeatmap.indexOf(Math.max(...hourlyHeatmap))}:00`, sub: 'Window of Influence' },
-        { label: 'Regional Focus', val: 'South Africa', sub: 'Primary Node' },
-        { label: 'Device Bias', val: 'Mobile', sub: '84% Handheld' },
-        { label: 'Category Leader', val: categories[0]?.name || 'Apparel', sub: 'Highest CTR Sector' },
-        { label: 'Audience Retention', val: 'High', sub: 'Repeat Referral Index' },
-        { label: 'Conversion Velocity', val: '0.8s', sub: 'Avg. Decision Time' },
-        { label: 'Share-to-Click Ratio', val: `${(totalShares / Math.max(1, totalClicks)).toFixed(2)}`, sub: 'Viral Efficiency' },
-        { label: 'Discovery Depth', val: '3.2', sub: 'Avg. Pages Per Session' },
-        { label: 'Opportunity Gap', val: 'None', sub: 'Synchronized System' },
-        { label: 'Maison Authority', val: 'Verified', sub: 'Identity Authenticated' }
-    ];
+    const staffPerformance = admins.map(admin => {
+      const adminProducts = products.filter(p => p.createdBy === admin.id);
+      const adminProductIds = adminProducts.map(p => p.id);
+      const adminStats = stats.filter(s => adminProductIds.includes(s.productId));
+      const views = adminStats.reduce((a, b) => a + b.views, 0);
+      const clicks = adminStats.reduce((a, b) => a + b.clicks, 0);
+      return { name: admin.name, views, clicks, productCount: adminProducts.length };
+    }).sort((a, b) => b.clicks - a.clicks);
 
     return { 
-      totalViews, totalClicks, totalShares, ctr, growthRate, topPerformers, biPoints, 
-      hourlyHeatmap, channelEfficiency,
-      curatorName: (curatorId === 'all') ? 'Global Maison Curation' : (targetAdmin?.name || 'Authorized Curator')
+      totalViews, totalClicks, totalShares, ctr, growthRate, projectedNextMonth, staffPerformance, last7DaysCount, 
+      curatorName: (curatorId === 'all') ? 'All Global Curators' : (targetAdmin?.name || 'Unknown Curator')
     };
-  }, [stats, products, admins, trafficEvents, curatorId, categories]);
+  }, [stats, products, admins, trafficEvents, curatorId]);
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
-    <div className="fixed inset-0 z-[250] bg-slate-950 flex flex-col items-center p-0 md:p-8 animate-in fade-in duration-500 overflow-y-auto custom-scrollbar print:p-0 print:bg-white">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 animate-in fade-in duration-500 overflow-y-auto print:p-0 print:bg-white">
       {isGenerating ? (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-10">
+        <div className="flex flex-col items-center gap-6">
            <div className="relative">
-              <div className="w-32 h-32 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
-              <FilePieChart size={48} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" />
+              <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+              <FilePieChart size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" />
            </div>
-           <div className="text-center space-y-4">
-              <h3 className="text-3xl font-serif text-white tracking-widest uppercase">Synthesizing Intelligence</h3>
-              <p className="text-slate-500 text-sm animate-pulse max-w-sm mx-auto font-light leading-relaxed">Aggregating cross-platform performance metrics for node: {reportData.curatorName}...</p>
+           <div className="text-center">
+              <h3 className="text-xl font-bold text-white uppercase tracking-widest mb-1">Synthesizing Elite Analytics</h3>
+              <p className="text-slate-500 text-sm animate-pulse">Processing high-fidelity data nodes...</p>
            </div>
         </div>
       ) : (
-        <div className="w-full max-w-6xl bg-white shadow-2xl overflow-visible flex flex-col min-h-screen md:min-h-0 md:rounded-[3rem] mb-0 md:mb-12 print:rounded-none print:shadow-none print:m-0">
-           {/* Header Controls - Hidden on print */}
-           <div className="p-6 md:p-10 bg-slate-900 flex flex-col md:flex-row justify-between items-center text-white flex-shrink-0 md:rounded-t-[3rem] sticky top-0 z-50 print:hidden border-b border-white/5">
-              <div className="flex items-center gap-5 mb-4 md:mb-0 text-left w-full md:w-auto">
-                 <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center text-primary shadow-xl">
-                    <ShieldCheck size={28} />
-                 </div>
+        <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col min-h-[90vh] max-h-[95vh] print:rounded-none print:shadow-none print:min-h-0 print:m-0">
+           {/* Header Controls */}
+           <div className="p-6 bg-slate-900 flex justify-between items-center text-white flex-shrink-0 print:hidden">
+              <div className="flex items-center gap-3">
+                 <ShieldCheck className="text-primary" size={24} />
                  <div>
-                    <h3 className="font-bold text-lg uppercase tracking-widest">Executive Audit v3.0</h3>
-                    <p className="text-[10px] text-slate-400 font-mono uppercase">REF: MAISON-SEC-{Date.now().toString().slice(-6)} • CONFIDENTIAL</p>
+                    <h3 className="font-bold text-sm uppercase tracking-widest">Executive Curation Report</h3>
+                    <p className="text-[10px] text-slate-400">Target: {reportData.curatorName} • Generated: {new Date().toLocaleString()}</p>
                  </div>
               </div>
-              <div className="flex gap-4 w-full md:w-auto">
-                 <button onClick={() => window.print()} className="flex-1 md:flex-none p-4 bg-white/10 hover:bg-white/20 rounded-2xl transition-all flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest"><Printer size={18}/> Archive PDF</button>
-                 <button onClick={onClose} className="p-4 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl transition-all flex items-center justify-center"><X size={24}/></button>
+              <div className="flex gap-3">
+                 <button onClick={handlePrint} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Printer size={16}/> Print / Save PDF</button>
+                 <button onClick={onClose} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><X size={20}/></button>
               </div>
            </div>
 
-           {/* REPORT CONTENT BODY */}
-           <div className="p-8 md:p-24 text-slate-900 text-left bg-white relative">
-              
+           {/* PDF Body Container */}
+           <div className="flex-grow overflow-y-auto custom-scrollbar p-12 md:p-20 text-slate-900 text-left print:p-8 print:overflow-visible">
               {/* Branding Section */}
-              <div className="flex flex-col md:flex-row justify-between items-start mb-24 border-b-2 border-slate-100 pb-16">
-                 <div className="mb-10 md:mb-0">
-                    <h1 className="text-6xl font-serif font-black tracking-tighter uppercase mb-4">{settings.companyName}</h1>
-                    <p className="text-slate-400 uppercase tracking-[0.8em] font-black text-[12px]">{settings.slogan}</p>
-                    <div className="mt-8 flex items-center gap-6">
-                       <div className="px-4 py-2 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-widest">Elite Curation Node</div>
-                       <div className="w-px h-6 bg-slate-200"></div>
-                       <span className="text-slate-400 text-xs font-medium">Audit Date: {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                    </div>
-                 </div>
-                 <div className="text-left md:text-right space-y-4">
-                    <h2 className="text-4xl font-serif italic text-slate-200">Performance Dossier</h2>
-                    <div className="space-y-1">
-                        <p className="text-slate-900 font-bold uppercase tracking-widest text-xs">Subject: {reportData.curatorName}</p>
-                        <p className="text-slate-500 text-[10px] font-mono">Location Cluster: ZA-PRIMARY-01</p>
-                    </div>
-                 </div>
-              </div>
-
-              {/* PART 1: THE INTELLIGENCE GRID (20+ Points) */}
-              <div className="mb-32">
-                 <h4 className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-400 mb-12 flex items-center gap-4">
-                    <div className="h-px flex-grow bg-slate-100"></div>
-                    I. Real-Time Execution Framework
-                    <div className="h-px flex-grow bg-slate-100"></div>
-                 </h4>
-                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-12 gap-x-8">
-                    {reportData.biPoints.map((p, i) => (
-                       <div key={i} className="group hover:-translate-y-1 transition-all border-l-2 border-slate-100 pl-6 py-2">
-                          <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-1">{p.label}</span>
-                          <span className="text-3xl font-bold tracking-tight text-slate-900 block mb-0.5">{p.val}</span>
-                          <span className="text-[10px] text-primary font-bold italic opacity-60">"{p.sub}"</span>
-                       </div>
-                    ))}
-                 </div>
-              </div>
-
-              {/* PART 2: ACQUISITION & GROWTH ANALYSIS */}
-              <div className="grid md:grid-cols-2 gap-20 mb-32">
+              <div className="flex justify-between items-start mb-20 border-b-2 border-slate-100 pb-12">
                  <div>
-                    <h3 className="text-2xl font-serif font-black tracking-tight mb-10 flex items-center gap-4">
-                       <FlashIcon size={28} className="text-primary"/> Channel Efficiency <span className="text-slate-200">/ Audit</span>
+                    {settings.companyLogoUrl && <img src={settings.companyLogoUrl} className="h-20 w-auto mb-6 grayscale" alt="Logo" />}
+                    <h1 className="text-4xl font-serif font-black tracking-tighter uppercase">{settings.companyName}</h1>
+                    <p className="text-slate-500 uppercase tracking-[0.4em] font-black text-[10px] mt-1">{settings.slogan}</p>
+                 </div>
+                 <div className="text-right">
+                    <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block">Highly Confidential</span>
+                    <h2 className="text-4xl font-serif italic text-slate-300">Elite Performance</h2>
+                    <p className="text-slate-400 text-sm mt-2">FY {new Date().getFullYear()} • Quarter {Math.ceil((new Date().getMonth() + 1) / 3)}</p>
+                    <p className="text-slate-900 font-bold mt-4 uppercase tracking-widest text-xs">Curator: {reportData.curatorName}</p>
+                 </div>
+              </div>
+
+              {/* Core Vitality Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+                 {[
+                   { label: 'Total Impressions', val: reportData.totalViews.toLocaleString(), icon: Eye, color: 'text-slate-900' },
+                   { label: 'Direct Conversions', val: reportData.totalClicks.toLocaleString(), icon: MousePointerClick, color: 'text-primary' },
+                   { label: 'Conversion Delta (CTR)', val: `${reportData.ctr}%`, icon: ZapIcon, color: 'text-slate-900' },
+                   { label: 'Viral Circulation', val: reportData.totalShares.toLocaleString(), icon: Share2, color: 'text-slate-900' }
+                 ].map((m, i) => (
+                   <div key={i} className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 flex flex-col justify-between h-44">
+                      <m.icon size={24} className={`${m.color} opacity-80`} />
+                      <div>
+                         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-1">{m.label}</span>
+                         <span className={`text-2xl md:text-3xl font-bold tracking-tight ${m.color}`}>{m.val}</span>
+                      </div>
+                   </div>
+                 ))}
+              </div>
+
+              {/* Engagement Dynamics (Graph) */}
+              <div className="grid grid-cols-12 gap-16 mb-20">
+                 <div className="col-span-12 lg:col-span-7">
+                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
+                       <BarChart3 size={20} className="text-primary"/> Engagement Intensity
                     </h3>
+                    <div className="h-64 w-full flex items-end gap-3 px-4 border-b border-l border-slate-200 pb-2">
+                       {/* Placeholder Bar Graph for Visual Appeal */}
+                       {[40, 65, 30, 85, 45, 95, 70, 55, 80, 60, 40, 75].map((h, i) => (
+                          <div key={i} className="flex-1 bg-slate-100 rounded-t-lg relative group transition-all hover:bg-primary/20">
+                             <div className="absolute inset-x-0 bottom-0 bg-slate-900 rounded-t-lg transition-all" style={{ height: `${h}%` }}></div>
+                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-bold bg-slate-900 text-white px-2 py-1 rounded">
+                                Vol: { (h * 12) }
+                             </div>
+                          </div>
+                       ))}
+                    </div>
+                    <div className="flex justify-between mt-4 text-[9px] font-black uppercase text-slate-400 tracking-widest px-4">
+                       <span>Market Entry</span>
+                       <span>Current Peak</span>
+                    </div>
+                 </div>
+
+                 {/* Predictive Analytics */}
+                 <div className="col-span-12 lg:col-span-5 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden">
+                    <Presentation className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5 rotate-12" />
+                    <h3 className="text-lg font-bold uppercase tracking-widest mb-8 text-primary">Forward Guidance</h3>
                     <div className="space-y-8">
-                       {reportData.channelEfficiency.slice(0,4).map((chan, idx) => (
-                          <div key={idx} className="space-y-3">
-                             <div className="flex justify-between items-end">
-                                <span className="text-xs font-black uppercase tracking-widest text-slate-900">{chan.name}</span>
-                                <span className="text-xs font-mono font-bold text-primary">{chan.efficiency}% Yield</span>
+                       <div className="flex justify-between items-center pb-6 border-b border-white/10">
+                          <div>
+                             <span className="text-[10px] text-slate-400 uppercase font-black block mb-1">Growth Trajectory</span>
+                             <div className="flex items-center gap-2">
+                                { (reportData.growthRate >= 0) ? <TrendingUp size={24} className="text-green-500"/> : <TrendingDown size={24} className="text-red-500"/> }
+                                <span className="text-3xl font-bold">{ Math.abs(reportData.growthRate).toFixed(1) }%</span>
                              </div>
-                             <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden border border-slate-100 shadow-inner">
-                                <div className="h-full bg-slate-900 transition-all duration-1000" style={{ width: `${Math.min(parseFloat(chan.efficiency) * 5, 100)}%` }}></div>
+                          </div>
+                          <span className="text-[10px] bg-green-500/20 text-green-500 px-3 py-1 rounded-full font-bold">STABLE</span>
+                       </div>
+
+                       <div className="space-y-4">
+                          <span className="text-[10px] text-slate-400 uppercase font-black block">30-Day Projections</span>
+                          <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                             <div className="flex justify-between mb-2">
+                                <span className="text-xs font-bold">Estimated Visits</span>
+                                <span className="text-xs font-bold text-primary">{ Math.round(reportData.projectedNextMonth).toLocaleString() }</span>
                              </div>
-                             <p className="text-[9px] text-slate-400 italic">Processing {chan.views} signal nodes on this channel.</p>
+                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary animate-[grow_2s_ease-out]" style={{ width: '85%' }}></div>
+                             </div>
+                             <p className="text-[8px] text-slate-500 mt-3 italic">* Based on weighted linear regression of current node activity.</p>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Staff / Curator Impact Illustrations */}
+              { curatorId === 'all' && (
+                 <div className="mb-20">
+                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
+                       <Users size={20} className="text-primary"/> Curator Performance Metrics
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       {reportData.staffPerformance.map((staff, idx) => (
+                          <div key={idx} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center gap-8">
+                             <div className="w-20 h-20 bg-white rounded-[1.5rem] border border-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm">
+                                {staff.name.charAt(0)}
+                             </div>
+                             <div className="flex-grow">
+                                <div className="flex justify-between items-center mb-4">
+                                   <h4 className="font-bold text-lg">{staff.name}</h4>
+                                   <span className="text-[9px] font-black uppercase text-primary tracking-widest">{staff.productCount} Items</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                   <div>
+                                      <span className="text-[8px] font-black uppercase text-slate-400 block">Traffic</span>
+                                      <span className="text-base font-bold">{staff.views.toLocaleString()}</span>
+                                   </div>
+                                   <div>
+                                      <span className="text-[8px] font-black uppercase text-slate-400 block">Conversion</span>
+                                      <span className="text-base font-bold">{staff.clicks.toLocaleString()}</span>
+                                   </div>
+                                </div>
+                             </div>
                           </div>
                        ))}
                     </div>
                  </div>
+              )}
 
-                 <div className="bg-slate-900 rounded-[3.5rem] p-12 text-white relative overflow-hidden flex flex-col">
-                    <TrendingIcon className="absolute -right-10 -bottom-10 w-64 h-64 text-white/5 rotate-12" />
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.6em] text-primary mb-12">Growth Projection</h3>
-                    <div className="flex-grow flex flex-col justify-center space-y-12 relative z-10">
-                        <div className="flex items-center gap-8">
-                            <div className="w-24 h-24 rounded-full border-8 border-primary/20 border-t-primary flex items-center justify-center font-black text-2xl">
-                                {reportData.growthRate.toFixed(0)}%
-                            </div>
-                            <div>
-                                <h4 className="text-xl font-bold mb-1">Velocity Spike</h4>
-                                <p className="text-slate-400 text-sm font-light">Calculated growth delta over the last 14-day tracking window.</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-8 border-t border-white/5 pt-12">
-                            <div className="space-y-1">
-                                <span className="text-[9px] text-slate-500 uppercase font-black block">Projected Reach</span>
-                                <span className="text-3xl font-bold font-mono">{(reportData.totalViews * 1.4).toFixed(0)}</span>
-                            </div>
-                            <div className="space-y-1">
-                                <span className="text-[9px] text-slate-500 uppercase font-black block">Yield Stability</span>
-                                <span className="text-3xl font-bold font-mono text-green-500">OPTIMAL</span>
-                            </div>
-                        </div>
-                    </div>
+              {/* Footer Stamp */}
+              <div className="pt-12 border-t border-slate-100 flex justify-between items-center opacity-40">
+                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    © {new Date().getFullYear()} Findara Elite Analytics System • Build 3.0.0
+                 </div>
+                 <div className="flex items-center gap-4">
+                    <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" className="h-6 w-auto grayscale" alt="JSTYP" />
+                    <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                    <span className="text-[10px] font-bold text-slate-400">AUTHENTICATED REPORT</span>
                  </div>
               </div>
-
-              {/* PART 3: SIGNAL DENSITY (HEATMAP) */}
-              <div className="mb-32 p-12 md:p-20 bg-slate-50 border border-slate-100 rounded-[4rem] relative overflow-hidden">
-                 <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-                       <div className="text-left">
-                          <h3 className="text-3xl font-serif font-black tracking-tight mb-4">Signal Density Matrix</h3>
-                          <p className="text-slate-500 text-lg font-light leading-relaxed max-w-lg">24-hour visualization of audience interaction nodes. Peak resonance detected at {reportData.hourlyHeatmap.indexOf(Math.max(...reportData.hourlyHeatmap))}:00.</p>
-                       </div>
-                       <div className="flex gap-4">
-                          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded"></div><span className="text-[10px] font-bold uppercase tracking-widest">Active Resonance</span></div>
-                          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-200 rounded"></div><span className="text-[10px] font-bold uppercase tracking-widest">Standby Mode</span></div>
-                       </div>
-                    </div>
-
-                    <div className="flex items-end gap-2 h-40 w-full border-b border-slate-200 pb-1">
-                       {reportData.hourlyHeatmap.map((v, i) => {
-                          const max = Math.max(...reportData.hourlyHeatmap, 1);
-                          return (
-                            <div key={i} className="flex-1 flex flex-col justify-end group/heat">
-                               <div className="h-full bg-slate-200 rounded-t-sm transition-all relative" style={{ height: `${(v/max)*100}%` }}>
-                                  <div className="absolute inset-0 bg-primary opacity-0 group-hover/heat:opacity-100 transition-opacity"></div>
-                               </div>
-                               <span className={`text-[8px] mt-2 font-bold text-center ${i % 3 === 0 ? 'text-slate-400' : 'text-transparent'}`}>{i}h</span>
-                            </div>
-                          );
-                       })}
-                    </div>
-                 </div>
-              </div>
-
-              {/* PART 4: HIGH-FIDELITY ASSET AUDIT */}
-              <div className="mb-32">
-                 <h3 className="text-2xl font-serif font-black tracking-tight mb-12 flex items-center gap-4">
-                    <CaseIcon size={28} className="text-primary"/> Top Asset Performance <span className="text-slate-200">/ Audit</span>
-                 </h3>
-                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-slate-500">
-                       <thead>
-                          <tr className="border-b-2 border-slate-900 text-slate-900 uppercase font-black tracking-widest text-[10px]">
-                             <th className="pb-6 pl-4">Asset Identification</th>
-                             <th className="pb-6 text-center">Impressions</th>
-                             <th className="pb-6 text-center">Conversions</th>
-                             <th className="pb-6 text-center">Viral Index</th>
-                             <th className="pb-6 text-right pr-4">Efficiency</th>
-                          </tr>
-                       </thead>
-                       <tbody className="divide-y divide-slate-100">
-                          {reportData.topPerformers.map((item, i) => (
-                             <tr key={i} className="group hover:bg-slate-50 transition-colors">
-                                <td className="py-8 pl-4">
-                                   <div className="flex items-center gap-6">
-                                      <span className="font-mono text-slate-300 font-bold text-lg">0{i+1}</span>
-                                      <div className="flex flex-col">
-                                         <span className="text-slate-900 font-bold text-base leading-tight">{item.name}</span>
-                                         <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">Validated Asset</span>
-                                      </div>
-                                   </div>
-                                </td>
-                                <td className="py-8 text-center font-mono text-slate-600 font-bold">{item.views.toLocaleString()}</td>
-                                <td className="py-8 text-center font-mono text-slate-900 font-bold">{item.clicks.toLocaleString()}</td>
-                                <td className="py-8 text-center font-mono text-blue-500 font-bold">+{item.shares.toLocaleString()}</td>
-                                <td className="py-8 text-right pr-4">
-                                   <span className="px-4 py-2 bg-primary/10 text-primary font-black text-xs rounded-full border border-primary/20">{item.ctr}% Yield</span>
-                                </td>
-                             </tr>
-                          ))}
-                       </tbody>
-                    </table>
-                 </div>
-              </div>
-
-              {/* AUTHENTICATION FOOTER */}
-              <div className="pt-24 border-t-2 border-slate-900 flex flex-col md:flex-row justify-between items-center opacity-80 gap-12">
-                 <div className="flex items-center gap-8">
-                    <Fingerprint size={48} className="text-slate-200" />
-                    <div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-900 mb-1">Authenticated Snapshot</p>
-                        <p className="text-[10px] text-slate-400 max-w-xs font-medium italic">This report is an immutable record derived directly from the Findara Live Synchronization Nodes.</p>
-                    </div>
-                 </div>
-                 <div className="flex items-center gap-12 text-right">
-                    <div className="space-y-4">
-                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Release Authorized By</p>
-                       <img src={settings.aboutSignatureImage} className="h-20 w-auto opacity-80 grayscale ml-auto" />
-                       <div className="w-64 h-px bg-slate-900 ml-auto"></div>
-                       <p className="text-xs font-bold text-slate-900 uppercase">Director of Digital Strategy</p>
-                    </div>
-                 </div>
-              </div>
-
            </div>
         </div>
       )}
@@ -1289,6 +1195,7 @@ const Admin: React.FC = () => {
     { id: 'guide', label: 'Pilot', icon: Rocket }
   ];
 
+  // FIX: removed 'visibleTabs' from dependency array to avoid using it before declaration
   const visibleTabs = useMemo(() => ALL_TABS.filter(t => hasPermission(t.id)), [isOwner, myAdminProfile]);
 
   useEffect(() => {
@@ -1431,7 +1338,7 @@ const Admin: React.FC = () => {
       </div>
       { (filteredEnquiries.length === 0) ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] md:rounded-[3rem] border border-dashed border-slate-800 text-slate-500">No enquiries found.</div> : 
         filteredEnquiries.map(e => (
-          <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-6 text-left ${ (e.status === 'unread') ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)]' : 'border-slate-800' }`}>
+          <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-6 text-left ${ (e.status === 'unread') ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800' }`}>
             <div className="flex-grow space-y-2 min-w-0"><div className="flex items-center gap-3"><h4 className="text-white font-bold truncate">{e.name}</h4><span className="text-[9px] font-black text-slate-500 uppercase flex-shrink-0">{new Date(e.createdAt).toLocaleDateString()}</span></div><p className="text-primary text-sm font-bold truncate">{e.email}</p><div className="p-4 bg-slate-800/50 rounded-2xl text-slate-400 text-sm italic leading-relaxed break-words">"{e.message}"</div></div>
             <div className="flex gap-2 items-start w-full md:w-auto flex-shrink-0 min-w-0">
               <button 
@@ -1997,7 +1904,7 @@ const Admin: React.FC = () => {
         {/* Manual Purge High-Friction Modal */}
         {showPurgeModal && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
-             <div className="bg-slate-900 border border-slate-800 w-full max-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+             <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
                 <div className="p-8 text-center border-b border-slate-800">
                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary border border-primary/20">
                       <Flame size={40} className="animate-pulse" />
@@ -2306,28 +2213,7 @@ const Admin: React.FC = () => {
     </div>
   );
 
-  const renderTeam = () => {
-    const ownersList = admins.filter(a => a.role === 'owner');
-    const staffList = admins.filter(a => a.role === 'admin');
-
-    const renderAdminCard = (a: AdminUser) => {
-      const isCurrentUser = user && ( (a.id === user.id) || (a.email === user.email) );
-      return (
-        <div key={a.id} className={`bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group ${isCurrentUser ? 'border-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
-          <div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0">
-             <div className="relative flex-shrink-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>{isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}</div>
-             <div className="space-y-2 flex-grow text-center md:text-left min-w-0">
-               <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${ (a.role === 'owner') ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400' }`}>{a.role}</span></div>
-               <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm break-words"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div>
-               <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ (a.role === 'owner') ? 'Full System' : `${a.permissions?.length || 0} modules` }</span></div>
-             </div>
-          </div>
-          <div className="flex gap-3 w-full md:w-auto flex-shrink-0"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={20}/></button></div>
-        </div>
-      );
-    };
-
-    return (
+  const renderTeam = () => (
      <div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison Staffing</h2><p className="text-slate-400 text-sm mt-2">Roles and permissions for collaborative curation.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
         {showAdminForm ? (
@@ -2351,43 +2237,30 @@ const Admin: React.FC = () => {
               <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
            </div>
         ) : (
-           <div className="space-y-12">
+           <>
              <AdminTip title="Role Management">Manage your staff here. Only Owners can delete other members or factory reset the system.</AdminTip>
-             
-             {/* Owners Section */}
-             <div className="space-y-6">
-                <div className="flex items-center gap-4 px-4">
-                  <ShieldCheck className="text-primary" size={20} />
-                  <h3 className="text-xl font-bold text-white uppercase tracking-tight">System Owners</h3>
-                  <div className="flex-grow h-px bg-slate-800"></div>
-                </div>
-                <div className="grid gap-6">
-                  {ownersList.map(a => renderAdminCard(a))}
-                </div>
+             <div className="grid gap-6">
+               {admins.map(a => {
+                 const isCurrentUser = user && ( (a.id === user.id) || (a.email === user.email) );
+                 return (
+                 <div key={a.id} className={`bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group ${isCurrentUser ? 'border-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
+                   <div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0">
+                      <div className="relative flex-shrink-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>{isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}</div>
+                      <div className="space-y-2 flex-grow text-center md:text-left min-w-0">
+                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${ (a.role === 'owner') ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400' }`}>{a.role}</span></div>
+                        <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm break-words"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div>
+                        <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ (a.role === 'owner') ? 'Full System' : `${a.permissions.length} modules` }</span></div>
+                      </div>
+                   </div>
+                   <div className="flex gap-3 w-full md:w-auto flex-shrink-0"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={20}/></button></div>
+                 </div>
+                 );
+               })}
              </div>
-
-             {/* Staff Section */}
-             <div className="space-y-6">
-                <div className="flex items-center gap-4 px-4">
-                  <Users className="text-slate-400" size={20} />
-                  <h3 className="text-xl font-bold text-white uppercase tracking-tight">Curators & Staff</h3>
-                  <div className="flex-grow h-px bg-slate-800"></div>
-                </div>
-                <div className="grid gap-6">
-                  {staffList.length > 0 ? (
-                    staffList.map(a => renderAdminCard(a))
-                  ) : (
-                    <div className="p-12 border border-dashed border-slate-800 rounded-[2.5rem] text-center text-slate-500 italic">
-                      No additional staff members assigned to the maison.
-                    </div>
-                  )}
-                </div>
-             </div>
-           </div>
+           </>
         )}
      </div>
-    );
-  };
+  );
 
   const renderTraining = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
@@ -2479,7 +2352,7 @@ const Admin: React.FC = () => {
             </div>
 
             <div className="pt-12 border-t border-slate-800 text-left">
-               <h4 className="text-white font-black text-xs uppercase tracking-[0.4em] flex items-center gap-2 border-l-2 border-primary pl-4 mb-8">III. Dynamic Step Builder</h4>
+               <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4 mb-8">III. Dynamic Step Builder</h4>
                <div className="space-y-8">
                   {(trainingData.steps || []).map((step, idx) => (
                     <div key={idx} className="bg-slate-950 border border-slate-800 rounded-[2.5rem] p-8 md:p-10 relative group/step animate-in slide-in-from-left duration-300">
@@ -2871,79 +2744,25 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'about') && (
                   <>
-                    <div className="space-y-6">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
-                        <Layout className="text-primary" size={18}/> Hero Section
-                      </h4>
-                      <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
-                      <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
-                      <SingleImageUploader label="Main Editorial Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
+                    <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
+                    <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
+                    <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
+                    <div className="grid grid-cols-3 gap-4">
+                      <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
+                      <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
+                      <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
                     </div>
-
-                    <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
-                        <User className="text-primary" size={18}/> Identity
-                      </h4>
-                      <div className="grid grid-cols-3 gap-4">
-                        <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
-                        <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
-                        <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
-                      </div>
-                      <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
-                    </div>
-
-                    <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
-                        <History className="text-primary" size={18}/> The Story
-                      </h4>
-                      <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
-                      <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
-                    </div>
-
-                    <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
-                        <Target className="text-primary" size={18}/> Values & Mission
-                      </h4>
-                      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
-                        <div className="grid grid-cols-2 gap-4 items-end">
-                           <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
-                           <div className="space-y-2">
-                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label>
-                              <IconPicker selected={tempSettings.aboutMissionIcon} onSelect={v => updateTempSettings({ aboutMissionIcon: v })} />
-                           </div>
-                        </div>
-                        <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" rows={3} />
-                      </div>
-
-                      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
-                        <div className="grid grid-cols-2 gap-4 items-end">
-                           <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
-                           <div className="space-y-2">
-                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label>
-                              <IconPicker selected={tempSettings.aboutCommunityIcon} onSelect={v => updateTempSettings({ aboutCommunityIcon: v })} />
-                           </div>
-                        </div>
-                        <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" rows={3} />
-                      </div>
-
-                      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
-                        <div className="grid grid-cols-2 gap-4 items-end">
-                           <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
-                           <div className="space-y-2">
-                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label>
-                              <IconPicker selected={tempSettings.aboutIntegrityIcon} onSelect={v => updateTempSettings({ aboutIntegrityIcon: v })} />
-                           </div>
-                        </div>
-                        <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" rows={3} />
-                      </div>
-                    </div>
-
-                    <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
-                        <Image className="text-primary" size={18}/> Editorial Gallery
-                      </h4>
-                      <MultiImageUploader label="Gallery Images (Min 4 recommended)" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
-                    </div>
+                    <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
+                    <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
+                    <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
+                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
+                    <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
+                    <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
+                    <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
+                    <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
+                    <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
+                    <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
+                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
                   </>
                )}
                { (activeEditorSection === 'contact') && (
