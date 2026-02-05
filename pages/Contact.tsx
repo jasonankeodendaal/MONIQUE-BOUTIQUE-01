@@ -224,26 +224,29 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-10 pt-8 border-t border-slate-800 flex flex-wrap gap-4">
-                  {(settings.socialLinks || []).map((link) => (
-                    <a 
-                      key={link.id} 
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700/50 flex items-center justify-center hover:bg-white/10 hover:border-primary/40 transition-all duration-300 overflow-hidden group shadow-lg"
-                    >
-                      {link.iconUrl ? (
-                        <img 
-                          src={link.iconUrl} 
-                          className="w-7 h-7 object-contain group-hover:scale-110 transition-transform" 
-                          alt={link.name}
-                        />
-                      ) : (
-                        <ArrowRight size={14} className="-rotate-45" />
-                      )}
-                    </a>
-                  ))}
+                <div className="mt-10 pt-8 border-t border-slate-800">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-4">Follow My Journey</span>
+                  <div className="flex flex-wrap gap-4">
+                    {(settings.socialLinks || []).map((link) => (
+                      <a 
+                        key={link.id} 
+                        href={link.url} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700/50 flex items-center justify-center hover:bg-white/10 hover:border-primary/40 transition-all duration-300 overflow-hidden group shadow-lg"
+                      >
+                        {link.iconUrl ? (
+                          <img 
+                            src={link.iconUrl} 
+                            className="w-7 h-7 object-contain group-hover:scale-110 transition-transform" 
+                            alt={link.name}
+                          />
+                        ) : (
+                          <ArrowRight size={14} className="-rotate-45" />
+                        )}
+                      </a>
+                    ))}
+                  </div>
                 </div>
              </div>
 
