@@ -948,8 +948,10 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
 export const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat1', name: 'Accessories', icon: 'Handbag', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800&h=800', description: 'Curated bags and fine jewelry pieces.' },
   { id: 'cat2', name: 'Footwear', icon: 'Heel', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800&h=800', description: 'Step into high-street fashion.' },
-  { id: 'cat3', name: 'Smart Life', icon: 'Watch', image: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800&h=800', description: 'Wearable tech and personal innovation.' },
-  { id: 'cat4', name: 'Home Living', icon: 'Package', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800&h=800', description: 'Modern aesthetics for your living space.' }
+  { id: 'cat3', name: 'Smart Tech', icon: 'Drone', image: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800&h=800', description: 'Wearable tech and personal innovation.' },
+  { id: 'cat4', name: 'Home & Living', icon: 'SofaLuxury', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800&h=800', description: 'Modern aesthetics for your living space.' },
+  { id: 'cat5', name: 'Garden & Outdoor', icon: 'PottedPlant', image: 'https://images.unsplash.com/photo-1585320806286-9e63f9104085?auto=format&fit=crop&q=80&w=800&h=800', description: 'Elevate your exterior sanctuary.' },
+  { id: 'cat6', name: 'Kitchen & Dining', icon: 'EspressoMachine', image: 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&q=80&w=800&h=800', description: 'Culinary tools for the modern chef.' }
 ];
 
 export const INITIAL_SUBCATEGORIES: SubCategory[] = [
@@ -957,7 +959,11 @@ export const INITIAL_SUBCATEGORIES: SubCategory[] = [
   { id: 'sub2', categoryId: 'cat1', name: 'Jewelry' },
   { id: 'sub3', categoryId: 'cat2', name: 'Luxury Heels' },
   { id: 'sub4', categoryId: 'cat3', name: 'Smartwatches' },
-  { id: 'sub5', categoryId: 'cat4', name: 'Kitchen Tech' }
+  { id: 'sub5', categoryId: 'cat4', name: 'Kitchen Tech' },
+  { id: 'sub6', categoryId: 'cat5', name: 'Planters' },
+  { id: 'sub7', categoryId: 'cat5', name: 'Tools' },
+  { id: 'sub8', categoryId: 'cat6', name: 'Cookware' },
+  { id: 'sub9', categoryId: 'cat4', name: 'Sofas' }
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
@@ -1023,7 +1029,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     sku: 'F-HOME-005',
     price: 3499,
     affiliateLink: 'https://example.com/kettle',
-    categoryId: 'cat4',
+    categoryId: 'cat6',
     subCategoryId: 'sub5',
     description: 'The iconic Smeg 50s style retro kettle. A perfect blend of technology and classic design.',
     features: ['Retro Aesthetic', 'Stainless steel body', 'Auto shut-off'],
