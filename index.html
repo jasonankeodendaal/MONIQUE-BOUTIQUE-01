@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -110,12 +111,14 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          const scriptUrl = '/sw.js';
-          navigator.serviceWorker.register(scriptUrl)
-            .then(reg => console.log('SW active:', reg.scope))
+          // Attempting standard root registration
+          navigator.serviceWorker.register('./sw.js', { scope: '/' })
+            .then(reg => console.log('ServiceWorker registered with scope:', reg.scope))
             .catch(err => {
-               navigator.serviceWorker.register('./sw.js')
-                 .catch(err2 => console.debug('Offline mode limited:', err2.message));
+              console.debug('Primary SW registration failed, falling back:', err.message);
+              // Secondary fallback for specific deployment paths
+              navigator.serviceWorker.register('sw.js')
+                .catch(err2 => console.debug('Offline mode limited:', err2.message));
             });
         });
       }

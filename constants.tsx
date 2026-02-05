@@ -127,7 +127,7 @@ export const GUIDE_STEPS = [
       'Click "Run" and verify 11 tables appear in Table Editor.',
       'Ensure RLS (Row Level Security) is initialized for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v6.0
+    code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Safe Migration)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS settings (
@@ -184,26 +184,60 @@ ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 
--- PUBLIC READ POLICIES
+-- PUBLIC READ POLICIES (DROP IF EXISTS TO PREVENT 42710 ERROR)
+DROP POLICY IF EXISTS "Public Read settings" ON settings;
 CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read products" ON products;
 CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
 CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read cat" ON categories;
 CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
 CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read stats" ON product_stats;
 CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public Read training" ON training_modules;
 CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
 
 -- FULL ACCESS FOR ALL (FOR RAPID DEPLOYMENT / ANON ACCESS)
+DROP POLICY IF EXISTS "Enable all for anon settings" ON settings;
 CREATE POLICY "Enable all for anon settings" ON settings FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon products" ON products;
 CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon hero" ON hero_slides;
 CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon cat" ON categories;
 CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon sub" ON subcategories;
 CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon enquiries" ON enquiries;
 CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon logs" ON traffic_logs;
 CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon admins" ON admin_users;
 CREATE POLICY "Enable all for anon admins" ON admin_users FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon stats" ON product_stats;
 CREATE POLICY "Enable all for anon stats" ON product_stats FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Enable all for anon history" ON product_history;
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);`,
     codeLabel: 'Master Schema v6.0'
   },
