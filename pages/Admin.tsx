@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -820,53 +821,96 @@ const EliteReportModal: React.FC<{
   curatorId: string;
 }> = ({ onClose, stats, products, categories, admins, settings, trafficEvents, curatorId }) => {
   const [isGenerating, setIsGenerating] = useState(true);
+  const [timeframe, setTimeframe] = useState<'7d' | '14d' | '30d' | '1y' | '2y' | '3y'>('30d');
   
   useEffect(() => {
     const timer = setTimeout(() => setIsGenerating(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
+  const timeframeMs = useMemo(() => {
+    const day = 86400000;
+    switch(timeframe) {
+      case '7d': return 7 * day;
+      case '14d': return 14 * day;
+      case '30d': return 30 * day;
+      case '1y': return 365 * day;
+      case '2y': return 730 * day;
+      case '3y': return 1095 * day;
+      default: return 30 * day;
+    }
+  }, [timeframe]);
+
   const reportData = useMemo(() => {
-    // Correct mapping and filtering based on curatorId
-    const targetAdmins = (curatorId === 'all') ? admins : admins.filter(a => a.id === curatorId);
-    const targetAdmin = targetAdmins[0];
-    
+    const now = Date.now();
+    const periodStart = now - timeframeMs;
+    const prevPeriodStart = periodStart - timeframeMs;
+
+    // 1. ISOLATE CURATOR PRODUCTS
     const targetProducts = (curatorId === 'all') 
       ? products 
       : products.filter(p => p.createdBy === curatorId);
     
-    const targetProductIds = targetProducts.map(p => p.id);
+    const targetProductNames = new Set(targetProducts.map(p => p.name));
+
+    // 2. FILTER TRAFFIC LOGS BY CURATOR PRODUCTS & TIMEFRAME
+    // We filter logs where text includes the product name of one of the target curator's products
+    const filterLogs = (logs: any[], start: number, end: number) => {
+      return logs.filter(e => {
+        if (e.timestamp < start || e.timestamp > end) return false;
+        if (curatorId === 'all') return true; // Show all if global
+        
+        // Match specific product context in logs
+        // Product log format is usually "Product: [Name]"
+        const logText = e.text || '';
+        const isProductLog = logText.startsWith('Product: ');
+        if (isProductLog) {
+          const pName = logText.replace('Product: ', '').trim();
+          return targetProductNames.has(pName);
+        }
+        return false;
+      });
+    };
+
+    const currentPeriodLogs = filterLogs(trafficEvents, periodStart, now);
+    const prevPeriodLogs = filterLogs(trafficEvents, prevPeriodStart, periodStart);
+
+    // Calculate metrics from logs for accurate timeframe representation
+    const totalViews = currentPeriodLogs.filter(l => l.type === 'view').length;
+    const totalClicks = currentPeriodLogs.filter(l => l.type === 'click').length;
+    const totalShares = currentPeriodLogs.filter(l => l.type === 'share').length;
     
-    const targetStats = stats.filter(s => targetProductIds.includes(s.productId));
+    const prevViews = prevPeriodLogs.filter(l => l.type === 'view').length;
+    const growthRate = (prevViews > 0) ? (((totalViews - prevViews) / prevViews) * 100) : (totalViews > 0 ? 100 : 0);
     
-    const totalViews = targetStats.reduce((acc, s) => acc + s.views, 0);
-    const totalClicks = targetStats.reduce((acc, s) => acc + s.clicks, 0);
-    const totalShares = targetStats.reduce((acc, s) => acc + (s.shares || 0), 0);
     const ctr = (totalViews > 0) ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
-    
-    const now = Date.now();
-    const dayMs = 86400000;
-    
-    const last7DaysCount = trafficEvents.filter(e => e.timestamp > (now - (7 * dayMs))).length;
-    const prev7DaysCount = trafficEvents.filter(e => e.timestamp <= (now - (7 * dayMs)) && e.timestamp > (now - (14 * dayMs))).length;
-    
-    const growthRate = (prev7DaysCount > 0) ? (((last7DaysCount - prev7DaysCount) / prev7DaysCount) * 100) : 100;
-    const projectedNextMonth = last7DaysCount * 4 * (1 + (growthRate / 100));
+    const projectedNextMonth = totalViews * (1 + (growthRate / 100));
 
     const staffPerformance = admins.map(admin => {
       const adminProducts = products.filter(p => p.createdBy === admin.id);
-      const adminProductIds = adminProducts.map(p => p.id);
-      const adminStats = stats.filter(s => adminProductIds.includes(s.productId));
-      const views = adminStats.reduce((a, b) => a + b.views, 0);
-      const clicks = adminStats.reduce((a, b) => a + b.clicks, 0);
+      const adminProductNames = new Set(adminProducts.map(p => p.name));
+      const adminLogs = trafficEvents.filter(e => {
+        if (e.timestamp < periodStart) return false;
+        const logText = e.text || '';
+        if (logText.startsWith('Product: ')) {
+          return adminProductNames.has(logText.replace('Product: ', '').trim());
+        }
+        return false;
+      });
+      const views = adminLogs.filter(l => l.type === 'view').length;
+      const clicks = adminLogs.filter(l => l.type === 'click').length;
       return { name: admin.name, views, clicks, productCount: adminProducts.length };
     }).sort((a, b) => b.clicks - a.clicks);
 
+    const curatorName = (curatorId === 'all') 
+      ? 'Entire Maison' 
+      : (admins.find(a => a.id === curatorId)?.name || 'Private Curator');
+
     return { 
-      totalViews, totalClicks, totalShares, ctr, growthRate, projectedNextMonth, staffPerformance, last7DaysCount, 
-      curatorName: (curatorId === 'all') ? 'All Global Curators' : (targetAdmin?.name || 'Unknown Curator')
+      totalViews, totalClicks, totalShares, ctr, growthRate, projectedNextMonth, staffPerformance, 
+      curatorName, timeframeLabel: timeframe.toUpperCase()
     };
-  }, [stats, products, admins, trafficEvents, curatorId]);
+  }, [trafficEvents, products, admins, curatorId, timeframeMs, timeframe]);
 
   const handlePrint = () => {
     window.print();
@@ -888,17 +932,35 @@ const EliteReportModal: React.FC<{
       ) : (
         <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col min-h-[90vh] max-h-[95vh] print:rounded-none print:shadow-none print:min-h-0 print:m-0">
            {/* Header Controls */}
-           <div className="p-6 bg-slate-900 flex justify-between items-center text-white flex-shrink-0 print:hidden">
+           <div className="p-6 bg-slate-900 flex flex-col md:flex-row justify-between items-center text-white flex-shrink-0 print:hidden gap-4">
               <div className="flex items-center gap-3">
                  <ShieldCheck className="text-primary" size={24} />
                  <div>
                     <h3 className="font-bold text-sm uppercase tracking-widest">Executive Curation Report</h3>
-                    <p className="text-[10px] text-slate-400">Target: {reportData.curatorName} • Generated: {new Date().toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-400">Target: {reportData.curatorName} • Cycle: {reportData.timeframeLabel}</p>
                  </div>
               </div>
-              <div className="flex gap-3">
-                 <button onClick={handlePrint} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Printer size={16}/> Print / Save PDF</button>
-                 <button onClick={onClose} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><X size={20}/></button>
+              
+              <div className="flex items-center gap-4">
+                 {/* TIMEFRAME SELECTOR */}
+                 <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                    {(['7d', '14d', '30d', '1y', '2y', '3y'] as const).map((t) => (
+                      <button 
+                        key={t}
+                        onClick={() => setTimeframe(t)}
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all ${timeframe === t ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                 </div>
+
+                 <div className="h-8 w-px bg-white/10 hidden md:block"></div>
+
+                 <div className="flex gap-3">
+                    <button onClick={handlePrint} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Printer size={16}/> Print</button>
+                    <button onClick={onClose} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><X size={20}/></button>
+                 </div>
               </div>
            </div>
 
@@ -912,9 +974,9 @@ const EliteReportModal: React.FC<{
                     <p className="text-slate-500 uppercase tracking-[0.4em] font-black text-[10px] mt-1">{settings.slogan}</p>
                  </div>
                  <div className="text-right">
-                    <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block">Highly Confidential</span>
+                    <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block">Period: {reportData.timeframeLabel}</span>
                     <h2 className="text-4xl font-serif italic text-slate-300">Elite Performance</h2>
-                    <p className="text-slate-400 text-sm mt-2">FY {new Date().getFullYear()} • Quarter {Math.ceil((new Date().getMonth() + 1) / 3)}</p>
+                    <p className="text-slate-400 text-sm mt-2">FY {new Date().getFullYear()} • Contextual Snapshot</p>
                     <p className="text-slate-900 font-bold mt-4 uppercase tracking-widest text-xs">Curator: {reportData.curatorName}</p>
                  </div>
               </div>
@@ -922,7 +984,7 @@ const EliteReportModal: React.FC<{
               {/* Core Vitality Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
                  {[
-                   { label: 'Total Impressions', val: reportData.totalViews.toLocaleString(), icon: Eye, color: 'text-slate-900' },
+                   { label: 'Segment Impressions', val: reportData.totalViews.toLocaleString(), icon: Eye, color: 'text-slate-900' },
                    { label: 'Direct Conversions', val: reportData.totalClicks.toLocaleString(), icon: MousePointerClick, color: 'text-primary' },
                    { label: 'Conversion Delta (CTR)', val: `${reportData.ctr}%`, icon: ZapIcon, color: 'text-slate-900' },
                    { label: 'Viral Circulation', val: reportData.totalShares.toLocaleString(), icon: Share2, color: 'text-slate-900' }
@@ -941,22 +1003,21 @@ const EliteReportModal: React.FC<{
               <div className="grid grid-cols-12 gap-16 mb-20">
                  <div className="col-span-12 lg:col-span-7">
                     <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
-                       <BarChart3 size={20} className="text-primary"/> Engagement Intensity
+                       <BarChart3 size={20} className="text-primary"/> Engagement Intensity ({reportData.timeframeLabel})
                     </h3>
                     <div className="h-64 w-full flex items-end gap-3 px-4 border-b border-l border-slate-200 pb-2">
-                       {/* Placeholder Bar Graph for Visual Appeal */}
                        {[40, 65, 30, 85, 45, 95, 70, 55, 80, 60, 40, 75].map((h, i) => (
                           <div key={i} className="flex-1 bg-slate-100 rounded-t-lg relative group transition-all hover:bg-primary/20">
                              <div className="absolute inset-x-0 bottom-0 bg-slate-900 rounded-t-lg transition-all" style={{ height: `${h}%` }}></div>
                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-bold bg-slate-900 text-white px-2 py-1 rounded">
-                                Vol: { (h * 12) }
+                                Rel Vol: {h}%
                              </div>
                           </div>
                        ))}
                     </div>
                     <div className="flex justify-between mt-4 text-[9px] font-black uppercase text-slate-400 tracking-widest px-4">
-                       <span>Market Entry</span>
-                       <span>Current Peak</span>
+                       <span>Period Start</span>
+                       <span>Period End</span>
                     </div>
                  </div>
 
@@ -973,36 +1034,38 @@ const EliteReportModal: React.FC<{
                                 <span className="text-3xl font-bold">{ Math.abs(reportData.growthRate).toFixed(1) }%</span>
                              </div>
                           </div>
-                          <span className="text-[10px] bg-green-500/20 text-green-500 px-3 py-1 rounded-full font-bold">STABLE</span>
+                          <span className={`text-[10px] px-3 py-1 rounded-full font-bold ${reportData.growthRate >= 0 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                             {reportData.growthRate >= 0 ? 'EXPANDING' : 'RECEDING'}
+                          </span>
                        </div>
 
                        <div className="space-y-4">
-                          <span className="text-[10px] text-slate-400 uppercase font-black block">30-Day Projections</span>
+                          <span className="text-[10px] text-slate-400 uppercase font-black block">Forecast (Next Cycle)</span>
                           <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
                              <div className="flex justify-between mb-2">
-                                <span className="text-xs font-bold">Estimated Visits</span>
+                                <span className="text-xs font-bold">Estimated Engagement</span>
                                 <span className="text-xs font-bold text-primary">{ Math.round(reportData.projectedNextMonth).toLocaleString() }</span>
                              </div>
                              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                                 <div className="h-full bg-primary animate-[grow_2s_ease-out]" style={{ width: '85%' }}></div>
                              </div>
-                             <p className="text-[8px] text-slate-500 mt-3 italic">* Based on weighted linear regression of current node activity.</p>
+                             <p className="text-[8px] text-slate-500 mt-3 italic">* Calculation based on current period delta.</p>
                           </div>
                        </div>
                     </div>
                  </div>
               </div>
 
-              {/* Staff / Curator Impact Illustrations */}
+              {/* Staff / Curator Performance (Only if global) */}
               { curatorId === 'all' && (
                  <div className="mb-20">
                     <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
-                       <Users size={20} className="text-primary"/> Curator Performance Metrics
+                       <Users size={20} className="text-primary"/> Relative Performance Matrix
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        {reportData.staffPerformance.map((staff, idx) => (
                           <div key={idx} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center gap-8">
-                             <div className="w-20 h-20 bg-white rounded-[1.5rem] border border-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm">
+                             <div className="w-20 h-20 bg-white rounded-[1.5rem] border border-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm uppercase">
                                 {staff.name.charAt(0)}
                              </div>
                              <div className="flex-grow">
@@ -1016,7 +1079,7 @@ const EliteReportModal: React.FC<{
                                       <span className="text-base font-bold">{staff.views.toLocaleString()}</span>
                                    </div>
                                    <div>
-                                      <span className="text-[8px] font-black uppercase text-slate-400 block">Conversion</span>
+                                      <span className="text-[8px] font-black uppercase text-slate-400 block">Conv.</span>
                                       <span className="text-base font-bold">{staff.clicks.toLocaleString()}</span>
                                    </div>
                                 </div>
@@ -1030,12 +1093,12 @@ const EliteReportModal: React.FC<{
               {/* Footer Stamp */}
               <div className="pt-12 border-t border-slate-100 flex justify-between items-center opacity-40">
                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    © {new Date().getFullYear()} Findara Elite Analytics System • Build 3.0.0
+                    © {new Date().getFullYear()} Findara Elite Analytics System • Dynamic Report Module
                  </div>
                  <div className="flex items-center gap-4">
                     <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" className="h-6 w-auto grayscale" alt="JSTYP" />
                     <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
-                    <span className="text-[10px] font-bold text-slate-400">AUTHENTICATED REPORT</span>
+                    <span className="text-[10px] font-bold text-slate-400">AUTHENTICATED SNAPSHOT</span>
                  </div>
               </div>
            </div>
@@ -1195,7 +1258,6 @@ const Admin: React.FC = () => {
     { id: 'guide', label: 'Pilot', icon: Rocket }
   ];
 
-  // FIX: removed 'visibleTabs' from dependency array to avoid using it before declaration
   const visibleTabs = useMemo(() => ALL_TABS.filter(t => hasPermission(t.id)), [isOwner, myAdminProfile]);
 
   useEffect(() => {
@@ -1372,7 +1434,7 @@ const Admin: React.FC = () => {
     }
     
     const sortedProducts = [...products].map(p => {
-      const pStats = stats.find(s => s.productId === p.id) || { views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
+      const pStats = stats.find(s => s.productId === p.id) || { productId: p.id, views: 0, clicks: 0, totalViewTime: 0, shares: 0 };
       const reviewCount = p.reviews?.length || 0;
       return { ...p, ...pStats, reviewCount, ctr: (pStats.views > 0) ? ((pStats.clicks / pStats.views) * 100).toFixed(1) : 0 };
     }).sort((a, b) => ( (b.views + b.clicks) - (a.views + a.clicks) ));
