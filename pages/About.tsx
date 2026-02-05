@@ -69,7 +69,7 @@ const About: React.FC = () => {
               <div className="relative pl-8 lg:pl-16">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
                 <p className="text-lg md:text-2xl lg:text-3xl text-slate-300 font-light leading-relaxed italic text-pretty">
-                  "{settings.aboutHeroSubtitle}"
+                  {settings.aboutHeroSubtitle}
                 </p>
               </div>
            </div>
@@ -86,10 +86,7 @@ const About: React.FC = () => {
               {/* Sidebar Column with enhanced glassmorphism */}
               <div className="w-full lg:col-span-4 h-fit lg:sticky lg:top-40">
                   <div className="glass-card p-10 lg:p-16 rounded-[2.5rem] lg:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] space-y-12 lg:space-y-20 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-8 opacity-[0.05]">
-                        <Quote size={80} className="text-slate-900" />
-                      </div>
-
+                      
                       <div className="space-y-6 text-left relative z-10">
                           <div className="flex items-center gap-4 text-primary">
                              <div className="p-3 lg:p-5 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutMissionIcon, <Target size={24}/>)}</div>
@@ -235,7 +232,7 @@ const About: React.FC = () => {
 
               <div className="w-full lg:w-2/3 border-l-4 border-primary/20 pl-10 lg:pl-24">
                  <p className="text-2xl lg:text-5xl font-light text-slate-300 leading-tight italic drop-shadow-xl">
-                    "{settings.aboutIntegrityBody}"
+                    {settings.aboutIntegrityBody}
                  </p>
                  <div className="mt-16 flex flex-wrap gap-12 lg:gap-20 opacity-40">
                     <div className="flex items-center gap-4">
