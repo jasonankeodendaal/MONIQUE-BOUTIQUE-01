@@ -123,12 +123,12 @@ export const GUIDE_STEPS = [
     illustrationId: 'rocket',
     subSteps: [
       'Open the SQL Editor in your Supabase dashboard.',
-      'Paste the Master SQL v9.0 script provided below.',
+      'Paste the Master SQL v10.0 script provided below.',
       'Click "Run" and verify 11 tables appear/update.',
-      'This version enables REALTIME PUSH-TO-LOAD for all core tables.'
+      'CRITICAL: This version enables GLOBAL LIVE PUSH for all devices.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v9.0 (Full Sync Fix & Realtime Enablement)
--- Run this script to ensure your database matches the latest UI requirements.
+    code: `-- MASTER ARCHITECTURE SCRIPT v10.0 (Global Realtime Fixed)
+-- Run this script to ensure your database allows global device pushing.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -187,7 +187,17 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views I
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 
--- 4. ENABLE RLS
+-- 4. ENABLE REALTIME PUBLICATION (MANDATORY FOR LIVE UPDATES)
+-- This tells the database to broadcast changes to all devices immediately.
+BEGIN;
+  -- Remove existing publication to prevent duplicates
+  DROP PUBLICATION IF EXISTS supabase_realtime;
+  
+  -- Create global publication
+  CREATE PUBLICATION supabase_realtime FOR ALL TABLES;
+COMMIT;
+
+-- 5. ENABLE RLS & PUBLIC POLICIES
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
@@ -200,7 +210,6 @@ ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 
--- 5. PUBLIC READ POLICIES
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
@@ -211,7 +220,7 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read training') THEN CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true); END IF;
 END $$;
 
--- 6. FULL ANONYMOUS ACCESS (DASHBOARD)
+-- 6. FULL ANONYMOUS ACCESS (DASHBOARD SYNC)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon settings') THEN CREATE POLICY "Enable all for anon settings" ON settings FOR ALL USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon products') THEN CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true); END IF;
@@ -225,15 +234,8 @@ DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon training') THEN CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon history') THEN CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true); END IF;
 END $$;
-
--- 7. ENABLE REALTIME PUSH-TO-LOAD (CRITICAL)
-BEGIN;
-  DROP PUBLICATION IF EXISTS supabase_realtime;
-  CREATE PUBLICATION supabase_realtime;
-COMMIT;
-ALTER PUBLICATION supabase_realtime ADD TABLE settings, products, hero_slides, categories, subcategories, enquiries, product_stats, training_modules;
 `,
-    codeLabel: 'Master Architecture v9.0 (Full Sync Enablement)'
+    codeLabel: 'Master Architecture v10.0 (Global Live Push Fixed)'
   },
   {
     id: 'security-auth',

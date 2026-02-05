@@ -1,21 +1,21 @@
 
-const CACHE_NAME = 'findara-bridge-v4';
+const CACHE_NAME = 'findara-bridge-v10';
 const urlsToCache = [
   '/',
   '/index.html'
 ];
 
+// 1. Install & Force Activation
 self.addEventListener('install', event => {
-  // Force immediate activation
-  self.skipWaiting();
+  self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
 });
 
+// 2. Clean up old caches
 self.addEventListener('activate', event => {
-  // Claim all clients immediately
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
@@ -32,35 +32,42 @@ self.addEventListener('activate', event => {
   );
 });
 
+// 3. Optimized Fetch Strategy
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // 1. Bypass cache for Supabase (Realtime/Auth) and Chrome extensions
-  if (
-    event.request.method !== 'GET' || 
-    url.href.includes('supabase.co') || 
-    url.protocol.startsWith('chrome-extension')
-  ) {
+  // ALWAYS Network-Only for Supabase and Auth
+  if (url.href.includes('supabase.co') || url.pathname.includes('auth')) {
     return;
   }
 
-  // 2. Network-First Strategy for EVERYTHING
-  // We want the absolute latest version of the hero content and settings
+  // Network-First for core site files (index, scripts)
+  // This ensures the device checks if there is a NEW version before using the old one.
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Stale-While-Revalidate for images (Performance)
   event.respondWith(
-    fetch(event.request)
-      .then(networkResponse => {
-        // If we got a valid response, update the cache and return it
+    caches.match(event.request).then(cachedResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
         }
         return networkResponse;
-      })
-      .catch(() => {
-        // Fallback to cache only if network is completely unavailable
-        return caches.match(event.request);
-      })
+      });
+      return cachedResponse || fetchPromise;
+    })
   );
 });
