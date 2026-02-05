@@ -30,24 +30,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <style>
       :root {
-        --soft-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
-        --deep-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.12);
-        --primary-glow: 0 20px 40px -10px rgba(var(--primary-rgb), 0.3);
+        /* Deeper, warmer background palette */
+        --bg-stone: #EBE4D8;
+        --bg-sand: #F2EBE1;
+        --bg-paper: #FDFBF7;
+        --bg-accent: #FAF3E6;
+        
+        /* High-definition layered shadows */
+        --soft-shadow: 
+          0 2px 4px rgba(0,0,0,0.02),
+          0 10px 20px rgba(0,0,0,0.04),
+          0 20px 40px rgba(0,0,0,0.04);
+        
+        --deep-shadow: 
+          0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+          0 25px 50px -12px rgba(0, 0, 0, 0.15),
+          0 50px 100px -20px rgba(0, 0, 0, 0.2);
+
+        --primary-glow: 0 20px 40px -10px rgba(212, 175, 55, 0.3);
         --brand-pink: #FF3366;
         --brand-green: #22c55e;
-        --bg-copper: #FAF3E6;
-        --bg-copper-fade: linear-gradient(135deg, #FAF3E6 0%, #FEFBF9 100%);
+        
+        --bg-copper-fade: linear-gradient(180deg, var(--bg-paper) 0%, var(--bg-sand) 100%);
       }
+      
       body {
         font-family: 'Inter', sans-serif;
-        background: var(--bg-copper-fade);
+        background-color: var(--bg-sand);
+        background-image: var(--bg-copper-fade);
         background-attachment: fixed;
         min-height: 100vh;
         overflow-x: hidden;
       }
+
+      /* Subtle Film Grain Effect */
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        opacity: 0.04;
+        pointer-events: none;
+        z-index: 9999;
+      }
+
       .font-serif {
         font-family: 'Playfair Display', serif;
       }
+      
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
       }
@@ -55,48 +88,70 @@
         background: transparent;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #E2E8F0;
+        background: #D1D5DB;
         border-radius: 10px;
       }
+      
       @keyframes kenburns {
         0% { transform: scale(1); }
-        100% { transform: scale(1.1); }
+        100% { transform: scale(1.05); }
       }
       @keyframes soft-flicker {
         0% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.7; transform: scale(0.95); }
+        50% { opacity: 0.8; transform: scale(0.98); }
         100% { opacity: 1; transform: scale(1); }
       }
+      
       .animate-kenburns {
         animation: kenburns 20s ease-out infinite alternate;
       }
-      .animate-soft-flicker {
-        animation: soft-flicker 4s ease-in-out infinite;
-      }
+      
       .soft-3d {
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), shadow 0.4s ease;
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: var(--soft-shadow);
       }
       .soft-3d:hover {
-        transform: translateY(-8px) scale(1.01);
+        transform: translateY(-12px) scale(1.02);
+        box-shadow: var(--deep-shadow);
       }
+      
       .glass-card {
-        background: rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: var(--soft-shadow);
       }
+      
+      .inset-shadow {
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+      }
+
       .bg-copper-wash {
-        background: var(--bg-copper-fade);
+        background: linear-gradient(135deg, var(--bg-paper) 0%, var(--bg-sand) 100%);
       }
+      
       .text-balance {
         text-wrap: balance;
       }
       .text-pretty {
         text-wrap: pretty;
       }
-      /* Utility for better readability of light primary colors on light backgrounds */
+      
       .text-contrast-shadow {
-        text-shadow: 0.5px 0.5px 1px rgba(15, 23, 42, 0.15);
+        text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Depth Vignette for sections */
+      .section-vignette {
+        position: relative;
+      }
+      .section-vignette::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.02) 100%);
       }
     </style>
   <script type="importmap">
@@ -122,7 +177,7 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           const scriptUrl = '/sw.js';
-          navigator.serviceWorker.register(scriptUrl)
+          navigator.worker.register(scriptUrl)
             .then(reg => console.log('SW active:', reg.scope))
             .catch(err => {
                navigator.serviceWorker.register('./sw.js')

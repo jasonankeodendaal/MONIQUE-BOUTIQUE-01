@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { Target, Users, Award, Sparkles, MapPin, Calendar, Heart, ArrowRight } from 'lucide-react';
+import { Target, Users, Award, Sparkles, MapPin, Calendar, Heart, ArrowRight, Quote } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
@@ -31,217 +31,219 @@ const About: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-copper-wash overflow-x-hidden transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`min-h-screen bg-sand overflow-x-hidden transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
-      {/* Editorial Hero Spread */}
-      <div className="relative min-h-[80vh] lg:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none hidden lg:block">
-           <span className="text-[15vw] font-serif font-black text-white/[0.03] leading-none select-none tracking-tighter whitespace-nowrap">EST. {settings.aboutEstablishedYear}</span>
+      {/* Editorial Hero Spread with intense depth */}
+      <div className="relative min-h-[90vh] lg:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.05)_0%,transparent_70%)]"></div>
+        
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none hidden lg:block overflow-hidden w-full text-center">
+           <span className="text-[20vw] font-serif font-black text-white/[0.02] leading-none select-none tracking-tighter whitespace-nowrap inline-block animate-kenburns">EST. {settings.aboutEstablishedYear}</span>
         </div>
 
-        <div className="w-full lg:w-1/2 h-[40vh] lg:h-full relative overflow-hidden">
+        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full relative overflow-hidden">
            <div 
              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out"
              style={{ 
                backgroundImage: `url(${settings.aboutMainImage})`,
-               transform: `translateY(${scrollY * 0.1}px) scale(${1.1 + scrollY * 0.0001})`
+               transform: `translateY(${scrollY * 0.15}px) scale(${1.15 + scrollY * 0.0001})`
              }}
            />
-           <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-slate-950/10 to-slate-950"></div>
+           <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-slate-950/20 to-slate-950"></div>
+           <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]"></div>
         </div>
         
-        <div className="w-full lg:w-1/2 flex items-center p-6 md:p-12 lg:p-24 relative z-10">
+        <div className="w-full lg:w-1/2 flex items-center p-8 md:p-16 lg:p-32 relative z-10 bg-slate-950 lg:bg-transparent">
            <div className="max-w-2xl text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] mb-6 lg:mb-12 border border-primary/20 text-contrast-shadow">
-                  <Sparkles size={10} className="animate-pulse"/> {settings.aboutFounderName}
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-[9px] md:text-[11px] font-black uppercase tracking-[0.5em] mb-8 lg:mb-16 border border-primary/20 shadow-lg">
+                  <Sparkles size={12} className="animate-pulse"/> {settings.aboutFounderName}
               </div>
               
-              <h1 className="font-serif text-white leading-[0.9] tracking-tighter mb-6 lg:mb-12 text-balance animate-in slide-in-from-bottom-12 duration-1000" style={{ fontSize: 'clamp(2.5rem, 8vw, 6.5rem)' }}>
+              <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-8 lg:mb-16 text-balance animate-in slide-in-from-bottom-16 duration-1000" style={{ fontSize: 'clamp(3rem, 10vw, 7.5rem)' }}>
                   {settings.aboutHeroTitle.split(' ').map((word, i) => (
-                      <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block text-contrast-shadow" : "block"}>{word}</span>
+                      <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block drop-shadow-2xl" : "block"}>{word}</span>
                   ))}
               </h1>
 
-              <p className="text-base md:text-xl lg:text-2xl text-slate-400 font-light leading-relaxed italic text-pretty border-l border-primary/30 pl-4 lg:pl-10">
-                "{settings.aboutHeroSubtitle}"
-              </p>
+              <div className="relative pl-8 lg:pl-16">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
+                <p className="text-lg md:text-2xl lg:text-3xl text-slate-300 font-light leading-relaxed italic text-pretty">
+                  "{settings.aboutHeroSubtitle}"
+                </p>
+              </div>
            </div>
         </div>
       </div>
 
-      {/* Narrative Spread - Stacks on Mobile, Columns on Large */}
-      <section className="py-16 lg:py-48 max-w-7xl mx-auto px-6 lg:px-12 relative overflow-hidden">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-12 lg:gap-20">
-            
-            {/* Sidebar Column */}
-            <div className="w-full lg:col-span-4 h-fit lg:sticky lg:top-32">
-                <div className="bg-white/60 backdrop-blur-md p-8 lg:p-12 rounded-[2rem] lg:rounded-[3rem] shadow-xl border border-white/50 space-y-10 lg:space-y-14 relative overflow-hidden">
-                    <div className="space-y-4 text-left relative z-10">
-                        <div className="flex items-center gap-3 text-primary">
-                           <div className="p-2 lg:p-3 bg-primary/10 rounded-xl lg:rounded-2xl">{renderIcon(settings.aboutMissionIcon, <Target size={20}/>)}</div>
-                           <h4 className="text-lg lg:text-2xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
-                        </div>
-                        <p className="text-sm lg:text-base text-slate-500 leading-relaxed font-light">{settings.aboutMissionBody}</p>
-                    </div>
-
-                    <div className="space-y-4 text-left relative z-10">
-                        <div className="flex items-center gap-3 text-primary">
-                           <div className="p-2 lg:p-3 bg-primary/10 rounded-xl lg:rounded-2xl">{renderIcon(settings.aboutCommunityIcon, <Users size={20}/>)}</div>
-                           <h4 className="text-lg lg:text-2xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
-                        </div>
-                        <p className="text-sm lg:text-base text-slate-500 leading-relaxed font-light">{settings.aboutCommunityBody}</p>
-                    </div>
-
-                    {settings.aboutSignatureImage && (
-                       <div className="pt-8 lg:pt-12 border-t border-black/5 flex flex-col items-center">
-                          <img src={settings.aboutSignatureImage} className="h-12 lg:h-20 w-auto object-contain opacity-40 mix-blend-multiply" alt="Signature" />
-                       </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Main Story Column */}
-            <div className="w-full lg:col-span-8 text-left min-w-0">
-                <div className="flex items-center gap-4 lg:gap-6 mb-6 lg:mb-12">
-                   <div className="h-[2px] w-12 lg:w-20 bg-primary"></div>
-                   <span className="text-[10px] lg:text-[12px] font-black uppercase tracking-[0.4em] text-primary text-contrast-shadow">The Manifesto</span>
-                </div>
-                
-                <h3 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-8 lg:mb-16 leading-[1.1] tracking-tighter break-words">
-                   {settings.aboutHistoryTitle}
-                </h3>
-                
-                <div className="text-slate-500 font-light leading-relaxed text-base lg:text-lg break-words">
-                    <div className="whitespace-pre-wrap 
-                      first-letter:text-6xl lg:first-letter:text-8xl 
-                      first-letter:font-serif 
-                      first-letter:font-black 
-                      first-letter:text-slate-900 
-                      first-letter:float-left 
-                      first-letter:mr-4 lg:first-letter:mr-8 
-                      first-letter:leading-none
-                    ">
-                        {settings.aboutHistoryBody}
-                    </div>
-                </div>
-
-                {settings.aboutGalleryImages && (
-                  <div className="mt-16 lg:mt-32 grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-8">
-                    {settings.aboutGalleryImages.slice(0,3).map((img, i) => (
-                      <div key={i} className={`rounded-2xl lg:rounded-[2.5rem] overflow-hidden shadow-lg aspect-[3/4] ${i === 1 ? 'mt-6 lg:mt-12' : ''} ${i === 2 ? 'hidden md:block' : ''}`}>
-                        <img src={img} className="w-full h-full object-cover hover:scale-110 transition-transform duration-1000" alt="Gallery" />
+      {/* Narrative Spread with layered backgrounds */}
+      <section className="py-24 lg:py-56 bg-copper-wash relative overflow-hidden section-vignette">
+        <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
+        
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-16 lg:gap-24">
+              
+              {/* Sidebar Column with enhanced glassmorphism */}
+              <div className="w-full lg:col-span-4 h-fit lg:sticky lg:top-40">
+                  <div className="glass-card p-10 lg:p-16 rounded-[2.5rem] lg:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] space-y-12 lg:space-y-20 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-8 opacity-[0.05]">
+                        <Quote size={80} className="text-slate-900" />
                       </div>
-                    ))}
+
+                      <div className="space-y-6 text-left relative z-10">
+                          <div className="flex items-center gap-4 text-primary">
+                             <div className="p-3 lg:p-5 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutMissionIcon, <Target size={24}/>)}</div>
+                             <h4 className="text-xl lg:text-3xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
+                          </div>
+                          <p className="text-base lg:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutMissionBody}</p>
+                      </div>
+
+                      <div className="space-y-6 text-left relative z-10">
+                          <div className="flex items-center gap-4 text-primary">
+                             <div className="p-3 lg:p-5 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutCommunityIcon, <Users size={24}/>)}</div>
+                             <h4 className="text-xl lg:text-3xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
+                          </div>
+                          <p className="text-base lg:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutCommunityBody}</p>
+                      </div>
+
+                      {settings.aboutSignatureImage && (
+                         <div className="pt-12 lg:pt-20 border-t border-slate-200/60 flex flex-col items-center">
+                            <img src={settings.aboutSignatureImage} className="h-16 lg:h-28 w-auto object-contain opacity-60 mix-blend-multiply" alt="Signature" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-4">Verified Narrative</span>
+                         </div>
+                      )}
                   </div>
-                )}
-            </div>
+              </div>
+
+              {/* Main Story Column */}
+              <div className="w-full lg:col-span-8 text-left min-w-0">
+                  <div className="flex items-center gap-6 lg:gap-10 mb-10 lg:mb-20">
+                     <div className="h-[3px] w-16 lg:w-32 bg-primary shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
+                     <span className="text-[12px] lg:text-[15px] font-black uppercase tracking-[0.6em] text-primary text-contrast-shadow">The Curation Manifesto</span>
+                  </div>
+                  
+                  <h3 className="text-4xl md:text-6xl lg:text-8xl font-serif text-slate-900 mb-12 lg:mb-24 leading-[1] tracking-tighter break-words drop-shadow-sm">
+                     {settings.aboutHistoryTitle}
+                  </h3>
+                  
+                  <div className="text-slate-600 font-light leading-relaxed text-lg lg:text-2xl break-words max-w-4xl">
+                      <div className="whitespace-pre-wrap 
+                        first-letter:text-7xl lg:first-letter:text-10xl 
+                        first-letter:font-serif 
+                        first-letter:font-black 
+                        first-letter:text-slate-900 
+                        first-letter:float-left 
+                        first-letter:mr-6 lg:first-letter:mr-10 
+                        first-letter:leading-[0.8]
+                        first-letter:mt-2
+                      ">
+                          {settings.aboutHistoryBody}
+                      </div>
+                  </div>
+
+                  {settings.aboutGalleryImages && (
+                    <div className="mt-24 lg:mt-48 grid grid-cols-2 md:grid-cols-3 gap-6 lg:gap-12">
+                      {settings.aboutGalleryImages.slice(0,3).map((img, i) => (
+                        <div key={i} className={`rounded-[2.5rem] lg:rounded-[5rem] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] aspect-[3/4] ${i === 1 ? 'mt-10 lg:mt-24' : ''} ${i === 2 ? 'hidden md:block' : ''} transform transition-all duration-1000 hover:scale-105 hover:-translate-y-4`}>
+                          <img src={img} className="w-full h-full object-cover" alt="Gallery" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+              </div>
+          </div>
         </div>
       </section>
 
-      {/* Curator's Edit / Favorites Section */}
-      <section className="py-24 bg-white/20 relative overflow-hidden backdrop-blur-sm">
-         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
+      {/* Favorites Section with deep backgrounds */}
+      <section className="py-32 bg-[#F4F1EC] relative overflow-hidden">
+         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
          
          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                <div className="text-left">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-3 block flex items-center gap-2 text-contrast-shadow">
-                    <Heart size={12} className="fill-current" /> Current Obsessions
+                  <span className="text-[11px] font-black uppercase tracking-[0.5em] text-primary mb-5 block flex items-center gap-3 text-contrast-shadow">
+                    <Heart size={14} className="fill-current animate-pulse" /> Personal Curation Vault
                   </span>
-                  <h3 className="text-3xl md:text-5xl font-serif text-slate-900 tracking-tight">The Curator's Edit</h3>
-                  <p className="text-slate-500 font-light mt-4 max-w-md text-sm md:text-base leading-relaxed">
-                    A selection of pieces that are currently defining my personal aesthetic. Hand-picked and verified.
+                  <h3 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight">The Curator's Edit</h3>
+                  <p className="text-slate-500 font-light mt-6 max-w-lg text-lg md:text-xl leading-relaxed">
+                    Exclusive selections defined by authenticity and global trend analysis.
                   </p>
                </div>
                <Link 
                  to="/products" 
-                 className="hidden md:inline-flex items-center gap-3 px-6 py-3 bg-white/40 border border-white/50 rounded-full text-xs font-bold uppercase tracking-widest text-slate-900 hover:bg-slate-900 hover:text-white transition-all group"
+                 className="hidden md:inline-flex items-center gap-4 px-10 py-5 bg-slate-900 shadow-2xl rounded-full text-xs font-black uppercase tracking-widest text-white hover:bg-primary hover:text-slate-900 transition-all group"
                >
-                  Explore Catalog <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform"/>
+                  Explore Entire Collection <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform"/>
                </Link>
             </div>
 
             {products.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
                  {products.slice(0, 4).map((product, idx) => (
-                    <Link to={`/product/${product.id}`} key={product.id} className="group block text-left">
-                       <div className="aspect-[3/4] overflow-hidden rounded-[1.5rem] bg-white/40 relative mb-5 shadow-sm border border-white/50">
+                    <Link to={`/product/${product.id}`} key={product.id} className="group block text-left soft-3d">
+                       <div className="aspect-[3/4] overflow-hidden rounded-[2.5rem] bg-white relative mb-8 shadow-xl border border-slate-100">
                           {product.media?.[0]?.url ? (
                             <img 
                               src={product.media[0].url} 
                               alt={product.name} 
-                              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                              className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 group-hover:rotate-1" 
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                               <LucideIcons.ShoppingBag size={32} />
+                            <div className="w-full h-full flex items-center justify-center text-slate-200">
+                               <LucideIcons.ShoppingBag size={48} strokeWidth={1} />
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                          <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                             <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-xl text-center shadow-lg">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-900">View Details</span>
-                             </div>
-                          </div>
+                          <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                          <div className="absolute inset-0 shadow-[inset_0_0_50px_rgba(0,0,0,0.1)] opacity-50 group-hover:opacity-0 transition-opacity"></div>
                        </div>
                        
-                       <div className="space-y-1 px-1">
-                          <h4 className="text-sm font-serif text-slate-900 leading-snug group-hover:text-primary transition-colors line-clamp-1">
+                       <div className="space-y-2 px-2">
+                          <h4 className="text-lg font-serif text-slate-900 leading-snug group-hover:text-primary transition-colors line-clamp-1">
                             {product.name}
                           </h4>
-                          <div className="flex justify-between items-center">
-                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                               R {product.price.toLocaleString()}
-                             </span>
-                          </div>
+                          <span className="text-[12px] font-black text-primary uppercase tracking-widest">
+                             R {product.price.toLocaleString()}
+                          </span>
                        </div>
                     </Link>
                  ))}
               </div>
             ) : (
-              <div className="w-full py-20 bg-white/20 rounded-3xl border border-dashed border-white/40 text-center text-slate-400 text-xs uppercase tracking-widest">
-                 Curator hasn't selected favorites yet.
+              <div className="w-full py-32 glass-card rounded-[3rem] border border-dashed border-slate-300 text-center text-slate-400 font-black uppercase text-[12px] tracking-[0.4em]">
+                 Populating Personal Collection...
               </div>
             )}
-
-            <div className="mt-12 md:hidden text-center">
-               <Link to="/products" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-900 border-b border-slate-900 pb-1">
-                  View Full Collection
-               </Link>
-            </div>
          </div>
       </section>
 
-      {/* Transparency Block */}
-      <section className="py-20 lg:py-32 bg-slate-950 text-white relative overflow-hidden">
+      {/* Transparency Section with Dark Depth */}
+      <section className="py-32 lg:py-56 bg-slate-950 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(212,175,55,0.1)_0%,transparent_50%)]"></div>
+        
         <div className="max-w-6xl mx-auto px-6 relative z-10">
-           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-10 lg:gap-20 text-left">
+           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-16 lg:gap-32 text-left">
               
-              <div className="w-full lg:w-1/3 flex flex-row lg:flex-col items-center lg:items-start gap-4 lg:gap-6">
-                 <div className="p-4 lg:p-6 bg-white/5 rounded-2xl lg:rounded-3xl border border-white/10 text-primary animate-soft-flicker shrink-0">
-                    {renderIcon(settings.aboutIntegrityIcon, <Award size={28}/>)}
+              <div className="w-full lg:w-1/3 flex flex-row lg:flex-col items-center lg:items-start gap-8 lg:gap-10">
+                 <div className="p-6 lg:p-10 bg-white/5 rounded-[2rem] lg:rounded-[3.5rem] border border-white/10 text-primary shadow-2xl animate-soft-flicker shrink-0">
+                    {renderIcon(settings.aboutIntegrityIcon, <Award size={48} strokeWidth={1}/>)}
                  </div>
-                 <h2 className="text-2xl lg:text-5xl font-serif tracking-tight leading-tight">
+                 <h2 className="text-4xl lg:text-7xl font-serif tracking-tight leading-none text-balance">
                     {settings.aboutIntegrityTitle}
                  </h2>
               </div>
 
-              <div className="w-full lg:w-2/3 border-l-2 lg:border-l-4 border-primary/20 pl-6 lg:pl-20">
-                 <p className="text-lg lg:text-3xl font-light text-slate-300 leading-relaxed italic">
+              <div className="w-full lg:w-2/3 border-l-4 border-primary/20 pl-10 lg:pl-24">
+                 <p className="text-2xl lg:text-5xl font-light text-slate-300 leading-tight italic drop-shadow-xl">
                     "{settings.aboutIntegrityBody}"
                  </p>
-                 <div className="mt-8 flex flex-wrap gap-8 lg:gap-12 opacity-50">
-                    <div className="flex flex-col gap-1">
-                       <Heart size={14} className="text-primary"/>
-                       <span className="text-[10px] font-black uppercase tracking-widest">Verified</span>
+                 <div className="mt-16 flex flex-wrap gap-12 lg:gap-20 opacity-40">
+                    <div className="flex items-center gap-4">
+                       <Heart size={20} className="text-primary"/>
+                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">Affiliate Verified</span>
                     </div>
-                    <div className="flex flex-col gap-1">
-                       <Calendar size={14} className="text-primary"/>
-                       <span className="text-[10px] font-black uppercase tracking-widest">Fresh</span>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                       <MapPin size={14} className="text-primary"/>
-                       <span className="text-[10px] font-black uppercase tracking-widest">Global</span>
+                    <div className="flex items-center gap-4">
+                       <Calendar size={20} className="text-primary"/>
+                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">Fresh Edits</span>
                     </div>
                  </div>
               </div>
@@ -250,11 +252,14 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Editorial Footer Meta */}
-      <div className="py-10 border-t border-black/5 text-center bg-transparent relative">
-         <div className="max-w-7xl mx-auto px-6 flex flex-row justify-between items-center opacity-40">
-            <p className="text-[8px] lg:text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Narrative Verified: {lastUpdatedDate}</p>
-            <span className="font-mono text-[8px] lg:text-[9px] text-slate-400">AB-992-JOURNEY-025</span>
+      {/* Final Editorial Footer */}
+      <div className="py-16 border-t border-slate-200/40 text-center bg-[#FDFBF7] relative">
+         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 opacity-30">
+            <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.5em]">Digital Portfolio Verified: {lastUpdatedDate}</p>
+            <div className="flex items-center gap-8">
+              <span className="font-mono text-[10px] text-slate-500 tracking-widest">NR-990-2025-JS</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(212,175,55,1)]"></div>
+            </div>
          </div>
       </div>
 
