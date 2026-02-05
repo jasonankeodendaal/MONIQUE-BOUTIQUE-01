@@ -139,6 +139,10 @@ export interface SiteSettings {
   navContactLabel: string;
   navDashboardLabel: string;
 
+  // Layout Controls
+  departmentsLayout?: 'grid' | 'dropdown';
+  subcategoryLayout?: 'wrapped' | 'scrollable-rows';
+
   // Contact Info
   contactEmail: string;
   contactPhone: string;
@@ -276,6 +280,7 @@ export interface AdminUser {
   role: 'owner' | 'admin';
   permissions: string[]; // Array of Permission IDs (flattened)
   password?: string; // Permanent password (stored locally for demo/local mode)
+  autoWipeExempt?: boolean; // NEW: Owner toggle to prevent monthly cleanup for specific admins
   createdAt: number;
   lastActive?: number;
   profileImage?: string;

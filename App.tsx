@@ -356,14 +356,23 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
   return null;
 };
 
+/**
+ * STRICT AUTHENTICATION PROTOCOLS
+ * 1. 5-Minute Inactivity Watchdog
+ * 2. Volatile Session Management (Logout on Refresh)
+ */
 const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => { logout(); }, timeoutMs);
+    timerRef.current = setTimeout(() => { 
+      console.warn("Security Watchdog: System inactivity timeout. Terminating session.");
+      logout(); 
+    }, timeoutMs);
   }, [logout, timeoutMs]);
+  
   useEffect(() => {
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     events.forEach(event => window.addEventListener(event, resetTimer));
     resetTimer();
     return () => {
@@ -373,7 +382,7 @@ const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   }, [resetTimer]);
 };
 
-const useMonthlyCleanup = (isSupabaseConfigured: boolean, products: Product[], refresh: () => void) => {
+const useMonthlyCleanup = (isSupabaseConfigured: boolean, products: Product[], admins: AdminUser[], refresh: () => void) => {
   useEffect(() => {
     if (!isSupabaseConfigured || products.length === 0) return;
     
@@ -383,12 +392,15 @@ const useMonthlyCleanup = (isSupabaseConfigured: boolean, products: Product[], r
     
     if (lastPurge !== currentMonth) {
       const executeArchive = async () => {
-        const ownerId = 'owner'; // System owner ID placeholder
-        const nonOwnerProducts = products.filter(p => p.createdBy && p.createdBy !== ownerId);
+        const ownerId = 'owner';
+        const productsToArchive = products.filter(p => {
+            if (!p.createdBy || p.createdBy === ownerId) return false;
+            const creator = admins.find(a => a.id === p.createdBy);
+            return creator ? !creator.autoWipeExempt : true;
+        });
         
-        if (nonOwnerProducts.length > 0) {
-          console.log(`Executing monthly archive for ${nonOwnerProducts.length} items...`);
-          for (const product of nonOwnerProducts) {
+        if (productsToArchive.length > 0) {
+          for (const product of productsToArchive) {
             const archivedItem = { ...product, archivedAt: Date.now() };
             await moveRecord('products', 'product_history', archivedItem);
           }
@@ -396,15 +408,34 @@ const useMonthlyCleanup = (isSupabaseConfigured: boolean, products: Product[], r
         }
         localStorage.setItem('last_purge_month', currentMonth);
       };
-      
       executeArchive();
     }
-  }, [isSupabaseConfigured, products, refresh]);
+  }, [isSupabaseConfigured, products, admins, refresh]);
 };
 
 const getLocalState = <T,>(key: string, fallback: T): T => {
   try { const stored = localStorage.getItem(key); return stored ? JSON.parse(stored) : fallback; } catch (e) { return fallback; }
 };
+
+const GlobalLayoutOverwrites: React.FC = () => (
+  <style>{`
+    .subcategory-scroll-area {
+       display: grid;
+       grid-template-rows: repeat(4, auto);
+       grid-auto-flow: column;
+       overflow-x: auto;
+       scroll-behavior: smooth;
+       max-height: 280px;
+       gap: 0.75rem;
+       padding-bottom: 1rem;
+       mask-image: linear-gradient(to right, black 85%, transparent 100%);
+       -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
+    .subcategory-scroll-area::-webkit-scrollbar { height: 4px; }
+    .subcategory-scroll-area::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; opacity: 0.3; }
+    .dept-dropdown-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: top; }
+  `}</style>
+);
 
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(() => getLocalState('site_settings', INITIAL_SETTINGS));
@@ -429,11 +460,34 @@ const App: React.FC = () => {
   useEffect(() => { statsRef.current = stats; }, [stats]);
 
   const performLogout = useCallback(async () => {
-    if (isSupabaseConfigured) await supabase.auth.signOut();
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
+    // Force clean redirect to login on all active tabs if applicable
+    if (window.location.hash.includes('admin')) {
+      window.location.href = '#/login';
+    }
   }, []);
 
-  useInactivityTimer(() => { if (user && !window.location.hash.includes('login')) performLogout(); });
+  // SESSION WATCHDOG: Inactive logout (5 minutes)
+  useInactivityTimer(() => { 
+    if (user && !window.location.hash.includes('login')) {
+      performLogout();
+    }
+  }, 300000);
+
+  // VOLATILE SESSION: Logout on Refresh
+  useEffect(() => {
+    const checkReload = async () => {
+      const [nav] = performance.getEntriesByType('navigation') as any;
+      if (nav && nav.type === 'reload') {
+        console.warn("Security Protocol: Page refresh detected. Volatile session terminated.");
+        await performLogout();
+      }
+    };
+    checkReload();
+  }, [performLogout]);
 
   const calculateStorage = useCallback(() => {
       const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats];
@@ -455,13 +509,10 @@ const App: React.FC = () => {
      return () => clearInterval(interval);
   }, []);
 
-  // ARCHIVE AUTOMATION
-  useMonthlyCleanup(isSupabaseConfigured, products, () => refreshAllData());
+  useMonthlyCleanup(isSupabaseConfigured, products, admins, () => refreshAllData());
 
-  // --- REALTIME SUBSCRIPTION ENGINE ---
   useEffect(() => {
     if (!isSupabaseConfigured) return;
-
     const channel = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, (payload) => {
@@ -490,30 +541,26 @@ const App: React.FC = () => {
           if (payload.eventType === 'UPDATE') setEnquiries(prev => prev.map(e => e.id === payload.new.id ? payload.new as Enquiry : e));
           if (payload.eventType === 'DELETE') setEnquiries(prev => prev.filter(e => e.id !== payload.old.id));
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_users' }, (payload) => {
+          if (payload.eventType === 'INSERT') setAdmins(prev => [payload.new as AdminUser, ...prev]);
+          if (payload.eventType === 'UPDATE') setAdmins(prev => prev.map(a => a.id === payload.new.id ? payload.new as AdminUser : a));
+          if (payload.eventType === 'DELETE') setAdmins(prev => prev.filter(a => a.id !== payload.old.id));
+      })
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // --- DYNAMIC META TAG SYSTEM ---
   useEffect(() => {
     const updateMetaTags = () => {
       document.title = settings.companyName;
-      
       const updateOrAddMeta = (property: string, content: string, attr = 'property') => {
         let el = document.querySelector(`meta[${attr}="${property}"]`);
-        if (!el) {
-          el = document.createElement('meta');
-          el.setAttribute(attr, property);
-          document.head.appendChild(el);
-        }
+        if (!el) { el = document.createElement('meta'); el.setAttribute(attr, property); document.head.appendChild(el); }
         el.setAttribute('content', content);
       };
-
       const metaTitle = settings.companyName;
       const metaDesc = settings.slogan || settings.footerDescription;
       const metaImage = settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png";
-
       updateOrAddMeta('og:title', metaTitle);
       updateOrAddMeta('og:description', metaDesc);
       updateOrAddMeta('og:image', metaImage);
@@ -523,10 +570,7 @@ const App: React.FC = () => {
       updateOrAddMeta('title', metaTitle, 'name');
       updateOrAddMeta('description', metaDesc, 'name');
     };
-
     updateMetaTags();
-    
-    // Favicon
     if (settings.companyLogoUrl) {
       let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
       if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
@@ -534,11 +578,9 @@ const App: React.FC = () => {
     }
   }, [settings]);
 
-  // --- DYNAMIC PWA MANIFEST SYSTEM ---
   useEffect(() => {
     const manifest = {
-      name: settings.companyName,
-      short_name: settings.companyName,
+      name: settings.companyName, short_name: settings.companyName,
       description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
       id: "/", start_url: "/", display: "standalone", orientation: "portrait-primary", background_color: "#FDFCFB",
       theme_color: settings.primaryColor || "#D4AF37",
@@ -561,7 +603,10 @@ const App: React.FC = () => {
          const { data: { session }, error } = await supabase.auth.getSession();
          if (error && error.message.includes('Refresh Token')) await supabase.auth.signOut();
          setUser(session?.user ?? null);
-         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { setUser(session?.user ?? null); setLoadingAuth(false); });
+         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
+           setUser(session?.user ?? null); 
+           setLoadingAuth(false); 
+         });
          setLoadingAuth(false);
       } catch (e) { setLoadingAuth(false); }
     };
@@ -589,7 +634,7 @@ const App: React.FC = () => {
         if (adm.status === 'fulfilled' && adm.value !== null) { setAdmins(adm.value); localStorage.setItem('admin_users', JSON.stringify(adm.value)); }
         if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
-      } else { addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0); }
+      }
       setSaveStatus('saved');
     } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
   };
@@ -676,6 +721,7 @@ const App: React.FC = () => {
         <ScrollToTop />
         <TrackingInjector />
         <TrafficTracker logEvent={logEvent} />
+        <GlobalLayoutOverwrites />
         <style>{` .text-primary { color: var(--primary-color); } .bg-primary { background-color: var(--primary-color); } .border-primary { border-color: var(--primary-color); } .hover\\:bg-primary:hover { background-color: var(--primary-color); } `}</style>
         <div className="min-h-screen flex flex-col relative">
           <PlexusBackground />

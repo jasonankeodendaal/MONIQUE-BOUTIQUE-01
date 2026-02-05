@@ -1966,7 +1966,7 @@ const Admin: React.FC = () => {
         {/* Manual Purge High-Friction Modal */}
         {showPurgeModal && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
-             <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+             <div className="bg-slate-900 border border-slate-800 w-full max-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
                 <div className="p-8 text-center border-b border-slate-800">
                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary border border-primary/20">
                       <Flame size={40} className="animate-pulse" />
@@ -2290,7 +2290,29 @@ const Admin: React.FC = () => {
                     <SettingField label="Full Name" value={adminData.name || ''} onChange={v => setAdminData({...adminData, name: v})} />
                     <SettingField label="Contact Number" value={adminData.phone || ''} onChange={v => setAdminData({...adminData, phone: v})} />
                     <SettingField label="Primary Address" value={adminData.address || ''} onChange={v => setAdminData({...adminData, address: v})} type="textarea" />
-                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-6">Credentials</h3>
+                    
+                    {/* ARCHIVE EXEMPTION TOGGLE */}
+                    { isOwner && (
+                      <div className="mt-8 p-6 bg-slate-800/30 rounded-[2rem] border border-slate-800 space-y-4 animate-in fade-in">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-white font-bold text-sm flex items-center gap-2">
+                              <History size={16} className="text-primary"/> Monthly Archive Exemption
+                            </h4>
+                            <p className="text-slate-500 text-[10px] leading-relaxed mt-1 uppercase tracking-widest font-black">Owner Exclusive Control</p>
+                          </div>
+                          <button 
+                            onClick={() => setAdminData({...adminData, autoWipeExempt: !adminData.autoWipeExempt})}
+                            className={`w-14 h-7 rounded-full transition-all relative border border-white/10 ${adminData.autoWipeExempt ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.4)]' : 'bg-slate-700'}`}
+                          >
+                            <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all shadow-md ${adminData.autoWipeExempt ? 'left-8' : 'left-1'}`}></div>
+                          </button>
+                        </div>
+                        <p className="text-slate-400 text-xs leading-relaxed font-light italic">"If enabled, products curated by this member will NOT be moved to history during the automated monthly refresh cycle."</p>
+                      </div>
+                    )}
+
+                    <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-12">Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
                     <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed">Manage passkeys via the Supabase cloud dashboard.</p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
                  </div>
@@ -2309,7 +2331,11 @@ const Admin: React.FC = () => {
                    <div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0">
                       <div className="relative flex-shrink-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>{isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}</div>
                       <div className="space-y-2 flex-grow text-center md:text-left min-w-0">
-                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${ (a.role === 'owner') ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400' }`}>{a.role}</span></div>
+                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start">
+                           <h4 className="text-white text-xl font-bold break-words">{a.name}</h4>
+                           <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${ (a.role === 'owner') ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400' }`}>{a.role}</span>
+                           { a.autoWipeExempt && <span className="px-3 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[8px] font-black uppercase tracking-widest">Wipe Exempt</span> }
+                        </div>
                         <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm break-words"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div>
                         <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ (a.role === 'owner') ? 'Full System' : `${a.permissions.length} modules` }</span></div>
                       </div>
@@ -2641,9 +2667,9 @@ const Admin: React.FC = () => {
        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
           {[ 
             {id: 'brand', label: 'Identity', icon: Globe, desc: 'Logo, Colors, Slogan'}, 
-            {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Footer'}, 
+            {id: 'nav', label: 'Navigation', icon: MapPin, desc: 'Menu Labels, Layout'}, 
             {id: 'home', label: 'Home Page', icon: Layout, desc: 'Hero, About, Trust Strip'}, 
-            {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Search Text'}, 
+            {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Categories Style'}, 
             {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, 
             {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, 
             {id: 'login', label: 'Login Page', icon: Lock, desc: 'Auth Experience visuals'},
@@ -2703,7 +2729,7 @@ const Admin: React.FC = () => {
                 <div>
                   <h3 className="text-3xl font-serif text-white mb-2">
                     { (activeEditorSection === 'brand') && 'Brand Identity' }
-                    { (activeEditorSection === 'nav') && 'Navigation & Footer' }
+                    { (activeEditorSection === 'nav') && 'Navigation & Layout' }
                     { (activeEditorSection === 'home') && 'Home Page' }
                     { (activeEditorSection === 'collections') && 'Collections Page' }
                     { (activeEditorSection === 'about') && 'About Page' }
@@ -2726,10 +2752,32 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'nav') && (
                   <>
-                    <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
-                    <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} />
-                    <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} />
-                    <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
+                    <div className="space-y-6">
+                      <h4 className="text-white font-bold">Menu Labels</h4>
+                      <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
+                      <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} />
+                      <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} />
+                      <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold flex items-center gap-2"><Layout size={18} className="text-primary"/> Structural Overrides</h4>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Departments Layout</label>
+                          <select 
+                            className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" 
+                            value={tempSettings.departmentsLayout || 'grid'} 
+                            onChange={e => updateTempSettings({ departmentsLayout: e.target.value as any })}
+                          >
+                            <option value="grid">Classic Grid (Main Section)</option>
+                            <option value="dropdown">Navigation Dropdown (Header)</option>
+                          </select>
+                          <p className="text-[10px] text-slate-500 italic mt-1">* Dropdown mode moves department links into a hover menu in the top navigation bar.</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Footer Content</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -2793,8 +2841,30 @@ const Admin: React.FC = () => {
                   <>
                     <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
                     <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
-                    <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
-                    <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
+                    
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold flex items-center gap-2"><Layers size={18} className="text-primary"/> Discovery Layout</h4>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Subcategory Navigation Style</label>
+                          <select 
+                            className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" 
+                            value={tempSettings.subcategoryLayout || 'wrapped'} 
+                            onChange={e => updateTempSettings({ subcategoryLayout: e.target.value as any })}
+                          >
+                            <option value="wrapped">Default (Wrapped Flow)</option>
+                            <option value="scrollable-rows">Infinite Row Scroll (3-4 Balanced Rows)</option>
+                          </select>
+                          <p className="text-[10px] text-slate-500 italic mt-1">* Balanced row mode organizes subcategories into dense, high-efficiency horizontal scroll areas.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
+                      <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
+                    </div>
+
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Product Detail Labels</h4>
                       <div className="grid grid-cols-2 gap-4">
