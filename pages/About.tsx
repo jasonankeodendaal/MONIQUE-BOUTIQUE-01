@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
@@ -181,7 +182,7 @@ const About: React.FC = () => {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
                  {products.slice(0, 4).map((product, idx) => (
                     <Link to={`/product/${product.id}`} key={product.id} className="group block text-left soft-3d">
-                       <div className="aspect-[3/4] overflow-hidden rounded-[2.5rem] bg-white relative mb-8 shadow-xl border border-slate-100">
+                       <div className="aspect-[3/4] overflow-hidden rounded-[2.5rem] bg-white relative mb-8 shadow-xl border border-slate-200">
                           {product.media?.[0]?.url ? (
                             <img 
                               src={product.media[0].url} 
