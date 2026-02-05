@@ -426,7 +426,7 @@ const App: React.FC = () => {
   // ARCHIVE AUTOMATION
   useMonthlyCleanup(isSupabaseConfigured, products, () => refreshAllData());
 
-  // --- REALTIME SUBSCRIPTION ENGINE ---
+  // --- FULL REALTIME SYNC ENGINE ---
   useEffect(() => {
     if (!isSupabaseConfigured) return;
 
@@ -435,9 +435,9 @@ const App: React.FC = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, (payload) => {
           if (payload.new) {
               const { id, ...rest } = payload.new as any;
-              // Only update state if the ID matches our global configuration to prevent duplicate jitter
               if (id === 'global' || id === settingsId) {
                 setSettings(rest);
+                localStorage.setItem('site_settings', JSON.stringify(rest));
               }
           }
       })
@@ -451,6 +451,11 @@ const App: React.FC = () => {
           if (payload.eventType === 'UPDATE') setCategories(prev => prev.map(c => c.id === payload.new.id ? payload.new as Category : c));
           if (payload.eventType === 'DELETE') setCategories(prev => prev.filter(c => c.id !== payload.old.id));
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subcategories' }, (payload) => {
+          if (payload.eventType === 'INSERT') setSubCategories(prev => [payload.new as SubCategory, ...prev]);
+          if (payload.eventType === 'UPDATE') setSubCategories(prev => prev.map(s => s.id === payload.new.id ? payload.new as SubCategory : s));
+          if (payload.eventType === 'DELETE') setSubCategories(prev => prev.filter(s => s.id !== payload.old.id));
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'hero_slides' }, (payload) => {
           if (payload.eventType === 'INSERT') setHeroSlides(prev => [payload.new as CarouselSlide, ...prev]);
           if (payload.eventType === 'UPDATE') setHeroSlides(prev => prev.map(s => s.id === payload.new.id ? payload.new as CarouselSlide : s));
@@ -460,6 +465,18 @@ const App: React.FC = () => {
           if (payload.eventType === 'INSERT') setEnquiries(prev => [payload.new as Enquiry, ...prev]);
           if (payload.eventType === 'UPDATE') setEnquiries(prev => prev.map(e => e.id === payload.new.id ? payload.new as Enquiry : e));
           if (payload.eventType === 'DELETE') setEnquiries(prev => prev.filter(e => e.id !== payload.old.id));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'product_stats' }, (payload) => {
+          if (payload.new) {
+            setStats(prev => {
+              const other = prev.filter(s => s.productId !== (payload.new as ProductStats).productId);
+              return [...other, payload.new as ProductStats];
+            });
+          }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'training_modules' }, (payload) => {
+          // Training modules are handled by separate fetch but can benefit from reload
+          refreshAllData();
       })
       .subscribe();
 
@@ -551,7 +568,6 @@ const App: React.FC = () => {
         const results = await Promise.allSettled([ fetchTableData('settings'), fetchTableData('products'), fetchTableData('categories'), fetchTableData('subcategories'), fetchTableData('hero_slides'), fetchTableData('enquiries'), fetchTableData('admin_users'), fetchTableData('product_stats') ]);
         const [s, p, c, sc, hs, enq, adm, st] = results;
         if (s.status === 'fulfilled' && s.value && s.value.length > 0) { 
-           // Prefer the row with id 'global'
            const globalRow = s.value.find((r: any) => r.id === 'global') || s.value[0];
            const { id, ...rest } = globalRow; 
            setSettingsId(id); 
@@ -579,7 +595,6 @@ const App: React.FC = () => {
     localStorage.setItem('site_settings', JSON.stringify(updated));
     if (isSupabaseConfigured) { 
       try { 
-        // Force the ID to 'global' to ensure we only ever have one record
         await upsertData('settings', { ...updated, id: 'global' }); 
         setSettingsId('global');
         addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); 
