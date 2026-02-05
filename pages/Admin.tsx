@@ -2214,7 +2214,28 @@ const Admin: React.FC = () => {
     </div>
   );
 
-  const renderTeam = () => (
+  const renderTeam = () => {
+    const ownersList = admins.filter(a => a.role === 'owner');
+    const staffList = admins.filter(a => a.role === 'admin');
+
+    const renderAdminCard = (a: AdminUser) => {
+      const isCurrentUser = user && ( (a.id === user.id) || (a.email === user.email) );
+      return (
+        <div key={a.id} className={`bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group ${isCurrentUser ? 'border-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
+          <div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0">
+             <div className="relative flex-shrink-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>{isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}</div>
+             <div className="space-y-2 flex-grow text-center md:text-left min-w-0">
+               <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${ (a.role === 'owner') ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400' }`}>{a.role}</span></div>
+               <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm break-words"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div>
+               <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ (a.role === 'owner') ? 'Full System' : `${a.permissions?.length || 0} modules` }</span></div>
+             </div>
+          </div>
+          <div className="flex gap-3 w-full md:w-auto flex-shrink-0"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={20}/></button></div>
+        </div>
+      );
+    };
+
+    return (
      <div className="space-y-8 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left"><div className="text-left"><h2 className="text-3xl font-serif text-white">Maison Staffing</h2><p className="text-slate-400 text-sm mt-2">Roles and permissions for collaborative curation.</p></div><button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest w-full md:w-auto"><Plus size={16}/> New Member</button></div>
         {showAdminForm ? (
@@ -2238,30 +2259,43 @@ const Admin: React.FC = () => {
               <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
            </div>
         ) : (
-           <>
+           <div className="space-y-12">
              <AdminTip title="Role Management">Manage your staff here. Only Owners can delete other members or factory reset the system.</AdminTip>
-             <div className="grid gap-6">
-               {admins.map(a => {
-                 const isCurrentUser = user && ( (a.id === user.id) || (a.email === user.email) );
-                 return (
-                 <div key={a.id} className={`bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-8 hover:border-primary/40 transition-all group ${isCurrentUser ? 'border-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800'}`}>
-                   <div className="flex flex-col md:flex-row items-center gap-8 w-full min-w-0">
-                      <div className="relative flex-shrink-0"><div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-slate-400 text-3xl font-bold uppercase border border-slate-700 shadow-inner group-hover:text-primary transition-colors">{a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-3xl"/> : a.name?.charAt(0)}</div>{isCurrentUser && <div className="absolute -top-2 -right-2 px-2 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">You</div>}</div>
-                      <div className="space-y-2 flex-grow text-center md:text-left min-w-0">
-                        <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start"><h4 className="text-white text-xl font-bold break-words">{a.name}</h4><span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${ (a.role === 'owner') ? 'bg-primary text-slate-900' : 'bg-slate-800 text-slate-400' }`}>{a.role}</span></div>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm break-words"><span className="flex items-center gap-2"><Mail size={14} className="text-primary"/> {a.email}</span>{a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary"/> {a.phone}</span>}</div>
-                        <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-2"><span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access:</span><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ (a.role === 'owner') ? 'Full System' : `${a.permissions.length} modules` }</span></div>
-                      </div>
-                   </div>
-                   <div className="flex gap-3 w-full md:w-auto flex-shrink-0"><button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={20}/></button><button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={20}/></button></div>
-                 </div>
-                 );
-               })}
+             
+             {/* Owners Section */}
+             <div className="space-y-6">
+                <div className="flex items-center gap-4 px-4">
+                  <ShieldCheck className="text-primary" size={20} />
+                  <h3 className="text-xl font-bold text-white uppercase tracking-tight">System Owners</h3>
+                  <div className="flex-grow h-px bg-slate-800"></div>
+                </div>
+                <div className="grid gap-6">
+                  {ownersList.map(a => renderAdminCard(a))}
+                </div>
              </div>
-           </>
+
+             {/* Staff Section */}
+             <div className="space-y-6">
+                <div className="flex items-center gap-4 px-4">
+                  <Users className="text-slate-400" size={20} />
+                  <h3 className="text-xl font-bold text-white uppercase tracking-tight">Curators & Staff</h3>
+                  <div className="flex-grow h-px bg-slate-800"></div>
+                </div>
+                <div className="grid gap-6">
+                  {staffList.length > 0 ? (
+                    staffList.map(a => renderAdminCard(a))
+                  ) : (
+                    <div className="p-12 border border-dashed border-slate-800 rounded-[2.5rem] text-center text-slate-500 italic">
+                      No additional staff members assigned to the maison.
+                    </div>
+                  )}
+                </div>
+             </div>
+           </div>
         )}
      </div>
-  );
+    );
+  };
 
   const renderTraining = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
