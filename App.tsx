@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
-import { X, RefreshCcw } from 'lucide-react';
+import { X, RefreshCcw, ArrowRight } from 'lucide-react';
 import Header from './components/Header';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -50,11 +50,11 @@ const Footer: React.FC = () => {
     <>
       <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12 text-left">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12 text-left">
+            <div className="md:col-span-2">
               <div className="flex items-center space-x-4 mb-6">
                  {settings.companyLogoUrl ? (
-                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-12 h-12 object-contain" />
+                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="h-12 w-auto object-contain" />
                 ) : (
                   <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold bg-primary text-xl">
                     {settings.companyLogo}
@@ -65,6 +65,26 @@ const Footer: React.FC = () => {
               <p className="max-w-xs leading-relaxed text-sm mb-8 font-light">
                 {settings.footerDescription}
               </p>
+              
+              {/* Added Dynamic Social Links in Footer */}
+              <div className="flex flex-wrap gap-3 mt-4">
+                {(settings.socialLinks || []).map((link) => (
+                  <a 
+                    key={link.id} 
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-primary transition-all duration-300 group overflow-hidden border border-white/5 hover:border-primary/20"
+                    title={link.name}
+                  >
+                    {link.iconUrl ? (
+                      <img src={link.iconUrl} className="w-5 h-5 object-contain transition-transform group-hover:scale-110" alt={link.name}/>
+                    ) : (
+                      <ArrowRight size={14} className="-rotate-45 text-white" />
+                    )}
+                  </a>
+                ))}
+              </div>
             </div>
             <div>
               <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">{settings.footerNavHeader || 'Navigation'}</h4>
@@ -72,6 +92,7 @@ const Footer: React.FC = () => {
                 <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
                 <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
                 <li><Link to="/about" className="hover:text-primary transition-colors">{settings.navAboutLabel}</Link></li>
+                <li><Link to="/contact" className="hover:text-primary transition-colors">{settings.navContactLabel}</Link></li>
               </ul>
             </div>
             <div>

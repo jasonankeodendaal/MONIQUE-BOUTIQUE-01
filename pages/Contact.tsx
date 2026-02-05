@@ -226,8 +226,12 @@ const Contact: React.FC = () => {
 
                 <div className="mt-10 pt-8 border-t border-slate-800 flex flex-wrap gap-3">
                   {(settings.socialLinks || []).map((link) => (
-                    <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-slate-900 transition-colors">
-                      {link.iconUrl ? <img src={link.iconUrl} className="w-4 h-4 object-contain invert" alt={link.name}/> : <ArrowRight size={14} className="-rotate-45" />}
+                    <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-slate-900 transition-all duration-300 overflow-hidden group">
+                      {link.iconUrl ? (
+                        <img src={link.iconUrl} className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" alt={link.name}/>
+                      ) : (
+                        <ArrowRight size={14} className="-rotate-45" />
+                      )}
                     </a>
                   ))}
                 </div>
