@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X, RefreshCcw, ArrowRight } from 'lucide-react';
 import Header from './components/Header';
+import PlexusBackground from './components/PlexusBackground';
 import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
@@ -147,7 +148,7 @@ const Footer: React.FC = () => {
 
       {showCreatorModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-           <div className="relative w-full max-w-sm bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+           <div className="relative w-full max-sm bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
               <div className="absolute inset-0">
                  <img src="https://i.ibb.co/dsh2c2hp/unnamed.jpg" className="w-full h-full object-cover opacity-60" alt="Creator Background" />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent"></div>
@@ -673,9 +674,10 @@ const App: React.FC = () => {
         <TrackingInjector />
         <TrafficTracker logEvent={logEvent} />
         <style>{` .text-primary { color: var(--primary-color); } .bg-primary { background-color: var(--primary-color); } .border-primary { border-color: var(--primary-color); } .hover\\:bg-primary:hover { background-color: var(--primary-color); } `}</style>
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col relative">
+          <PlexusBackground />
           <Header />
-          <div className="flex-grow">
+          <div className="flex-grow z-10">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />

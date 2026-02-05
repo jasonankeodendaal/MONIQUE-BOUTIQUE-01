@@ -884,81 +884,116 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'The Silk Series',
-    subtitle: 'Flowing silhouettes designed for the golden hour.',
+    title: 'Modern Curation',
+    subtitle: 'Connecting you to the most influential global trends.',
     cta: 'View Collection'
   },
   {
     id: '2',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=2000',
+    image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Tailored Precision',
-    subtitle: 'Bespoke-inspired cuts for the modern professional.',
-    cta: 'Explore Suiting'
+    title: 'High Tech Luxury',
+    subtitle: 'Smart solutions for a seamless lifestyle.',
+    cta: 'Explore Devices'
   },
   {
     id: '3',
     image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Evening Elegance',
-    subtitle: 'Pieces that capture the essence of luxury after dark.',
-    cta: 'Shop Evening'
+    title: 'The Elite Vault',
+    subtitle: 'Exclusive handbags and jewelry for the discerning few.',
+    cta: 'Shop Accessories'
   }
 ];
 
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat1', name: 'Apparel', icon: 'Shirt', image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800&h=800', description: 'Luxury ready-to-wear.' },
-  { id: 'cat2', name: 'Accessories', icon: 'Watch', image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&q=80&w=800&h=800', description: 'The finishing touch.' },
-  { id: 'cat3', name: 'Footwear', icon: 'Footprints', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800&h=800', description: 'Walk in confidence.' },
-  { id: 'cat4', name: 'Home Living', icon: 'Home', image: 'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&q=80&w=800&h=800', description: 'Couture for your space.' }
+  { id: 'cat1', name: 'Accessories', icon: 'Handbag', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&q=80&w=800&h=800', description: 'Curated bags and fine pieces.' },
+  { id: 'cat2', name: 'Footwear', icon: 'Heel', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800&h=800', description: 'Step into high-street fashion.' },
+  { id: 'cat3', name: 'Smart Life', icon: 'Watch', image: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800&h=800', description: 'Wearable tech and innovation.' },
+  { id: 'cat4', name: 'Home Living', icon: 'Package', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800&h=800', description: 'Modern aesthetics for your space.' }
 ];
 
 export const INITIAL_SUBCATEGORIES: SubCategory[] = [
-  { id: 'sub1', categoryId: 'cat1', name: 'Silk Dresses' },
-  { id: 'sub2', categoryId: 'cat1', name: 'Tailored Blazers' },
-  { id: 'sub3', categoryId: 'cat2', name: 'Leather Bags' },
-  { id: 'sub4', categoryId: 'cat3', name: 'Stilettos' }
+  { id: 'sub1', categoryId: 'cat1', name: 'Handbags' },
+  { id: 'sub2', categoryId: 'cat1', name: 'Jewelry' },
+  { id: 'sub3', categoryId: 'cat2', name: 'Luxury Heels' },
+  { id: 'sub4', categoryId: 'cat3', name: 'Smartwatches' },
+  { id: 'sub5', categoryId: 'cat4', name: 'Kitchen Tech' }
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'p1',
-    name: 'Midnight Silk Wrap',
-    sku: 'F-APP-001',
-    price: 3450,
-    affiliateLink: 'https://example.com/midnight-silk',
+    name: 'Quilted Leather Crossbody',
+    sku: 'F-BAG-001',
+    price: 12500,
+    affiliateLink: 'https://example.com/handbag',
     categoryId: 'cat1',
     subCategoryId: 'sub1',
-    description: 'A luxurious 100% silk wrap dress that transitions perfectly from day to night. Personally selected for its incredible drape and timeless silhouette.',
-    features: [
-      '100% Premium Mulberry Silk',
-      'Hand-finished french seams',
-      'Adjustable wrap closure',
-      'Temperature regulating'
-    ],
-    specifications: {
-      'Material': '100% Mulberry Silk',
-      'Care': 'Dry Clean Only',
-      'Fit': 'True to Size'
-    },
-    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800&h=800', name: 'Silk Dress', type: 'image/jpeg', size: 0 }],
-    createdAt: Date.now(),
-    discountRules: [{ id: 'd1', type: 'percentage', value: 15, description: 'Season Launch' }],
-    reviews: [
-      {
-        id: 'r1',
-        userName: 'Amahle Z.',
-        rating: 5,
-        comment: 'Absolutely stunning quality. The silk feels divine.',
-        createdAt: Date.now() - 10000000
-      }
-    ]
+    description: 'A timeless quilted masterpiece featuring hand-stitched leather and gold-tone hardware. A staple for any luxury collection.',
+    features: ['Premium Calf Leather', 'Gold-plated hardware', 'Versatile chain strap'],
+    specifications: { 'Material': 'Calf Leather', 'Style': 'Crossbody' },
+    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800', name: 'Handbag', type: 'image/jpeg', size: 0 }],
+    createdAt: Date.now()
+  },
+  {
+    id: 'p2',
+    name: 'Midnight Stiletto Pumps',
+    sku: 'F-SHOE-002',
+    price: 4200,
+    affiliateLink: 'https://example.com/shoes',
+    categoryId: 'cat2',
+    subCategoryId: 'sub3',
+    description: 'Sleek midnight black stilettos designed for ultimate poise and confidence.',
+    features: ['4-inch heel', 'Suede finish', 'Ergonomic sole'],
+    specifications: { 'Heel Height': '10cm', 'Material': 'Suede' },
+    media: [{ id: 'm2', url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800', name: 'Shoes', type: 'image/jpeg', size: 0 }],
+    createdAt: Date.now()
+  },
+  {
+    id: 'p3',
+    name: 'Horizon Smartwatch Pro',
+    sku: 'F-TECH-003',
+    price: 8999,
+    affiliateLink: 'https://example.com/watch',
+    categoryId: 'cat3',
+    subCategoryId: 'sub4',
+    description: 'The intersection of technology and design. Stay connected without compromising on aesthetic.',
+    features: ['OLED Display', 'Health Monitoring', '7-day Battery'],
+    specifications: { 'Case': 'Titanium', 'Water Resistance': '50m' },
+    media: [{ id: 'm3', url: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800', name: 'Smartwatch', type: 'image/jpeg', size: 0 }],
+    createdAt: Date.now()
+  },
+  {
+    id: 'p4',
+    name: 'Ascendance Diamond Pendant',
+    sku: 'F-JEWL-004',
+    price: 15000,
+    affiliateLink: 'https://example.com/jewelry',
+    categoryId: 'cat1',
+    subCategoryId: 'sub2',
+    description: 'A brilliant-cut diamond set in 18k white gold. Simply breathtaking.',
+    features: ['18k White Gold', 'Conflict-free diamond', 'Certificate included'],
+    specifications: { 'Carat': '0.5', 'Clarity': 'VVS1' },
+    media: [{ id: 'm4', url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=800', name: 'Jewelry', type: 'image/jpeg', size: 0 }],
+    createdAt: Date.now()
+  },
+  {
+    id: 'p5',
+    name: 'Smeg Retro Kettle - Cream',
+    sku: 'F-HOME-005',
+    price: 3499,
+    affiliateLink: 'https://example.com/kettle',
+    categoryId: 'cat4',
+    subCategoryId: 'sub5',
+    description: 'The iconic Smeg 50s style retro kettle. A blend of technology and classic design.',
+    features: ['Retro Aesthetic', 'Stainless steel body', 'Auto shut-off'],
+    specifications: { 'Capacity': '1.7L', 'Style': '50s Retro' },
+    media: [{ id: 'm5', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800', name: 'Smeg Kettle', type: 'image/jpeg', size: 0 }],
+    createdAt: Date.now()
   }
 ];
 
-/**
- * TRAINING_MODULES constant for the Academy section in Admin.tsx
- */
 export const TRAINING_MODULES: TrainingModule[] = [
   {
     id: 'tm1',
@@ -994,42 +1029,6 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Join 3 group boards in the fashion niche.'
     ],
     icon: 'Pin',
-    steps: []
-  },
-  {
-    id: 'tm3',
-    title: 'TikTok Trend Jacking',
-    platform: 'TikTok',
-    description: 'Leverage viral sounds and trends to showcase your curated collections to a massive audience.',
-    strategies: [
-      'Participate in trending fashion challenges.',
-      'Show "Behind the Scenes" of your curation process.',
-      'Use fast-paced editing to keep viewers engaged.'
-    ],
-    actionItems: [
-      'Identify 3 trending sounds this week.',
-      'Record a "Selection Reveal" video.',
-      'Link your bridge page in the TikTok bio.'
-    ],
-    icon: 'Zap',
-    steps: []
-  },
-  {
-    id: 'tm4',
-    title: 'SEO for Luxury Curation',
-    platform: 'SEO',
-    description: 'Optimize your department descriptions and product titles to rank for high-value fashion search terms.',
-    strategies: [
-      'Use descriptive titles with niche keywords.',
-      'Write unique, engaging descriptions for categories.',
-      'Optimize image alt tags for search visibility.'
-    ],
-    actionItems: [
-      'Perform keyword research for targeted niches.',
-      'Update 5 product descriptions with keywords.',
-      'Ensure all images have descriptive filenames.'
-    ],
-    icon: 'Search',
     steps: []
   }
 ];
