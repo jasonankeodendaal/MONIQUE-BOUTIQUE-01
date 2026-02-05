@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
 import { CarouselSlide } from '../types';
 import { Link } from 'react-router-dom';
@@ -9,6 +9,7 @@ const Hero: React.FC = () => {
   const { settings, heroSlides } = useSettings();
   
   const slides = useMemo(() => heroSlides || [], [heroSlides]);
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
 
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -27,11 +28,37 @@ const Hero: React.FC = () => {
     setTimeout(() => setIsTransitioning(false), 1000);
   };
 
+  // Handle automatic transition for IMAGES
   useEffect(() => {
     if (slides.length <= 1) return;
-    const timer = setInterval(nextSlide, 8000);
-    return () => clearInterval(timer);
-  }, [nextSlide, slides.length]);
+    
+    const currentSlide = slides[current];
+    // Only set a timer if the current slide is an image
+    if (currentSlide?.type === 'image') {
+      const timer = setTimeout(nextSlide, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [nextSlide, slides, current]);
+
+  // Manage Video Playback when slide becomes active
+  useEffect(() => {
+    const activeSlide = slides[current];
+    if (activeSlide?.type === 'video') {
+      const vid = videoRefs.current[activeSlide.id];
+      if (vid) {
+        vid.currentTime = 0;
+        vid.play().catch(err => console.debug("Video play interrupted", err));
+      }
+    }
+
+    // Pause other videos
+    slides.forEach((slide, idx) => {
+      if (idx !== current && slide.type === 'video') {
+        const vid = videoRefs.current[slide.id];
+        if (vid) vid.pause();
+      }
+    });
+  }, [current, slides]);
 
   if (slides.length === 0) {
     return (
@@ -84,10 +111,10 @@ const Hero: React.FC = () => {
         >
           {slide.type === 'video' ? (
             <video
-              autoPlay
+              ref={(el) => (videoRefs.current[slide.id] = el)}
               muted
-              loop
               playsInline
+              onEnded={nextSlide}
               className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[12s] ease-linear ${index === current ? 'scale-110' : 'scale-100'}`}
               src={slide.image}
             />
@@ -111,7 +138,6 @@ const Hero: React.FC = () => {
                 </span>
               </div>
               
-              {/* FLUID TYPOGRAPHY: Slightly tighter scaling for the shrunk height */}
               <h1 className="font-serif text-white mb-4 md:mb-6 leading-[1.1] md:leading-[0.9] tracking-tighter text-balance"
                   style={{ fontSize: 'clamp(2.2rem, 7vw, 7.5rem)' }}>
                 {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
