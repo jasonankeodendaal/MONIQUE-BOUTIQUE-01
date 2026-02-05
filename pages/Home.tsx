@@ -49,8 +49,8 @@ const Home: React.FC = () => {
       <section className="py-8 md:py-16 bg-copper-wash">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-8 md:mb-16">
-            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-2 text-contrast-shadow">{settings.homeNicheSubheader || 'Curated Portals'}</span>
-            <h2 className="text-2xl md:text-5xl font-serif text-slate-900 tracking-tighter">
+            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-2 text-contrast-shadow break-words text-balance">{settings.homeNicheSubheader || 'Curated Portals'}</span>
+            <h2 className="text-2xl md:text-5xl font-serif text-slate-900 tracking-tighter break-words text-balance">
               {settings.homeNicheHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary text-contrast-shadow">{settings.homeNicheHeader?.split(' ').slice(-1)}</span>
             </h2>
           </div>
@@ -87,8 +87,8 @@ const Home: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 text-center">
            <div className="text-center mb-8 md:mb-24">
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.8em] text-primary block mb-2 md:mb-4 text-contrast-shadow">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
-              <h2 className="text-xl md:text-6xl font-serif text-slate-900 tracking-tight leading-none">
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.8em] text-primary block mb-2 md:mb-4 text-contrast-shadow break-words text-balance">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
+              <h2 className="text-xl md:text-5xl font-serif text-slate-900 tracking-tight leading-none break-words text-balance">
                  {settings.homeTrustHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary text-contrast-shadow">{settings.homeTrustHeader?.split(' ').slice(-1)}</span>
               </h2>
            </div>
@@ -105,8 +105,8 @@ const Home: React.FC = () => {
                     <div className="mb-3 md:mb-10 w-12 h-12 md:w-28 md:h-28 bg-white/60 backdrop-blur-md rounded-xl md:rounded-[3.5rem] shadow-lg border border-white/40 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
                       <IconComponent size={20} className="md:w-12 md:h-12" strokeWidth={1} />
                     </div>
-                    <h4 className="text-[10px] md:text-2xl font-bold mb-1 md:mb-5 tracking-tight line-clamp-1">{item.title}</h4>
-                    <p className="text-slate-500 font-light leading-snug max-w-xs text-[8px] md:text-lg line-clamp-2">{item.desc}</p>
+                    <h4 className="text-[10px] md:text-2xl font-bold mb-1 md:mb-5 tracking-tight line-clamp-2 text-balance">{item.title}</h4>
+                    <p className="text-slate-500 font-light leading-snug max-w-xs text-[8px] md:text-lg line-clamp-3 text-balance">{item.desc}</p>
                   </div>
                 );
               })}

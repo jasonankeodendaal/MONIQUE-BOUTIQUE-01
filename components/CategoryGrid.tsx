@@ -26,15 +26,15 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-6 md:gap-12">
-          <div className="max-w-3xl text-center md:text-left">
-            <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.8em] text-primary mb-4 md:mb-8 block text-contrast-shadow">
+          <div className="max-w-3xl text-center md:text-left w-full">
+            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.6em] text-primary mb-4 md:mb-8 block text-contrast-shadow break-words">
               Curated Masterpieces
             </span>
-            <h2 className="font-serif text-slate-900 leading-none tracking-tighter text-balance drop-shadow-sm" style={{ fontSize: 'clamp(2.8rem, 7vw, 7.5rem)' }}>
+            <h2 className="font-serif text-slate-900 leading-none tracking-tighter text-balance drop-shadow-sm break-words" style={{ fontSize: 'clamp(2rem, 6vw, 5rem)' }}>
               Shop by <br className="hidden md:block"/> <span className="italic font-light text-primary text-contrast-shadow">Department</span>
             </h2>
           </div>
-          <div className="hidden md:block p-8 border-l border-slate-300/50 max-w-xs">
+          <div className="hidden md:block p-8 border-l border-slate-300/50 max-w-xs shrink-0">
             <p className="text-slate-500 font-light leading-relaxed text-sm md:text-lg italic">
               "Curation is the art of seeing what others miss."
             </p>
@@ -61,7 +61,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-90" />
                 <div className="absolute inset-0 border-[1px] border-white/10 rounded-[inherit] pointer-events-none group-hover:border-primary/20 transition-all duration-700"></div>
                 
-                <div className="absolute inset-0 p-6 md:p-14 flex flex-col justify-end items-start text-left z-10">
+                <div className="absolute inset-0 p-6 md:p-14 flex flex-col justify-end items-start text-left z-10 w-full">
                   <div className="w-10 h-10 md:w-20 md:h-20 glass-card rounded-2xl md:rounded-[2rem] flex items-center justify-center text-white mb-4 md:mb-12 border border-white/30 transform -translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 shadow-2xl">
                     <IconComponent size={18} className="md:w-10 md:h-10 text-primary" strokeWidth={1} />
                   </div>
@@ -70,7 +70,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
                     Portfolio {idx + 1}
                   </span>
                   
-                  <h3 className="text-xl md:text-5xl font-serif text-white mb-3 md:mb-8 leading-tight group-hover:text-primary transition-colors duration-500">
+                  <h3 className="text-xl md:text-3xl lg:text-4xl font-serif text-white mb-3 md:mb-8 leading-tight group-hover:text-primary transition-colors duration-500 break-words text-balance w-full">
                     {cat.name}
                   </h3>
                   
