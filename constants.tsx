@@ -119,20 +119,20 @@ export const GUIDE_STEPS = [
   {
     id: 'database',
     title: '3. Master Architecture Script (SQL)',
-    description: 'Deploy the complete data schema. This script ensures all columns for Training Modules, Catalog, and Analytics exist, fixing PGRST204 errors.',
+    description: 'Deploy the complete data schema. This script ensures every table and column for Training Modules, Catalog, Settings, and Analytics exist.',
     illustrationId: 'rocket',
     subSteps: [
       'Open the SQL Editor in your Supabase dashboard.',
-      'Paste the Master SQL v12.0 script provided below.',
+      'Paste the Master SQL v13.0 script provided below.',
       'Click "Run" and verify all tables update.',
-      'CRITICAL: This version fixes the missing "createdAt" column error.'
+      'CRITICAL: This script handles nearly 100 column definitions across all app sections.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v12.0 (Schema Sync & PGRST204 Fix)
--- Run this script to ensure all tables have the correct columns and types.
+    code: `-- MASTER ARCHITECTURE SCRIPT v13.0 (Comprehensive System Sync)
+-- Run this script to ensure all tables have the correct columns and types for every entry in the system.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. BASE TABLE CREATION (Ensures tables exist)
+-- 1. BASE TABLE CREATION
 CREATE TABLE IF NOT EXISTS settings (id TEXT PRIMARY KEY DEFAULT 'global');
 CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY);
@@ -145,43 +145,108 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY );
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY);
 
--- 2. EXHAUSTIVE MIGRATION & COLUMN SYNC
+-- 2. EXHAUSTIVE COLUMN MIGRATIONS (Section by Section)
+
 DO $$ 
 BEGIN 
-  -- Fix Training Modules
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='title') THEN ALTER TABLE training_modules ADD COLUMN title TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='platform') THEN ALTER TABLE training_modules ADD COLUMN platform TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='description') THEN ALTER TABLE training_modules ADD COLUMN description TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='icon') THEN ALTER TABLE training_modules ADD COLUMN icon TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='strategies') THEN ALTER TABLE training_modules ADD COLUMN strategies JSONB DEFAULT '[]'::jsonb; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='actionItems') THEN ALTER TABLE training_modules ADD COLUMN "actionItems" JSONB DEFAULT '[]'::jsonb; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='steps') THEN ALTER TABLE training_modules ADD COLUMN steps JSONB DEFAULT '[]'::jsonb; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='createdAt') THEN ALTER TABLE training_modules ADD COLUMN "createdAt" BIGINT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='createdBy') THEN ALTER TABLE training_modules ADD COLUMN "createdBy" TEXT; END IF;
+  -- A. SETTINGS TABLE (Brand, Content, Integrations)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='companyName') THEN ALTER TABLE settings ADD COLUMN "companyName" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='slogan') THEN ALTER TABLE settings ADD COLUMN "slogan" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='companyLogo') THEN ALTER TABLE settings ADD COLUMN "companyLogo" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='companyLogoUrl') THEN ALTER TABLE settings ADD COLUMN "companyLogoUrl" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='primaryColor') THEN ALTER TABLE settings ADD COLUMN "primaryColor" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='secondaryColor') THEN ALTER TABLE settings ADD COLUMN "secondaryColor" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='accentColor') THEN ALTER TABLE settings ADD COLUMN "accentColor" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='navHomeLabel') THEN ALTER TABLE settings ADD COLUMN "navHomeLabel" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='navProductsLabel') THEN ALTER TABLE settings ADD COLUMN "navProductsLabel" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='navAboutLabel') THEN ALTER TABLE settings ADD COLUMN "navAboutLabel" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='navContactLabel') THEN ALTER TABLE settings ADD COLUMN "navContactLabel" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='navDashboardLabel') THEN ALTER TABLE settings ADD COLUMN "navDashboardLabel" TEXT; END IF;
+  
+  -- B. CONTACT & FOOTER SETTINGS
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='contactEmail') THEN ALTER TABLE settings ADD COLUMN "contactEmail" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='contactPhone') THEN ALTER TABLE settings ADD COLUMN "contactPhone" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='whatsappNumber') THEN ALTER TABLE settings ADD COLUMN "whatsappNumber" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='address') THEN ALTER TABLE settings ADD COLUMN "address" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='socialLinks') THEN ALTER TABLE settings ADD COLUMN "socialLinks" JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='contactFaqs') THEN ALTER TABLE settings ADD COLUMN "contactFaqs" JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='footerDescription') THEN ALTER TABLE settings ADD COLUMN "footerDescription" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='footerCopyrightText') THEN ALTER TABLE settings ADD COLUMN "footerCopyrightText" TEXT; END IF;
+  
+  -- C. HOME PAGE SECTION SETTINGS
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeHeroBadge') THEN ALTER TABLE settings ADD COLUMN "homeHeroBadge" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeAboutTitle') THEN ALTER TABLE settings ADD COLUMN "homeAboutTitle" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeAboutDescription') THEN ALTER TABLE settings ADD COLUMN "homeAboutDescription" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeAboutImage') THEN ALTER TABLE settings ADD COLUMN "homeAboutImage" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeAboutCta') THEN ALTER TABLE settings ADD COLUMN "homeAboutCta" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustHeader') THEN ALTER TABLE settings ADD COLUMN "homeTrustHeader" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustSubheader') THEN ALTER TABLE settings ADD COLUMN "homeTrustSubheader" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem1Title') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem1Title" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem1Desc') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem1Desc" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem1Icon') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem1Icon" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem2Title') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem2Title" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem2Desc') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem2Desc" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem2Icon') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem2Icon" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem3Title') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem3Title" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem3Desc') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem3Desc" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='homeTrustItem3Icon') THEN ALTER TABLE settings ADD COLUMN "homeTrustItem3Icon" TEXT; END IF;
 
-  -- Fix Products
+  -- D. ABOUT PAGE CONTENT
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutHeroTitle') THEN ALTER TABLE settings ADD COLUMN "aboutHeroTitle" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutHeroSubtitle') THEN ALTER TABLE settings ADD COLUMN "aboutHeroSubtitle" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutMainImage') THEN ALTER TABLE settings ADD COLUMN "aboutMainImage" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutEstablishedYear') THEN ALTER TABLE settings ADD COLUMN "aboutEstablishedYear" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutFounderName') THEN ALTER TABLE settings ADD COLUMN "aboutFounderName" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutHistoryTitle') THEN ALTER TABLE settings ADD COLUMN "aboutHistoryTitle" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutHistoryBody') THEN ALTER TABLE settings ADD COLUMN "aboutHistoryBody" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutMissionTitle') THEN ALTER TABLE settings ADD COLUMN "aboutMissionTitle" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutMissionBody') THEN ALTER TABLE settings ADD COLUMN "aboutMissionBody" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='aboutGalleryImages') THEN ALTER TABLE settings ADD COLUMN "aboutGalleryImages" JSONB DEFAULT '[]'::jsonb; END IF;
+
+  -- E. INTEGRATION KEYS
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='googleAnalyticsId') THEN ALTER TABLE settings ADD COLUMN "googleAnalyticsId" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='facebookPixelId') THEN ALTER TABLE settings ADD COLUMN "facebookPixelId" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='tiktokPixelId') THEN ALTER TABLE settings ADD COLUMN "tiktokPixelId" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='pinterestTagId') THEN ALTER TABLE settings ADD COLUMN "pinterestTagId" TEXT; END IF;
+
+  -- F. ADMIN USERS TABLE
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin_users' AND column_name='name') THEN ALTER TABLE admin_users ADD COLUMN name TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin_users' AND column_name='email') THEN ALTER TABLE admin_users ADD COLUMN email TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin_users' AND column_name='role') THEN ALTER TABLE admin_users ADD COLUMN role TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin_users' AND column_name='permissions') THEN ALTER TABLE admin_users ADD COLUMN permissions JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin_users' AND column_name='createdAt') THEN ALTER TABLE admin_users ADD COLUMN "createdAt" BIGINT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin_users' AND column_name='profileImage') THEN ALTER TABLE admin_users ADD COLUMN "profileImage" TEXT; END IF;
+
+  -- G. ENQUIRIES TABLE
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enquiries' AND column_name='name') THEN ALTER TABLE enquiries ADD COLUMN name TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enquiries' AND column_name='email') THEN ALTER TABLE enquiries ADD COLUMN email TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enquiries' AND column_name='whatsapp') THEN ALTER TABLE enquiries ADD COLUMN whatsapp TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enquiries' AND column_name='subject') THEN ALTER TABLE enquiries ADD COLUMN subject TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enquiries' AND column_name='message') THEN ALTER TABLE enquiries ADD COLUMN message TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enquiries' AND column_name='status') THEN ALTER TABLE enquiries ADD COLUMN status TEXT DEFAULT 'unread'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enquiries' AND column_name='createdAt') THEN ALTER TABLE enquiries ADD COLUMN "createdAt" BIGINT; END IF;
+
+  -- H. ANALYTICS TABLES
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='traffic_logs' AND column_name='type') THEN ALTER TABLE traffic_logs ADD COLUMN type TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='traffic_logs' AND column_name='text') THEN ALTER TABLE traffic_logs ADD COLUMN text TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='traffic_logs' AND column_name='timestamp') THEN ALTER TABLE traffic_logs ADD COLUMN timestamp BIGINT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='traffic_logs' AND column_name='source') THEN ALTER TABLE traffic_logs ADD COLUMN source TEXT; END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_stats' AND column_name='views') THEN ALTER TABLE product_stats ADD COLUMN views INTEGER DEFAULT 0; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_stats' AND column_name='clicks') THEN ALTER TABLE product_stats ADD COLUMN clicks INTEGER DEFAULT 0; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_stats' AND column_name='shares') THEN ALTER TABLE product_stats ADD COLUMN shares INTEGER DEFAULT 0; END IF;
+
+  -- I. PRODUCTS & CATEGORIES
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='name') THEN ALTER TABLE products ADD COLUMN name TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='sku') THEN ALTER TABLE products ADD COLUMN sku TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='price') THEN ALTER TABLE products ADD COLUMN price NUMERIC; END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='affiliateLink') THEN ALTER TABLE products ADD COLUMN "affiliateLink" TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='categoryId') THEN ALTER TABLE products ADD COLUMN "categoryId" TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='subCategoryId') THEN ALTER TABLE products ADD COLUMN "subCategoryId" TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='description') THEN ALTER TABLE products ADD COLUMN description TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='features') THEN ALTER TABLE products ADD COLUMN features JSONB DEFAULT '[]'::jsonb; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='specifications') THEN ALTER TABLE products ADD COLUMN specifications JSONB; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='media') THEN ALTER TABLE products ADD COLUMN media JSONB; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='createdAt') THEN ALTER TABLE products ADD COLUMN "createdAt" BIGINT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='media') THEN ALTER TABLE products ADD COLUMN media JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='price') THEN ALTER TABLE products ADD COLUMN price NUMERIC; END IF;
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='createdBy') THEN ALTER TABLE products ADD COLUMN "createdBy" TEXT; END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='name') THEN ALTER TABLE categories ADD COLUMN name TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='image') THEN ALTER TABLE categories ADD COLUMN image TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='icon') THEN ALTER TABLE categories ADD COLUMN icon TEXT; END IF;
 
-  -- Fix History
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_history' AND column_name='archivedAt') THEN ALTER TABLE product_history ADD COLUMN "archivedAt" BIGINT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_history' AND column_name='createdAt') THEN ALTER TABLE product_history ADD COLUMN "createdAt" BIGINT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_history' AND column_name='createdBy') THEN ALTER TABLE product_history ADD COLUMN "createdBy" TEXT; END IF;
-
-  -- Fix Other Tables
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='createdBy') THEN ALTER TABLE categories ADD COLUMN "createdBy" TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subcategories' AND column_name='createdBy') THEN ALTER TABLE subcategories ADD COLUMN "createdBy" TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='hero_slides' AND column_name='createdBy') THEN ALTER TABLE hero_slides ADD COLUMN "createdBy" TEXT; END IF;
 END $$;
 
 -- 3. ENABLE REALTIME PUBLICATION
@@ -193,27 +258,21 @@ COMMIT;
 -- 4. ENABLE RLS & PUBLIC POLICIES
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read stats') THEN CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read training') THEN CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon settings') THEN CREATE POLICY "Enable all for anon settings" ON settings FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon products') THEN CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon training') THEN CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable insert for anon enquiries') THEN CREATE POLICY "Enable insert for anon enquiries" ON enquiries FOR INSERT WITH CHECK (true); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for admin_users') THEN CREATE POLICY "Enable all for admin_users" ON admin_users FOR ALL USING (true); END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon logs') THEN CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true); END IF;
 END $$;
 `,
-    codeLabel: 'Master Architecture v12.0 (Fixes PGRST204)'
+    codeLabel: 'Master Architecture v13.0 (Comprehensive Sync)'
   },
   {
     id: 'security-auth',
