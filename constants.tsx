@@ -128,6 +128,7 @@ export const GUIDE_STEPS = [
       'Ensure RLS (Row Level Security) is initialized for all tables.'
     ],
     code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Safe Migration)
+-- NOTE: This script is non-destructive. It will NOT wipe existing data.
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS settings (
@@ -511,7 +512,7 @@ export const PERMISSION_TREE: PermissionNode[] = [
 export const INITIAL_ADMINS: AdminUser[] = [
   {
     id: 'owner',
-    name: 'Main Administrator',
+    name: 'Main Curator',
     email: 'admin@findara.com',
     role: 'owner',
     permissions: ['*'], // * implies all
@@ -530,125 +531,115 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
     email: 'sarah.j@example.com',
     whatsapp: '+27 82 555 0123',
     subject: 'Styling Consultation',
-    message: 'Hi there, I am looking for a personal stylist for an upcoming gala in Cape Town. Do you offer virtual consultations?',
+    message: 'Hi there, I love your curation! I am looking for a personal stylist for an upcoming gala. Do you offer virtual sessions?',
     createdAt: Date.now() - 86400000 * 2, // 2 days ago
     status: 'unread'
-  },
-  {
-    id: 'e2',
-    name: 'Michael Nkosi',
-    email: 'michael.n@example.com',
-    subject: 'Product Curation Inquiry',
-    message: 'I saw the Autumn Silk Series and I am interested in the bulk purchasing options for my boutique in Durban.',
-    createdAt: Date.now() - 86400000 * 5, // 5 days ago
-    status: 'read'
   }
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
   companyName: "Findara",
-  slogan: 'Curating the Exceptional',
+  slogan: 'Bridging Trends to Your Story',
   companyLogo: 'F',
   companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
-  navHomeLabel: 'Home',
-  navProductsLabel: 'Collections',
-  navAboutLabel: 'My Journey',
+  navHomeLabel: 'The Entry',
+  navProductsLabel: 'My Picks',
+  navAboutLabel: 'My Story',
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
   contactEmail: 'contact@findara.com',
   contactPhone: '+27 76 836 0325',
   whatsappNumber: '27768360325',
-  address: 'Mokopane, Limpopo, 0601',
+  address: 'Global, Digital-First',
   socialLinks: [
     { id: '1', name: 'Instagram', url: 'https://instagram.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
     { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }
   ],
   contactFaqs: [
     {
-      question: "Do you ship products directly?",
-      answer: "As a curation bridge page, we direct you to verified third-party luxury retailers. Shipping and returns are handled directly by the brand you purchase from."
+      question: "What exactly is a 'Bridge' page?",
+      answer: "This is my personal curation portfolio. I find high-quality, trending items from global retailers like Shein and Amazon, and bridge them to you. You click my links, buy from the trusted merchant, and I receive a small commission at no cost to you."
     },
     {
-      question: "How do I book a styling consultation?",
-      answer: "Please select 'Styling Consultation' in the inquiry form. Our team will coordinate a virtual or in-person session based on your location."
+      question: "Do you handle the shipping?",
+      answer: "No. Since I am an affiliate marketer, I don't stock the items. All shipping, returns, and payments are handled by the actual retailer (like Shein or Revolve) that I link you to."
     },
     {
-      question: "Are the luxury items authenticated?",
-      answer: "Absolutely. We only affiliate with authorized retailers and brands that guarantee 100% authenticity on every piece listed."
+      question: "Why should I buy through your links?",
+      answer: "I spend hours filtering through thousands of low-quality items to find the genuine 'hidden gems'. By using my links, you get the absolute best finds and support my curation journey at the same time!"
     }
   ],
 
-  productAcquisitionLabel: 'Secure Acquisition',
-  productSpecsLabel: 'Technical Specifications',
+  productAcquisitionLabel: 'Acquire via Partner',
+  productSpecsLabel: 'Curation Details',
 
-  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to global fashion trends.",
+  footerDescription: "A personally curated gateway to global trends. My mission is to bridge the gap between overwhelmed shoppers and the hidden gems of the internet.",
   footerCopyrightText: "All rights reserved.",
-  footerNavHeader: 'Navigation',
-  footerPolicyHeader: 'Policy',
+  footerNavHeader: 'Journey',
+  footerPolicyHeader: 'Transparency',
 
   // Home Page Content
-  homeHeroBadge: 'Curator Exclusive',
-  homeAboutTitle: 'The Curator\'s Journey.',
-  homeAboutDescription: 'Curating the global aesthetic. Findara is my personal gateway to the hidden gems I discover—hand-selected to bridge my story with your unique style.',
-  homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Explore My Full Story',
-  homeCategorySectionTitle: 'Curated Departments',
-  homeCategorySectionSubtitle: 'The Collection',
-  homeNicheHeader: 'Shop by Niche',
-  homeNicheSubheader: 'Curated Portals',
-  homeTrustHeader: 'Why trust my selections?',
-  homeTrustSubheader: 'Curation Integrity',
-  homeTrustSectionTitle: 'Why Shop Here',
+  homeHeroBadge: 'Curator Selections',
+  homeAboutTitle: 'The Story Behind the Finds.',
+  homeAboutDescription: 'My name is Findara, and I have always had an eye for the exceptional. This bridge page is my way of sharing the global aesthetic I discover every day. Every item is hand-selected to bridge my story with your unique style.',
+  homeAboutImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=1200',
+  homeAboutCta: 'Read My Journey',
+  homeCategorySectionTitle: 'The Catalog',
+  homeCategorySectionSubtitle: 'Hand-Picked',
+  homeNicheHeader: 'Curated Portals',
+  homeNicheSubheader: 'Select Your Style',
+  homeTrustHeader: 'Why trust my eye?',
+  homeTrustSubheader: 'Integrity First',
+  homeTrustSectionTitle: 'The Curator Promise',
   
-  homeTrustItem1Title: 'Verified Affiliate',
-  homeTrustItem1Desc: 'Official partner with major global retailers like Shein.',
+  homeTrustItem1Title: 'Official Affiliate',
+  homeTrustItem1Desc: 'Verified partner with global giants like Shein and Amazon.',
   homeTrustItem1Icon: 'ShieldCheck', 
 
-  homeTrustItem2Title: 'Personal Curation',
-  homeTrustItem2Desc: 'I personally select and review every item on this bridge page.',
+  homeTrustItem2Title: 'Personal Review',
+  homeTrustItem2Desc: 'I never list an item I wouldn\'t personally wear or use.',
   homeTrustItem2Icon: 'User', 
 
-  homeTrustItem3Title: 'Direct Links',
-  homeTrustItem3Desc: 'Click through directly to the merchant for secure checkout.',
+  homeTrustItem3Title: 'Direct & Secure',
+  homeTrustItem3Desc: 'Links lead directly to encrypted merchant checkouts.',
   homeTrustItem3Icon: 'Link', 
 
   // Products Page Content
-  productsHeroTitle: 'Affiliate Catalog',
-  productsHeroSubtitle: 'Browse my hand-picked selections from top affiliate programs.',
+  productsHeroTitle: 'Curated Collections',
+  productsHeroSubtitle: 'Browse my latest finds from the world\'s most exciting affiliate programs.',
   productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
-    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000',
-    'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80&w=2000'
+    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Search selections...',
+  productsSearchPlaceholder: 'Search my archives...',
 
   // About Page Content
-  aboutHeroTitle: 'My Narrative. Your Style.',
-  aboutHeroSubtitle: 'Authenticity is the thread that weaves every selection together. Welcome to my curated world.',
-  aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
+  aboutHeroTitle: 'The Curator Behind the Bridge.',
+  aboutHeroSubtitle: 'Authenticity isn\'t a buzzword; it\'s the thread that weaves every one of my selections together. Welcome to my world.',
+  aboutMainImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
   aboutFounderName: 'Findara Curator',
-  aboutLocation: 'Cape Town, Online',
+  aboutLocation: 'Global / Online',
 
-  aboutHistoryTitle: 'Bridging the Global Aesthetic',
-  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a professional curation platform. Findara isn\'t just about affiliate links; it\'s about the meticulous process behind every garment selection. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nAs an affiliate marketer, I believe in transparency. This bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator, and I only partner with retailers that meet my strict standards for quality and trend relevance.\n\nWhat started as a personal quest for the perfect wardrobe has evolved into a global network of style finds. Welcome to my narrative—I hope it helps you define yours.',
+  aboutHistoryTitle: 'How It All Started',
+  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a professional curation platform. Findara isn\'t just about affiliate links; it\'s about the meticulous process behind every selection.\n\nAs an affiliate marketer, I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to. I believe in complete transparency—this bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source.\n\nEvery click supports my journey in bringing high-fashion aesthetics to the everyday shopper. I only partner with retailers that meet my strict standards for quality and trend relevance. Welcome to my narrative—I hope it helps you define yours.',
   
-  aboutMissionTitle: 'Marketing Mission',
-  aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers with transparency and taste.',
+  aboutMissionTitle: 'Curation Mission',
+  aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers with transparency, style, and absolute taste.',
   aboutMissionIcon: 'Target',
 
-  aboutCommunityTitle: 'Join the Community',
-  aboutCommunityBody: 'Follow our journey as we discover new trends and deals that define modern luxury.',
+  aboutCommunityTitle: 'My Community',
+  aboutCommunityBody: 'Join thousands of shoppers who follow my daily trend discoveries on TikTok and Instagram.',
   aboutCommunityIcon: 'Users',
   
-  aboutIntegrityTitle: 'Transparency',
-  aboutIntegrityBody: 'We are upfront about our role as an affiliate marketer. This system is built on trust and curation integrity.',
+  aboutIntegrityTitle: 'Transparency Policy',
+  aboutIntegrityBody: 'I am always upfront about my role as an affiliate. This site is built on trust and curation integrity.',
   aboutIntegrityIcon: 'Shield',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
@@ -659,263 +650,37 @@ export const INITIAL_SETTINGS: SiteSettings = {
   ],
 
   // Contact Page Content
-  contactHeroTitle: 'Connect with Us.',
-  contactHeroSubtitle: 'Have questions about a specific find or our curation process? Our concierge desk is here to assist.',
-  contactFormNameLabel: 'Name',
-  contactFormEmailLabel: 'Email',
-  contactFormSubjectLabel: 'Subject',
-  contactFormMessageLabel: 'Message',
-  contactFormButtonText: 'Transmit Message',
+  contactHeroTitle: 'Let\'s Connect.',
+  contactHeroSubtitle: 'Have questions about a specific find? My concierge desk is here to help you navigate the world of global shopping.',
+  contactFormNameLabel: 'Your Name',
+  contactFormEmailLabel: 'Your Email',
+  contactFormSubjectLabel: 'What\'s it about?',
+  contactFormMessageLabel: 'Your Message',
+  contactFormButtonText: 'Send to My Desk',
   
-  contactInfoTitle: 'Headquarters',
-  contactAddressLabel: 'Location',
-  contactHoursLabel: 'Concierge Hours',
-  contactHoursWeekdays: 'Monday - Friday: 09:00 - 18:00',
-  contactHoursWeekends: 'Weekends: 10:00 - 14:00 (Digital Response)',
+  contactInfoTitle: 'Curation HQ',
+  contactAddressLabel: 'Digital Location',
+  contactHoursLabel: 'Response Hours',
+  contactHoursWeekdays: 'Mon - Fri: 09:00 - 18:00',
+  contactHoursWeekends: 'Weekends: Selective Response',
 
   // Legal Content
-  disclosureTitle: 'Affiliate Disclosure',
-  disclosureContent: `### COMPREHENSIVE AFFILIATE DISCLOSURE STATEMENT
+  disclosureTitle: 'Affiliate Transparency',
+  disclosureContent: `### AFFILIATE DISCLOSURE STATEMENT
 
-**Last Updated: January 1, 2025**
+**Last Updated: 2024**
 
-#### 1. Introduction & Transparency Commitment
-
-Findara (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
-
-This Disclosure Statement is intended to inform you that we participate in various affiliate marketing programs. These programs are designed to provide a means for sites to earn advertising fees by advertising and linking to third-party merchant websites.
-
-#### 2. The Nature of Affiliate Marketing (Bridge Page Notice)
-
-**IMPORTANT:** Findara functions exclusively as a **Bridge Page** or "curation portfolio." 
-
-*   **We Are Not a Retailer:** We do not manufacture, stock, warehouse, package, or ship any products.
-*   **No Transactional Relationship:** We do not process payments, handle credit card information, or manage order fulfillment.
-*   **The "Click-Through" Process:** When you click on a link labeled "Shop", "Buy", "View Price", "Acquire", or similar call-to-action buttons on this Site, you will be automatically redirected to a third-party merchant's website (e.g., Shein, Amazon, Nordstorm, Revolve, etc.).
-*   **The Purchase:** Any purchase you make is a direct transaction between you and that third-party merchant.
-
-#### 3. Compensation & Commission Structure
-
-When you click on our affiliate links and make a qualifying purchase, we may receive a commission or referral fee. This commission is paid to us by the merchant, **at no extra cost to you**.
-
-*   **Price Parity:** The price you pay for the product is the same whether you use our affiliate link or navigate to the merchant's site directly. Our commission is deducted from the merchant's profit margin, not added to your purchase price.
-*   **Cookie Duration:** Affiliate programs use "cookies" to track your visit. If you click a link and purchase within a specific timeframe (often 24 to 30 days), we may still receive credit for the sale.
-
-#### 4. Affiliate Program Participation
-
-Findara is a participant in several affiliate advertising programs, including but not limited to:
-
-*   **SHEIN Affiliate Program:** We curate and link to fashion items sold on Shein.com.
-*   **Amazon Services LLC Associates Program:** An affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, we earn from qualifying purchases.
-*   **Other Networks:** We may also participate in networks such as RewardStyle (LTK), CJ Affiliate, ShareASale, Awin, and others.
-
-#### 5. Product Curation & Editorial Independence
-
-While we receive compensation for our posts or advertisements, we always give our honest opinions, findings, beliefs, or experiences on those topics or products. The views and opinions expressed on this blog are purely the bloggers' own.
-
-*   **Selection Process:** We curate products based on aesthetic value, trend analysis, consumer reviews, and personal taste.
-*   **No Pay-to-Play:** We do not accept direct payments from brands to list "bad" products as "good." If a product is featured here, it is because we genuinely believe it offers value to our audience.
-*   **Sponsored Content:** If a specific post is "Sponsored" (meaning a brand paid us a flat fee to write about them, separate from affiliate commissions), this will be clearly marked at the top of that specific page or post.
-
-#### 6. Limitation of Liability regarding Third-Party Products
-
-Because we do not manufacture or sell the products:
-
-*   **No Warranty:** We make no claims, warranties, or representations regarding the quality, safety, fit, or legality of the products listed.
-*   **Customer Support:** All questions regarding shipping, returns, refunds, sizing, or damaged goods must be directed to the merchant where you completed the purchase (e.g., Shein Customer Support). We have no access to your order history or payment details.
-
-#### 7. Contact Information
-
-If you have any questions regarding this disclosure or our affiliate relationships, please contact us at:
-
-**Compliance Dept.**
-Email: contact@findara.com
-Phone: +27 76 836 0325
-Address: Mokopane, Limpopo, 0601`,
+This site is a curated affiliate bridge page. We participate in various affiliate programs including SHEIN and Amazon Associates. When you click our links and make a purchase, we may receive a small commission at no additional cost to you. We only recommend items we genuinely love.`,
   
-  privacyTitle: 'Privacy Policy',
-  privacyContent: `### COMPREHENSIVE PRIVACY POLICY
+  privacyTitle: 'Your Data',
+  privacyContent: `### PRIVACY POLICY
 
-**Last Updated: January 1, 2025**
+We value your privacy. We do not collect sensitive financial data; all transactions happen on third-party sites. We use basic cookies to track affiliate attribution.`,
 
-#### 1. Introduction
+  termsTitle: 'Usage Terms',
+  termsContent: `### TERMS OF SERVICE
 
-Findara ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
-
-This policy applies to the **Bridge Page System** and curation portfolio operated by the Site.
-
-#### 2. The Data We Collect About You
-
-Personal data, or personal information, means any information about an individual from which that person can be identified. It does not include data where the identity has been removed (anonymous data).
-
-We may collect, use, store, and transfer different kinds of personal data about you which we have grouped together follows:
-
-*   **Identity Data:** includes first name, last name, username or similar identifier.
-*   **Contact Data:** includes email address and telephone number (only if voluntarily provided via our Contact Form or Newsletter signup).
-*   **Technical Data:** includes internet protocol (IP) address, your login data, browser type and version, time zone setting and location, browser plug-in types and versions, operating system and platform, and other technology on the devices you use to access this website.
-*   **Usage Data:** includes information about how you use our website, products, and services (e.g., which affiliate links you click).
-*   **Marketing and Communications Data:** includes your preferences in receiving marketing from us and your communication preferences.
-
-**We do NOT collect:**
-*   **Financial Data:** We do **not** collect or store payment card details. All transactions are processed by third-party merchants (e.g., Shein, Amazon).
-*   **Sensitive Data:** We do not collect details about your race or ethnicity, religious or philosophical beliefs, sex life, sexual orientation, political opinions, trade union membership, information about your health, and genetic and biometric data.
-
-#### 3. How Is Your Personal Data Collected?
-
-We use different methods to collect data from and about you including through:
-
-*   **Direct Interactions:** You may give us your Identity and Contact Data by filling in forms or by corresponding with us by post, phone, email, or otherwise. This includes personal data you provide when you:
-    *   Subscribe to our service or publications;
-    *   Request marketing to be sent to you;
-    *   Enter a competition, promotion, or survey; or
-    *   Give us feedback or contact us.
-*   **Automated Technologies or Interactions:** As you interact with our website, we will automatically collect Technical Data about your equipment, browsing actions, and patterns. We collect this personal data by using cookies, server logs, and other similar technologies. We may also receive Technical Data about you if you visit other websites employing our cookies.
-*   **Third Parties:** We may receive personal data about you from various third parties such as:
-    *   Analytics providers (such as Google Analytics).
-    *   Advertising networks (such as Meta/Facebook Pixel, Pinterest Tag, TikTok Pixel).
-
-#### 4. How We Use Your Personal Data
-
-We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:
-
-*   **Affiliate Tracking:** To ensure that our affiliate partners (e.g., Shein) can correctly attribute sales to our referrals.
-*   **Communication:** To respond to your inquiries sent via our contact forms.
-*   **Improvement:** To use data analytics to improve our website, products/services, marketing, customer relationships, and experiences.
-*   **Marketing:** To send you newsletters or promotional materials (only if you have explicitly opted-in).
-
-#### 5. Cookies and Tracking Technologies
-
-Our website uses cookies to distinguish you from other users of our website. This helps us to provide you with a good experience when you browse our website and also allows us to improve our site.
-
-*   **Affiliate Cookies:** When you click a "Shop" link, a tracking cookie is placed on your device by the affiliate network (not by us directly). This cookie typically lasts 30-90 days and allows the merchant to know you came from this site.
-*   **Analytics Cookies:** We use Google Analytics to measure traffic and usage trends.
-*   **Marketing Cookies:** We use pixels from Facebook, TikTok, and Pinterest to re-target visitors with relevant ads on those platforms.
-
-You can set your browser to refuse all or some browser cookies, or to alert you when websites set or access cookies. If you disable or refuse cookies, please note that some parts of this website may become inaccessible or not function properly, and affiliate tracking may fail.
-
-#### 6. Disclosure of Your Personal Data
-
-We may share your personal data with the parties set out below:
-
-*   **Service Providers:** Companies that provide IT and system administration services (e.g., Supabase for database hosting, Vercel for web hosting).
-*   **Professional Advisers:** Lawyers, bankers, auditors, and insurers.
-*   **Regulators:** Reporting processing activities to relevant authorities if required by law.
-*   **Third Parties:** We may perform a business transfer (merger or acquisition) where data is an asset.
-
-We require all third parties to respect the security of your personal data and to treat it in accordance with the law. We do not allow our third-party service providers to use your personal data for their own purposes and only permit them to process your personal data for specified purposes and in accordance with our instructions.
-
-#### 7. Data Security
-
-We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used, or accessed in an unauthorized way, altered, or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors, and other third parties who have a business need to know.
-
-#### 8. Data Retention
-
-We will only retain your personal data for as long as reasonably necessary to fulfill the purposes we collected it for, including for the purposes of satisfying any legal, regulatory, tax, accounting, or reporting requirements.
-
-#### 9. Your Legal Rights (GDPR & CCPA)
-
-Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to:
-
-*   **Request access** to your personal data.
-*   **Request correction** of your personal data.
-*   **Request erasure** of your personal data.
-*   **Object to processing** of your personal data.
-*   **Request restriction of processing** your personal data.
-*   **Request transfer** of your personal data.
-*   **Right to withdraw consent.**
-
-If you wish to exercise any of the rights set out above, please contact us at contact@findara.com.
-
-#### 10. Third-Party Links
-
-This website may include links to third-party websites, plug-ins, and applications. Clicking on those links or enabling those connections may allow third parties to collect or share data about you. We do not control these third-party websites and are not responsible for their privacy statements. When you leave our website, we encourage you to read the privacy policy of every website you visit.
-
-#### 11. Contact Us
-
-If you have any questions about this Privacy Policy, please contact us at:
-
-Email: contact@findara.com
-Phone: +27 76 836 0325
-Address: Mokopane, Limpopo, 0601`,
-
-  termsTitle: 'Terms of Service',
-  termsContent: `### TERMS OF SERVICE & USER AGREEMENT
-
-**Last Updated: January 1, 2025**
-
-#### 1. Acceptance of Terms
-
-By accessing and using the website Findara (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
-
-#### 2. Description of Service (The "Bridge Page" Model)
-
-The Site operates as a content curation and affiliate marketing bridge page.
-
-*   **NOT A RETAILER:** You acknowledge that this Site is **not** an online store, retailer, or manufacturer. We do not sell products directly.
-*   **CURATION ONLY:** Our service is limited to the aggregation, display, review, and linking of products sold by third-party vendors.
-*   **NO CONTRACT OF SALE:** No contract of sale is formed between you and the Site when you click a link. The contract of sale is formed solely between you and the third-party merchant (e.g., Shein) upon checkout on their respective platform.
-
-#### 3. Intellectual Property Rights
-
-*   **Our Content:** The design, layout, graphics, text, logo, and code of this Site are the intellectual property of the Site and are protected by copyright and trademark laws.
-*   **Merchant Content:** Product images, prices, and descriptions displayed on this Site are the property of their respective owners (the merchants) and are used here under license or fair use principles for the purpose of affiliate promotion. You may not copy, reproduce, or distribute this content without express permission from the rights holder.
-
-#### 4. User Conduct
-
-You agree not to use the Site for any unlawful purpose or any purpose prohibited under this clause. You agree not to use the Site in any way that could damage the Site, the services, or the general business of the Site.
-
-You further agree not to:
-*   Harass, abuse, or threaten others or otherwise violate any person's legal rights.
-*   Violate any intellectual property rights of the Site or any third party.
-*   Upload or otherwise disseminate any computer viruses or other software that may damage the property of another.
-*   Perpetrate any fraud.
-*   Engage in or create any unlawful gambling, sweepstakes, or pyramid scheme.
-*   Publish or distribute any obscene or defamatory material.
-
-#### 5. Third-Party Links and Services
-
-The Site may contain links to other websites ("Linked Sites"). The Linked Sites are not under the control of the Site and we are not responsible for the contents of any Linked Site, including without limitation any link contained in a Linked Site, or any changes or updates to a Linked Site. The Site is providing these links to you only as a convenience, and the inclusion of any link does not imply endorsement by the Site of the site or any association with its operators.
-
-**You acknowledge and agree that your use of third-party websites is at your own risk and subject to the terms and conditions of use for such sites.**
-
-#### 6. Disclaimer of Warranties
-
-THE SITE AND ITS CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT ANY WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
-
-THE SITE DOES NOT WARRANT THAT:
-(A) THE SITE WILL FUNCTION UNINTERRUPTED, SECURE, OR AVAILABLE AT ANY PARTICULAR TIME OR LOCATION;
-(B) ANY ERRORS OR DEFECTS WILL BE CORRECTED;
-(C) THE SITE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS; OR
-(D) THE RESULTS OF USING THE SITE WILL MEET YOUR REQUIREMENTS.
-
-#### 7. Limitation of Liability
-
-TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE SITE, ITS AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY INDIRECT, PUNITIVE, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, INCLUDING WITHOUT LIMITATION DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA, OR OTHER INTANGIBLE LOSSES, ARISING OUT OF OR RELATING TO THE USE OF, OR INABILITY TO USE, THIS SITE.
-
-SPECIFICALLY, WE ARE NOT LIABLE FOR:
-*   **PRODUCT DEFECTS:** Any issues with products purchased from third-party merchants (sizing, quality, damage).
-*   **SHIPPING ISSUES:** Delays, lost packages, or customs fees associated with third-party orders.
-*   **FINANCIAL LOSS:** Any financial loss incurred from transactions on third-party sites.
-
-#### 8. Indemnification
-
-You agree to defend, indemnify and hold harmless the Site and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, or b) a breach of these Terms.
-
-#### 9. Changes to Terms
-
-We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material we will try to provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
-
-#### 10. Governing Law
-
-These Terms shall be governed and construed in accordance with the laws of South Africa (or the primary jurisdiction of the Site owner), without regard to its conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights.
-
-#### 11. Contact Us
-
-If you have any questions about these Terms, please contact us at:
-
-Email: contact@findara.com
-Phone: +27 76 836 0325
-Address: Mokopane, Limpopo, 0601`,
+This site is for curation and information only. We are not the retailer. All issues with orders must be handled through the merchant where the purchase was completed.`,
 
   // Integrations
   emailJsServiceId: '',
@@ -934,151 +699,47 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'The Silk Series',
-    subtitle: 'Flowing silhouettes designed for the golden hour.',
-    cta: 'View Collection'
-  },
-  {
-    id: '2',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=80&w=2000',
-    type: 'image',
-    title: 'Tailored Precision',
-    subtitle: 'Bespoke-inspired cuts for the modern professional.',
-    cta: 'Explore Suiting'
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=2000',
-    type: 'image',
-    title: 'Evening Elegance',
-    subtitle: 'Pieces that capture the essence of luxury after dark.',
-    cta: 'Shop Evening'
+    title: 'The Curator\'s Choice',
+    subtitle: 'Personally selected silhouetts for the modern wardrobe.',
+    cta: 'View My Picks'
   }
 ];
 
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat1', name: 'Apparel', icon: 'Shirt', image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800&h=800', description: 'Luxury ready-to-wear.' },
-  { id: 'cat2', name: 'Accessories', icon: 'Watch', image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&q=80&w=800&h=800', description: 'The finishing touch.' },
-  { id: 'cat3', name: 'Footwear', icon: 'Footprints', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800&h=800', description: 'Walk in confidence.' },
-  { id: 'cat4', name: 'Home Living', icon: 'Home', image: 'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&q=80&w=800&h=800', description: 'Couture for your space.' }
+  { id: 'cat1', name: 'Wardrobe', icon: 'Shirt', image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800&h=800', description: 'Curated apparel for every occasion.' },
+  { id: 'cat2', name: 'Details', icon: 'Watch', image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&q=80&w=800&h=800', description: 'The accessories that define an outfit.' }
 ];
 
 export const INITIAL_SUBCATEGORIES: SubCategory[] = [
-  { id: 'sub1', categoryId: 'cat1', name: 'Silk Dresses' },
-  { id: 'sub2', categoryId: 'cat1', name: 'Tailored Blazers' },
-  { id: 'sub3', categoryId: 'cat2', name: 'Leather Bags' },
-  { id: 'sub4', categoryId: 'cat3', name: 'Stilettos' }
+  { id: 'sub1', categoryId: 'cat1', name: 'Dresses' },
+  { id: 'sub2', categoryId: 'cat2', name: 'Bags' }
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'p1',
-    name: 'Midnight Silk Wrap',
-    sku: 'F-APP-001',
+    name: 'Selected Silk Wrap',
+    sku: 'CUR-001',
     price: 3450,
     affiliateLink: 'https://example.com/midnight-silk',
     categoryId: 'cat1',
     subCategoryId: 'sub1',
-    description: 'A luxurious 100% silk wrap dress that transitions perfectly from day to night. Personally selected for its incredible drape and timeless silhouette.',
-    features: [
-      '100% Premium Mulberry Silk',
-      'Hand-finished french seams',
-      'Adjustable wrap closure',
-      'Temperature regulating'
-    ],
-    specifications: {
-      'Material': '100% Mulberry Silk',
-      'Care': 'Dry Clean Only',
-      'Fit': 'True to Size'
-    },
-    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800&h=800', name: 'Silk Dress', type: 'image/jpeg', size: 0 }],
-    createdAt: Date.now(),
-    discountRules: [{ id: 'd1', type: 'percentage', value: 15, description: 'Season Launch' }],
-    reviews: [
-      {
-        id: 'r1',
-        userName: 'Amahle Z.',
-        rating: 5,
-        comment: 'Absolutely stunning quality. The silk feels divine.',
-        createdAt: Date.now() - 10000000
-      }
-    ]
+    description: 'A luxurious 100% silk wrap dress that I discovered while scrolling for evening wear. It\'s timeless and fits perfectly.',
+    features: ['100% Premium Silk', 'Adjustable Fit', 'Breathable'],
+    specifications: { 'Material': 'Silk', 'Care': 'Hand Wash' },
+    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800&h=800', name: 'Silk', type: 'image/jpeg', size: 0 }],
+    createdAt: Date.now()
   }
 ];
 
-/**
- * TRAINING_MODULES constant for the Academy section in Admin.tsx
- */
 export const TRAINING_MODULES: TrainingModule[] = [
   {
     id: 'tm1',
-    title: 'Instagram Aesthetic Curation',
-    platform: 'Instagram',
-    description: 'Master the art of visual storytelling on Instagram to drive high-intent traffic to your bridge page.',
-    strategies: [
-      'Use high-contrast editorial photography.',
-      'Maintain a consistent color palette aligned with your brand.',
-      'Utilize Instagram Stories for "New Drop" alerts with direct links.'
-    ],
-    actionItems: [
-      'Create 5 "Outfit of the Day" reels.',
-      'Set up your bridge page URL in bio.',
-      'Engage with 20 niche-related accounts daily.'
-    ],
-    icon: 'Instagram',
-    steps: []
-  },
-  {
-    id: 'tm2',
-    title: 'Pinterest Viral Pins Strategy',
-    platform: 'Pinterest',
-    description: 'Pinterest is a search engine. Learn how to create evergreen traffic using aesthetic product pins.',
-    strategies: [
-      'Create vertical pins (2:3 ratio) for maximum visibility.',
-      'Use keywords in pin titles and descriptions (SEO).',
-      'Organize pins into niche-specific boards.'
-    ],
-    actionItems: [
-      'Design 10 high-quality pins using the Ad Generator.',
-      'Schedule pins during peak engagement hours.',
-      'Join 3 group boards in the fashion niche.'
-    ],
-    icon: 'Pin',
-    steps: []
-  },
-  {
-    id: 'tm3',
-    title: 'TikTok Trend Jacking',
-    platform: 'TikTok',
-    description: 'Leverage viral sounds and trends to showcase your curated collections to a massive audience.',
-    strategies: [
-      'Participate in trending fashion challenges.',
-      'Show "Behind the Scenes" of your curation process.',
-      'Use fast-paced editing to keep viewers engaged.'
-    ],
-    actionItems: [
-      'Identify 3 trending sounds this week.',
-      'Record a "Selection Reveal" video.',
-      'Link your bridge page in the TikTok bio.'
-    ],
-    icon: 'Zap',
-    steps: []
-  },
-  {
-    id: 'tm4',
-    title: 'SEO for Luxury Curation',
-    platform: 'SEO',
-    description: 'Optimize your department descriptions and product titles to rank for high-value fashion search terms.',
-    strategies: [
-      'Use descriptive titles with niche keywords.',
-      'Write unique, engaging descriptions for categories.',
-      'Optimize image alt tags for search visibility.'
-    ],
-    actionItems: [
-      'Perform keyword research for targeted niches.',
-      'Update 5 product descriptions with keywords.',
-      'Ensure all images have descriptive filenames.'
-    ],
+    title: 'How I Find Gems',
+    platform: 'General',
+    description: 'My secret workflow for filtering affiliate items.',
+    strategies: ['Filter by reviews', 'Check fabric composition'],
+    actionItems: ['Find 5 items today'],
     icon: 'Search',
     steps: []
   }
