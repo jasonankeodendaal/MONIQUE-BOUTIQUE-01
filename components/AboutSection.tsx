@@ -41,7 +41,8 @@ const AboutSection: React.FC = () => {
             </h2>
             
             <div className="relative mb-4 md:mb-16">
-              <p className="text-xs md:text-3xl text-slate-500 font-light leading-relaxed text-pretty pr-2 md:pr-20">
+              {/* Added line-clamp-5 to restrict the preview description length */}
+              <p className="text-xs md:text-3xl text-slate-500 font-light leading-relaxed text-pretty pr-2 md:pr-20 line-clamp-5">
                 {settings.homeAboutDescription}
               </p>
             </div>
