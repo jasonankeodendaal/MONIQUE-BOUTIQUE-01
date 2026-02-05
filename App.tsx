@@ -537,27 +537,27 @@ const App: React.FC = () => {
           }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
-          if (payload.eventType === 'INSERT') setProducts(prev => [payload.new as Product, ...prev]);
+          if (payload.eventType === 'INSERT') setProducts(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as Product, ...prev]);
           if (payload.eventType === 'UPDATE') setProducts(prev => prev.map(p => p.id === payload.new.id ? payload.new as Product : p));
           if (payload.eventType === 'DELETE') setProducts(prev => prev.filter(p => p.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, (payload) => {
-          if (payload.eventType === 'INSERT') setCategories(prev => [payload.new as Category, ...prev]);
+          if (payload.eventType === 'INSERT') setCategories(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as Category, ...prev]);
           if (payload.eventType === 'UPDATE') setCategories(prev => prev.map(c => c.id === payload.new.id ? payload.new as Category : c));
           if (payload.eventType === 'DELETE') setCategories(prev => prev.filter(c => c.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'hero_slides' }, (payload) => {
-          if (payload.eventType === 'INSERT') setHeroSlides(prev => [payload.new as CarouselSlide, ...prev]);
+          if (payload.eventType === 'INSERT') setHeroSlides(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as CarouselSlide, ...prev]);
           if (payload.eventType === 'UPDATE') setHeroSlides(prev => prev.map(s => s.id === payload.new.id ? payload.new as CarouselSlide : s));
           if (payload.eventType === 'DELETE') setHeroSlides(prev => prev.filter(s => s.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'enquiries' }, (payload) => {
-          if (payload.eventType === 'INSERT') setEnquiries(prev => [payload.new as Enquiry, ...prev]);
+          if (payload.eventType === 'INSERT') setEnquiries(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as Enquiry, ...prev]);
           if (payload.eventType === 'UPDATE') setEnquiries(prev => prev.map(e => e.id === payload.new.id ? payload.new as Enquiry : e));
           if (payload.eventType === 'DELETE') setEnquiries(prev => prev.filter(e => e.id !== payload.old.id));
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_users' }, (payload) => {
-          if (payload.eventType === 'INSERT') setAdmins(prev => [payload.new as AdminUser, ...prev]);
+          if (payload.eventType === 'INSERT') setAdmins(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as AdminUser, ...prev]);
           if (payload.eventType === 'UPDATE') setAdmins(prev => prev.map(a => a.id === payload.new.id ? payload.new as AdminUser : a));
           if (payload.eventType === 'DELETE') setAdmins(prev => prev.filter(a => a.id !== payload.old.id));
       })
