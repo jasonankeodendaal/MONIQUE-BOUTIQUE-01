@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Mail, Lock, Info, Chrome, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
-  const { isLocalMode, settings, user } = useSettings();
+  const { isLocalMode, settings, user, loadingAuth } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,10 +15,10 @@ const Login: React.FC = () => {
 
   // Redirect to Admin if already authenticated
   useEffect(() => {
-    if (user) {
-      navigate('/admin');
+    if (!loadingAuth && user) {
+      navigate('/admin', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, loadingAuth]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +37,7 @@ const Login: React.FC = () => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      // onAuthStateChange in App.tsx will trigger but navigate here for immediate feedback
       navigate('/admin');
     } catch (err: any) {
       if (err.message === 'Invalid login credentials') {
@@ -53,12 +54,13 @@ const Login: React.FC = () => {
     if (isLocalMode) return;
     setLoading(true);
     try {
+      // Direct redirect to the admin hash route to ensure dashboard landing
+      const redirectTo = window.location.origin + '/#/admin';
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Redirect to root, App.tsx auth listener handles navigation
-          redirectTo: window.location.origin, 
-          // Force refresh token generation and consent prompt to fix "not detecting credentials" issues
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -71,6 +73,17 @@ const Login: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest animate-pulse">Verifying Session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex bg-slate-950">
