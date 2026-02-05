@@ -401,6 +401,41 @@ const App: React.FC = () => {
     setUser(null);
   }, []);
 
+  const refreshAllData = useCallback(async () => {
+    addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
+    try {
+      if (isSupabaseConfigured) {
+        const results = await Promise.allSettled([ 
+            fetchTableData('settings'), 
+            fetchTableData('products'), 
+            fetchTableData('categories'), 
+            fetchTableData('subcategories'), 
+            fetchTableData('hero_slides'), 
+            fetchTableData('enquiries'), 
+            fetchTableData('admin_users'), 
+            fetchTableData('product_stats') 
+        ]);
+        const [s, p, c, sc, hs, enq, adm, st] = results;
+        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { 
+           const globalRow = s.value.find((r: any) => r.id === 'global') || s.value[0];
+           const { id, ...rest } = globalRow; 
+           setSettingsId(id); 
+           setSettings(rest as SiteSettings); 
+           localStorage.setItem('site_settings', JSON.stringify(rest)); 
+        }
+        if (p.status === 'fulfilled' && p.value !== null) { setProducts(p.value); localStorage.setItem('admin_products', JSON.stringify(p.value)); }
+        if (c.status === 'fulfilled' && c.value !== null) { setCategories(c.value); localStorage.setItem('admin_categories', JSON.stringify(c.value)); }
+        if (sc.status === 'fulfilled' && sc.value !== null) { setSubCategories(sc.value); localStorage.setItem('admin_subcategories', JSON.stringify(sc.value)); }
+        if (hs.status === 'fulfilled' && hs.value !== null) { setHeroSlides(hs.value); localStorage.setItem('admin_hero', JSON.stringify(hs.value)); }
+        if (enq.status === 'fulfilled' && enq.value !== null) { setEnquiries(enq.value); localStorage.setItem('admin_enquiries', JSON.stringify(enq.value)); }
+        if (adm.status === 'fulfilled' && adm.value !== null) { setAdmins(adm.value); localStorage.setItem('admin_users', JSON.stringify(adm.value)); }
+        if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
+        addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
+      } else { addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0); }
+      setSaveStatus('saved');
+    } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
+  }, []);
+
   useInactivityTimer(() => { if (user && !window.location.hash.includes('login')) performLogout(); });
 
   const calculateStorage = useCallback(() => {
@@ -433,14 +468,14 @@ const App: React.FC = () => {
     const channel = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, (payload) => {
-          if (payload.new) {
+          if (payload.new && (payload.new as any).id === 'global') {
               const { id, ...rest } = payload.new as any;
-              // CRITICAL: Merge updates instead of overwriting, and handle 'global' context
               setSettings(prev => {
                 const updated = { ...prev, ...rest };
                 localStorage.setItem('site_settings', JSON.stringify(updated));
                 return updated;
               });
+              setSaveStatus('saved');
           }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
@@ -486,7 +521,7 @@ const App: React.FC = () => {
       });
 
     return () => { supabase.removeChannel(channel); };
-  }, []); // Remove dependency on settingsId to prevent unnecessary reconnects
+  }, [refreshAllData]); 
 
   // --- DYNAMIC META TAG SYSTEM ---
   useEffect(() => {
@@ -559,38 +594,11 @@ const App: React.FC = () => {
       } catch (e) { setLoadingAuth(false); }
     };
     setupAuth();
-  }, []);
+  }, [refreshAllData]);
 
   const addSystemLog = (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
     const newLog: SystemLog = { id: Math.random().toString(36).substr(2, 9), timestamp: Date.now(), type, target, message, sizeBytes, status };
     setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
-  };
-
-  const refreshAllData = async () => {
-    addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
-    try {
-      if (isSupabaseConfigured) {
-        const results = await Promise.allSettled([ fetchTableData('settings'), fetchTableData('products'), fetchTableData('categories'), fetchTableData('subcategories'), fetchTableData('hero_slides'), fetchTableData('enquiries'), fetchTableData('admin_users'), fetchTableData('product_stats') ]);
-        const [s, p, c, sc, hs, enq, adm, st] = results;
-        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { 
-           const globalRow = s.value.find((r: any) => r.id === 'global') || s.value[0];
-           const { id, ...rest } = globalRow; 
-           setSettingsId(id); 
-           setSettings(rest as SiteSettings); 
-           localStorage.setItem('site_settings', JSON.stringify(rest)); 
-        }
-        else if (s.status === 'fulfilled' && s.value && s.value.length === 0) { await upsertData('settings', { ...settings, id: 'global' }); setSettingsId('global'); }
-        if (p.status === 'fulfilled' && p.value !== null) { setProducts(p.value); localStorage.setItem('admin_products', JSON.stringify(p.value)); }
-        if (c.status === 'fulfilled' && c.value !== null) { setCategories(c.value); localStorage.setItem('admin_categories', JSON.stringify(c.value)); }
-        if (sc.status === 'fulfilled' && sc.value !== null) { setSubCategories(sc.value); localStorage.setItem('admin_subcategories', JSON.stringify(sc.value)); }
-        if (hs.status === 'fulfilled' && hs.value !== null) { setHeroSlides(hs.value); localStorage.setItem('admin_hero', JSON.stringify(hs.value)); }
-        if (enq.status === 'fulfilled' && enq.value !== null) { setEnquiries(enq.value); localStorage.setItem('admin_enquiries', JSON.stringify(enq.value)); }
-        if (adm.status === 'fulfilled' && adm.value !== null) { setAdmins(adm.value); localStorage.setItem('admin_users', JSON.stringify(adm.value)); }
-        if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
-        addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
-      } else { addSystemLog('SYNC', 'LOCAL', 'Local data reloaded', 0); }
-      setSaveStatus('saved');
-    } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
   };
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
@@ -603,7 +611,7 @@ const App: React.FC = () => {
         await upsertData('settings', { ...updated, id: 'global' }); 
         setSettingsId('global');
         addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); 
-        setSaveStatus('saved');
+        // Realtime listener will handle saveStatus = 'saved'
       } catch (e: any) { 
         addSystemLog('ERROR', 'settings', `Cloud sync failed: ${e.message}`, 0, 'failed'); 
         setSaveStatus('error');
