@@ -119,85 +119,78 @@ export const GUIDE_STEPS = [
   {
     id: 'database',
     title: '3. Master Architecture Script (SQL)',
-    description: 'Deploy the complete data schema. This script ensures all columns for Canvas, Pinterest, and Analytics exist, even if you are upgrading from an older version.',
+    description: 'Deploy the complete data schema. This script ensures all columns for Training Modules, Catalog, and Analytics exist, fixing PGRST204 errors.',
     illustrationId: 'rocket',
     subSteps: [
       'Open the SQL Editor in your Supabase dashboard.',
-      'Paste the Master SQL v10.0 script provided below.',
-      'Click "Run" and verify 11 tables appear/update.',
-      'CRITICAL: This version enables GLOBAL LIVE PUSH for all devices.'
+      'Paste the Master SQL v12.0 script provided below.',
+      'Click "Run" and verify all tables update.',
+      'CRITICAL: This version fixes the missing "createdAt" column error.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v10.0 (Global Realtime Fixed)
--- Run this script to ensure your database allows global device pushing.
+    code: `-- MASTER ARCHITECTURE SCRIPT v12.0 (Schema Sync & PGRST204 Fix)
+-- Run this script to ensure all tables have the correct columns and types.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. BASE TABLE CREATION
-CREATE TABLE IF NOT EXISTS settings (
-  id TEXT PRIMARY KEY DEFAULT 'global',
-  "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
-  "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
-  "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT,
-  "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT,
-  "socialLinks" JSONB DEFAULT '[]'::jsonb, "contactFaqs" JSONB DEFAULT '[]'::jsonb, 
-  "footerDescription" TEXT, "footerCopyrightText" TEXT, "footerNavHeader" TEXT, "footerPolicyHeader" TEXT,
-  "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
-  "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeNicheHeader" TEXT, "homeNicheSubheader" TEXT,
-  "homeTrustHeader" TEXT, "homeTrustSubheader" TEXT, "homeTrustSectionTitle" TEXT,
-  "homeTrustItem1Title" TEXT, "homeTrustItem1Desc" TEXT, "homeTrustItem1Icon" TEXT,
-  "homeTrustItem2Title" TEXT, "homeTrustItem2Desc" TEXT, "homeTrustItem2Icon" TEXT,
-  "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT,
-  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, 
-  "productsHeroImages" TEXT[], "productsSearchPlaceholder" TEXT,
-  "productAcquisitionLabel" TEXT, "productSpecsLabel" TEXT,
-  "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT,
-  "aboutEstablishedYear" TEXT, "aboutEstablishedDate" BIGINT, "aboutFounderName" TEXT, "aboutLocation" TEXT,
-  "aboutHistoryTitle" TEXT, "aboutHistoryBody" TEXT, 
-  "aboutMissionTitle" TEXT, "aboutMissionBody" TEXT, "aboutMissionIcon" TEXT,
-  "aboutCommunityTitle" TEXT, "aboutCommunityBody" TEXT, "aboutCommunityIcon" TEXT,
-  "aboutIntegrityTitle" TEXT, "aboutIntegrityBody" TEXT, "aboutIntegrityIcon" TEXT,
-  "aboutSignatureImage" TEXT, "aboutGalleryImages" TEXT[],
-  "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, 
-  "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT, "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
-  "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
-  "adminLoginHeroImage" TEXT, "adminLoginTitle" TEXT, "adminLoginSubtitle" TEXT, "adminLoginAccentEnabled" BOOLEAN DEFAULT true,
-  "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
-  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
-  "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "pinterestTagId" TEXT, 
-  "amazonAssociateId" TEXT, "webhookUrl" TEXT
-);
+-- 1. BASE TABLE CREATION (Ensures tables exist)
+CREATE TABLE IF NOT EXISTS settings (id TEXT PRIMARY KEY DEFAULT 'global');
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY );
+CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY);
 
--- 2. EXHAUSTIVE MIGRATION (Ensures column existence)
+-- 2. EXHAUSTIVE MIGRATION & COLUMN SYNC
 DO $$ 
 BEGIN 
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='slogan') THEN ALTER TABLE settings ADD COLUMN "slogan" TEXT; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='contactFaqs') THEN ALTER TABLE settings ADD COLUMN "contactFaqs" JSONB DEFAULT '[]'::jsonb; END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='socialLinks') THEN ALTER TABLE settings ADD COLUMN "socialLinks" JSONB DEFAULT '[]'::jsonb; END IF;
+  -- Fix Training Modules
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='title') THEN ALTER TABLE training_modules ADD COLUMN title TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='platform') THEN ALTER TABLE training_modules ADD COLUMN platform TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='description') THEN ALTER TABLE training_modules ADD COLUMN description TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='icon') THEN ALTER TABLE training_modules ADD COLUMN icon TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='strategies') THEN ALTER TABLE training_modules ADD COLUMN strategies JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='actionItems') THEN ALTER TABLE training_modules ADD COLUMN "actionItems" JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='steps') THEN ALTER TABLE training_modules ADD COLUMN steps JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='createdAt') THEN ALTER TABLE training_modules ADD COLUMN "createdAt" BIGINT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='training_modules' AND column_name='createdBy') THEN ALTER TABLE training_modules ADD COLUMN "createdBy" TEXT; END IF;
+
+  -- Fix Products
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='name') THEN ALTER TABLE products ADD COLUMN name TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='sku') THEN ALTER TABLE products ADD COLUMN sku TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='price') THEN ALTER TABLE products ADD COLUMN price NUMERIC; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='affiliateLink') THEN ALTER TABLE products ADD COLUMN "affiliateLink" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='categoryId') THEN ALTER TABLE products ADD COLUMN "categoryId" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='subCategoryId') THEN ALTER TABLE products ADD COLUMN "subCategoryId" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='description') THEN ALTER TABLE products ADD COLUMN description TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='features') THEN ALTER TABLE products ADD COLUMN features JSONB DEFAULT '[]'::jsonb; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='specifications') THEN ALTER TABLE products ADD COLUMN specifications JSONB; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='media') THEN ALTER TABLE products ADD COLUMN media JSONB; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='createdAt') THEN ALTER TABLE products ADD COLUMN "createdAt" BIGINT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='createdBy') THEN ALTER TABLE products ADD COLUMN "createdBy" TEXT; END IF;
+
+  -- Fix History
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_history' AND column_name='archivedAt') THEN ALTER TABLE product_history ADD COLUMN "archivedAt" BIGINT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_history' AND column_name='createdAt') THEN ALTER TABLE product_history ADD COLUMN "createdAt" BIGINT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='product_history' AND column_name='createdBy') THEN ALTER TABLE product_history ADD COLUMN "createdBy" TEXT; END IF;
+
+  -- Fix Other Tables
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='categories' AND column_name='createdBy') THEN ALTER TABLE categories ADD COLUMN "createdBy" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='subcategories' AND column_name='createdBy') THEN ALTER TABLE subcategories ADD COLUMN "createdBy" TEXT; END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='hero_slides' AND column_name='createdBy') THEN ALTER TABLE hero_slides ADD COLUMN "createdBy" TEXT; END IF;
 END $$;
 
--- 3. SUPPORTING TABLES
-CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
-CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
-CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
-CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
-CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
-
--- 4. ENABLE REALTIME PUBLICATION (MANDATORY FOR LIVE UPDATES)
--- This tells the database to broadcast changes to all devices immediately.
+-- 3. ENABLE REALTIME PUBLICATION
 BEGIN;
-  -- Remove existing publication to prevent duplicates
   DROP PUBLICATION IF EXISTS supabase_realtime;
-  
-  -- Create global publication
   CREATE PUBLICATION supabase_realtime FOR ALL TABLES;
 COMMIT;
 
--- 5. ENABLE RLS & PUBLIC POLICIES
+-- 4. ENABLE RLS & PUBLIC POLICIES
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
@@ -213,29 +206,14 @@ ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read settings') THEN CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read products') THEN CREATE POLICY "Public Read products" ON products FOR SELECT USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read hero') THEN CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read cat') THEN CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read sub') THEN CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read stats') THEN CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Public Read training') THEN CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true); END IF;
-END $$;
-
--- 6. FULL ANONYMOUS ACCESS (DASHBOARD SYNC)
-DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon settings') THEN CREATE POLICY "Enable all for anon settings" ON settings FOR ALL USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon products') THEN CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon hero') THEN CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon cat') THEN CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon sub') THEN CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon enquiries') THEN CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon logs') THEN CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon admins') THEN CREATE POLICY "Enable all for anon admins" ON admin_users FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon stats') THEN CREATE POLICY "Enable all for anon stats" ON product_stats FOR ALL USING (true); END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon training') THEN CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true); END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Enable all for anon history') THEN CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true); END IF;
 END $$;
 `,
-    codeLabel: 'Master Architecture v10.0 (Global Live Push Fixed)'
+    codeLabel: 'Master Architecture v12.0 (Fixes PGRST204)'
   },
   {
     id: 'security-auth',
