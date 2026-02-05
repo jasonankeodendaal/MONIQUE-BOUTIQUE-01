@@ -35,7 +35,7 @@ const Hero: React.FC = () => {
 
   if (slides.length === 0) {
     return (
-      <div className="h-[60vh] md:h-[80vh] w-full bg-slate-900 flex items-center justify-center">
+      <div className="h-[45vh] md:h-[80vh] w-full bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <LayoutPanelTop className="mx-auto text-slate-700 mb-4" size={48} />
           <p className="text-slate-500 font-black uppercase tracking-widest text-xs">No active hero slides</p>
@@ -45,29 +45,29 @@ const Hero: React.FC = () => {
   }
 
   return (
-    <div className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] min-h-[450px] md:min-h-[600px] w-full overflow-hidden bg-black">
+    <div className="relative h-[45vh] sm:h-[60vh] md:h-[80vh] lg:h-[85vh] min-h-[320px] md:min-h-[600px] w-full overflow-hidden bg-black">
       {/* Floating Logo Top Left - Aligned with Content */}
       <div className="absolute top-0 left-0 right-0 z-30">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-4 md:pt-8">
           <Link to="/" className="inline-flex items-center space-x-4 group">
               <div className="relative">
                 {settings.companyLogoUrl ? (
                   <img 
                     src={settings.companyLogoUrl} 
                     alt={settings.companyName} 
-                    className="h-16 md:h-24 w-auto object-contain transition-transform drop-shadow-lg" 
+                    className="h-12 md:h-24 w-auto object-contain transition-transform drop-shadow-lg" 
                   />
                 ) : (
-                  <div className="w-12 h-12 md:w-20 md:h-20 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white font-black text-lg md:text-2xl shadow-2xl border border-white/10">
+                  <div className="w-10 h-10 md:w-20 md:h-20 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white font-black text-base md:text-2xl shadow-2xl border border-white/10">
                     {settings.companyLogo}
                   </div>
                 )}
               </div>
               <div className={`flex flex-col -space-y-1 text-left`}>
-                <span className={`text-lg md:text-2xl font-serif font-bold tracking-tight text-white`}>
+                <span className={`text-base md:text-2xl font-serif font-bold tracking-tight text-white`}>
                   {settings.companyName}
                 </span>
-                <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.3em] text-primary">
+                <span className="text-[8px] md:text-[12px] font-black uppercase tracking-[0.3em] text-primary">
                   {settings.slogan}
                 </span>
               </div>
@@ -100,36 +100,35 @@ const Hero: React.FC = () => {
           
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
           
-          <div className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-center items-start pt-12">
+          <div className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-center items-start pt-8 md:pt-12">
             <div className={`max-w-4xl transition-all duration-[1s] delay-500 transform ${
               index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}>
-              <div className="flex items-center gap-4 mb-3 md:mb-6">
-                <div className="h-px w-8 md:w-12 bg-primary"></div>
-                <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">
+              <div className="flex items-center gap-4 mb-2 md:mb-6">
+                <div className="h-px w-6 md:w-12 bg-primary"></div>
+                <span className="text-[8px] md:text-[10px] font-black tracking-[0.3em] md:tracking-[0.6em] text-primary uppercase">
                   {settings.homeHeroBadge || 'Curation Exclusive'}
                 </span>
               </div>
               
-              {/* FLUID TYPOGRAPHY: Slightly tighter scaling for the shrunk height */}
-              <h1 className="font-serif text-white mb-4 md:mb-6 leading-[1.1] md:leading-[0.9] tracking-tighter text-balance"
-                  style={{ fontSize: 'clamp(2.2rem, 7vw, 7.5rem)' }}>
+              <h1 className="font-serif text-white mb-3 md:mb-6 leading-[1.1] md:leading-[0.9] tracking-tighter text-balance"
+                  style={{ fontSize: 'clamp(1.8rem, 6vw, 7.5rem)' }}>
                 {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
                 <span className="text-primary italic font-light lowercase">
                   {slide.title.split(' ').slice(-1)}
                 </span>
               </h1>
               
-              <p className="text-sm md:text-xl text-white/70 md:text-white/60 mb-6 md:mb-10 max-w-xs md:max-w-md font-light leading-relaxed text-balance">
+              <p className="text-xs md:text-xl text-white/70 md:text-white/60 mb-5 md:mb-10 max-w-[200px] md:max-w-md font-light leading-relaxed text-balance">
                 {slide.subtitle}
               </p>
               
               <Link 
                 to="/products"
-                className="inline-flex items-center gap-4 md:gap-6 px-6 py-3 md:px-10 md:py-5 bg-primary text-slate-900 font-black uppercase tracking-widest text-[9px] md:text-[10px] rounded-full hover:bg-white transition-all hover:-translate-y-1 shadow-2xl active:scale-95 group"
+                className="inline-flex items-center gap-3 md:gap-6 px-5 py-2.5 md:px-10 md:py-5 bg-primary text-slate-900 font-black uppercase tracking-widest text-[8px] md:text-[10px] rounded-full hover:bg-white transition-all hover:-translate-y-1 shadow-2xl active:scale-95 group"
               >
                 {slide.cta}
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -138,19 +137,19 @@ const Hero: React.FC = () => {
 
       {slides.length > 1 && (
         <>
-          <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 z-20 flex flex-col gap-3 md:gap-4">
+          <div className="absolute bottom-4 md:bottom-10 left-4 md:left-10 z-20 flex flex-col gap-2 md:gap-4">
              {slides.map((_, i) => (
                 <button 
                   key={i}
                   onClick={() => setCurrent(i)}
-                  className={`h-8 w-1 transition-all duration-500 rounded-full ${current === i ? 'bg-primary h-12 md:h-16' : 'bg-white/20'}`}
+                  className={`h-4 w-1 transition-all duration-500 rounded-full ${current === i ? 'bg-primary h-8 md:h-16' : 'bg-white/20'}`}
                 />
              ))}
           </div>
 
-          <div className="absolute bottom-6 md:bottom-10 right-6 md:right-10 z-20 flex gap-3 md:gap-4">
-            <button onClick={prevSlide} className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all backdrop-blur-sm"><ChevronLeft size={16}/></button>
-            <button onClick={nextSlide} className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all backdrop-blur-sm"><ChevronRight size={16}/></button>
+          <div className="absolute bottom-4 md:bottom-10 right-4 md:right-10 z-20 flex gap-2 md:gap-4">
+            <button onClick={prevSlide} className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all backdrop-blur-sm"><ChevronLeft size={14}/></button>
+            <button onClick={nextSlide} className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all backdrop-blur-sm"><ChevronRight size={14}/></button>
           </div>
         </>
       )}

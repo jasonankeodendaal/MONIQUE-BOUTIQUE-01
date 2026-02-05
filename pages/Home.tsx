@@ -66,7 +66,7 @@ const Home: React.FC = () => {
 
       <CategoryGrid />
 
-      {/* Trust & Methodology Section */}
+      {/* Trust & Methodology Section - SHRUNK FOR 3 IN A ROW ON MOBILE */}
       <section className="py-20 md:py-40 bg-[#FDFCFB] relative overflow-hidden border-t border-slate-50">
         {/* Decorative BG */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
@@ -79,7 +79,7 @@ const Home: React.FC = () => {
               </h2>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16">
+           <div className="grid grid-cols-3 gap-4 md:gap-16">
               {[
                 { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
                 { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
@@ -88,11 +88,11 @@ const Home: React.FC = () => {
                 const IconComponent = CustomIcons[item.iconName] || (LucideIcons as any)[item.iconName] || ShieldCheck;
                 return (
                   <div key={i} className="flex flex-col items-center group">
-                    <div className="mb-6 md:mb-10 w-20 h-20 md:w-28 md:h-28 bg-white rounded-[2.5rem] md:rounded-[3.5rem] shadow-xl border border-slate-50 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
-                      <IconComponent size={32} className="md:w-12 md:h-12" strokeWidth={1} />
+                    <div className="mb-4 md:mb-10 w-14 h-14 md:w-28 md:h-28 bg-white rounded-[1.5rem] md:rounded-[3.5rem] shadow-xl border border-slate-50 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
+                      <IconComponent size={20} className="md:w-12 md:h-12" strokeWidth={1} />
                     </div>
-                    <h4 className="text-lg md:text-2xl font-bold mb-3 md:mb-5 tracking-tight">{item.title}</h4>
-                    <p className="text-slate-500 font-light leading-relaxed max-w-xs text-sm md:text-lg">{item.desc}</p>
+                    <h4 className="text-[10px] md:text-2xl font-bold mb-2 md:mb-5 tracking-tight line-clamp-1">{item.title}</h4>
+                    <p className="text-slate-500 font-light leading-snug max-w-[100px] md:max-w-xs text-[8px] md:text-lg line-clamp-2">{item.desc}</p>
                   </div>
                 );
               })}
