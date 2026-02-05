@@ -30,6 +30,22 @@ const Products: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Vertical to Horizontal Scroll Handler for Desktop
+  useEffect(() => {
+    const el = subScrollRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [subScrollRef]);
+
   useEffect(() => {
     if (initialCat) {
       setSelectedCat(initialCat);
@@ -139,31 +155,35 @@ const Products: React.FC = () => {
     );
   };
 
-  const getSortLabel = (id: string) => {
-    const labels: Record<string, string> = { newest: 'Latest', 'price-low': 'Price: Low', 'price-high': 'Price: High', name: 'Name' };
-    return labels[id] || 'Latest';
-  };
-
   return (
     <div className="min-h-screen pb-20 md:pb-32 bg-[#FDFBF7] max-w-full overflow-x-hidden pt-24">
       <style>{`
         .subcat-row-container {
-          display: grid;
-          grid-template-rows: repeat(3, auto);
-          grid-auto-flow: column;
+          display: flex;
+          flex-wrap: nowrap;
           gap: 0.75rem;
-          padding: 1rem 2rem;
+          padding: 1.5rem 2rem;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
+          scrollbar-width: thin;
+          scrollbar-color: var(--primary-color) transparent;
         }
         .subcat-row-container::-webkit-scrollbar {
-          display: none;
+          height: 3px;
+        }
+        .subcat-row-container::-webkit-scrollbar-thumb {
+          background: rgba(var(--primary-rgb), 0.2);
+          border-radius: 10px;
         }
         .infinite-scroll-mask {
-          mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+          mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+        @media (min-width: 1024px) {
+           .subcat-row-container {
+              padding: 2rem 4rem;
+           }
         }
       `}</style>
       
@@ -299,8 +319,8 @@ const Products: React.FC = () => {
             </div>
         </div>
 
-        {/* --- INFINITE SUB-CATEGORY SCROLL (2-3 ROWS) --- */}
-        <div className="relative mb-12 py-4">
+        {/* --- HORIZONTAL SUB-CATEGORY SCROLL --- */}
+        <div className="relative mb-12">
            <div className="flex items-center justify-between px-2 mb-4">
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-2">
                  <Tag size={12} className="text-primary" /> Curated Niches
@@ -316,7 +336,7 @@ const Products: React.FC = () => {
               )}
            </div>
 
-           <div className="relative infinite-scroll-mask">
+           <div className="relative infinite-scroll-mask group/scroll">
               <div 
                 ref={subScrollRef}
                 className="subcat-row-container"
@@ -324,7 +344,7 @@ const Products: React.FC = () => {
                 {/* Reset Option */}
                 <button
                   onClick={() => setSelectedSub('all')}
-                  className={`px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit ${
+                  className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
                     selectedSub === 'all' ? 'bg-primary text-slate-900 border-primary scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
                   }`}
                 >
@@ -335,18 +355,19 @@ const Products: React.FC = () => {
                   <button
                     key={sub.id}
                     onClick={() => setSelectedSub(sub.id)}
-                    className={`px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit ${
+                    className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
                       selectedSub === sub.id ? 'bg-primary text-slate-900 border-primary scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
                     }`}
                   >
                     {sub.name}
                   </button>
                 ))}
-
-                {/* Aesthetic Spacers for Scroll feel */}
-                {currentSubCategories.length > 5 && Array(3).fill(0).map((_, i) => (
-                   <div key={`spacer-${i}`} className="w-12 h-1 pointer-events-none opacity-0"></div>
-                ))}
+              </div>
+              <div className="absolute top-1/2 -translate-y-1/2 left-4 opacity-0 group-hover/scroll:opacity-20 pointer-events-none transition-opacity">
+                <ChevronDown className="rotate-90 text-slate-900" size={32} />
+              </div>
+              <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover/scroll:opacity-20 pointer-events-none transition-opacity">
+                <ChevronDown className="-rotate-90 text-slate-900" size={32} />
               </div>
            </div>
         </div>

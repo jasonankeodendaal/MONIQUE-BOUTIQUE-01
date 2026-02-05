@@ -49,30 +49,30 @@ const Footer: React.FC = () => {
 
   return (
     <>
-      <footer className="bg-slate-900 text-slate-400 py-10 md:py-20 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 mb-8 md:mb-12 text-left items-start">
-            <div className="col-span-2 md:col-span-2">
-              <div className="flex items-center space-x-4 mb-6 md:mb-10">
+      <footer className="bg-slate-900 text-slate-400 py-16 md:py-24 border-t border-slate-800 relative z-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-20 mb-16 text-left items-start">
+            <div className="md:col-span-2 space-y-8">
+              <div className="flex items-center space-x-6">
                  {settings.companyLogoUrl ? (
-                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="h-20 md:h-32 w-auto object-contain drop-shadow-lg" />
+                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="h-16 md:h-24 w-auto object-contain drop-shadow-lg" />
                 ) : (
-                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl flex items-center justify-center text-white font-black bg-primary text-2xl md:text-4xl shadow-xl">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black bg-primary text-2xl shadow-xl">
                     {settings.companyLogo}
                   </div>
                 )}
                 <div className="flex flex-col -space-y-1">
-                  <span className="text-white text-xl md:text-3xl font-serif font-bold tracking-tighter">{settings.companyName}</span>
-                  <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.3em] text-primary">{settings.slogan}</span>
+                  <span className="text-white text-2xl md:text-3xl font-serif font-bold tracking-tighter">{settings.companyName}</span>
+                  <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] text-primary">{settings.slogan}</span>
                 </div>
               </div>
-              <p className="max-w-xs leading-relaxed text-[11px] md:text-sm mb-6 md:mb-10 font-light line-clamp-3 md:line-clamp-none">
+              <p className="max-w-md leading-relaxed text-sm font-light text-slate-400">
                 {settings.footerDescription}
               </p>
               
-              <div className="space-y-4 md:space-y-8 mt-6 md:mt-12">
-                <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.5em] text-primary/80 block">Connect with our narrative :</span>
-                <div className="flex flex-wrap gap-4 md:gap-10 items-center mt-2">
+              <div className="space-y-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/80 block">Connect with our narrative :</span>
+                <div className="flex flex-wrap gap-8 items-center">
                   {(settings.socialLinks || []).map((link) => (
                     <a 
                       key={link.id} 
@@ -86,7 +86,7 @@ const Footer: React.FC = () => {
                       {link.iconUrl ? (
                         <img 
                           src={link.iconUrl} 
-                          className="w-7 h-7 md:w-12 md:h-12 object-contain transition-all duration-500 group-hover:scale-125 opacity-100 group-hover:brightness-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.1)]" 
+                          className="w-8 h-8 md:w-10 md:h-10 object-contain transition-all duration-500 group-hover:scale-125 opacity-100 group-hover:brightness-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.1)]" 
                           alt={link.name}
                         />
                       ) : (
@@ -99,50 +99,58 @@ const Footer: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div>
-              <h4 className="text-white font-bold mb-4 md:mb-8 text-[11px] md:text-sm uppercase tracking-widest">{settings.footerNavHeader || 'Nav'}</h4>
-              <ul className="space-y-3 md:space-y-5 text-[11px] md:text-sm font-light">
-                <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
-                <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
-                <li><Link to="/about" className="hover:text-primary transition-colors">{settings.navAboutLabel}</Link></li>
-                <li><Link to="/contact" className="hover:text-primary transition-colors">{settings.navContactLabel}</Link></li>
+
+            <div className="space-y-8">
+              <h4 className="text-white font-bold text-sm uppercase tracking-widest border-b border-slate-800 pb-4">{settings.footerNavHeader || 'Explore'}</h4>
+              <ul className="space-y-4 text-sm font-light">
+                <li><Link to="/" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.navHomeLabel}</Link></li>
+                <li><Link to="/products" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.navProductsLabel}</Link></li>
+                <li><Link to="/about" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.navAboutLabel}</Link></li>
+                <li><Link to="/contact" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.navContactLabel}</Link></li>
               </ul>
             </div>
-            <div>
-              <h4 className="text-white font-bold mb-4 md:mb-8 text-[11px] md:text-sm uppercase tracking-widest">{settings.footerPolicyHeader || 'Legal'}</h4>
-              <ul className="space-y-3 md:space-y-5 text-[11px] md:text-sm font-light">
-                <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
-                <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
-                <li><Link to="/terms" className="hover:text-primary transition-colors">{settings.termsTitle}</Link></li>
+
+            <div className="space-y-8">
+              <h4 className="text-white font-bold text-sm uppercase tracking-widest border-b border-slate-800 pb-4">{settings.footerPolicyHeader || 'Institutional'}</h4>
+              <ul className="space-y-4 text-sm font-light">
+                <li><Link to="/disclosure" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.disclosureTitle}</Link></li>
+                <li><Link to="/privacy" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.privacyTitle}</Link></li>
+                <li><Link to="/terms" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.termsTitle}</Link></li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 md:pt-12 border-t border-slate-800 text-center text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p>&copy; {new Date().getFullYear()} {settings.companyName}</p>
-            <div className="flex items-center gap-6 md:gap-10">
+
+          <div className="pt-12 border-t border-slate-800 text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-8">
+            <p className="order-2 md:order-1">&copy; {new Date().getFullYear()} {settings.companyName} • Collective All Rights Reserved</p>
+            
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-10 order-1 md:order-2">
                <button 
                   onClick={() => setShowCreatorModal(true)} 
-                  className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all group shadow-sm"
+                  className="flex items-center gap-3 px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all group shadow-2xl active:scale-95"
                >
-                  <span className="text-[9px] md:text-[10px] font-bold text-slate-400 group-hover:text-white transition-colors">By</span>
-                  <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-4 md:h-6 w-auto opacity-90 group-hover:opacity-100 transition-all" />
+                  <span className="text-[10px] font-bold text-slate-400 group-hover:text-white transition-colors">System By</span>
+                  <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-4 md:h-5 w-auto opacity-80 group-hover:opacity-100 transition-all brightness-0 invert" />
                </button>
-               <div className="flex items-center gap-3">
-                  <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                  <span className="text-[9px] md:text-[10px] font-mono">{connectionHealth?.latency || 0}ms</span>
-               </div>
-               <div className="flex items-center gap-3 md:gap-4">
-                <div 
-                  className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full transition-all duration-500 ${
-                    saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' :
-                    saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_10px_#ef4444]' :
-                    saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
-                    'bg-slate-700'
-                  }`} 
-                />
-                <Link to={user ? "/admin" : "/login"} className="opacity-40 hover:opacity-100 hover:text-white transition-all text-[9px] md:text-[11px] font-bold">
-                  PORTAL
-                </Link>
+
+               <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500 shadow-[0_0_8px_#ef4444]'}`}></div>
+                    <span className="text-[10px] font-mono text-slate-400">{connectionHealth?.latency || 0}ms Response</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 border-l border-slate-800 pl-6">
+                    <div 
+                      className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
+                        saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' :
+                        saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_10px_#ef4444]' :
+                        saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
+                        'bg-slate-700'
+                      }`} 
+                    />
+                    <Link to={user ? "/admin" : "/login"} className="opacity-40 hover:opacity-100 hover:text-white transition-all text-[11px] font-black tracking-widest">
+                      PORTAL
+                    </Link>
+                  </div>
                </div>
             </div>
           </div>
@@ -150,36 +158,52 @@ const Footer: React.FC = () => {
       </footer>
 
       {showCreatorModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-           <div className="relative w-full max-sm bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 animate-in fade-in duration-500">
+           <div className="relative w-full max-w-[420px] aspect-[9/16] md:aspect-auto md:min-h-[600px] bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl border border-white/10 flex flex-col">
               <div className="absolute inset-0">
-                 <img src="https://i.ibb.co/dsh2c2hp/unnamed.jpg" className="w-full h-full object-cover opacity-60" alt="Creator Background" />
-                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent"></div>
+                 <img src="https://i.ibb.co/dsh2c2hp/unnamed.jpg" className="w-full h-full object-cover opacity-40 grayscale hover:grayscale-0 transition-all duration-1000" alt="Creator Background" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
               </div>
               <button 
                 onClick={() => setShowCreatorModal(false)}
-                className="absolute top-4 right-4 z-20 p-2 bg-black/40 text-white rounded-full hover:bg-white hover:text-black transition-colors backdrop-blur-md"
+                className="absolute top-8 right-8 z-20 p-3 bg-black/40 text-white rounded-full hover:bg-white hover:text-black transition-all backdrop-blur-md border border-white/10"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
-              <div className="relative z-10 p-10 text-center flex flex-col items-center">
-                 <div className="w-20 h-20 mb-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 p-4 flex items-center justify-center shadow-2xl">
+              
+              <div className="relative z-10 p-10 md:p-14 mt-auto text-left flex flex-col items-start">
+                 <div className="w-24 h-24 mb-10 rounded-[2rem] bg-white shadow-[0_20px_50px_rgba(255,255,255,0.1)] p-5 flex items-center justify-center border border-white/20 transform -rotate-3 hover:rotate-0 transition-transform">
                     <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="w-full h-auto object-contain" />
                  </div>
-                 <h2 className="text-2xl font-serif text-white mb-2 tracking-tight">JSTYP.me</h2>
-                 <p className="text-primary font-bold text-[10px] uppercase tracking-widest mb-6">Jason's solution to your problems</p>
-                 <p className="text-slate-300 text-xs leading-relaxed mb-10 max-w-xs font-light">
-                    Need a website, App or just a tool? <br/>Contact us today!
+                 
+                 <div className="space-y-4 mb-12">
+                   <h2 className="text-5xl md:text-6xl font-serif text-white tracking-tighter leading-none">JSTYP<span className="text-primary italic">.me</span></h2>
+                   <div className="h-1 w-16 bg-primary"></div>
+                   <p className="text-primary font-black uppercase text-[10px] tracking-[0.5em]">Creative Engineering & Logic</p>
+                 </div>
+
+                 <p className="text-slate-300 text-lg md:text-xl font-light leading-relaxed mb-12 max-w-sm italic">
+                    "Crafting digital environments that bridge aesthetics with pure functional performance."
                  </p>
-                 <a 
-                   href="https://wa.me/"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   className="flex items-center gap-3 px-6 py-3 bg-[#25D366] text-white rounded-xl hover:brightness-110 transition-all shadow-xl shadow-[#25D366]/20 group"
-                 >
-                    <img src="https://i.ibb.co/Z1YHvjgT/image-removebg-preview-1.png" alt="WhatsApp" className="w-5 h-5 object-contain" />
-                    <span className="font-bold text-xs uppercase tracking-wider">Chat on WhatsApp</span>
-                 </a>
+                 
+                 <div className="w-full space-y-4">
+                    <a 
+                      href="https://wa.me/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-between gap-3 px-8 py-5 bg-[#25D366] text-white rounded-2xl hover:brightness-110 transition-all shadow-2xl shadow-[#25D366]/20 group"
+                    >
+                       <span className="font-black text-xs uppercase tracking-widest">Inquire on WhatsApp</span>
+                       <img src="https://i.ibb.co/Z1YHvjgT/image-removebg-preview-1.png" alt="WhatsApp" className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" />
+                    </a>
+                    
+                    <button 
+                      onClick={() => setShowCreatorModal(false)}
+                      className="w-full py-4 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] hover:text-white transition-colors"
+                    >
+                      Return to Gallery
+                    </button>
+                 </div>
               </div>
            </div>
         </div>
@@ -358,8 +382,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
 
 /**
  * STRICT AUTHENTICATION PROTOCOLS
- * 1. 5-Minute Inactivity Watchdog
- * 2. Volatile Session Management (Logout on Refresh)
  */
 const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -420,12 +442,9 @@ const getLocalState = <T,>(key: string, fallback: T): T => {
 const GlobalLayoutOverwrites: React.FC = () => (
   <style>{`
     .subcategory-scroll-area {
-       display: grid;
-       grid-template-rows: repeat(4, auto);
-       grid-auto-flow: column;
+       display: flex;
        overflow-x: auto;
        scroll-behavior: smooth;
-       max-height: 280px;
        gap: 0.75rem;
        padding-bottom: 1rem;
        mask-image: linear-gradient(to right, black 85%, transparent 100%);
@@ -464,25 +483,21 @@ const App: React.FC = () => {
       await supabase.auth.signOut();
     }
     setUser(null);
-    // Force clean redirect to login on all active tabs if applicable
     if (window.location.hash.includes('admin')) {
       window.location.href = '#/login';
     }
   }, []);
 
-  // SESSION WATCHDOG: Inactive logout (5 minutes)
   useInactivityTimer(() => { 
     if (user && !window.location.hash.includes('login')) {
       performLogout();
     }
   }, 300000);
 
-  // VOLATILE SESSION: Logout on Refresh
   useEffect(() => {
     const checkReload = async () => {
       const [nav] = performance.getEntriesByType('navigation') as any;
       if (nav && nav.type === 'reload') {
-        console.warn("Security Protocol: Page refresh detected. Volatile session terminated.");
         await performLogout();
       }
     };
