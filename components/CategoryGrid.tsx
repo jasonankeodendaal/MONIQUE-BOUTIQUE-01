@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
@@ -18,12 +17,12 @@ const CategoryGrid: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-28 gap-4 md:gap-8">
           <div className="max-w-3xl text-center md:text-left">
-            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.6em] text-primary mb-2 md:mb-6 block">
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.6em] text-primary mb-2 md:mb-6 block text-contrast-shadow">
               Curated Departments
             </span>
             {/* Fluid Text Sizing */}
             <h2 className="font-serif text-slate-900 leading-none tracking-tighter text-balance" style={{ fontSize: 'clamp(2.5rem, 6vw, 6rem)' }}>
-              Shop by <br className="hidden md:block"/> <span className="italic font-light text-primary drop-shadow-sm">Department</span>
+              Shop by <br className="hidden md:block"/> <span className="italic font-light text-primary drop-shadow-sm text-contrast-shadow">Department</span>
             </h2>
           </div>
           <p className="hidden md:block text-slate-400 max-w-xs font-light leading-relaxed mb-4 text-sm md:text-lg">

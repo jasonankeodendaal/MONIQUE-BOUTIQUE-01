@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
@@ -53,13 +52,13 @@ const About: React.FC = () => {
         
         <div className="w-full lg:w-1/2 flex items-center p-6 md:p-24 relative z-10">
            <div className="max-w-2xl text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[7px] md:text-[9px] font-black uppercase tracking-[0.4em] mb-6 md:mb-12 border border-primary/20">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[7px] md:text-[9px] font-black uppercase tracking-[0.4em] mb-6 md:mb-12 border border-primary/20 text-contrast-shadow">
                   <Sparkles size={10} className="animate-pulse"/> {settings.aboutFounderName}
               </div>
               
               <h1 className="font-serif text-white leading-[0.8] tracking-tighter mb-6 md:mb-12 text-balance animate-in slide-in-from-bottom-12 duration-1000" style={{ fontSize: 'clamp(2rem, 7vw, 7rem)' }}>
                   {settings.aboutHeroTitle.split(' ').map((word, i) => (
-                      <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block" : "block"}>{word}</span>
+                      <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block text-contrast-shadow" : "block"}>{word}</span>
                   ))}
               </h1>
 
@@ -105,7 +104,7 @@ const About: React.FC = () => {
             <div className="col-span-8 text-left">
                 <div className="flex items-center gap-2 md:gap-6 mb-4 md:mb-12">
                    <div className="h-[1px] md:h-[2px] w-8 md:w-20 bg-primary"></div>
-                   <span className="text-[8px] md:text-[12px] font-black uppercase tracking-[0.4em] text-primary">The Manifesto</span>
+                   <span className="text-[8px] md:text-[12px] font-black uppercase tracking-[0.4em] text-primary text-contrast-shadow">The Manifesto</span>
                 </div>
                 
                 <h3 className="text-lg md:text-7xl font-serif text-slate-900 mb-6 md:mb-16 leading-[1] tracking-tighter">
@@ -146,7 +145,7 @@ const About: React.FC = () => {
          <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                <div className="text-left">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-3 block flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-3 block flex items-center gap-2 text-contrast-shadow">
                     <Heart size={12} className="fill-current" /> Current Obsessions
                   </span>
                   <h3 className="text-3xl md:text-5xl font-serif text-slate-900 tracking-tight">The Curator's Edit</h3>
@@ -197,7 +196,7 @@ const About: React.FC = () => {
                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                                R {product.price.toLocaleString()}
                              </span>
-                             <span className="text-[9px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                             <span className="text-[9px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity text-contrast-shadow">
                                0{idx + 1}
                              </span>
                           </div>

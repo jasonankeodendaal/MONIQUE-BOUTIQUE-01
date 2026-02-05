@@ -23,7 +23,7 @@ const AboutSection: React.FC = () => {
               
               {/* Smaller Founder Tag */}
               <div className="absolute -bottom-2 -right-1 md:bottom-12 md:-right-10 z-30 bg-white p-2 md:p-6 rounded-xl md:rounded-[2rem] shadow-2xl border border-slate-50 flex flex-col items-start min-w-[80px] md:min-w-[200px]">
-                 <span className="text-[5px] md:text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-0.5 md:mb-2">The Curator</span>
+                 <span className="text-[5px] md:text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-0.5 md:mb-2 text-contrast-shadow">The Curator</span>
                  <h4 className="text-[8px] md:text-2xl font-serif text-slate-900 leading-tight">{settings.aboutFounderName}</h4>
               </div>
             </div>
@@ -37,7 +37,7 @@ const AboutSection: React.FC = () => {
             </div>
             
             <h2 className="font-serif text-slate-900 mb-3 md:mb-12 leading-[1] tracking-tighter text-pretty" style={{ fontSize: 'clamp(1.2rem, 4vw, 5.5rem)' }}>
-              {settings.homeAboutTitle.split(' ').slice(0, -2).join(' ')} <span className="italic font-light text-primary">{settings.homeAboutTitle.split(' ').slice(-2).join(' ')}</span>
+              {settings.homeAboutTitle.split(' ').slice(0, -2).join(' ')} <span className="italic font-light text-primary text-contrast-shadow">{settings.homeAboutTitle.split(' ').slice(-2).join(' ')}</span>
             </h2>
             
             <div className="relative mb-4 md:mb-16">

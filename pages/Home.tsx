@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
@@ -37,9 +36,9 @@ const Home: React.FC = () => {
       <section className="py-8 md:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-8 md:mb-16">
-            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-2">{settings.homeNicheSubheader || 'Curated Portals'}</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary block mb-2 text-contrast-shadow">{settings.homeNicheSubheader || 'Curated Portals'}</span>
             <h2 className="text-2xl md:text-5xl font-serif text-slate-900 tracking-tighter">
-              {settings.homeNicheHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary">{settings.homeNicheHeader?.split(' ').slice(-1)}</span>
+              {settings.homeNicheHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary text-contrast-shadow">{settings.homeNicheHeader?.split(' ').slice(-1)}</span>
             </h2>
           </div>
           <div className="grid grid-cols-4 md:grid-cols-4 gap-4 md:gap-12">
@@ -73,9 +72,9 @@ const Home: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
            <div className="text-center mb-16 md:mb-24">
-              <span className="text-[10px] font-black uppercase tracking-[0.8em] text-primary block mb-4">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.8em] text-primary block mb-4 text-contrast-shadow">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
               <h2 className="text-3xl md:text-6xl font-serif text-slate-900 tracking-tight leading-none">
-                 {settings.homeTrustHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary">{settings.homeTrustHeader?.split(' ').slice(-1)}</span>
+                 {settings.homeTrustHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary text-contrast-shadow">{settings.homeTrustHeader?.split(' ').slice(-1)}</span>
               </h2>
            </div>
            
