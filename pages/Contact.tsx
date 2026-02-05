@@ -225,7 +225,7 @@ const Contact: React.FC = () => {
                 </div>
 
                 <div className="mt-12 pt-8 border-t border-slate-800">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">Digital Ecosystem</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">Follow us :</span>
                   <div className="flex flex-wrap gap-8 items-center">
                     {(settings.socialLinks || []).map((link) => (
                       <a 

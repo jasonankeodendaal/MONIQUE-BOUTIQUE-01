@@ -68,7 +68,7 @@ const Footer: React.FC = () => {
               
               {/* Dynamic Social Links - Free View Style */}
               <div className="space-y-6 mt-10">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/80 block">Connect with My Narrative</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/80 block">Follow us :</span>
                 <div className="flex flex-wrap gap-8 items-center mt-4">
                   {(settings.socialLinks || []).map((link) => (
                     <a 
@@ -85,7 +85,7 @@ const Footer: React.FC = () => {
                       {link.iconUrl ? (
                         <img 
                           src={link.iconUrl} 
-                          className="w-8 h-8 md:w-10 md:h-10 object-contain transition-all duration-500 group-hover:scale-125 filter grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:brightness-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
+                          className="w-8 h-8 md:w-10 md:h-10 object-contain transition-all duration-500 group-hover:scale-125 opacity-100 group-hover:brightness-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
                           alt={link.name}
                         />
                       ) : (
