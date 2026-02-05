@@ -177,7 +177,7 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           const scriptUrl = '/sw.js';
-          navigator.worker.register(scriptUrl)
+          navigator.serviceWorker.register(scriptUrl)
             .then(reg => console.log('SW active:', reg.scope))
             .catch(err => {
                navigator.serviceWorker.register('./sw.js')

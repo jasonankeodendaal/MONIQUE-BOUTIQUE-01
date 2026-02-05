@@ -257,7 +257,7 @@ const ProductDetail: React.FC = () => {
               
               <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl md:text-3xl font-black text-slate-900">R {product.price.toLocaleString()}</span>
+                  <span className="text-2xl md:text-3xl font-black text-slate-900">R {(product.price || 0).toLocaleString()}</span>
                   {product.discountRules && product.discountRules.length > 0 && (
                     <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest">
                       {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}

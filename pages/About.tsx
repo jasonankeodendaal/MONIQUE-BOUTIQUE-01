@@ -200,7 +200,7 @@ const About: React.FC = () => {
                             {product.name}
                           </h4>
                           <span className="text-[12px] font-black text-primary uppercase tracking-widest">
-                             R {product.price.toLocaleString()}
+                             R {(product.price || 0).toLocaleString()}
                           </span>
                        </div>
                     </Link>
