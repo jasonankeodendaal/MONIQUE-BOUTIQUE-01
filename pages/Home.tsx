@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
-import { LayoutGrid, Sparkles, ShieldCheck, Globe, Star, ArrowRight } from 'lucide-react';
+import { LayoutGrid, ShieldCheck, Globe, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
@@ -19,6 +19,18 @@ const SectionDivider: React.FC = () => (
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { settings, categories } = useSettings();
+
+  // Shuffle categories and pick exactly 4 to show on the home page
+  // This logic runs on every "reload" (mount of the Home component)
+  const featuredCategories = useMemo(() => {
+    if (!categories || categories.length === 0) return [];
+    
+    // Create a copy to avoid mutating original list, then shuffle
+    const shuffled = [...categories].sort(() => Math.random() - 0.5);
+    
+    // Limit to 4 departments as requested
+    return shuffled.slice(0, 4);
+  }, [categories]);
 
   return (
     <main className="pt-0">
@@ -42,7 +54,7 @@ const Home: React.FC = () => {
             </h2>
           </div>
           <div className="grid grid-cols-4 md:grid-cols-4 gap-4 md:gap-12">
-            {categories.map((cat) => {
+            {featuredCategories.map((cat) => {
               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
               return (
                 <button
@@ -64,7 +76,7 @@ const Home: React.FC = () => {
       </section>
 
       <div className="bg-copper-wash">
-        <CategoryGrid />
+        <CategoryGrid items={featuredCategories} />
       </div>
 
       {/* Trust & Methodology Section */}

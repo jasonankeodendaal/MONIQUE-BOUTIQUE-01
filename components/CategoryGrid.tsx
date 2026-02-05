@@ -3,10 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from './CustomIcons';
+import { Category } from '../types';
 
-const CategoryGrid: React.FC = () => {
+interface CategoryGridProps {
+  items?: Category[];
+}
+
+const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
   const navigate = useNavigate();
-  const { categories } = useSettings();
+  const { categories: allCategories } = useSettings();
+  
+  // Use provided items (shuffled subset) or fallback to all categories
+  const displayItems = items || allCategories;
 
   const handleCategoryClick = (id: string) => {
     navigate(`/products?category=${id}`);
@@ -31,7 +39,7 @@ const CategoryGrid: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8">
-          {categories.map((cat, idx) => {
+          {displayItems.map((cat, idx) => {
             const IconComponent = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LucideIcons.Package;
 
             return (
