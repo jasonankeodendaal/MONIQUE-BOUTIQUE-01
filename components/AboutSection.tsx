@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Quote } from 'lucide-react';
@@ -40,8 +41,8 @@ const AboutSection: React.FC = () => {
               {settings.homeAboutTitle.split(' ').slice(0, -2).join(' ')} <span className="italic font-light text-primary">{settings.homeAboutTitle.split(' ').slice(-2).join(' ')}</span>
             </h2>
             
-            <div className="relative mb-4 md:mb-16">
-              <p className="text-xs md:text-3xl text-slate-500 font-light leading-relaxed text-pretty pr-2 md:pr-20">
+            <div className="relative mb-6 md:mb-16">
+              <p className="text-sm md:text-4xl text-slate-900 font-light leading-snug md:leading-tight text-pretty pr-2 md:pr-20 tracking-tight">
                 {settings.homeAboutDescription}
               </p>
             </div>

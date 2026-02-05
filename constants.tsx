@@ -543,9 +543,9 @@ export const INITIAL_SETTINGS: SiteSettings = {
   // Home Page Content
   homeHeroBadge: 'Curator Exclusive',
   homeAboutTitle: 'The Curator\'s Journey.',
-  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.',
+  homeAboutDescription: 'Curating the global aesthetic. Findara is my personal gateway to the hidden gems I discover—hand-selected to bridge my story with your unique style.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Explore My Story',
+  homeAboutCta: 'Explore My Full Story',
   homeCategorySectionTitle: 'Curated Departments',
   homeCategorySectionSubtitle: 'The Collection',
   homeNicheHeader: 'Shop by Niche',
@@ -586,8 +586,8 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutFounderName: 'Findara Curator',
   aboutLocation: 'Cape Town, Online',
 
-  aboutHistoryTitle: 'The Bridge System',
-  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a platform. Findara isn\'t just about affiliate links; it\'s about the story behind every garment. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nThis bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator.',
+  aboutHistoryTitle: 'Bridging the Global Aesthetic',
+  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a professional curation platform. Findara isn\'t just about affiliate links; it\'s about the meticulous process behind every garment selection. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nAs an affiliate marketer, I believe in transparency. This bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator, and I only partner with retailers that meet my strict standards for quality and trend relevance.\n\nWhat started as a personal quest for the perfect wardrobe has evolved into a global network of style finds. Welcome to my narrative—I hope it helps you define yours.',
   
   aboutMissionTitle: 'Marketing Mission',
   aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers with transparency and taste.',
