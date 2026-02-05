@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Quote } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { useSettings } from '../App';
 
 const AboutSection: React.FC = () => {
@@ -53,9 +53,6 @@ const AboutSection: React.FC = () => {
             </h2>
             
             <div className="relative mb-6 md:mb-16">
-              <div className="absolute -left-6 top-0 text-primary/10 select-none">
-                <Quote size={40} className="fill-current" />
-              </div>
               <p className="text-sm md:text-2xl text-slate-500 font-light leading-relaxed text-pretty pr-2 md:pr-16 line-clamp-6 max-w-4xl break-words relative z-10">
                 {settings.homeAboutDescription}
               </p>
