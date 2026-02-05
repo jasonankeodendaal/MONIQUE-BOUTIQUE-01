@@ -224,25 +224,29 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-10 pt-8 border-t border-slate-800">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-4">Follow My Journey</span>
-                  <div className="flex flex-wrap gap-4">
+                <div className="mt-12 pt-8 border-t border-slate-800">
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">Digital Ecosystem</span>
+                  <div className="flex flex-wrap gap-8 items-center">
                     {(settings.socialLinks || []).map((link) => (
                       <a 
                         key={link.id} 
                         href={link.url} 
                         target="_blank" 
                         rel="noreferrer" 
-                        className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700/50 flex items-center justify-center hover:bg-white/10 hover:border-primary/40 transition-all duration-300 overflow-hidden group shadow-lg"
+                        className="flex items-center justify-center transition-all duration-500 group relative"
+                        title={link.name}
                       >
+                        {/* Interactive Blur Glow */}
+                        <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        
                         {link.iconUrl ? (
                           <img 
                             src={link.iconUrl} 
-                            className="w-7 h-7 object-contain group-hover:scale-110 transition-transform" 
+                            className="w-10 h-10 object-contain transition-all duration-500 group-hover:scale-125 filter group-hover:brightness-125 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]" 
                             alt={link.name}
                           />
                         ) : (
-                          <ArrowRight size={14} className="-rotate-45" />
+                          <ArrowRight size={24} className="-rotate-45 text-white group-hover:text-primary transition-colors" />
                         )}
                       </a>
                     ))}

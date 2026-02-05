@@ -67,26 +67,31 @@ const Footer: React.FC = () => {
               </p>
               
               {/* Dynamic Social Links - Free View Style */}
-              <div className="space-y-4 mt-8">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 block">Follow Us</span>
-                <div className="flex flex-wrap gap-4 mt-4">
+              <div className="space-y-6 mt-10">
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/80 block">Connect with My Narrative</span>
+                <div className="flex flex-wrap gap-8 items-center mt-4">
                   {(settings.socialLinks || []).map((link) => (
                     <a 
                       key={link.id} 
                       href={link.url} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all duration-300 group overflow-hidden border border-white/10 hover:border-primary/40 shadow-lg"
+                      className="flex items-center justify-center transition-all duration-500 group relative"
                       title={link.name}
                     >
+                      {/* Subtle Glow Backdrop */}
+                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      
                       {link.iconUrl ? (
                         <img 
                           src={link.iconUrl} 
-                          className="w-6 h-6 object-contain transition-transform group-hover:scale-110" 
+                          className="w-8 h-8 md:w-10 md:h-10 object-contain transition-all duration-500 group-hover:scale-125 filter grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:brightness-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
                           alt={link.name}
                         />
                       ) : (
-                        <ArrowRight size={16} className="-rotate-45 text-white" />
+                        <div className="text-white group-hover:text-primary transition-colors">
+                          <ArrowRight size={24} className="-rotate-45" />
+                        </div>
                       )}
                     </a>
                   ))}
