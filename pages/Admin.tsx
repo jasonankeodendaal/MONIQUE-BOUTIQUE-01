@@ -792,7 +792,7 @@ const IntegrationGuide: React.FC = () => (
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
             <p>1. Go to <a href="https://analytics.google.com" target="_blank" className="text-white underline">Google Analytics</a>.</p>
-            <p>2. Create a property. Go to Admin > Data Streams > Web.</p>
+            <p>2. Create a property. Go to Admin {' > '} Data Streams {' > '} Web.</p>
             <p>3. Copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</p>
           </div>
         </details>
@@ -801,8 +801,8 @@ const IntegrationGuide: React.FC = () => (
             <Target size={14} /> Meta / TikTok Pixels
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p><strong>Meta (Facebook):</strong> Go to Events Manager > Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
-            <p><strong>TikTok:</strong> Go to Ads Manager > Assets > Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
+            <p><strong>Meta (Facebook):</strong> Go to Events Manager {' > '} Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
+            <p><strong>TikTok:</strong> Go to Ads Manager {' > '} Assets {' > '} Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
           </div>
         </details>
      </div>
@@ -1338,7 +1338,7 @@ const Admin: React.FC = () => {
       </div>
       { (filteredEnquiries.length === 0) ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] md:rounded-[3rem] border border-dashed border-slate-800 text-slate-500">No enquiries found.</div> : 
         filteredEnquiries.map(e => (
-          <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-6 text-left ${ (e.status === 'unread') ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.1)]' : 'border-slate-800' }`}>
+          <div key={e.id} className={`bg-slate-900 border transition-all rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 flex flex-col md:flex-row gap-6 text-left ${ (e.status === 'unread') ? 'border-primary/30 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)]' : 'border-slate-800' }`}>
             <div className="flex-grow space-y-2 min-w-0"><div className="flex items-center gap-3"><h4 className="text-white font-bold truncate">{e.name}</h4><span className="text-[9px] font-black text-slate-500 uppercase flex-shrink-0">{new Date(e.createdAt).toLocaleDateString()}</span></div><p className="text-primary text-sm font-bold truncate">{e.email}</p><div className="p-4 bg-slate-800/50 rounded-2xl text-slate-400 text-sm italic leading-relaxed break-words">"{e.message}"</div></div>
             <div className="flex gap-2 items-start w-full md:w-auto flex-shrink-0 min-w-0">
               <button 
@@ -2352,7 +2352,7 @@ const Admin: React.FC = () => {
             </div>
 
             <div className="pt-12 border-t border-slate-800 text-left">
-               <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4 mb-8">III. Dynamic Step Builder</h4>
+               <h4 className="text-white font-black text-xs uppercase tracking-[0.4em] flex items-center gap-2 border-l-2 border-primary pl-4 mb-8">III. Dynamic Step Builder</h4>
                <div className="space-y-8">
                   {(trainingData.steps || []).map((step, idx) => (
                     <div key={idx} className="bg-slate-950 border border-slate-800 rounded-[2.5rem] p-8 md:p-10 relative group/step animate-in slide-in-from-left duration-300">
