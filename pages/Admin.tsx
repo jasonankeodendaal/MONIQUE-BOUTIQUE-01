@@ -792,7 +792,7 @@ const IntegrationGuide: React.FC = () => (
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
             <p>1. Go to <a href="https://analytics.google.com" target="_blank" className="text-white underline">Google Analytics</a>.</p>
-            <p>2. Create a property. Go to Admin > Data Streams > Web.</p>
+            <p>2. Create a property. Go to Admin {'>'} Data Streams {'>'} Web.</p>
             <p>3. Copy the <strong>Measurement ID</strong> (starts with <code>G-</code>).</p>
           </div>
         </details>
@@ -801,8 +801,8 @@ const IntegrationGuide: React.FC = () => (
             <Target size={14} /> Meta / TikTok Pixels
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
-            <p><strong>Meta (Facebook):</strong> Go to Events Manager > Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
-            <p><strong>TikTok:</strong> Go to Ads Manager > Assets > Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
+            <p><strong>Meta (Facebook):</strong> Go to Events Manager {'>'} Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
+            <p><strong>TikTok:</strong> Go to Ads Manager {'>'} Assets {'>'} Events. Create a Web Event. Copy the <strong>Pixel ID</strong>.</p>
           </div>
         </details>
      </div>
