@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
 import { CarouselSlide } from '../types';
@@ -111,7 +110,7 @@ const Hero: React.FC = () => {
         >
           {slide.type === 'video' ? (
             <video
-              ref={(el) => (videoRefs.current[slide.id] = el)}
+              ref={(el) => { videoRefs.current[slide.id] = el; }}
               muted
               playsInline
               onEnded={nextSlide}
