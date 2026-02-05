@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export interface CustomIconProps extends React.SVGProps<SVGSVGElement> {
@@ -16,6 +15,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   // --- APPAREL ---
   Dress: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Elegant Evening Gown with sweetheart neckline and flowing skirt */}
       <path d="M12 2C9.5 2 8 3.5 8 5c0 1.2.8 2.5 1.5 3.5C8 10 6 12 5 22h14c-1-10-3-12-4.5-13.5.7-1 1.5-2.3 1.5-3.5 0-1.5-1.5-3-4-3z" />
       <path d="M9.5 5c.5 1 1.5 1.5 2.5 1.5s2-.5 2.5-1.5" />
       <path d="M12 8.5v13.5" strokeOpacity="0.5" />
@@ -25,6 +25,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Gown: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Mermaid Silhouette */}
       <path d="M12 2c-2.5 0-3.5 1.5-3.5 3 0 1.5 1 3.5 2 5 .5 3-1 6-3 12h13c-2-6-3.5-9-3-12 1-1.5 2-3.5 2-5 0-1.5-1-3-3.5-3z" />
       <path d="M8.5 5h7" strokeOpacity="0.5" />
       <path d="M10 22c1-3 1.5-6 2-10 .5 4 1 7 2 10" strokeOpacity="0.5" />
@@ -32,6 +33,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Coat: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Trench Coat Structure */}
       <path d="M12 2L8 4l-1 5 2 15h6l2-15-1-5-4-2z" />
       <path d="M12 2v20" />
       <path d="M8 9h8" />
@@ -43,6 +45,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Blazer: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Sharp Tailored Blazer */}
       <path d="M12 2l-4 2-3 4v12h14V8l-3-4-4-2z" />
       <path d="M12 2v18" />
       <path d="M12 10l-3-4" />
@@ -54,6 +57,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Shirt: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Collared Shirt */}
       <path d="M12 2L8 4l-4 3 2 12h12l2-12-4-3-4-2z" />
       <path d="M12 2v19" />
       <path d="M12 5l-2 2" />
@@ -65,6 +69,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Trousers: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Tailored Pants */}
       <path d="M12 2H8L6 8l1 14h3l2-14 2 14h3l1-14-2-6h-4z" />
       <path d="M12 2v6" />
       <path d="M12 8l-1 14" strokeOpacity="0.5" />
@@ -90,6 +95,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   // --- FOOTWEAR ---
   Heel: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Classic Pump */}
       <path d="M14 6c2 0 4 2 5 6v7h-3l-2-3-7 1-3-2c-1-3 2-9 10-9z" />
       <path d="M19 19v-7" />
       <path d="M5 15l2 4h12" />
@@ -97,6 +103,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Stiletto: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* High Fashion Stiletto */}
       <path d="M5 12c0-3 2-7 8-7 3 0 5 2 5 4v9" />
       <path d="M5 12l4 4 9-2" />
       <path d="M18 18v4h-2" />
@@ -105,6 +112,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Boot: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Knee High Boot */}
       <path d="M8 2h8v12c0 3-2 5-6 5h-4l-2-3 1-3c1-2 3-2 3-11z" />
       <path d="M8 19v3h8" />
       <path d="M10 14h4" strokeOpacity="0.5" />
@@ -128,6 +136,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   // --- ACCESSORIES ---
   Handbag: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Structured Birkin Style */}
       <path d="M8 8V5a4 4 0 0 1 8 0v3" />
       <path d="M4 8h16l2 13H2L4 8z" />
       <path d="M12 12v2" />
@@ -145,6 +154,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Clutch: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Envelope Clutch */}
       <rect x="3" y="8" width="18" height="11" rx="1" />
       <path d="M3 8l9 6 9-6" />
       <path d="M12 14v2" />
@@ -163,6 +173,7 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
   ),
   Glasses: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      {/* Cat Eye Shapes */}
       <path d="M3 12c0-3 3-4 6-4s5 2 5 4-2 4-5 4-6-1-6-4z" />
       <path d="M15 12c0-3 3-4 6-4s5 2 5 4-2 4-5 4-6-1-6-4z" />
       <path d="M9 12h6" />
@@ -200,228 +211,55 @@ export const CustomIcons: Record<string, React.FC<CustomIconProps>> = {
     </svg>
   ),
 
-  // --- GARDEN ---
-  PottedPlant: ({ size = 24, ...props }) => (
+  // --- TOOLS & CRAFT ---
+  Needle: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M12 10a4 4 0 0 1 4-4c2 0 4 2 4 4s-4 2-4 2" />
-      <path d="M12 10a4 4 0 0 0-4-4C6 6 4 8 4 10s4 2 4 2" />
-      <path d="M12 10v4" />
-      <path d="M7 14h10l-2 8H9l-2-8z" />
-      <path d="M9 14l1 8" strokeOpacity="0.3" />
-      <path d="M15 14l-1 8" strokeOpacity="0.3" />
+      <path d="M19 3L3 21" />
+      <path d="M17 3l4 4" />
+      <circle cx="18" cy="6" r="1" />
     </svg>
   ),
-  WateringCan: ({ size = 24, ...props }) => (
+  SewingMachine: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M12 21H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" />
-      <path d="M17 11l4-4" />
-      <path d="M5 9H3a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h2" />
-      <path d="M21 7l.5-.5" />
-      <path d="M22 8.5l.5-.5" />
-      <path d="M19.5 5.5L20 5" />
-    </svg>
-  ),
-  Trowel: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M12 2l-3 6h6l-3-6z" />
-      <path d="M9 8v6c0 1.5 1.5 3 3 3s3-1.5 3-3V8" />
-      <path d="M12 17v5" />
-      <path d="M10 22h4" />
-    </svg>
-  ),
-  Greenhouse: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M3 21h18V10l-9-7-9 7v11z" />
-      <path d="M3 10h18" />
-      <path d="M9 3v18" />
-      <path d="M15 3v18" />
-      <path d="M3 15h18" />
-    </svg>
-  ),
-
-  // --- HOME FURNITURE ---
-  SofaLuxury: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M4 12v-3c0-2 2-3 4-3h8c2 0 4 1 4 3v3" />
-      <path d="M2 12h20v5a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-5z" />
-      <path d="M4 20v2" />
-      <path d="M20 20v2" />
-      <path d="M8 12v5" strokeOpacity="0.3" />
-      <path d="M16 12v5" strokeOpacity="0.3" />
-    </svg>
-  ),
-  Armchair: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8" />
-      <path d="M5 12h14" />
-      <path d="M7 8V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4" />
-      <path d="M5 20v2" />
-      <path d="M19 20v2" />
-    </svg>
-  ),
-  CoffeeTable: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <ellipse cx="12" cy="7" rx="10" ry="4" />
-      <path d="M4 9l-1 10" />
-      <path d="M20 9l1 10" />
-      <path d="M12 11v8" strokeOpacity="0.3" />
-      <path d="M3 19h18" strokeOpacity="0.5" />
-    </svg>
-  ),
-  Lamp: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M8 2l-2 8h12l-2-8H8z" />
-      <path d="M12 10v10" />
-      <path d="M8 22h8" />
-      <path d="M12 10l-4 4" strokeOpacity="0.3" />
-    </svg>
-  ),
-  Bed: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M2 12v8" />
-      <path d="M22 12v8" />
-      <path d="M2 14h20" />
-      <path d="M2 8h2v6" />
-      <path d="M20 8h2v6" />
-      <path d="M4 8h16a2 2 0 0 1 2 2v4H2v-4a2 2 0 0 1 2-2z" />
-      <path d="M6 8V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" strokeOpacity="0.5" />
-    </svg>
-  ),
-
-  // --- APPLIANCES & KITCHEN ---
-  FridgeSmart: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <rect x="5" y="2" width="14" height="20" rx="2" />
-      <path d="M5 10h14" />
-      <path d="M12 10v12" />
-      <path d="M9 5v2" />
-      <path d="M9 14v3" />
-    </svg>
-  ),
-  WashingMachine: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <rect x="4" y="2" width="16" height="20" rx="2" />
-      <circle cx="12" cy="13" r="5" />
-      <path d="M4 6h16" />
-      <circle cx="8" cy="4" r="1" fill="currentColor" />
-      <circle cx="10" cy="4" r="1" />
-    </svg>
-  ),
-  EspressoMachine: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M6 3h12v6H6z" />
-      <path d="M18 9v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9" />
-      <path d="M12 9v3" />
-      <path d="M10 16h4" />
-      <path d="M14 21h4" />
-    </svg>
-  ),
-  Blender: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M7 22h10" />
-      <path d="M8 16h8l1-10H7l1 10z" />
-      <path d="M9 16v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2" />
-      <path d="M12 6v10" strokeOpacity="0.3" />
-      <path d="M6 2h12" />
-    </svg>
-  ),
-  Cookware: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M3 10h18v6a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-6z" />
-      <path d="M7 10V6a4 4 0 0 1 10 0v4" />
-      <path d="M12 14v2" strokeOpacity="0.3" />
-    </svg>
-  ),
-  ChefKnife: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M3 2l12 12c2 2 4 4 6 2s-4-10-18-14z" />
-      <path d="M15 14l2 2" />
-      <path d="M17 16l3 3c1 1 2 2 1 3s-3 0-4-1l-3-3" />
-    </svg>
-  ),
-
-  // --- OUTDOOR ---
-  Tent: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M12 3L2 21h20L12 3z" />
-      <path d="M12 3v18" />
-      <path d="M7 21l5-9 5 9" strokeOpacity="0.5" />
-    </svg>
-  ),
-  BBQ: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M4 10a8 8 0 0 0 16 0H4z" />
-      <path d="M12 2v2" />
-      <path d="M7 10v10l2 2" />
-      <path d="M17 10v10l-2 2" />
-      <path d="M4 10h16" />
-      <path d="M8 10l1-3 1 3" />
-      <path d="M14 10l1-3 1 3" />
-    </svg>
-  ),
-  FishingRod: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M22 2l-7 7" />
-      <path d="M15 9c-3 3-6 3-9 9l-3 3" />
-      <path d="M19 5l-2 2" strokeOpacity="0.5" />
-      <path d="M22 2c0 4-2 8-6 12" />
-      <path d="M16 14v4" />
-    </svg>
-  ),
-  HikingBoot: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M4 14l2-8h6l2 8v4c0 2-2 3-4 3H6c-2 0-2-1-2-3v-4z" />
-      <path d="M4 14h12" />
-      <path d="M6 14l1-4" />
-      <path d="M10 14l1-4" />
-      <path d="M14 14l1-4" />
-      <path d="M4 21h12" />
-    </svg>
-  ),
-
-  // --- TECH ---
-  PhonePro: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <rect x="5" y="2" width="14" height="20" rx="3" />
-      <path d="M10 2v2h4V2" />
-      <path d="M12 18h.01" strokeWidth={2} />
-    </svg>
-  ),
-  LaptopPro: ({ size = 24, ...props }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <rect x="3" y="4" width="18" height="12" rx="2" />
       <path d="M2 20h20" />
-      <path d="M2 20l2-4h16l2 4" />
-      <path d="M12 16v1" />
+      <path d="M6 20V8c0-3 3-4 7-4h6v8h-6" />
+      <path d="M13 8v8" />
+      <circle cx="16" cy="15" r="2" />
+      <path d="M13 16h-2" />
     </svg>
   ),
-  Drone: ({ size = 24, ...props }) => (
+  Mannequin: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <rect x="10" y="10" width="4" height="4" />
-      <path d="M10 10L6 6" />
-      <path d="M14 10l4-4" />
-      <path d="M10 14l-4 4" />
-      <path d="M14 14l4 4" />
-      <circle cx="6" cy="6" r="2" />
-      <circle cx="18" cy="6" r="2" />
-      <circle cx="6" cy="18" r="2" />
-      <circle cx="18" cy="18" r="2" />
+      <path d="M12 2v2" />
+      <path d="M8 5c-2 2-2 6 0 9 1 2 2 3 4 3s3-1 4-3c2-3 2-7 0-9" />
+      <path d="M12 17v5" />
+      <path d="M9 22h6" />
+      <path d="M8 9h8" strokeOpacity="0.3" />
     </svg>
   ),
-  SmartWatch: ({ size = 24, ...props }) => (
+  Scissors: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <rect x="7" y="6" width="10" height="12" rx="2" />
-      <path d="M9 6V2h6v4" />
-      <path d="M9 18v4h6v-4" />
-      <circle cx="12" cy="12" r="2" strokeOpacity="0.5" />
+      <circle cx="6" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M8 8l11 11" />
+      <path d="M8 16l11-11" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
     </svg>
   ),
-  VrHeadset: ({ size = 24, ...props }) => (
+  MeasuringTape: ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
-      <path d="M3 10h18v6a2 2 0 0 1-2 2h-4l-2-2-4 2H5a2 2 0 0 1-2-2v-6z" />
-      <path d="M6 10V8a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-      <circle cx="8" cy="13" r="1" />
-      <circle cx="16" cy="13" r="1" />
+      <path d="M4 12c0-5 5-9 10-8 4 1 6 5 5 9s-5 7-9 5C6 17 4 15 4 12z" />
+      <path d="M14 4v2" />
+      <path d="M18 6l-1 2" />
+      <path d="M20 10h-2" />
+      <path d="M9 12l2 2" />
+    </svg>
+  ),
+  Hanger: ({ size = 24, ...props }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" {...ICON_OPTS} {...props}>
+      <path d="M12 2c-1.5 0-2 1.5-1 2.5L3 10h18l-8-5.5" />
+      <path d="M3 10v2" />
+      <path d="M21 10v2" />
     </svg>
   ),
 
