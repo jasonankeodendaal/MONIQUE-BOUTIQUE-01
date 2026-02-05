@@ -49,27 +49,30 @@ const Footer: React.FC = () => {
 
   return (
     <>
-      <footer className="bg-slate-900 text-slate-400 py-10 md:py-16 border-t border-slate-800">
+      <footer className="bg-slate-900 text-slate-400 py-10 md:py-20 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 mb-8 md:mb-12 text-left items-start">
             <div className="col-span-2 md:col-span-2">
-              <div className="flex items-center space-x-3 mb-4 md:mb-6">
+              <div className="flex items-center space-x-4 mb-6 md:mb-10">
                  {settings.companyLogoUrl ? (
-                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="h-8 md:h-12 w-auto object-contain" />
+                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="h-20 md:h-32 w-auto object-contain drop-shadow-lg" />
                 ) : (
-                  <div className="w-8 h-8 md:w-12 md:h-12 rounded-lg flex items-center justify-center text-white font-bold bg-primary text-base md:text-xl">
+                  <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl flex items-center justify-center text-white font-black bg-primary text-2xl md:text-4xl shadow-xl">
                     {settings.companyLogo}
                   </div>
                 )}
-                <span className="text-white text-lg md:text-2xl font-bold tracking-tighter">{settings.companyName}</span>
+                <div className="flex flex-col -space-y-1">
+                  <span className="text-white text-xl md:text-3xl font-serif font-bold tracking-tighter">{settings.companyName}</span>
+                  <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.3em] text-primary">{settings.slogan}</span>
+                </div>
               </div>
-              <p className="max-w-xs leading-relaxed text-[10px] md:text-sm mb-4 md:mb-8 font-light line-clamp-3 md:line-clamp-none">
+              <p className="max-w-xs leading-relaxed text-[11px] md:text-sm mb-6 md:mb-10 font-light line-clamp-3 md:line-clamp-none">
                 {settings.footerDescription}
               </p>
               
-              <div className="space-y-3 md:space-y-6 mt-4 md:mt-10">
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-primary/80 block">Follow :</span>
-                <div className="flex flex-wrap gap-4 md:gap-8 items-center mt-2">
+              <div className="space-y-4 md:space-y-8 mt-6 md:mt-12">
+                <span className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.5em] text-primary/80 block">Connect with our narrative :</span>
+                <div className="flex flex-wrap gap-4 md:gap-10 items-center mt-2">
                   {(settings.socialLinks || []).map((link) => (
                     <a 
                       key={link.id} 
@@ -83,12 +86,12 @@ const Footer: React.FC = () => {
                       {link.iconUrl ? (
                         <img 
                           src={link.iconUrl} 
-                          className="w-6 h-6 md:w-10 md:h-10 object-contain transition-all duration-500 group-hover:scale-125 opacity-100 group-hover:brightness-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]" 
+                          className="w-7 h-7 md:w-12 md:h-12 object-contain transition-all duration-500 group-hover:scale-125 opacity-100 group-hover:brightness-110 drop-shadow-[0_0_12px_rgba(255,255,255,0.1)]" 
                           alt={link.name}
                         />
                       ) : (
                         <div className="text-white group-hover:text-primary transition-colors">
-                          <ArrowRight size={18} className="-rotate-45" />
+                          <ArrowRight size={24} className="-rotate-45" />
                         </div>
                       )}
                     </a>
@@ -97,8 +100,8 @@ const Footer: React.FC = () => {
               </div>
             </div>
             <div>
-              <h4 className="text-white font-bold mb-3 md:mb-6 text-[10px] md:text-sm uppercase tracking-widest">{settings.footerNavHeader || 'Nav'}</h4>
-              <ul className="space-y-2 md:space-y-3 text-[10px] md:text-sm font-light">
+              <h4 className="text-white font-bold mb-4 md:mb-8 text-[11px] md:text-sm uppercase tracking-widest">{settings.footerNavHeader || 'Nav'}</h4>
+              <ul className="space-y-3 md:space-y-5 text-[11px] md:text-sm font-light">
                 <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
                 <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
                 <li><Link to="/about" className="hover:text-primary transition-colors">{settings.navAboutLabel}</Link></li>
@@ -106,39 +109,39 @@ const Footer: React.FC = () => {
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-bold mb-3 md:mb-6 text-[10px] md:text-sm uppercase tracking-widest">{settings.footerPolicyHeader || 'Legal'}</h4>
-              <ul className="space-y-2 md:space-y-3 text-[10px] md:text-sm font-light">
+              <h4 className="text-white font-bold mb-4 md:mb-8 text-[11px] md:text-sm uppercase tracking-widest">{settings.footerPolicyHeader || 'Legal'}</h4>
+              <ul className="space-y-3 md:space-y-5 text-[11px] md:text-sm font-light">
                 <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
                 <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
                 <li><Link to="/terms" className="hover:text-primary transition-colors">{settings.termsTitle}</Link></li>
               </ul>
             </div>
           </div>
-          <div className="pt-6 md:pt-8 border-t border-slate-800 text-center text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="pt-8 md:pt-12 border-t border-slate-800 text-center text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-6">
             <p>&copy; {new Date().getFullYear()} {settings.companyName}</p>
-            <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-6 md:gap-10">
                <button 
                   onClick={() => setShowCreatorModal(true)} 
-                  className="flex items-center gap-2 px-2 py-1 md:px-3 md:py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all group shadow-sm"
+                  className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all group shadow-sm"
                >
-                  <span className="text-[8px] md:text-[9px] font-bold text-slate-400 group-hover:text-white transition-colors">By</span>
-                  <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-3 md:h-5 w-auto opacity-90 group-hover:opacity-100 transition-all" />
+                  <span className="text-[9px] md:text-[10px] font-bold text-slate-400 group-hover:text-white transition-colors">By</span>
+                  <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-4 md:h-6 w-auto opacity-90 group-hover:opacity-100 transition-all" />
                </button>
-               <div className="flex items-center gap-2">
-                  <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                  <span className="text-[8px] md:text-[9px] font-mono">{connectionHealth?.latency || 0}ms</span>
+               <div className="flex items-center gap-3">
+                  <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                  <span className="text-[9px] md:text-[10px] font-mono">{connectionHealth?.latency || 0}ms</span>
                </div>
-               <div className="flex items-center gap-2 md:gap-3">
+               <div className="flex items-center gap-3 md:gap-4">
                 <div 
-                  className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-500 ${
-                    saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' :
-                    saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]' :
+                  className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full transition-all duration-500 ${
+                    saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' :
+                    saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_10px_#ef4444]' :
                     saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
                     'bg-slate-700'
                   }`} 
                 />
-                <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all text-[8px] md:text-[10px]">
-                  Concierge
+                <Link to={user ? "/admin" : "/login"} className="opacity-40 hover:opacity-100 hover:text-white transition-all text-[9px] md:text-[11px] font-bold">
+                  PORTAL
                 </Link>
                </div>
             </div>
