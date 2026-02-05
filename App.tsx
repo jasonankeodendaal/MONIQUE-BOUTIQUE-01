@@ -435,7 +435,10 @@ const App: React.FC = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, (payload) => {
           if (payload.new) {
               const { id, ...rest } = payload.new as any;
-              setSettings(rest);
+              // Only update state if the ID matches our global configuration to prevent duplicate jitter
+              if (id === 'global' || id === settingsId) {
+                setSettings(rest);
+              }
           }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, (payload) => {
@@ -461,7 +464,7 @@ const App: React.FC = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [settingsId]);
 
   // --- DYNAMIC META TAG SYSTEM ---
   useEffect(() => {
@@ -475,7 +478,7 @@ const App: React.FC = () => {
           el.setAttribute(attr, property);
           document.head.appendChild(el);
         }
-        el.setAttribute('content', content);
+        el.setAttribute('content', content || '');
       };
 
       const metaTitle = settings.companyName;
@@ -547,7 +550,14 @@ const App: React.FC = () => {
       if (isSupabaseConfigured) {
         const results = await Promise.allSettled([ fetchTableData('settings'), fetchTableData('products'), fetchTableData('categories'), fetchTableData('subcategories'), fetchTableData('hero_slides'), fetchTableData('enquiries'), fetchTableData('admin_users'), fetchTableData('product_stats') ]);
         const [s, p, c, sc, hs, enq, adm, st] = results;
-        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { const { id, ...rest } = s.value[0]; setSettingsId(id); setSettings(rest as SiteSettings); localStorage.setItem('site_settings', JSON.stringify(rest)); }
+        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { 
+           // Prefer the row with id 'global'
+           const globalRow = s.value.find((r: any) => r.id === 'global') || s.value[0];
+           const { id, ...rest } = globalRow; 
+           setSettingsId(id); 
+           setSettings(rest as SiteSettings); 
+           localStorage.setItem('site_settings', JSON.stringify(rest)); 
+        }
         else if (s.status === 'fulfilled' && s.value && s.value.length === 0) { await upsertData('settings', { ...settings, id: 'global' }); setSettingsId('global'); }
         if (p.status === 'fulfilled' && p.value !== null) { setProducts(p.value); localStorage.setItem('admin_products', JSON.stringify(p.value)); }
         if (c.status === 'fulfilled' && c.value !== null) { setCategories(c.value); localStorage.setItem('admin_categories', JSON.stringify(c.value)); }
@@ -563,10 +573,24 @@ const App: React.FC = () => {
   };
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
-    setSaveStatus('saving'); const updated = { ...settings, ...newSettings }; setSettings(updated);
+    setSaveStatus('saving'); 
+    const updated = { ...settings, ...newSettings }; 
+    setSettings(updated);
     localStorage.setItem('site_settings', JSON.stringify(updated));
-    if (isSupabaseConfigured) { try { await upsertData('settings', { ...updated, id: settingsId }); addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); } catch (e) { addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed'); } }
-    setTimeout(() => setSaveStatus('saved'), 500);
+    if (isSupabaseConfigured) { 
+      try { 
+        // Force the ID to 'global' to ensure we only ever have one record
+        await upsertData('settings', { ...updated, id: 'global' }); 
+        setSettingsId('global');
+        addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); 
+        setSaveStatus('saved');
+      } catch (e: any) { 
+        addSystemLog('ERROR', 'settings', `Cloud sync failed: ${e.message}`, 0, 'failed'); 
+        setSaveStatus('error');
+      } 
+    } else {
+      setTimeout(() => setSaveStatus('saved'), 500);
+    }
   };
 
   const updateData = async (table: string, data: any) => {

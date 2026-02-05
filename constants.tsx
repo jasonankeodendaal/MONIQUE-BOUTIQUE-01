@@ -119,18 +119,20 @@ export const GUIDE_STEPS = [
   {
     id: 'database',
     title: '3. Master Architecture Script (SQL)',
-    description: 'Deploy the complete data schema. This creates the internal tables for products, analytics, history vault, and the training academy.',
+    description: 'Deploy the complete data schema. This creates the internal tables and handles migrations for new UI features like the Login visualizer.',
     illustrationId: 'rocket',
     subSteps: [
       'Open the SQL Editor in your Supabase dashboard.',
-      'Paste the Master SQL v6.0 script provided below.',
-      'Click "Run" and verify 11 tables appear in Table Editor.',
-      'Ensure RLS (Row Level Security) is initialized for all tables.'
+      'Paste the Master SQL v7.0 script provided below.',
+      'Click "Run" and verify 11 tables appear.',
+      'This script safely adds missing columns if you are upgrading.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Safe Migration)
--- NOTE: This script is non-destructive. It will NOT wipe existing data.
+    code: `-- MASTER ARCHITECTURE SCRIPT v7.0 (Safe Migration & Sync Fix)
+-- This script ensures all columns for Login/Pinterest/Analytics exist.
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- 1. BASE TABLE CREATION
 CREATE TABLE IF NOT EXISTS settings (
   id TEXT PRIMARY KEY DEFAULT 'global',
   "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
@@ -161,6 +163,32 @@ CREATE TABLE IF NOT EXISTS settings (
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
 );
 
+-- 2. SCHEMA MIGRATION (Ensure new columns exist if table was already created)
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='adminLoginHeroImage') THEN
+    ALTER TABLE settings ADD COLUMN "adminLoginHeroImage" TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='adminLoginTitle') THEN
+    ALTER TABLE settings ADD COLUMN "adminLoginTitle" TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='adminLoginSubtitle') THEN
+    ALTER TABLE settings ADD COLUMN "adminLoginSubtitle" TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='adminLoginAccentEnabled') THEN
+    ALTER TABLE settings ADD COLUMN "adminLoginAccentEnabled" BOOLEAN DEFAULT true;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='settings' AND column_name='pinterestTagId') THEN
+    ALTER TABLE settings ADD COLUMN "pinterestTagId" TEXT;
+  END IF;
+END $$;
+
+-- 3. ENSURE SINGLE ROW PROTOCOL
+-- Delete any duplicate settings rows to prevent state-jumping
+DELETE FROM settings WHERE id != (SELECT id FROM settings ORDER BY id LIMIT 1);
+UPDATE settings SET id = 'global' WHERE id IS NOT NULL;
+
+-- 4. CREATE SUPPORTING TABLES
 CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
@@ -172,7 +200,7 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views I
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 
--- ENABLE ROW LEVEL SECURITY
+-- 5. ENABLE RLS
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
@@ -185,62 +213,46 @@ ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 
--- PUBLIC READ POLICIES (DROP IF EXISTS TO PREVENT 42710 ERROR)
+-- 6. PUBLIC POLICIES
 DROP POLICY IF EXISTS "Public Read settings" ON settings;
 CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Public Read products" ON products;
 CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
 CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Public Read cat" ON categories;
 CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
 CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Public Read stats" ON product_stats;
 CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
-
 DROP POLICY IF EXISTS "Public Read training" ON training_modules;
 CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
 
--- FULL ACCESS FOR ALL (FOR RAPID DEPLOYMENT / ANON ACCESS)
+-- 7. FULL ANONYMOUS ACCESS (DASHBOARD)
 DROP POLICY IF EXISTS "Enable all for anon settings" ON settings;
 CREATE POLICY "Enable all for anon settings" ON settings FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon products" ON products;
 CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon hero" ON hero_slides;
 CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon cat" ON categories;
 CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon sub" ON subcategories;
 CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon enquiries" ON enquiries;
 CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon logs" ON traffic_logs;
 CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon admins" ON admin_users;
 CREATE POLICY "Enable all for anon admins" ON admin_users FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon stats" ON product_stats;
 CREATE POLICY "Enable all for anon stats" ON product_stats FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
-
 DROP POLICY IF EXISTS "Enable all for anon history" ON product_history;
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);`,
-    codeLabel: 'Master Schema v6.0'
+    codeLabel: 'Master Schema v7.0'
   },
   {
     id: 'security-auth',
