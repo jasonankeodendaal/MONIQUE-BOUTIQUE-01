@@ -36,7 +36,7 @@ const About: React.FC = () => {
       {/* Editorial Hero Spread */}
       <div className="relative min-h-[80vh] lg:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none hidden lg:block">
-           <span className="text-[20vw] font-serif font-black text-white/[0.03] leading-none select-none tracking-tighter">EST. {settings.aboutEstablishedYear}</span>
+           <span className="text-[15vw] font-serif font-black text-white/[0.03] leading-none select-none tracking-tighter whitespace-nowrap">EST. {settings.aboutEstablishedYear}</span>
         </div>
 
         <div className="w-full lg:w-1/2 h-[40vh] lg:h-full relative overflow-hidden">
@@ -70,12 +70,12 @@ const About: React.FC = () => {
       </div>
 
       {/* Narrative Spread - Stacks on Mobile, Columns on Large */}
-      <section className="py-16 lg:py-48 max-w-7xl mx-auto px-6 lg:px-12 relative">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-12 lg:gap-32">
+      <section className="py-16 lg:py-48 max-w-7xl mx-auto px-6 lg:px-12 relative overflow-hidden">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-12 lg:gap-20">
             
             {/* Sidebar Column */}
             <div className="w-full lg:col-span-4 h-fit lg:sticky lg:top-32">
-                <div className="bg-white/60 backdrop-blur-md p-8 lg:p-16 rounded-[2rem] lg:rounded-[3rem] shadow-xl border border-white/50 space-y-10 lg:space-y-16 relative overflow-hidden">
+                <div className="bg-white/60 backdrop-blur-md p-8 lg:p-12 rounded-[2rem] lg:rounded-[3rem] shadow-xl border border-white/50 space-y-10 lg:space-y-14 relative overflow-hidden">
                     <div className="space-y-4 text-left relative z-10">
                         <div className="flex items-center gap-3 text-primary">
                            <div className="p-2 lg:p-3 bg-primary/10 rounded-xl lg:rounded-2xl">{renderIcon(settings.aboutMissionIcon, <Target size={20}/>)}</div>
@@ -94,24 +94,24 @@ const About: React.FC = () => {
 
                     {settings.aboutSignatureImage && (
                        <div className="pt-8 lg:pt-12 border-t border-black/5 flex flex-col items-center">
-                          <img src={settings.aboutSignatureImage} className="h-12 lg:h-24 w-auto object-contain opacity-40 mix-blend-multiply" alt="Signature" />
+                          <img src={settings.aboutSignatureImage} className="h-12 lg:h-20 w-auto object-contain opacity-40 mix-blend-multiply" alt="Signature" />
                        </div>
                     )}
                 </div>
             </div>
 
             {/* Main Story Column */}
-            <div className="w-full lg:col-span-8 text-left">
+            <div className="w-full lg:col-span-8 text-left min-w-0">
                 <div className="flex items-center gap-4 lg:gap-6 mb-6 lg:mb-12">
                    <div className="h-[2px] w-12 lg:w-20 bg-primary"></div>
                    <span className="text-[10px] lg:text-[12px] font-black uppercase tracking-[0.4em] text-primary text-contrast-shadow">The Manifesto</span>
                 </div>
                 
-                <h3 className="text-3xl md:text-5xl lg:text-7xl font-serif text-slate-900 mb-8 lg:mb-16 leading-[1.1] tracking-tighter">
+                <h3 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-8 lg:mb-16 leading-[1.1] tracking-tighter break-words">
                    {settings.aboutHistoryTitle}
                 </h3>
                 
-                <div className="text-slate-500 font-light leading-relaxed text-base lg:text-lg">
+                <div className="text-slate-500 font-light leading-relaxed text-base lg:text-lg break-words">
                     <div className="whitespace-pre-wrap 
                       first-letter:text-6xl lg:first-letter:text-8xl 
                       first-letter:font-serif 
@@ -128,7 +128,7 @@ const About: React.FC = () => {
                 {settings.aboutGalleryImages && (
                   <div className="mt-16 lg:mt-32 grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-8">
                     {settings.aboutGalleryImages.slice(0,3).map((img, i) => (
-                      <div key={i} className={`rounded-2xl lg:rounded-[3rem] overflow-hidden shadow-lg aspect-[3/4] ${i === 1 ? 'mt-6 lg:mt-16' : ''} ${i === 2 ? 'hidden md:block' : ''}`}>
+                      <div key={i} className={`rounded-2xl lg:rounded-[2.5rem] overflow-hidden shadow-lg aspect-[3/4] ${i === 1 ? 'mt-6 lg:mt-12' : ''} ${i === 2 ? 'hidden md:block' : ''}`}>
                         <img src={img} className="w-full h-full object-cover hover:scale-110 transition-transform duration-1000" alt="Gallery" />
                       </div>
                     ))}
@@ -221,7 +221,7 @@ const About: React.FC = () => {
                  <div className="p-4 lg:p-6 bg-white/5 rounded-2xl lg:rounded-3xl border border-white/10 text-primary animate-soft-flicker shrink-0">
                     {renderIcon(settings.aboutIntegrityIcon, <Award size={28}/>)}
                  </div>
-                 <h2 className="text-2xl lg:text-6xl font-serif tracking-tight leading-tight">
+                 <h2 className="text-2xl lg:text-5xl font-serif tracking-tight leading-tight">
                     {settings.aboutIntegrityTitle}
                  </h2>
               </div>

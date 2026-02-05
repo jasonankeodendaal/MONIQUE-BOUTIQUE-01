@@ -30,19 +30,19 @@ const AboutSection: React.FC = () => {
           </div>
 
           {/* Smaller Text Column */}
-          <div className="w-2/3 md:w-8/12 text-left">
+          <div className="w-2/3 md:w-8/12 text-left min-w-0">
             <div className="flex items-center gap-2 mb-2 md:mb-8">
               <Sparkles size={12} className="text-primary md:w-5 md:h-5" />
               <span className="text-[7px] md:text-[12px] font-black uppercase tracking-[0.4em] text-slate-400">The Narrative</span>
             </div>
             
-            <h2 className="font-serif text-slate-900 mb-3 md:mb-12 leading-[1] tracking-tighter text-pretty" style={{ fontSize: 'clamp(1.2rem, 4vw, 5.5rem)' }}>
+            <h2 className="font-serif text-slate-900 mb-3 md:mb-12 leading-[1] tracking-tighter text-pretty break-words" style={{ fontSize: 'clamp(1.2rem, 4vw, 5rem)' }}>
               {settings.homeAboutTitle.split(' ').slice(0, -2).join(' ')} <span className="italic font-light text-primary text-contrast-shadow">{settings.homeAboutTitle.split(' ').slice(-2).join(' ')}</span>
             </h2>
             
             <div className="relative mb-4 md:mb-16">
-              {/* Added line-clamp-5 to restrict the preview description length */}
-              <p className="text-xs md:text-3xl text-slate-500 font-light leading-relaxed text-pretty pr-2 md:pr-20 line-clamp-5">
+              {/* Optimized scaling for narrative preview text */}
+              <p className="text-xs md:text-2xl text-slate-500 font-light leading-relaxed text-pretty pr-2 md:pr-10 line-clamp-5 max-w-4xl break-words">
                 {settings.homeAboutDescription}
               </p>
             </div>
