@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { Search, ExternalLink, ShoppingBag, CheckCircle, FileText, Video as VideoIcon, ChevronDown, Filter, ArrowUpDown, ArrowRight, ArrowLeft, Layers, Tag } from 'lucide-react';
+import { Search, ExternalLink, ShoppingBag, CheckCircle, FileText, Video as VideoIcon, ChevronDown, Filter, ArrowUpDown, ArrowRight, ArrowLeft, Layers, Tag, LayoutGrid } from 'lucide-react';
 import { useSettings } from '../App';
 import { Product } from '../types';
 
@@ -16,7 +16,6 @@ const Products: React.FC = () => {
   const [selectedSub, setSelectedSub] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   
-  // Dropdown States
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isSubOpen, setIsSubOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -26,19 +25,16 @@ const Products: React.FC = () => {
   const subRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
-  // Handle Parallax Scroll
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Sync state with URL if it changes externally
   useEffect(() => {
     if (initialCat) setSelectedCat(initialCat);
   }, [initialCat]);
 
-  // Derive Hero Content based on selection
   const heroContent = useMemo(() => {
     if (selectedCat !== 'all') {
       const cat = categories.find(c => c.id === selectedCat);
@@ -75,8 +71,10 @@ const Products: React.FC = () => {
     return subCategories.filter((s: any) => s.categoryId === selectedCat);
   }, [selectedCat, subCategories]);
 
-  const filteredProducts = useMemo(() => {
-    let result = products.filter((p: Product) => {
+  // Hierarchical Grouping Logic
+  const groupedProducts = useMemo(() => {
+    // 1. First, apply flat filters
+    let filtered = products.filter((p: Product) => {
       const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
                            p.description.toLowerCase().includes(search.toLowerCase());
       const matchesCat = selectedCat === 'all' || p.categoryId === selectedCat;
@@ -84,15 +82,40 @@ const Products: React.FC = () => {
       return matchesSearch && matchesCat && matchesSub;
     });
 
+    // 2. Sort the flat list within groups
     switch (sortBy) {
-      case 'price-low': result.sort((a, b) => a.price - b.price); break;
-      case 'price-high': result.sort((a, b) => b.price - a.price); break;
-      case 'newest': result.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); break;
-      case 'name': result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case 'price-low': filtered.sort((a, b) => a.price - b.price); break;
+      case 'price-high': filtered.sort((a, b) => b.price - a.price); break;
+      case 'newest': filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); break;
+      case 'name': filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
     }
 
-    return result;
-  }, [search, selectedCat, selectedSub, sortBy, products]);
+    // 3. Create Groups
+    const groups: Record<string, { name: string; items: Product[] }> = {};
+
+    filtered.forEach(p => {
+      let groupKey = '';
+      let groupName = '';
+
+      if (selectedCat === 'all') {
+        // Group by Category when viewing all
+        groupKey = p.categoryId;
+        groupName = categories.find(c => c.id === p.categoryId)?.name || 'General Collections';
+      } else {
+        // Group by Sub-category when viewing specific department
+        groupKey = p.subCategoryId || 'none';
+        groupName = subCategories.find(s => s.id === p.subCategoryId)?.name || 'General Selections';
+      }
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = { name: groupName, items: [] };
+      }
+      groups[groupKey].items.push(p);
+    });
+
+    // 4. Convert to array and Sort Alphabetically by group name
+    return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
+  }, [search, selectedCat, selectedSub, sortBy, products, categories, subCategories]);
 
   const renderProductMedia = (product: Product) => {
     const media = product.media || [];
@@ -129,7 +152,6 @@ const Products: React.FC = () => {
   return (
     <div className="min-h-screen pb-20 md:pb-32 bg-copper-wash max-w-full overflow-x-hidden pt-24">
       
-      {/* KINETIC CONTEXT HERO */}
       <div className="relative h-[45vh] md:h-[60vh] w-full overflow-hidden bg-slate-950">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
@@ -175,7 +197,6 @@ const Products: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-2 md:px-8">
         
-        {/* Search Bar - Floating Effect */}
         <div className="relative -mt-8 md:-mt-12 mb-8 md:mb-12 px-1 md:px-2 z-10">
            <div className="relative w-full max-w-2xl mx-auto group">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
@@ -192,10 +213,7 @@ const Products: React.FC = () => {
             </div>
         </div>
 
-        {/* TINY REFINED FILTER BAR */}
         <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-8 md:mb-16 px-1 md:px-2 z-20 relative">
-          
-          {/* Department Tiny Dropdown */}
           <div className="relative" ref={catRef}>
              <button 
                 onClick={() => { setIsCatOpen(!isCatOpen); setIsSubOpen(false); setIsSortOpen(false); }}
@@ -230,7 +248,6 @@ const Products: React.FC = () => {
              )}
           </div>
 
-          {/* Sub-Category Tiny Dropdown (Only if Dept selected) */}
           {selectedCat !== 'all' && (
             <div className="relative" ref={subRef}>
                <button 
@@ -267,7 +284,6 @@ const Products: React.FC = () => {
             </div>
           )}
 
-          {/* Sort Tiny Dropdown */}
           <div className="relative" ref={sortRef}>
              <button 
                 onClick={() => { setIsSortOpen(!isSortOpen); setIsCatOpen(false); setIsSubOpen(false); }}
@@ -304,47 +320,72 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {/* HIGH DENSITY GRID */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
-            {filteredProducts.map((product: Product) => (
-              <Link 
-                to={`/product/${product.id}`}
-                key={product.id} 
-                className="bg-white/40 backdrop-blur-md rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-2 flex flex-col relative"
-              >
-                {product.discountRules && product.discountRules.length > 0 && (
-                  <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-red-600 text-white px-2 py-1 md:px-3 md:py-1 rounded-full font-black text-[7px] md:text-[9px] uppercase tracking-widest shadow-lg z-20 animate-soft-flicker">
-                     {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
+        {/* AUTOMATED GROUPED GRID */}
+        {groupedProducts.length > 0 ? (
+          <div className="space-y-24 md:space-y-36">
+            {groupedProducts.map((group, gIdx) => (
+              <section key={group.name} className="animate-in fade-in slide-in-from-bottom-12 duration-700" style={{ animationDelay: `${gIdx * 150}ms` }}>
+                <div className="flex items-center gap-6 mb-12 md:mb-20">
+                  <div className="flex-shrink-0 flex items-center gap-4">
+                    <span className="text-primary font-mono text-xl md:text-2xl font-black">
+                      {(gIdx + 1).toString().padStart(2, '0')}
+                    </span>
+                    <h2 className="text-3xl md:text-6xl font-serif text-slate-900 tracking-tighter capitalize">
+                      {group.name}
+                    </h2>
                   </div>
-                )}
-                
-                <div className="relative aspect-square overflow-hidden bg-white/20">
-                  {renderProductMedia(product)}
-                  <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10">
-                    <div className="bg-white/90 backdrop-blur-md px-2 py-1 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-sm font-black text-slate-900 shadow-lg border border-white/50">
-                      R {product.price.toLocaleString()}
-                    </div>
+                  <div className="h-px flex-grow bg-slate-200/60 relative">
+                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-1 bg-primary"></div>
                   </div>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 pointer-events-none">
-                    <div className="bg-white text-slate-900 px-4 py-2 rounded-full font-black uppercase text-[8px] tracking-widest flex items-center gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl">
-                       View Selection
-                    </div>
+                  <div className="hidden md:block">
+                     <span className="px-4 py-2 rounded-full bg-white border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        {group.items.length} Selections
+                     </span>
                   </div>
                 </div>
-                
-                <div className="p-3 md:p-5 flex-grow flex flex-col text-left">
-                  <h3 className="text-[11px] md:text-sm font-serif text-slate-900 mb-1 group-hover:text-primary transition-colors duration-500 leading-snug line-clamp-2 min-h-[2.5em]">
-                    {product.name}
-                  </h3>
-                  <div className="mt-auto pt-2 border-t border-black/5 flex items-center justify-between">
-                    <span className="text-[7px] md:text-[9px] font-bold text-slate-400 font-mono tracking-tighter truncate max-w-[60px]">{product.sku}</span>
-                    <div className="text-primary group-hover:translate-x-1 transition-transform">
-                      <ArrowRight size={12} />
-                    </div>
-                  </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
+                  {group.items.map((product: Product) => (
+                    <Link 
+                      to={`/product/${product.id}`}
+                      key={product.id} 
+                      className="bg-white/40 backdrop-blur-md rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-500 group hover:-translate-y-2 flex flex-col relative"
+                    >
+                      {product.discountRules && product.discountRules.length > 0 && (
+                        <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-red-600 text-white px-2 py-1 md:px-3 md:py-1 rounded-full font-black text-[7px] md:text-[9px] uppercase tracking-widest shadow-lg z-20 animate-soft-flicker">
+                          {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
+                        </div>
+                      )}
+                      
+                      <div className="relative aspect-square overflow-hidden bg-white/20">
+                        {renderProductMedia(product)}
+                        <div className="absolute bottom-3 left-3 md:bottom-4 md:left-4 z-10">
+                          <div className="bg-white/90 backdrop-blur-md px-2 py-1 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-sm font-black text-slate-900 shadow-lg border border-white/50">
+                            R {product.price.toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 pointer-events-none">
+                          <div className="bg-white text-slate-900 px-4 py-2 rounded-full font-black uppercase text-[8px] tracking-widest flex items-center gap-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl">
+                             View Selection
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 md:p-5 flex-grow flex flex-col text-left">
+                        <h3 className="text-[11px] md:text-sm font-serif text-slate-900 mb-1 group-hover:text-primary transition-colors duration-500 leading-snug line-clamp-2 min-h-[2.5em]">
+                          {product.name}
+                        </h3>
+                        <div className="mt-auto pt-2 border-t border-black/5 flex items-center justify-between">
+                          <span className="text-[7px] md:text-[9px] font-bold text-slate-400 font-mono tracking-tighter truncate max-w-[60px]">{product.sku}</span>
+                          <div className="text-primary group-hover:translate-x-1 transition-transform">
+                            <ArrowRight size={12} />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
+              </section>
             ))}
           </div>
         ) : (
