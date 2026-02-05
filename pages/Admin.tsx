@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Edit2, Trash2, 
@@ -2744,25 +2745,79 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'about') && (
                   <>
-                    <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
-                    <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
-                    <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
-                    <div className="grid grid-cols-3 gap-4">
-                      <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
-                      <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
-                      <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
+                    <div className="space-y-6">
+                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
+                        <Layout className="text-primary" size={18}/> Hero Section
+                      </h4>
+                      <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
+                      <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
+                      <SingleImageUploader label="Main Editorial Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
                     </div>
-                    <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
-                    <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
-                    <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
-                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
-                    <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
-                    <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
-                    <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
-                    <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
-                    <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
-                    <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
-                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
+
+                    <div className="space-y-6 pt-6 border-t border-slate-800">
+                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
+                        <User className="text-primary" size={18}/> Identity
+                      </h4>
+                      <div className="grid grid-cols-3 gap-4">
+                        <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
+                        <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
+                        <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
+                      </div>
+                      <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
+                    </div>
+
+                    <div className="space-y-6 pt-6 border-t border-slate-800">
+                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
+                        <History className="text-primary" size={18}/> The Story
+                      </h4>
+                      <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
+                      <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
+                    </div>
+
+                    <div className="space-y-6 pt-6 border-t border-slate-800">
+                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
+                        <Target className="text-primary" size={18}/> Values & Mission
+                      </h4>
+                      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
+                        <div className="grid grid-cols-2 gap-4 items-end">
+                           <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label>
+                              <IconPicker selected={tempSettings.aboutMissionIcon} onSelect={v => updateTempSettings({ aboutMissionIcon: v })} />
+                           </div>
+                        </div>
+                        <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" rows={3} />
+                      </div>
+
+                      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
+                        <div className="grid grid-cols-2 gap-4 items-end">
+                           <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label>
+                              <IconPicker selected={tempSettings.aboutCommunityIcon} onSelect={v => updateTempSettings({ aboutCommunityIcon: v })} />
+                           </div>
+                        </div>
+                        <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" rows={3} />
+                      </div>
+
+                      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
+                        <div className="grid grid-cols-2 gap-4 items-end">
+                           <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
+                           <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label>
+                              <IconPicker selected={tempSettings.aboutIntegrityIcon} onSelect={v => updateTempSettings({ aboutIntegrityIcon: v })} />
+                           </div>
+                        </div>
+                        <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" rows={3} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-6 pt-6 border-t border-slate-800">
+                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2 flex items-center gap-2">
+                        <Image className="text-primary" size={18}/> Editorial Gallery
+                      </h4>
+                      <MultiImageUploader label="Gallery Images (Min 4 recommended)" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
+                    </div>
                   </>
                )}
                { (activeEditorSection === 'contact') && (
