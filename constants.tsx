@@ -127,7 +127,7 @@ export const GUIDE_STEPS = [
       'Click "Run". Ensure all 11 tables are created in the "Table Editor".',
       'Verify that RLS (Row Level Security) is enabled for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.0
+    code: `-- MASTER ARCHITECTURE SCRIPT v5.1
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS settings (
@@ -154,7 +154,9 @@ CREATE TABLE IF NOT EXISTS settings (
   "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
   "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
-  "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
+  "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT,
+  "departmentsLayout" TEXT DEFAULT 'grid', "subcategoryLayout" TEXT DEFAULT 'wrapped',
+  "adminLoginHeroImage" TEXT, "adminLoginTitle" TEXT, "adminLoginSubtitle" TEXT, "adminLoginAccentEnabled" BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
@@ -162,11 +164,20 @@ CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
-CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
+CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT, "autoWipeExempt" BOOLEAN DEFAULT FALSE);
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+
+-- REPAIR SCRIPT (Run this if you get 400 errors after updating)
+-- ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "autoWipeExempt" BOOLEAN DEFAULT FALSE;
+-- ALTER TABLE settings ADD COLUMN IF NOT EXISTS "departmentsLayout" TEXT DEFAULT 'grid';
+-- ALTER TABLE settings ADD COLUMN IF NOT EXISTS "subcategoryLayout" TEXT DEFAULT 'wrapped';
+-- ALTER TABLE settings ADD COLUMN IF NOT EXISTS "adminLoginHeroImage" TEXT;
+-- ALTER TABLE settings ADD COLUMN IF NOT EXISTS "adminLoginTitle" TEXT;
+-- ALTER TABLE settings ADD COLUMN IF NOT EXISTS "adminLoginSubtitle" TEXT;
+-- ALTER TABLE settings ADD COLUMN IF NOT EXISTS "adminLoginAccentEnabled" BOOLEAN DEFAULT TRUE;
 
 -- ENABLE PUBLIC READ
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
@@ -189,7 +200,7 @@ CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);`,
-    codeLabel: 'Full System SQL Script v5.0'
+    codeLabel: 'Full System SQL Script v5.1'
   },
   {
     id: 'security-auth',
@@ -469,7 +480,8 @@ export const INITIAL_ADMINS: AdminUser[] = [
     createdAt: Date.now(),
     phone: '',
     address: 'Online HQ',
-    profileImage: ''
+    profileImage: '',
+    autoWipeExempt: true
   }
 ];
 
@@ -849,7 +861,7 @@ SPECIFICALLY, WE ARE NOT LIABLE FOR:
 
 #### 8. Indemnification
 
-You agree to defend, indemnify and hold harmless the Site and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, or b) a breach of these Terms.
+You agree to defend, indemnify and hold harmless the Site and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (include but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, or b) a breach of these Terms.
 
 #### 9. Changes to Terms
 
@@ -876,7 +888,17 @@ Address: Mokopane, Limpopo, 0601`,
   tiktokPixelId: '',
   amazonAssociateId: '',
   webhookUrl: '',
-  pinterestTagId: ''
+  pinterestTagId: '',
+  
+  // Layout Controls
+  departmentsLayout: 'grid',
+  subcategoryLayout: 'wrapped',
+
+  // Admin Login Configuration
+  adminLoginHeroImage: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000',
+  adminLoginTitle: 'Concierge Access',
+  adminLoginSubtitle: 'Authenticate to enter the bridge dashboard.',
+  adminLoginAccentEnabled: true
 };
 
 export const INITIAL_CAROUSEL: CarouselSlide[] = [
