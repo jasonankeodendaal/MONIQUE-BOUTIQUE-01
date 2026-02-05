@@ -15,8 +15,8 @@ const PlexusBackground: React.FC = () => {
 
     let animationFrameId: number;
     let particles: Particle[] = [];
-    const particleCount = 40;
-    const maxDistance = 180;
+    const particleCount = 60; // Increased for more density
+    const maxDistance = 200;
     
     // Convert hex to rgb for plexus lines
     const hexToRgb = (hex: string) => {
@@ -40,9 +40,9 @@ const PlexusBackground: React.FC = () => {
       constructor() {
         this.x = Math.random() * canvas!.width;
         this.y = Math.random() * canvas!.height;
-        this.vx = (Math.random() - 0.5) * 0.4;
-        this.vy = (Math.random() - 0.5) * 0.4;
-        this.radius = Math.random() * 1.5 + 0.5;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 1;
       }
 
       update() {
@@ -57,7 +57,7 @@ const PlexusBackground: React.FC = () => {
         if (!ctx) return;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.3)`;
+        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.4)`;
         ctx.fill();
       }
     }
@@ -86,8 +86,8 @@ const PlexusBackground: React.FC = () => {
 
           if (dist < maxDistance) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${0.1 * (1 - dist / maxDistance)})`;
-            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${0.15 * (1 - dist / maxDistance)})`;
+            ctx.lineWidth = 0.8;
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
             ctx.stroke();
@@ -115,8 +115,8 @@ const PlexusBackground: React.FC = () => {
   return (
     <canvas 
       ref={canvasRef} 
-      className="fixed inset-0 pointer-events-none z-0 opacity-40" 
-      style={{ mixBlendMode: 'multiply' }}
+      className="fixed inset-0 pointer-events-none z-0" 
+      style={{ opacity: 0.35 }}
     />
   );
 };
