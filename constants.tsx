@@ -33,7 +33,7 @@ export const EMAIL_TEMPLATE_HTML = `
     
     /* BUTTON */
     .btn-container { text-align: center; margin: 35px 0; }
-    .btn { display: inline-block; background-color: #D4AF37; color: #FFFFFF; padding: 166px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); }
+    .btn { display: inline-block; background-color: #D4AF37; color: #FFFFFF; padding: 18px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); }
     
     /* FOOTER */
     .footer { background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
@@ -94,40 +94,40 @@ export const EMAIL_TEMPLATE_HTML = `
 export const GUIDE_STEPS = [
   {
     id: 'mission-brief',
-    title: '1. Mission & Brand Brief',
-    description: 'Define your aesthetic territory. Before touching code, establish your bridge page\'s niche (e.g., Luxury Footwear, Tech Accessories).',
+    title: '1. Strategic Niche Brief',
+    description: 'Establish your bridge page\'s aesthetic territory. Define a high-commission niche like Luxury Home Decor or Sustainable Fashion.',
     illustrationId: 'rocket',
     subSteps: [
-      'Select a focus niche with high affiliate commission potential.',
-      'Decide on your brand voice (Minimalist, Avant-Garde, or High-Street).',
-      'Prepare 3 high-resolution hero images that represent your style.',
-      'Write your unique "Curator Story" for the About section.'
+      'Select a high-intent niche with strong affiliate ROI.',
+      'Define your unique "Curator Persona" and brand voice.',
+      'Gather high-fidelity hero imagery (2000px+ width).',
+      'Draft your core mission statement for the About section.'
     ]
   },
   {
     id: 'supabase-init',
-    title: '2. Cloud Nerve Center (Supabase)',
-    description: 'Establish your cloud database infrastructure. This allows your bridge page to sync data in real-time across all devices.',
+    title: '2. Cloud Synchronization (Supabase)',
+    description: 'Set up your real-time database infrastructure. This allows your collections and analytics to stay synced across every visitor session.',
     illustrationId: 'forge',
     subSteps: [
-      'Create a free account at Supabase.com.',
-      'Initialize a new project named "Findara Bridge".',
-      'Choose a strong database password (store it securely).',
-      'Navigate to "Settings" > "API" to find your project credentials.'
+      'Create a free project at Supabase.com.',
+      'Name your project (e.g., "Findara Bridge v1").',
+      'Note your Database Password for secure access.',
+      'Locate API credentials in Settings > API (URL & Anon Key).'
     ]
   },
   {
     id: 'database',
-    title: '3. Architectural Blueprint (SQL)',
-    description: 'Inject the master data schema into your database. This creates the tables for products, analytics, and settings.',
+    title: '3. Master Architecture Script (SQL)',
+    description: 'Deploy the complete data schema. This creates the internal tables for products, analytics, history vault, and the training academy.',
     illustrationId: 'rocket',
     subSteps: [
-      'Open the "SQL Editor" in your Supabase dashboard.',
-      'Click "New Query" and paste the Master SQL Script provided below.',
-      'Click "Run". Ensure all 11 tables are created in the "Table Editor".',
-      'Verify that RLS (Row Level Security) is enabled for all tables.'
+      'Open the SQL Editor in your Supabase dashboard.',
+      'Paste the Master SQL v6.0 script provided below.',
+      'Click "Run" and verify 11 tables appear in Table Editor.',
+      'Ensure RLS (Row Level Security) is initialized for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.0
+    code: `-- MASTER ARCHITECTURE SCRIPT v6.0
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS settings (
@@ -136,22 +136,25 @@ CREATE TABLE IF NOT EXISTS settings (
   "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
   "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT,
   "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT,
-  "socialLinks" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT,
+  "socialLinks" JSONB, "contactFaqs" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT,
+  "footerNavHeader" TEXT, "footerPolicyHeader" TEXT,
   "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
-  "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeTrustSectionTitle" TEXT,
+  "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeNicheHeader" TEXT, "homeNicheSubheader" TEXT,
+  "homeTrustHeader" TEXT, "homeTrustSubheader" TEXT, "homeTrustSectionTitle" TEXT,
   "homeTrustItem1Title" TEXT, "homeTrustItem1Desc" TEXT, "homeTrustItem1Icon" TEXT,
   "homeTrustItem2Title" TEXT, "homeTrustItem2Desc" TEXT, "homeTrustItem2Icon" TEXT,
   "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT,
-  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" TEXT[],
-  "productsSearchPlaceholder" TEXT, "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT,
+  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" TEXT[], "productsSearchPlaceholder" TEXT,
+  "productAcquisitionLabel" TEXT, "productSpecsLabel" TEXT,
+  "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT,
   "aboutEstablishedYear" TEXT, "aboutFounderName" TEXT, "aboutLocation" TEXT,
   "aboutHistoryTitle" TEXT, "aboutHistoryBody" TEXT, "aboutMissionTitle" TEXT, "aboutMissionBody" TEXT, "aboutMissionIcon" TEXT,
   "aboutCommunityTitle" TEXT, "aboutCommunityBody" TEXT, "aboutCommunityIcon" TEXT,
   "aboutIntegrityTitle" TEXT, "aboutIntegrityBody" TEXT, "aboutIntegrityIcon" TEXT,
   "aboutSignatureImage" TEXT, "aboutGalleryImages" TEXT[],
-  "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT,
-  "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
+  "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT, "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
   "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
+  "adminLoginHeroImage" TEXT, "adminLoginTitle" TEXT, "adminLoginSubtitle" TEXT, "adminLoginAccentEnabled" BOOLEAN,
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
   "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
@@ -168,233 +171,246 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views I
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 
--- ENABLE PUBLIC READ
-ALTER TABLE settings ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
-ALTER TABLE products ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
-ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
-ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
-ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
-ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY; CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
+-- ENABLE ROW LEVEL SECURITY
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 
--- ENABLE ALL FOR ANON (DEMO/QUICKSTART)
-CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
+-- PUBLIC READ POLICIES
+CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
+CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
+CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
+CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
+CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
+CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
+
+-- FULL ACCESS FOR ALL (FOR RAPID DEPLOYMENT / ANON ACCESS)
+CREATE POLICY "Enable all for anon settings" ON settings FOR ALL USING (true);
 CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
+CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
+CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
+CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
 CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true);
 CREATE POLICY "Enable all for anon admins" ON admin_users FOR ALL USING (true);
 CREATE POLICY "Enable all for anon stats" ON product_stats FOR ALL USING (true);
-CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
-CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
-CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
-CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
-CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);`,
-    codeLabel: 'Full System SQL Script v5.0'
+CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
+CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);`,
+    codeLabel: 'Master Schema v6.0'
   },
   {
     id: 'security-auth',
-    title: '4. Guard Protocol (Auth)',
-    description: 'Configure how your team accesses the Maison Portal. This secures your collections from unauthorized changes.',
+    title: '4. Identity & Auth Protocol',
+    description: 'Configure how your team accesses the Maison Portal. This secures your catalog from unauthorized modifications.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to "Authentication" > "Providers" in Supabase.',
-      'Enable "Email" and "Google" (optional but recommended).',
-      'Disable "Confirm Email" if you want instant staff onboarding.',
-      'Add your production URL to "Redirect URLs" in "Auth Settings".'
+      'Go to Authentication > Providers in Supabase.',
+      'Enable "Email" for standard team access.',
+      'Enable "Google" OAuth for one-click curator login.',
+      'Disable "Confirm Email" if you want instant staff onboarding.'
     ]
   },
   {
     id: 'asset-vault',
-    title: '5. Asset Vault (Storage)',
-    description: 'Prepare high-speed CDN hosting for your product imagery and cinematic videos.',
+    title: '5. Asset Vault (Cloud Storage)',
+    description: 'Establish a high-speed CDN for your product imagery and cinematic videos.',
     illustrationId: 'rocket',
     subSteps: [
-      'Navigate to "Storage" in the Supabase dashboard.',
+      'Go to Storage in your Supabase dashboard.',
       'Create a new Bucket exactly named "media".',
       'Set the bucket to "Public" visibility.',
-      'In "Policies", create a policy allowing SELECT, INSERT, and UPDATE for all users.'
+      'Create an access policy allowing all operations for testing.'
     ]
   },
   {
     id: 'local-infrastructure',
-    title: '6. Local Infrastructure (.env)',
-    description: 'Link your local development engine to your cloud project using environment variables.',
+    title: '6. Environment Configuration',
+    description: 'Link your bridge page engine to your cloud database using environment variables.',
     illustrationId: 'forge',
     subSteps: [
-      'Create a file named ".env" in your project root folder.',
-      'Copy your "Project URL" and "Anon Key" from Supabase API settings.',
-      'Paste them into the .env file exactly as shown below.',
-      'Restart your development server to apply the link.'
+      'Create a ".env" file in your project root.',
+      'Copy your Supabase URL and Public Anon Key.',
+      'Paste them using the exact keys: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.',
+      'Restart your local development server.'
     ],
-    code: 'VITE_SUPABASE_URL=https://xxxx.supabase.co\nVITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    codeLabel: '.env Credentials'
+    code: 'VITE_SUPABASE_URL=https://your-project.supabase.co\nVITE_SUPABASE_ANON_KEY=your-anon-public-key-here',
+    codeLabel: '.env Template'
   },
   {
     id: 'version-control',
-    title: '7. Version Control (GitHub)',
-    description: 'Secure your codebase and enable automated production deployments.',
+    title: '7. Version Control & Git',
+    description: 'Secure your codebase and enable automated production deployments through GitHub.',
     illustrationId: 'rocket',
     subSteps: [
-      'Initialize a new Git repository: "git init".',
-      'Create a new Private Repository on GitHub.',
-      'Commit your current build: "git add .", "git commit -m \'Initial Launch\'".',
-      'Push your code to the GitHub remote main branch.'
+      'Initialize Git: "git init".',
+      'Create a Private Repository on GitHub.com.',
+      'Link your local project to the remote GitHub repository.',
+      'Push your first commit: "git push -u origin main".'
     ]
   },
   {
     id: 'email-protocol',
-    title: '8. Email Server (EmailJS)',
-    description: 'Setup the automated communication bridge for client enquiries.',
+    title: '8. Communication Bridge (EmailJS)',
+    description: 'Setup the automated communication channel for client enquiries and styling consultations.',
     illustrationId: 'forge',
     subSteps: [
       'Sign up at EmailJS.com.',
-      'Connect your professional email service (Gmail, Outlook, etc.).',
-      'Navigate to "Account" to find your "Public Key".',
-      'Navigate to "Email Services" to find your "Service ID".'
+      'Connect your Gmail or professional email service.',
+      'Create a new Email Template for curator notifications.',
+      'Capture your Service ID, Template ID, and Public Key.'
     ]
   },
   {
     id: 'template-engineering',
-    title: '9. Response Engineering',
-    description: 'Design the luxury reply template your clients receive when you answer an enquiry.',
+    title: '9. Professional Auto-Reply',
+    description: 'Design the luxury reply template your clients receive when their inquiry is synced.',
     illustrationId: 'rocket',
     subSteps: [
-      'In EmailJS, create a "New Template".',
-      'Mapping Variables: {{to_name}}, {{message}}, {{subject}}, {{company_name}}.',
-      'Paste the Elegant HTML Code (found in constants.tsx) into the code editor.',
-      'Save the template and note the "Template ID".'
+      'In EmailJS, use variables: {{to_name}}, {{message}}, {{company_name}}.',
+      'Paste the Elite HTML code (found in constants.tsx) into the editor.',
+      'Enable "Auto-reply" to acknowledge every transmission instantly.',
+      'Test the flow by submitting a dummy inquiry on your contact page.'
     ]
   },
   {
     id: 'production-launch',
-    title: '10. Production Launch (Vercel)',
-    description: 'Deploy your bridge page to the global web for high-performance viewing.',
+    title: '10. Production Deployment',
+    description: 'Host your bridge page on global CDN nodes for sub-second loading speeds worldwide.',
     illustrationId: 'forge',
     subSteps: [
-      'Sign into Vercel.com and click "Add New Project".',
+      'Sign into Vercel.com (or Netlify).',
       'Import your GitHub repository created in Step 7.',
-      'Configure Build Command: "npm run build" and Output: "dist".',
-      'Wait for the deployment to finish and click your new URL.'
+      'Set Build Command to "npm run build" and Output to "dist".',
+      'Deploy and note your production URL.'
     ]
   },
   {
     id: 'cloud-injectors',
-    title: '11. Cloud Injectors (Secrets)',
-    description: 'Securely transfer your private API keys to the production environment.',
+    title: '11. Production Secrets',
+    description: 'Securely inject your private cloud keys into the production environment.',
     illustrationId: 'rocket',
     subSteps: [
-      'In Vercel, go to "Settings" > "Environment Variables".',
-      'Add "VITE_SUPABASE_URL" and "VITE_SUPABASE_ANON_KEY".',
-      'Redeploy your project to enable cloud synchronization.',
-      'Verify the "System Status" indicator in your Admin footer is green.'
+      'In Vercel, navigate to Settings > Environment Variables.',
+      'Add the VITE_SUPABASE_... keys from Step 6.',
+      'Trigger a "Redeploy" to apply these cloud credentials.',
+      'Verify the Sync Indicator in your footer turns green.'
     ]
   },
   {
     id: 'domain-authority',
-    title: '12. Domain Authority (DNS)',
-    description: 'Finalize your brand identity with a custom .com or .luxury domain.',
+    title: '12. Brand Authority (DNS)',
+    description: 'Finalize your professional identity with a custom domain name.',
     illustrationId: 'forge',
     subSteps: [
-      'Purchase a domain from a registrar (GoDaddy, Namecheap).',
-      'Add the domain in Vercel "Settings" > "Domains".',
-      'Update your DNS records (A and CNAME) as instructed by Vercel.',
-      'Wait for SSL propagation (usually 1-2 hours).'
+      'Purchase a domain (e.g., .com, .luxury, .store).',
+      'Add the domain to your hosting provider (Vercel/Netlify).',
+      'Update DNS records (A and CNAME) as instructed.',
+      'Wait for SSL propagation for secure HTTPS access.'
     ]
   },
   {
     id: 'analytics-ga4',
-    title: '13. Vitality Sensors (GA4)',
-    description: 'Install Google Analytics to monitor visitor origins and engagement duration.',
+    title: '13. Vitality Monitoring (GA4)',
+    description: 'Install Google Analytics to monitor visitor origins and high-performing content.',
     illustrationId: 'rocket',
     subSteps: [
-      'Create a "Web Data Stream" in Google Analytics.',
-      'Copy the "Measurement ID" (G-XXXXXXXXXX).',
+      'Create a Web Data Stream in Google Analytics.',
+      'Copy the Measurement ID (G-XXXXXXXXXX).',
       'Go to Maison Portal > Canvas > Integrations and paste the ID.',
-      'Test live tracking via the "Realtime" view in GA4.'
+      'Confirm real-time traffic tracking in the GA4 dashboard.'
     ]
   },
   {
     id: 'meta-conversions',
     title: '14. Meta Pixel Deployment',
-    description: 'Enable retargeting and conversion tracking for Instagram and Facebook ads.',
+    description: 'Enable conversion tracking and retargeting for Instagram and Facebook ad traffic.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to Meta Events Manager and Create a "Web Data Source".',
-      'Copy the numeric "Pixel ID".',
-      'Paste into the Integrations tab of your site editor.',
-      'Verify tracking using the "Meta Pixel Helper" browser extension.'
+      'Create a Dataset (Pixel) in Meta Events Manager.',
+      'Copy the numeric Pixel ID.',
+      'Paste into the Integrations tab of your Maison Portal.',
+      'Verify installation using the Meta Pixel Helper extension.'
     ]
   },
   {
     id: 'tiktok-tracking',
     title: '15. TikTok Viral Tracking',
-    description: 'Monitor high-traffic trends and referral performance from TikTok.',
+    description: 'Capture engagement data from the high-velocity TikTok ecosystem.',
     illustrationId: 'rocket',
     subSteps: [
-      'In TikTok Ads Manager, navigate to "Assets" > "Events".',
-      'Create a "Web Event" and select "Manual Setup".',
-      'Copy the generated "Pixel ID".',
-      'Synchronize it via your Maison Portal Integrations tab.'
+      'Create a Web Event in TikTok Ads Manager.',
+      'Select "Manual Setup" and copy the Pixel ID.',
+      'Sync it via your Maison Portal Integrations menu.',
+      'Monitor trend-referral performance in your Insights tab.'
     ]
   },
   {
     id: 'pinterest-aesthetic',
-    title: '16. Pinterest Aesthetic Tracking',
-    description: 'Capture aesthetic-driven shoppers from the Pinterest ecosystem.',
+    title: '16. Pinterest Conversion Tag',
+    description: 'Monitor aesthetic-driven shoppers arriving from Pinterest Pins.',
     illustrationId: 'forge',
     subSteps: [
-      'Navigate to Pinterest Business Hub > Ads > Conversions.',
-      'Create a "Pinterest Tag".',
-      'Copy the "Unique Tag ID".',
-      'Apply it to your site via the Canvas > Integrations menu.'
+      'Generate a Pinterest Tag in your Business Hub.',
+      'Copy the unique Tag ID.',
+      'Apply to your site via the Canvas > Integrations menu.',
+      'Track "Add to Cart" and "Click-through" events precisely.'
     ]
   },
   {
     id: 'canvas-personalization',
-    title: '17. Identity Calibration (Canvas)',
-    description: 'Calibrate your site\'s visual identity to match your unique curation style.',
+    title: '17. Visual Calibration (Canvas)',
+    description: 'Calibrate your bridge page UI to match your curated brand identity.',
     illustrationId: 'rocket',
     subSteps: [
       'Open Maison Portal > Canvas > Identity.',
-      'Upload your logo and select your Primary Gold/Accent colors.',
-      'Set your Slogan and Navigation labels (e.g., "The Vault" vs "Collections").',
+      'Upload your PNG logo and set the primary Gold/Accent colors.',
+      'Update navigation labels (e.g., "The Archive" vs "Collections").',
       'Preview changes instantly on your mobile device.'
     ]
   },
   {
     id: 'catalog-deployment',
-    title: '18. Catalog Strategy (Items)',
-    description: 'Populate your bridge page with high-commission, personally curated items.',
+    title: '18. Catalog Strategy',
+    description: 'Populate your bridge page with high-commission, personally reviewed items.',
     illustrationId: 'forge',
     subSteps: [
-      'Go to Items and create logical "Departments" first.',
-      'Add products with "Why We Love It" highlights to increase trust.',
-      'Ensure every "Affiliate Link" includes your unique tracking ID.',
-      'Use the "Ad Generator" to create social media assets for each item.'
+      'Create Departments first (e.g., Apparel, Accessories).',
+      'Add items with "Why We Love It" highlights to build trust.',
+      'Ensure every affiliate link includes your unique tracking tag.',
+      'Use the built-in Ad Generator to create social assets for each piece.'
     ]
   },
   {
     id: 'academy-deployment',
-    title: '19. Growth Blueprint (Academy)',
-    description: 'Utilize the training modules to master the algorithms of social platforms.',
+    title: '19. Academy Masterclass',
+    description: 'Utilize the training modules to master platform-specific algorithms.',
     illustrationId: 'rocket',
     subSteps: [
-      'Review the "Instagram Aesthetic" training for visual consistency.',
+      'Review "Instagram Aesthetic Curation" for visual storytelling.',
       'Apply the "Pinterest Viral Pins" strategy for evergreen traffic.',
-      'Follow "TikTok Trend Jacking" to capture viral fashion moments.',
-      'Complete "SEO for Luxury" to rank for high-intent search terms.'
+      'Execute "TikTok Trend Jacking" for rapid catalog expansion.',
+      'Complete the "Elite Performance" training for ROI optimization.'
     ]
   },
   {
     id: 'maintenance-scaling',
-    title: '20. Scaling & Maintenance',
+    title: '20. Scaling & Curation Cycles',
     description: 'Establish a rhythm for catalog refreshes and analytical auditing.',
     illustrationId: 'forge',
     subSteps: [
-      'Weekly: Audit "Elite Performance Report" for conversion drop-offs.',
-      'Monthly: Trigger a "Curation Cycle" to move stale items to History.',
-      'Quarterly: Backup your catalog data to JSON via System settings.',
-      'Scaling: Add "Maison Staff" members as your traffic grows.'
+      'Weekly: Audit the "Elite Performance Report" for drop-offs.',
+      'Monthly: Trigger an "Archive Cycle" to move stale items to History.',
+      'Invite "Maison Staff" members to help curate larger catalogs.',
+      'Continuously update hero visuals to maintain a fresh aesthetic.'
     ]
   }
 ];

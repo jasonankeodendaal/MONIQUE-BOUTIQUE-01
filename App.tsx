@@ -48,59 +48,59 @@ const Footer: React.FC = () => {
 
   return (
     <>
-      <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
+      <footer className="bg-slate-900 text-slate-400 py-10 md:py-16 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12 text-left">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 md:gap-12 mb-8 md:mb-12 text-left">
             <div className="col-span-2">
-              <div className="flex items-center space-x-4 mb-6">
+              <div className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-6">
                  {settings.companyLogoUrl ? (
-                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-12 h-12 object-contain" />
+                  <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-10 h-10 md:w-12 md:h-12 object-contain" />
                 ) : (
-                  <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold bg-primary text-xl">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center text-white font-bold bg-primary text-lg md:text-xl">
                     {settings.companyLogo}
                   </div>
                 )}
-                <span className="text-white text-2xl font-bold tracking-tighter">{settings.companyName}</span>
+                <span className="text-white text-xl md:text-2xl font-bold tracking-tighter">{settings.companyName}</span>
               </div>
-              <p className="max-w-xs leading-relaxed text-sm mb-8 font-light">
+              <p className="max-w-xs leading-relaxed text-xs md:text-sm mb-6 md:mb-8 font-light">
                 {settings.footerDescription}
               </p>
             </div>
             <div>
-              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">{settings.footerNavHeader || 'Navigation'}</h4>
-              <ul className="space-y-3 text-sm font-light">
+              <h4 className="text-white font-bold mb-3 md:mb-6 text-[10px] md:text-sm uppercase tracking-widest">{settings.footerNavHeader || 'Navigation'}</h4>
+              <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-light">
                 <li><Link to="/" className="hover:text-primary transition-colors">{settings.navHomeLabel}</Link></li>
                 <li><Link to="/products" className="hover:text-primary transition-colors">{settings.navProductsLabel}</Link></li>
                 <li><Link to="/about" className="hover:text-primary transition-colors">{settings.navAboutLabel}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">{settings.footerPolicyHeader || 'Policy'}</h4>
-              <ul className="space-y-3 text-sm font-light">
+              <h4 className="text-white font-bold mb-3 md:mb-6 text-[10px] md:text-sm uppercase tracking-widest">{settings.footerPolicyHeader || 'Policy'}</h4>
+              <ul className="space-y-2 md:space-y-3 text-xs md:text-sm font-light">
                 <li><Link to="/disclosure" className="hover:text-primary transition-colors">{settings.disclosureTitle}</Link></li>
                 <li><Link to="/privacy" className="hover:text-primary transition-colors">{settings.privacyTitle}</Link></li>
                 <li><Link to="/terms" className="hover:text-primary transition-colors">{settings.termsTitle}</Link></li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-slate-800 text-center text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="pt-6 md:pt-8 border-t border-slate-800 text-center text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-medium text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
             <p>&copy; {new Date().getFullYear()} {settings.companyName}. {settings.footerCopyrightText}</p>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 md:gap-6 flex-wrap justify-center">
                <button 
                   onClick={() => setShowCreatorModal(true)} 
-                  className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all group shadow-sm hover:shadow-md hover:border-primary/30"
+                  className="flex items-center gap-2 px-2.5 py-1 md:px-3 md:py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all group shadow-sm hover:shadow-md hover:border-primary/30"
                   title="Site Creator"
                >
-                  <span className="text-[9px] font-bold text-slate-400 group-hover:text-white transition-colors">Site by</span>
-                  <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-5 w-auto opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+                  <span className="text-[8px] md:text-[9px] font-bold text-slate-400 group-hover:text-white transition-colors">Site by</span>
+                  <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-4 md:h-5 w-auto opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all" />
                </button>
                <div className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                  <span className="text-[9px] font-mono">{connectionHealth?.latency || 0}ms</span>
+                  <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${connectionHealth?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                  <span className="text-[8px] md:text-[9px] font-mono">{connectionHealth?.latency || 0}ms</span>
                </div>
                <div className="flex items-center gap-3">
                 <div 
-                  className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                  className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all duration-500 ${
                     saveStatus === 'saved' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' :
                     saveStatus === 'error' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]' :
                     saveStatus === 'saving' ? 'bg-amber-500 animate-pulse' :
@@ -108,8 +108,8 @@ const Footer: React.FC = () => {
                   }`} 
                   title={`System Status: ${saveStatus}`}
                 />
-                <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all">
-                  Bridge Concierge Portal
+                <Link to={user ? "/admin" : "/login"} className="opacity-30 hover:opacity-100 hover:text-white transition-all text-[9px] md:text-[10px]">
+                  Concierge Portal
                 </Link>
                </div>
             </div>
@@ -119,7 +119,7 @@ const Footer: React.FC = () => {
 
       {showCreatorModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-           <div className="relative w-full max-md bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+           <div className="relative w-full max-w-md bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
               <div className="absolute inset-0">
                  <img src="https://i.ibb.co/dsh2c2hp/unnamed.jpg" className="w-full h-full object-cover opacity-60" alt="Creator Background" />
                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent"></div>
@@ -192,7 +192,7 @@ const TrackingInjector = () => {
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
           n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          if(!f._fbq)f._fbq=n;n.push=n.loaded=!0;n.version='2.0';
           n.queue=[];t=b.createElement(e);t.async=!0;
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
