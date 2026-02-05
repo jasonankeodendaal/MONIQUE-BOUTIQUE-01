@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-react';
 import { CarouselSlide } from '../types';
 import { Link } from 'react-router-dom';
@@ -9,7 +9,6 @@ const Hero: React.FC = () => {
   const { settings, heroSlides } = useSettings();
   
   const slides = useMemo(() => heroSlides || [], [heroSlides]);
-  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -28,40 +27,11 @@ const Hero: React.FC = () => {
     setTimeout(() => setIsTransitioning(false), 1000);
   };
 
-  // Dynamic Slide Timing Logic
   useEffect(() => {
-    if (slides.length === 0) return;
-
-    // 1. Pause and reset all non-active videos
-    videoRefs.current.forEach((vid, idx) => {
-      if (vid && idx !== current) {
-        vid.pause();
-        vid.currentTime = 0;
-      }
-    });
-
-    const activeSlide = slides[current];
-    let timer: ReturnType<typeof setTimeout>;
-
-    if (activeSlide.type === 'image') {
-      // 2. Image: Wait fixed duration (8s) then advance if multiple slides exist
-      if (slides.length > 1) {
-        timer = setTimeout(nextSlide, 8000);
-      }
-    } else if (activeSlide.type === 'video') {
-      // 3. Video: Play active video
-      const vid = videoRefs.current[current];
-      if (vid) {
-        vid.currentTime = 0;
-        vid.play().catch(err => console.warn('Video autoplay interrupted:', err));
-        // Note: nextSlide is triggered via the onEnded prop on the video element
-      }
-    }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [current, slides, nextSlide]);
+    if (slides.length <= 1) return;
+    const timer = setInterval(nextSlide, 8000);
+    return () => clearInterval(timer);
+  }, [nextSlide, slides.length]);
 
   if (slides.length === 0) {
     return (
@@ -114,14 +84,10 @@ const Hero: React.FC = () => {
         >
           {slide.type === 'video' ? (
             <video
-              ref={(el) => (videoRefs.current[index] = el)}
+              autoPlay
               muted
+              loop
               playsInline
-              // Only loop if it's the single slide, otherwise play once then next
-              loop={slides.length === 1}
-              onEnded={() => {
-                if (slides.length > 1) nextSlide();
-              }}
               className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[12s] ease-linear ${index === current ? 'scale-110' : 'scale-100'}`}
               src={slide.image}
             />
