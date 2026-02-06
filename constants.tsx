@@ -127,7 +127,7 @@ export const GUIDE_STEPS = [
       'Click "Run". Ensure all 11 tables are created in the "Table Editor".',
       'Verify that RLS (Row Level Security) is enabled for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.2 (Idempotent & Safe)
+    code: `-- MASTER ARCHITECTURE SCRIPT v5.3 (Idempotent & Safe)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. TABLES
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
-CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
+CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT, "autoWipeExempt" BOOLEAN DEFAULT FALSE);
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
@@ -182,10 +182,9 @@ ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 
--- 3. DROP OLD POLICIES (PREVENT ERRORS)
+-- 3. POLICIES
 DO $$ 
 BEGIN
-    -- DROP SELECT POLICIES
     DROP POLICY IF EXISTS "Public Read settings" ON settings;
     DROP POLICY IF EXISTS "Public Read products" ON products;
     DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
@@ -193,8 +192,6 @@ BEGIN
     DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
     DROP POLICY IF EXISTS "Public Read training" ON training_modules;
     DROP POLICY IF EXISTS "Public Read stats" ON product_stats;
-
-    -- DROP ALL PERMISSIONS POLICIES
     DROP POLICY IF EXISTS "Enable all for anon" ON settings;
     DROP POLICY IF EXISTS "Enable all for anon products" ON products;
     DROP POLICY IF EXISTS "Enable all for anon enquiries" ON enquiries;
@@ -208,7 +205,6 @@ BEGIN
     DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
 END $$;
 
--- 4. RECREATE POLICIES
 CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
 CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
 CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
@@ -216,7 +212,6 @@ CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
 CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
 CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
 CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
-
 CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
 CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
 CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
@@ -228,7 +223,7 @@ CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);`,
-    codeLabel: 'Idempotent Master SQL Script v5.2'
+    codeLabel: 'Idempotent Master SQL Script v5.3'
   },
   {
     id: 'security-auth',

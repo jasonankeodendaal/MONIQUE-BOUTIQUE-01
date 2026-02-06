@@ -25,11 +25,6 @@ const Home: React.FC = () => {
     return shuffled.slice(0, 4);
   }, [categories]);
 
-  const curatorsEdit = useMemo(() => {
-    if (!products || products.length === 0) return [];
-    return [...products].sort(() => Math.random() - 0.5).slice(0, 4);
-  }, [products]);
-
   return (
     <main className="pt-0">
       <Hero />
@@ -38,58 +33,6 @@ const Home: React.FC = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
         <AboutSection />
       </div>
-
-      {/* --- CURATOR'S EDIT (BRIDGE SECTION) --- */}
-      <section className="py-16 md:py-32 bg-paper relative">
-         <div className="max-w-7xl mx-auto px-4 md:px-8">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-12 md:mb-20 gap-8">
-               <div className="text-left">
-                  <div className="flex items-center gap-3 mb-4">
-                     <Heart size={14} className="text-primary fill-current animate-pulse" />
-                     <span className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">Personal Recommendations</span>
-                  </div>
-                  <h2 className="text-4xl md:text-7xl font-serif text-slate-900 tracking-tighter">The Curator's <br/> <span className="italic font-light text-primary">Edit</span></h2>
-                  <p className="text-slate-500 text-sm md:text-lg mt-6 max-w-xl font-light leading-relaxed">
-                     The items I'm currently obsessing over. Personally vetted for style, quality, and that "hidden gem" factor.
-                  </p>
-               </div>
-               <Link to="/products" className="group flex items-center gap-4 px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-2xl active:scale-95">
-                  View Entire Vault <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-               </Link>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-12">
-               {curatorsEdit.map((product) => (
-                  <Link to={`/product/${product.id}`} key={product.id} className="group flex flex-col items-start text-left">
-                     <div className="aspect-[3/4] w-full bg-slate-50 rounded-[2rem] overflow-hidden relative shadow-xl mb-6 border border-slate-100 group-hover:-translate-y-2 transition-transform duration-700">
-                        {product.media?.[0]?.url ? (
-                          <img src={product.media[0].url} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt={product.name} />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-200"><ShoppingBag size={48} strokeWidth={1} /></div>
-                        )}
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black text-slate-900 shadow-lg">
-                           R {product.price.toLocaleString()}
-                        </div>
-                     </div>
-                     <div className="space-y-1 w-full px-2">
-                        <div className="flex gap-0.5 text-primary mb-1">
-                           {[1,2,3,4,5].map(s => <Star key={s} size={10} fill="currentColor" />)}
-                        </div>
-                        <h4 className="font-serif text-lg md:text-2xl text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{product.name}</h4>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Hand-Picked Selection</span>
-                     </div>
-                  </Link>
-               ))}
-               {curatorsEdit.length === 0 && (
-                 <div className="col-span-full py-20 border-2 border-dashed border-slate-200 rounded-[3rem] text-center">
-                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Populating Recommendations...</p>
-                 </div>
-               )}
-            </div>
-         </div>
-      </section>
-
-      <SectionDivider />
 
       {/* Category Icons Strip - Updated with Image Icons */}
       <section className="py-8 md:py-16 bg-copper-wash">
