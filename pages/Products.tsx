@@ -61,7 +61,7 @@ const Products: React.FC = () => {
           title: cat.name,
           subtitle: cat.description || settings.productsHeroSubtitle,
           image: cat.image || settings.productsHeroImage,
-          badge: 'Department Focus'
+          badge: 'Dept.'
         };
       }
     }
@@ -69,7 +69,7 @@ const Products: React.FC = () => {
       title: settings.productsHeroTitle,
       subtitle: settings.productsHeroSubtitle,
       image: settings.productsHeroImage,
-      badge: 'The Collective Catalog'
+      badge: 'Catalog'
     };
   }, [selectedCat, categories, settings]);
 
@@ -132,7 +132,7 @@ const Products: React.FC = () => {
     const media = product.media || [];
     const primary = media[0];
     
-    if (!primary) return <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200"><ShoppingBag size={32} /></div>;
+    if (!primary) return <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200"><ShoppingBag size={24} /></div>;
 
     if (primary.type?.startsWith('image/')) {
       return <img src={primary.url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />;
@@ -141,142 +141,136 @@ const Products: React.FC = () => {
     if (primary.type?.startsWith('video/')) {
       return (
         <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white">
-          <VideoIcon size={32} className="mb-2 opacity-30" />
-          <span className="text-[8px] uppercase font-black tracking-widest text-white/50">Cinematic Preview</span>
+          <VideoIcon size={24} className="mb-1 opacity-30" />
+          <span className="text-[6px] uppercase font-black tracking-widest text-white/50">Cinema</span>
         </div>
       );
     }
 
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-300">
-        <FileText size={32} />
-        <span className="text-[8px] uppercase font-black tracking-widest mt-2">{primary.type.split('/')[1]}</span>
+        <FileText size={24} />
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDFBF7] max-w-full overflow-x-hidden pt-24">
+    <div className="min-h-screen pb-12 md:pb-32 bg-[#FDFBF7] max-w-full overflow-x-hidden pt-16 md:pt-24">
       <style>{`
         .subcat-row-container {
           display: flex;
           flex-wrap: nowrap;
-          gap: 0.75rem;
-          padding: 1.5rem 2rem;
+          gap: 0.5rem;
+          padding: 0.75rem 1rem;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
-          scrollbar-width: thin;
-          scrollbar-color: var(--primary-color) transparent;
+          scrollbar-width: none;
         }
         .subcat-row-container::-webkit-scrollbar {
-          height: 3px;
-        }
-        .subcat-row-container::-webkit-scrollbar-thumb {
-          background: rgba(var(--primary-rgb), 0.2);
-          border-radius: 10px;
+          display: none;
         }
         .infinite-scroll-mask {
-          mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+          mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
         }
         @media (min-width: 1024px) {
            .subcat-row-container {
-              padding: 2rem 4rem;
+              padding: 1.5rem 4rem;
+              gap: 0.75rem;
            }
         }
       `}</style>
       
-      {/* --- HERO SECTION --- */}
-      <div className="relative h-[40vh] md:h-[55vh] w-full overflow-hidden bg-slate-950">
+      {/* --- HERO SECTION - SHRUNK --- */}
+      <div className="relative h-[25vh] md:h-[55vh] w-full overflow-hidden bg-slate-950">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
           style={{ 
             backgroundImage: `url(${heroContent.image})`,
             transform: `translateY(${scrollY * 0.4}px) scale(${1 + scrollY * 0.0005})`,
-            opacity: Math.max(0.3, 1 - scrollY / 800)
+            opacity: Math.max(0.3, 1 - scrollY / 600)
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF7] via-[#FDFBF7]/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF7] via-[#FDFBF7]/10 to-transparent" />
         <div className="absolute inset-0 bg-black/10" />
         
         <button 
             onClick={() => navigate('/')}
-            className="absolute top-6 left-6 md:top-10 md:left-10 z-30 w-10 h-10 md:w-14 md:h-14 bg-white/10 backdrop-blur-2xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-2xl border border-white/20 group"
+            className="absolute top-4 left-4 md:top-10 md:left-10 z-30 w-8 h-8 md:w-14 md:h-14 bg-white/10 backdrop-blur-2xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-xl border border-white/20 group"
         >
-            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft size={16} className="md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
         </button>
 
         <div 
-          className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-end pb-8 md:pb-16"
+          className="relative h-full max-w-7xl mx-auto px-4 sm:px-8 flex flex-col justify-end pb-4 md:pb-16"
           style={{ 
-            transform: `translateY(${scrollY * 0.15}px)`,
-            opacity: 1 - scrollY / 700 
+            transform: `translateY(${scrollY * 0.1}px)`,
+            opacity: 1 - scrollY / 500 
           }}
         >
-          <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="flex items-center gap-4 mb-3">
-              <div className="h-px w-8 md:w-12 bg-primary"></div>
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.6em] text-primary">
+          <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="h-[1px] w-4 md:w-12 bg-primary"></div>
+              <span className="text-[7px] md:text-[10px] font-black uppercase tracking-[0.4em] text-primary">
                 {heroContent.badge}
               </span>
             </div>
-            <h1 className="text-3xl md:text-[4.5rem] font-serif text-slate-900 mb-2 md:mb-4 tracking-tighter leading-[0.9] text-balance">
+            <h1 className="text-xl md:text-[4.5rem] font-serif text-slate-900 mb-1 md:mb-4 tracking-tighter leading-tight text-balance">
               {heroContent.title}
             </h1>
-            <p className="text-slate-500 text-xs md:text-lg font-light leading-relaxed max-w-2xl text-pretty border-l border-slate-200 pl-4 md:pl-6">
+            <p className="hidden md:block text-slate-500 text-lg font-light leading-relaxed max-w-2xl text-pretty border-l border-slate-200 pl-6">
               {heroContent.subtitle}
             </p>
           </div>
         </div>
       </div>
 
-      {/* --- NAVIGATION & FILTERS --- */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-6 md:-mt-10 relative z-40">
+      {/* --- NAVIGATION & FILTERS - CONDENSED --- */}
+      <div className="max-w-7xl mx-auto px-3 md:px-8 -mt-4 md:-mt-10 relative z-40">
         
-        {/* Department Dropdown & Search Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-2 md:gap-4 mb-6">
            <div className="relative flex-grow group">
-              <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-              <div className="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-primary/5 focus-within:-translate-y-1">
-                <Search className="ml-6 text-slate-300" size={20} />
+              <div className="absolute inset-0 bg-primary/5 rounded-xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+              <div className="relative flex items-center bg-white border border-slate-200 rounded-xl shadow-md overflow-hidden transition-all duration-500 focus-within:-translate-y-0.5">
+                <Search className="ml-4 md:ml-6 text-slate-300" size={16} />
                 <input
                   type="text"
                   placeholder={settings.productsSearchPlaceholder}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full px-4 py-4 md:py-5 bg-transparent outline-none text-sm md:text-base font-light text-slate-900 placeholder:text-slate-300"
+                  className="w-full px-3 py-3 md:py-5 bg-transparent outline-none text-xs md:text-base font-light text-slate-900 placeholder:text-slate-300"
                 />
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <div className="relative" ref={catRef}>
+            <div className="flex gap-2">
+              <div className="relative flex-grow md:flex-grow-0" ref={catRef}>
                 <button 
                   onClick={() => { setIsCatOpen(!isCatOpen); setIsSortOpen(false); }}
-                  className={`flex items-center gap-4 px-8 py-4 md:py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all shadow-lg ${
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 md:py-5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all shadow-md ${
                     isCatOpen || selectedCat !== 'all' ? 'bg-primary text-slate-900 border-primary' : 'bg-white text-slate-500 border-slate-200'
                   }`}
                 >
-                  <Layers size={14} className={isCatOpen || selectedCat !== 'all' ? 'text-slate-900' : 'text-primary'} />
-                  <span className="min-w-[120px] text-left">Dept: {selectedCat === 'all' ? 'All Collections' : categories.find(c => c.id === selectedCat)?.name}</span>
-                  <ChevronDown size={14} className={`transition-transform duration-300 ${isCatOpen ? 'rotate-180' : ''}`} />
+                  <Layers size={12} className={isCatOpen || selectedCat !== 'all' ? 'text-slate-900' : 'text-primary'} />
+                  <span className="truncate max-w-[100px] md:min-w-[120px] text-left">{selectedCat === 'all' ? 'Depts' : categories.find(c => c.id === selectedCat)?.name}</span>
+                  <ChevronDown size={12} className={`transition-transform duration-300 ${isCatOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {isCatOpen && (
-                  <div className="absolute top-full left-0 md:right-0 mt-3 w-72 bg-white border border-slate-100 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-2">
+                  <div className="absolute top-full left-0 md:right-0 mt-2 w-56 md:w-72 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] overflow-hidden p-1">
                     <button 
                       onClick={() => { setSelectedCat('all'); setSelectedSub('all'); setIsCatOpen(false); }}
-                      className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${selectedCat === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all mb-0.5 ${selectedCat === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
                     >
                       Browse Everything
                     </button>
-                    <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar">
                       {categories.map(cat => (
                         <button
                           key={cat.id}
                           onClick={() => { setSelectedCat(cat.id); setSelectedSub('all'); setIsCatOpen(false); }}
-                          className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${selectedCat === cat.id ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
+                          className={`w-full text-left px-4 py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all mb-0.5 ${selectedCat === cat.id ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
                         >
                           {cat.name}
                         </button>
@@ -289,24 +283,23 @@ const Products: React.FC = () => {
               <div className="relative" ref={sortRef}>
                 <button 
                   onClick={() => { setIsSortOpen(!isSortOpen); setIsCatOpen(false); }}
-                  className={`flex items-center justify-center w-14 md:w-16 h-full rounded-2xl border transition-all shadow-lg ${
+                  className={`flex items-center justify-center w-10 md:w-16 h-full rounded-xl border transition-all shadow-md ${
                     isSortOpen ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-200'
                   }`}
                 >
-                  <ArrowUpDown size={20} />
+                  <ArrowUpDown size={16} />
                 </button>
                 {isSortOpen && (
-                  <div className="absolute top-full right-0 mt-3 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-2">
+                  <div className="absolute top-full right-0 mt-2 w-40 bg-white border border-slate-100 rounded-2xl shadow-xl z-[60] overflow-hidden p-1">
                       {[
                         { id: 'newest', label: 'Latest' },
-                        { id: 'price-low', label: 'Price: Low' },
-                        { id: 'price-high', label: 'Price: High' },
-                        { id: 'name', label: 'Name' },
+                        { id: 'price-low', label: 'Low Price' },
+                        { id: 'price-high', label: 'High Price' },
                       ].map(option => (
                         <button
                           key={option.id}
                           onClick={() => { setSortBy(option.id); setIsSortOpen(false); }}
-                          className={`w-full text-left px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${
+                          className={`w-full text-left px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all mb-0.5 ${
                             sortBy === option.id ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'
                           }`}
                         >
@@ -319,121 +312,99 @@ const Products: React.FC = () => {
             </div>
         </div>
 
-        {/* --- HORIZONTAL SUB-CATEGORY SCROLL --- */}
-        <div className="relative mb-12">
-           <div className="flex items-center justify-between px-2 mb-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-2">
-                 <Tag size={12} className="text-primary" /> Curated Niches
+        {/* --- HORIZONTAL SUB-CATEGORY SCROLL - CONDENSED --- */}
+        <div className="relative mb-6 md:mb-12">
+           <div className="flex items-center justify-between px-1 mb-2">
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-1.5">
+                 <Tag size={10} className="text-primary" /> Niches
               </span>
-              <div className="h-px flex-grow mx-6 bg-slate-100"></div>
               {selectedSub !== 'all' && (
                 <button 
                   onClick={() => setSelectedSub('all')}
-                  className="text-[9px] font-black uppercase text-primary hover:text-slate-900 transition-colors flex items-center gap-2"
+                  className="text-[8px] font-black uppercase text-primary hover:text-slate-900 transition-colors flex items-center gap-1"
                 >
-                  Clear Filter <Check size={10} />
+                  Clear <Check size={8} />
                 </button>
               )}
            </div>
 
-           <div className="relative infinite-scroll-mask group/scroll">
+           <div className="relative infinite-scroll-mask group/scroll -mx-3 px-3">
               <div 
                 ref={subScrollRef}
                 className="subcat-row-container"
               >
-                {/* Reset Option */}
                 <button
                   onClick={() => setSelectedSub('all')}
-                  className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
-                    selectedSub === 'all' ? 'bg-primary text-slate-900 border-primary scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                  className={`px-5 py-2 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap h-fit flex-shrink-0 ${
+                    selectedSub === 'all' ? 'bg-primary text-slate-900 border-primary' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
                   }`}
                 >
-                  Show All
+                  All
                 </button>
 
                 {currentSubCategories.map((sub: SubCategory) => (
                   <button
                     key={sub.id}
                     onClick={() => setSelectedSub(sub.id)}
-                    className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
-                      selectedSub === sub.id ? 'bg-primary text-slate-900 border-primary scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                    className={`px-5 py-2 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap h-fit flex-shrink-0 ${
+                      selectedSub === sub.id ? 'bg-primary text-slate-900 border-primary' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
                     }`}
                   >
                     {sub.name}
                   </button>
                 ))}
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-4 opacity-0 group-hover/scroll:opacity-20 pointer-events-none transition-opacity">
-                <ChevronDown className="rotate-90 text-slate-900" size={32} />
-              </div>
-              <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover/scroll:opacity-20 pointer-events-none transition-opacity">
-                <ChevronDown className="-rotate-90 text-slate-900" size={32} />
-              </div>
            </div>
         </div>
 
-        {/* --- GROUPED PRODUCT GRID --- */}
+        {/* --- GROUPED PRODUCT GRID - COMPACT --- */}
         {groupedProducts.length > 0 ? (
-          <div className="space-y-24 md:space-y-36">
+          <div className="space-y-8 md:space-y-36">
             {groupedProducts.map((group, gIdx) => (
-              <section key={group.name} className="animate-in fade-in slide-in-from-bottom-12 duration-700" style={{ animationDelay: `${gIdx * 100}ms` }}>
-                <div className="flex items-center gap-6 mb-10 md:mb-16">
-                  <div className="flex-shrink-0 flex items-center gap-4">
-                    <span className="text-primary font-mono text-xl md:text-2xl font-black">
-                      {(gIdx + 1).toString().padStart(2, '0')}
-                    </span>
-                    <h2 className="text-2xl md:text-5xl font-serif text-slate-900 tracking-tighter capitalize">
-                      {group.name}
-                    </h2>
-                  </div>
-                  <div className="h-px flex-grow bg-slate-200/60 relative">
-                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-1 bg-primary rounded-full"></div>
-                  </div>
-                  <div className="hidden md:block">
-                     <span className="px-4 py-2 rounded-full bg-white border border-slate-100 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                        {group.items.length} Selections
-                     </span>
-                  </div>
+              <section key={group.name} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${gIdx * 50}ms` }}>
+                <div className="flex items-center gap-2 mb-4 md:mb-16">
+                  <span className="text-primary font-mono text-sm md:text-2xl font-black">
+                    {(gIdx + 1).toString().padStart(2, '0')}
+                  </span>
+                  <h2 className="text-lg md:text-5xl font-serif text-slate-900 tracking-tight capitalize">
+                    {group.name}
+                  </h2>
+                  <div className="h-px flex-grow bg-slate-200/50"></div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-8">
                   {group.items.map((product: Product) => (
                     <div 
                       key={product.id}
                       onClick={() => navigate(`/product/${product.id}`)}
-                      className="bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] transition-all duration-700 group hover:-translate-y-3 flex flex-col relative cursor-pointer"
+                      className="bg-white rounded-xl md:rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-500 group flex flex-col relative cursor-pointer"
                     >
                       {product.discountRules && product.discountRules.length > 0 && (
-                        <div className="absolute top-3 right-3 md:top-5 md:right-5 bg-red-600 text-white px-3 py-1 rounded-full font-black text-[7px] md:text-[9px] uppercase tracking-widest shadow-lg z-20">
+                        <div className="absolute top-2 left-2 md:top-5 md:right-5 bg-red-600 text-white px-1.5 py-0.5 rounded-full font-black text-[6px] md:text-[9px] uppercase tracking-widest shadow-lg z-20">
                           {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
                         </div>
                       )}
                       
                       <div className="relative aspect-square overflow-hidden bg-slate-50">
                         {renderProductMedia(product)}
-                        <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 z-10">
-                          <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl text-[10px] md:text-sm font-black text-slate-900 shadow-xl border border-white/50">
+                        <div className="absolute bottom-2 left-2 md:bottom-5 md:left-5 z-10">
+                          <div className="bg-white/90 backdrop-blur-sm px-1.5 py-0.5 md:px-5 md:py-2.5 rounded-md md:rounded-lg text-[7px] md:text-sm font-black text-slate-900 shadow-lg border border-white/50">
                             R {(product.price || 0).toLocaleString()}
                           </div>
                         </div>
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center z-10">
-                           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-900 shadow-2xl scale-50 group-hover:scale-100 transition-transform duration-500">
-                              <ShoppingBag size={20} />
-                           </div>
-                        </div>
                       </div>
                       
-                      <div className="p-4 md:p-6 flex-grow flex flex-col text-left">
-                        <span className="text-[7px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-2 block">
+                      <div className="p-2 md:p-6 flex-grow flex flex-col text-left">
+                        <span className="text-[6px] md:text-[9px] font-black text-primary uppercase tracking-[0.1em] mb-1 block">
                            {categories.find(c => c.id === product.categoryId)?.name}
                         </span>
-                        <h3 className="text-[12px] md:text-base font-serif text-slate-900 mb-3 group-hover:text-primary transition-colors duration-500 leading-snug line-clamp-2 min-h-[2.5em]">
+                        <h3 className="text-[9px] md:text-base font-serif text-slate-900 mb-1 group-hover:text-primary transition-colors duration-500 leading-tight line-clamp-2 min-h-[2.2em]">
                           {product.name}
                         </h3>
-                        <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                          <span className="text-[7px] md:text-[8px] font-bold text-slate-300 font-mono tracking-tighter truncate max-w-[80px] uppercase">Ref: {product.sku}</span>
-                          <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-primary/10 group-hover:text-primary transition-all">
-                             <Check size={12} />
+                        <div className="mt-auto pt-1 md:pt-2 border-t border-slate-50 flex items-center justify-between">
+                          <span className="text-[6px] md:text-[8px] font-bold text-slate-300 font-mono tracking-tighter truncate max-w-[50px] md:max-w-[60px] uppercase">Ref: {product.sku}</span>
+                          <div className="w-3.5 h-3.5 md:w-6 md:h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+                             <Check size={7} className="md:w-3 md:h-3" />
                           </div>
                         </div>
                       </div>
@@ -444,17 +415,17 @@ const Products: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-32 bg-white rounded-[3rem] border border-dashed border-slate-200">
-            <div className="w-24 h-24 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-8">
-              <Filter size={40} />
+          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+            <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Filter size={24} />
             </div>
-            <h3 className="text-2xl font-serif text-slate-900 mb-4 tracking-tight">Refinement Required</h3>
-            <p className="text-slate-400 max-w-sm mx-auto text-sm font-light leading-relaxed">We couldn't find any pieces matching these specific parameters. Try broadening your discovery.</p>
+            <h3 className="text-xl font-serif text-slate-900 mb-2">No Matches</h3>
+            <p className="text-slate-400 max-w-xs mx-auto text-xs font-light px-6">Adjust your search parameters to find more pieces.</p>
             <button 
               onClick={() => { setSelectedCat('all'); setSelectedSub('all'); setSearch(''); }} 
-              className="mt-10 px-8 py-4 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest text-[9px] hover:bg-primary hover:text-slate-900 transition-all shadow-xl"
+              className="mt-6 px-6 py-3 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest text-[8px] hover:bg-primary hover:text-slate-900 transition-all shadow-lg"
             >
-              Reset Discovery
+              Reset Filters
             </button>
           </div>
         )}

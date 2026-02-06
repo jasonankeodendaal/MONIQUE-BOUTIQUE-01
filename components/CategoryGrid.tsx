@@ -49,7 +49,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
               <button
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat.id)}
-                className="group relative h-[300px] md:h-[700px] w-full overflow-hidden rounded-[2rem] md:rounded-[4rem] transition-all duration-700 hover:shadow-[0_60px_100px_-20px_rgba(0,0,0,0.3)] border border-white/20 hover:border-primary/40 hover:-translate-y-6"
+                className="group relative aspect-square md:aspect-auto md:h-[700px] w-full overflow-hidden rounded-[2rem] md:rounded-[4rem] transition-all duration-700 hover:shadow-[0_60px_100px_-20px_rgba(0,0,0,0.3)] border border-white/20 hover:border-primary/40 hover:-translate-y-6"
               >
                 <div 
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-110"

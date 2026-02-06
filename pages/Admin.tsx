@@ -847,28 +847,26 @@ const EliteReportModal: React.FC<{
     const prevPeriodStart = periodStart - timeframeMs;
 
     // 1. ISOLATE CURATOR PRODUCTS
-    const targetProducts = (curatorId === 'all') 
+    const curatorProducts = (curatorId === 'all') 
       ? products 
       : products.filter(p => p.createdBy === curatorId);
     
-    const targetProductNames = new Set(targetProducts.map(p => p.name));
+    const curatorProductNames = new Set(curatorProducts.map(p => p.name));
 
     // 2. FILTER TRAFFIC LOGS BY CURATOR PRODUCTS & TIMEFRAME
-    // We filter logs where text includes the product name of one of the target curator's products
     const filterLogs = (logs: any[], start: number, end: number) => {
       return logs.filter(e => {
         if (e.timestamp < start || e.timestamp > end) return false;
-        if (curatorId === 'all') return true; // Show all if global
         
-        // Match specific product context in logs
-        // Product log format is usually "Product: [Name]"
         const logText = e.text || '';
         const isProductLog = logText.startsWith('Product: ');
         if (isProductLog) {
           const pName = logText.replace('Product: ', '').trim();
-          return targetProductNames.has(pName);
+          return curatorProductNames.has(pName);
         }
-        return false;
+        
+        // Include non-product logs only if global Maison report is selected
+        return curatorId === 'all';
       });
     };
 
@@ -890,7 +888,7 @@ const EliteReportModal: React.FC<{
       const adminProducts = products.filter(p => p.createdBy === admin.id);
       const adminProductNames = new Set(adminProducts.map(p => p.name));
       const adminLogs = trafficEvents.filter(e => {
-        if (e.timestamp < periodStart) return false;
+        if (e.timestamp < periodStart || e.timestamp > now) return false;
         const logText = e.text || '';
         if (logText.startsWith('Product: ')) {
           return adminProductNames.has(logText.replace('Product: ', '').trim());
@@ -1148,6 +1146,7 @@ const Admin: React.FC = () => {
   const [productCatFilter, setProductCatFilter] = useState('all');
   const [curatorFilter, setCuratorFilter] = useState<string>('all'); 
   const [showEliteReport, setShowEliteReport] = useState(false);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   // Manual Purge State
   const [showPurgeModal, setShowPurgeModal] = useState(false);
@@ -2489,7 +2488,7 @@ const Admin: React.FC = () => {
               </a>
             )}
             {isTrainingManagementMode && (
-               <button onClick={() => { setTrainingData({ title: '', platform: 'Instagram', description: '', strategies: [], actionItems: [], steps: [], icon: 'GraduationCap' }); setEditingId(null); setShowTrainingForm(true); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3">
+               <button onClick={() => { setTrainingData({ title: '', platform: 'Instagram', description: '', strategies: [], actionItems: [], steps: [], icon: '' }); setEditingId(null); setShowTrainingForm(true); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3">
                   <Plus size={18} /> New Module
                </button>
             )}
@@ -2523,8 +2522,8 @@ const Admin: React.FC = () => {
                         </select>
                      </div>
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Module Icon</label>
-                        <IconPicker selected={trainingData.icon || 'GraduationCap'} onSelect={v => setTrainingData({...trainingData, icon: v})} />
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Module Icon (Asset)</label>
+                        <SingleImageUploader value={trainingData.icon || ''} onChange={v => setTrainingData({...trainingData, icon: v})} label="" className="h-14 w-14 rounded-xl" />
                      </div>
                   </div>
                   <SettingField label="High-Level Summary" value={trainingData.description || ''} onChange={v => setTrainingData({...trainingData, description: v})} type="textarea" />
@@ -2652,13 +2651,14 @@ const Admin: React.FC = () => {
                </div>
             ) : trainingModules.map((module) => {
                const isExpanded = expandedTraining === module.id;
-               const ModuleIcon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
                return (
                   <div key={module.id} className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}>
                      <div className="relative group/module">
                         <button onClick={() => setExpandedTraining(isExpanded ? null : module.id)} className="w-full p-6 md:p-8 flex items-start text-left group h-full">
                            <div className="flex items-start gap-4 md:gap-6 w-full">
-                              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${ (module.platform === 'Pinterest') ? 'bg-red-600' : (module.platform === 'TikTok') ? 'bg-black border border-slate-700' : (module.platform === 'Instagram') ? 'bg-pink-600' : (module.platform === 'WhatsApp') ? 'bg-green-500' : (module.platform === 'SEO') ? 'bg-blue-600' : 'bg-slate-800 text-slate-300' }`}><ModuleIcon size={28} /></div>
+                              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${ (module.platform === 'Pinterest') ? 'bg-red-600' : (module.platform === 'TikTok') ? 'bg-black border border-slate-700' : (module.platform === 'Instagram') ? 'bg-pink-600' : (module.platform === 'WhatsApp') ? 'bg-green-500' : (module.platform === 'SEO') ? 'bg-blue-600' : 'bg-slate-800 text-slate-300' }`}>
+                                 {module.icon ? <img src={module.icon} className="w-full h-full object-cover rounded-2xl" alt="" /> : <GraduationCap size={28} />}
+                              </div>
                               <div className="flex-grow min-w-0">
                                  <div className="flex justify-between items-start">
                                     <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>
@@ -2684,11 +2684,21 @@ const Admin: React.FC = () => {
                            <div className="grid md:grid-cols-2 gap-10">
                               <div className="space-y-6">
                                  <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4></div>
-                                 <ul className="space-y-4">{module.strategies.map((strat, idx) => (<li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div><span className="leading-relaxed">{strat}</span></li>))}</ul>
+                                 <ul className="space-y-4">{module.strategies.map((strat, idx) => (
+                                    <li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800">
+                                       <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div>
+                                       <span className="leading-relaxed">{strat}</span>
+                                    </li>
+                                 ))}</ul>
                               </div>
                               <div className="space-y-6">
                                  <div className="flex items-center gap-3"><div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4></div>
-                                 <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">{module.actionItems.map((item, idx) => (<div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer"><div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div><span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span></div>))}</div>
+                                 <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">{module.actionItems.map((item, idx) => (
+                                    <div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer">
+                                       <div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div>
+                                       <span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span>
+                                    </div>
+                                 ))}</div>
                               </div>
                            </div>
                            
@@ -2704,8 +2714,15 @@ const Admin: React.FC = () => {
                                         </div>
                                         <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
                                         {step.mediaUrl && (
-                                          <div className="mt-2 rounded-2xl overflow-hidden aspect-video bg-slate-950 border border-slate-700">
-                                             { (step.type === 'video') ? <video src={step.mediaUrl} className="w-full h-full object-cover" controls muted /> : <img src={step.mediaUrl} className="w-full h-full object-cover" /> }
+                                          <div 
+                                             className="mt-2 rounded-2xl overflow-hidden aspect-video bg-slate-950 border border-slate-700 cursor-zoom-in group/img"
+                                             onClick={() => step.type === 'image' && setEnlargedImage(step.mediaUrl || null)}
+                                          >
+                                             { (step.type === 'video') ? (
+                                                <video src={step.mediaUrl} className="w-full h-full object-cover" controls muted />
+                                             ) : (
+                                                <img src={step.mediaUrl} className="w-full h-full object-cover transition-transform group-hover/img:scale-105" />
+                                             )}
                                           </div>
                                         )}
                                      </div>
@@ -2728,6 +2745,18 @@ const Admin: React.FC = () => {
                   </div>
                );
             })}
+         </div>
+      )}
+
+      {/* Enlarged Image Modal */}
+      {enlargedImage && (
+         <div className="fixed inset-0 z-[250] bg-black/95 flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300" onClick={() => setEnlargedImage(null)}>
+            <button className="absolute top-8 right-8 p-4 bg-white/10 text-white rounded-full hover:bg-white hover:text-black transition-all z-[260]">
+               <X size={32} />
+            </button>
+            <div className="relative w-full h-full flex items-center justify-center">
+               <img src={enlargedImage} className="max-w-full max-h-full object-contain shadow-2xl animate-in zoom-in duration-300" alt="Step Visual" />
+            </div>
          </div>
       )}
     </div>
