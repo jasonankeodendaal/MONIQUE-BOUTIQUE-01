@@ -45,7 +45,7 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
       const timer = setTimeout(() => setVisible(false), 3000);
       return () => clearTimeout(timer);
     }
-  }, [status]);
+  }, status);
 
   if (!visible) return null;
 
@@ -582,7 +582,7 @@ const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: st
   const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } };
   const toggleGroup = (node: PermissionNode) => { const childIds = node.children?.map(c => c.id) || []; const allSelected = childIds.every(id => permissions.includes(id)); if (allSelected) { onChange(permissions.filter(p => !childIds.includes(p))); } else { const newPerms = [...permissions]; childIds.forEach(id => { if (!newPerms.includes(id)) newPerms.push(id); }); onChange(newPerms); } };
   return (
-    <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <CheckSquare size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div>
+    <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div>
   );
 };
 
@@ -838,7 +838,7 @@ const EliteReportModal: React.FC<{
       case '3y': return 1095 * day;
       default: return 30 * day;
     }
-  }, [timeframe]);
+  }, timeframe);
 
   const reportData = useMemo(() => {
     const now = Date.now();
@@ -2038,7 +2038,7 @@ const Admin: React.FC = () => {
             </div>
             <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
             <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex flex-col md:flex-row gap-4 md:items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-full md:w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-full md:w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
-            <div className="flex flex-col md:flex-row gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
+            <div className="flex flex-col md:flex-row gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel Product</button></div>
           </div>
         ) : (
           <>
@@ -2199,7 +2199,7 @@ const Admin: React.FC = () => {
                               </>
                             ) : (
                               <>
-                                <button onClick={() => { /* Potential Restore Action */ }} className="flex-1 md:flex-none p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all" title="Restore to Active"><RotateCcw size={18}/></button>
+                                <button onClick={() => { /* Potential Restore Action */ }} className="flex-1 md:flex-none p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors" title="Restore to Active"><RotateCcw size={18}/></button>
                                 <button onClick={() => { if(confirm("Permanently delete this archive?")) deleteData('product_history', p.id).then(() => loadHistory()); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash size={18}/></button>
                               </>
                             )}
@@ -2293,7 +2293,7 @@ const Admin: React.FC = () => {
      <div className="space-y-12 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left">
            <div className="text-left">
-              <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic">Governance</span></h2>
+              <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Governance</span></h2>
               <div className="flex gap-4 mt-4">
                  <div className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-3">
                     <Crown size={14} className="text-primary" />
@@ -2380,7 +2380,7 @@ const Admin: React.FC = () => {
                               </div>
                               <div className="flex-grow space-y-4 min-w-0">
                                  <div>
-                                    <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
+                                    <div className="flex wrap justify-center md:justify-start items-center gap-3">
                                        <h4 className="text-white text-2xl font-bold tracking-tight truncate max-w-full">{a.name}</h4>
                                        {isCurrentUser && <span className="px-3 py-1 bg-green-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">SYSTEM AUTHENTICATED</span>}
                                     </div>
@@ -2442,11 +2442,11 @@ const Admin: React.FC = () => {
                                       <h4 className="text-white text-lg font-bold truncate">{a.name}</h4>
                                       <span className="px-3 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700 text-[8px] font-black uppercase tracking-widest">CURATOR STAFF</span>
                                    </div>
-                                   <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm">
+                                   <div className="flex wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm">
                                       <span className="flex items-center gap-2"><Mail size={12} className="text-primary opacity-40"/> {a.email}</span>
                                       {a.phone && <span className="flex items-center gap-2"><Phone size={12} className="text-primary opacity-40"/> {a.phone}</span>}
                                    </div>
-                                   <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-4">
+                                   <div className="pt-2 flex wrap justify-center md:justify-start gap-4">
                                       <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">JURISDICTION:</span>
                                       <div className="flex wrap gap-2">
                                          {a.permissions.length === 0 ? (
@@ -2549,7 +2549,7 @@ const Admin: React.FC = () => {
                            <input type="text" value={tempTrainingStrat} onChange={e => setTempTrainingStrat(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}), setTempTrainingStrat(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Optimized Reel Timings" />
                            <button onClick={() => { setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}); setTempTrainingStrat(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
                         </div>
-                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.strategies || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, strategies: trainingData.strategies?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
+                        <div className="flex wrap gap-2 pt-4">{(trainingData.strategies || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, strategies: trainingData.strategies?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
                      </div>
                      <div className="space-y-2 pt-6 border-t border-slate-800">
                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mandatory Action Items</label>
@@ -2557,7 +2557,7 @@ const Admin: React.FC = () => {
                            <input type="text" value={tempTrainingAction} onChange={e => setTempTrainingAction(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}), setTempTrainingAction(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Schedule 30 Pins" />
                            <button onClick={() => { setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}); setTempTrainingAction(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
                         </div>
-                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.actionItems || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, actionItems: trainingData.actionItems?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
+                        <div className="flex wrap gap-2 pt-4">{(trainingData.actionItems || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, actionItems: trainingData.actionItems?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
                      </div>
                   </div>
                </div>
@@ -2774,45 +2774,45 @@ const Admin: React.FC = () => {
   );
 
   const renderGuide = () => (
-     <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
-        <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
-            <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
-            <div className="max-w-3xl relative z-10 text-left">
-                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30"><Zap size={14}/> Launch Protocol</div>
-                <h2 className="text-3xl sm:text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none break-words">Architecture <span className="text-primary italic font-light lowercase">Blueprint</span></h2>
-                <p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed max-w-full">Complete the following milestones to transition from local prototype to a fully-synced global luxury bridge page.</p>
-            </div>
-        </div>
-        <div className="grid gap-16 md:gap-32 text-left">
-            {GUIDE_STEPS.map((step, idx) => (
-                <div key={step.id} className="relative flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-20">
-                    <div className="md:col-span-1 flex flex-row md:flex-col items-center gap-4 md:gap-0">
-                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl sticky md:top-32 static shrink-0">{idx + 1}</div>
-                        <div className="md:hidden text-lg font-bold text-white">Step {idx + 1}</div>
-                        <div className="hidden md:block flex-grow w-0.5 bg-gradient-to-b from-slate-800 to-transparent my-4" />
-                    </div>
-                    <div className="md:col-span-7 space-y-6 md:space-y-10 min-w-0 text-left">
-                        <div className="space-y-4 text-left">
-                            <h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{step.title}</h3>
-                            <p className="text-slate-400 text-sm md:text-lg leading-relaxed">{step.description}</p>
-                        </div>
-                        { (step.subSteps) && (
-                            <div className="grid gap-4 text-left">
-                                {step.subSteps.map((sub, i) => (
-                                    <div key={i} className="flex items-start gap-4 p-4 md:p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
-                                        <CheckCircle size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                                        <span className="text-slate-300 text-sm md:text-base leading-relaxed break-words w-full">{sub}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        { (step.code) && (<CodeBlock code={step.code} label={step.codeLabel} />)}
-                    </div>
-                    <div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0"><GuideIllustration id={step.illustrationId} /></div>
-                </div>
-            ))}
-        </div>
-     </div>
+    <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
+       <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
+           <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
+           <div className="max-w-3xl relative z-10 text-left">
+               <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30"><Zap size={14}/> Launch Protocol</div>
+               <h2 className="text-3xl sm:text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none break-words">Architecture <span className="text-primary italic font-light lowercase">Blueprint</span></h2>
+               <p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed max-w-full">Complete the following milestones to transition from local prototype to a fully-synced global luxury bridge page.</p>
+           </div>
+       </div>
+       <div className="grid gap-16 md:gap-32 text-left">
+           {GUIDE_STEPS.map((step, idx) => (
+               <div key={step.id} className="relative flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-20">
+                   <div className="md:col-span-1 flex flex-row md:flex-col items-center gap-4 md:gap-0">
+                       <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl sticky md:top-32 static shrink-0">{idx + 1}</div>
+                       <div className="md:hidden text-lg font-bold text-white">Step {idx + 1}</div>
+                       <div className="hidden md:block flex-grow w-0.5 bg-gradient-to-b from-slate-800 to-transparent my-4" />
+                   </div>
+                   <div className="md:col-span-7 space-y-6 md:space-y-10 min-w-0 text-left">
+                       <div className="space-y-4 text-left">
+                           <h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{step.title}</h3>
+                           <p className="text-slate-400 text-sm md:text-lg leading-relaxed">{step.description}</p>
+                       </div>
+                       { (step.subSteps) && (
+                           <div className="grid gap-4 text-left">
+                               {step.subSteps.map((sub, i) => (
+                                   <div key={i} className="flex items-start gap-4 p-4 md:p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
+                                       <CheckCircle size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                                       <span className="text-slate-300 text-sm md:text-base leading-relaxed break-words w-full">{sub}</span>
+                                   </div>
+                               ))}
+                           </div>
+                       )}
+                       { (step.code) && (<CodeBlock code={step.code} label={step.codeLabel} />)}
+                   </div>
+                   <div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0"><GuideIllustration id={step.illustrationId} /></div>
+               </div>
+           ))}
+       </div>
+    </div>
   );
 
   const renderSiteEditor = () => (
@@ -2855,324 +2855,4 @@ const Admin: React.FC = () => {
             {visibleTabs.map(tab => {
               const TabIcon = tab.icon;
               return (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><TabIcon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
-              );
-            })}
-          </div>
-          <button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center self-start"><LogOut size={14} /> Exit</button>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
-        { (activeTab === 'enquiries') && renderEnquiries() }
-        { (activeTab === 'analytics') && renderAnalytics() }
-        { (activeTab === 'catalog') && renderCatalog() }
-        { (activeTab === 'hero') && renderHero() }
-        { (activeTab === 'categories') && renderCategories() }
-        { (activeTab === 'site_editor') && renderSiteEditor() }
-        { (activeTab === 'team') && renderTeam() }
-        { (activeTab === 'training') && renderTraining() }
-        { (activeTab === 'system') && renderSystem() }
-        { (activeTab === 'guide') && renderGuide() }
-      </main>
-
-      {editorDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl bg-slate-950 h-full overflow-y-auto border-l border-slate-800 p-6 md:p-12 text-left shadow-2xl slide-in-from-right duration-300">
-             <div className="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
-                <div>
-                  <h3 className="text-3xl font-serif text-white mb-2">
-                    { (activeEditorSection === 'brand') && 'Brand Identity' }
-                    { (activeEditorSection === 'nav') && 'Navigation & Layout' }
-                    { (activeEditorSection === 'home') && 'Home Page' }
-                    { (activeEditorSection === 'collections') && 'Collections Page' }
-                    { (activeEditorSection === 'about') && 'About Page' }
-                    { (activeEditorSection === 'contact') && 'Contact Page' }
-                    { (activeEditorSection === 'login') && 'Login Experience' }
-                    { (activeEditorSection === 'legal') && 'Legal & Policy' }
-                    { (activeEditorSection === 'integrations') && 'Integrations' }
-                  </h3>
-                  <p className="text-slate-500 text-sm">Real-time configuration.</p>
-                </div>
-                <button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800"><X size={24} /></button>
-             </div>
-             <div className="space-y-8 text-left">
-               { (activeEditorSection === 'brand') && (
-                 <>
-                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} /><SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} /></div>
-                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4><div className="grid grid-cols-2 gap-6"><SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} /></div></div>
-                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" /><SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" /><SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" /></div></div>
-                 </>
-               )}
-               { (activeEditorSection === 'nav') && (
-                  <>
-                    <div className="space-y-6">
-                      <h4 className="text-white font-bold">Menu Labels</h4>
-                      <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
-                      <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} />
-                      <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} />
-                      <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
-                    </div>
-
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold flex items-center gap-2"><Layout size={18} className="text-primary"/> Structural Overrides</h4>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Departments Layout</label>
-                          <select 
-                            className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" 
-                            value={tempSettings.departmentsLayout || 'grid'} 
-                            onChange={e => updateTempSettings({ departmentsLayout: e.target.value as any })}
-                          >
-                            <option value="grid">Classic Grid (Main Section)</option>
-                            <option value="dropdown">Navigation Dropdown (Header)</option>
-                          </select>
-                          <p className="text-[10px] text-slate-500 italic mt-1">* Dropdown mode moves department links into a hover menu in the top navigation bar.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold">Footer Content</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Nav Header" value={tempSettings.footerNavHeader} onChange={v => updateTempSettings({ footerNavHeader: v })} />
-                        <SettingField label="Policy Header" value={tempSettings.footerPolicyHeader} onChange={v => updateTempSettings({ footerPolicyHeader: v })} />
-                      </div>
-                      <SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" />
-                      <div className="mt-4">
-                        <SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} />
-                      </div>
-                    </div>
-                  </>
-               )}
-               { (activeEditorSection === 'home') && (
-                  <>
-                    <div className="space-y-6">
-                      <h4 className="text-white font-bold">Hero & Niches</h4>
-                      <SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} />
-                      <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} />
-                        <SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} />
-                      </div>
-                    </div>
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold">About Section</h4>
-                      <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} />
-                      <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" />
-                      <SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} />
-                      <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} />
-                    </div>
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold">Trust Signals</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Trust Header" value={tempSettings.homeTrustHeader} onChange={v => updateTempSettings({ homeTrustHeader: v })} />
-                        <SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} />
-                      </div>
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                          <SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} />
-                          <SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} />
-                          <SingleImageUploader 
-                            label="Icon Asset" 
-                            value={tempSettings.homeTrustItem1Icon || ''} 
-                            onChange={v => updateTempSettings({ homeTrustItem1Icon: v })} 
-                            className="h-14 w-14 rounded-xl mt-2"
-                          />
-                        </div>
-                        <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                          <SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} />
-                          <SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} />
-                          <SingleImageUploader 
-                            label="Icon Asset" 
-                            value={tempSettings.homeTrustItem2Icon || ''} 
-                            onChange={v => updateTempSettings({ homeTrustItem2Icon: v })} 
-                            className="h-14 w-14 rounded-xl mt-2"
-                          />
-                        </div>
-                        <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                          <SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} />
-                          <SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} />
-                          <SingleImageUploader 
-                            label="Icon Asset" 
-                            value={tempSettings.homeTrustItem3Icon || ''} 
-                            onChange={v => updateTempSettings({ homeTrustItem3Icon: v })} 
-                            className="h-14 w-14 rounded-xl mt-2"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-               )}
-               { (activeEditorSection === 'collections') && (
-                  <>
-                    <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
-                    <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
-                    
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold flex items-center gap-2"><Layers size={18} className="text-primary"/> Discovery Layout</h4>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Subcategory Navigation Style</label>
-                          <select 
-                            className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" 
-                            value={tempSettings.subcategoryLayout || 'wrapped'} 
-                            onChange={e => updateTempSettings({ subcategoryLayout: e.target.value as any })}
-                          >
-                            <option value="wrapped">Default (Wrapped Flow)</option>
-                            <option value="scrollable-rows">Infinite Row Scroll (3-4 Balanced Rows)</option>
-                          </select>
-                          <p className="text-[10px] text-slate-500 italic mt-1">* Balanced row mode organizes subcategories into dense, high-efficiency horizontal scroll areas.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
-                      <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
-                    </div>
-
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold">Product Detail Labels</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Buy Button Label" value={tempSettings.productAcquisitionLabel} onChange={v => updateTempSettings({ productAcquisitionLabel: v })} />
-                        <SettingField label="Specs Title Label" value={tempSettings.productSpecsLabel} onChange={v => updateTempSettings({ productSpecsLabel: v })} />
-                      </div>
-                    </div>
-                  </>
-               )}
-               { (activeEditorSection === 'about') && (
-                  <>
-                    <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
-                    <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
-                    <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
-                    <div className="grid grid-cols-3 gap-4">
-                      <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
-                      <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
-                      <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
-                    </div>
-                    <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
-                    <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
-                    <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
-                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
-                    
-                    <div className="space-y-6 bg-slate-900/50 p-6 rounded-3xl border border-slate-800">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-grow">
-                          <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
-                        </div>
-                        <SingleImageUploader label="Icon" value={tempSettings.aboutMissionIcon || ''} onChange={v => updateTempSettings({ aboutMissionIcon: v })} className="h-14 w-14 rounded-xl" />
-                      </div>
-                      <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
-                    </div>
-
-                    <div className="space-y-6 bg-slate-900/50 p-6 rounded-3xl border border-slate-800">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-grow">
-                          <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
-                        </div>
-                        <SingleImageUploader label="Icon" value={tempSettings.aboutCommunityIcon || ''} onChange={v => updateTempSettings({ aboutCommunityIcon: v })} className="h-14 w-14 rounded-xl" />
-                      </div>
-                      <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
-                    </div>
-
-                    <div className="space-y-6 bg-slate-900/50 p-6 rounded-3xl border border-slate-800">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-grow">
-                          <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
-                        </div>
-                        <SingleImageUploader label="Icon" value={tempSettings.aboutIntegrityIcon || ''} onChange={v => updateTempSettings({ aboutIntegrityIcon: v })} className="h-14 w-14 rounded-xl" />
-                      </div>
-                      <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
-                    </div>
-
-                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
-                  </>
-               )}
-               { (activeEditorSection === 'contact') && (
-                  <>
-                    <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} />
-                    <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" />
-                    <div className="grid grid-cols-2 gap-4">
-                      <SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} />
-                      <SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} />
-                    </div>
-                    <SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} />
-                    <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" />
-                    <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <FaqsManager faqs={tempSettings.contactFaqs || []} onChange={v => updateTempSettings({ contactFaqs: v })} />
-                    </div>
-                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4>
-                    <SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} />
-                    <h4 className="text-white font-bold border-t border-slate-800 pt-6">Socials</h4>
-                    <SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} />
-                  </>
-               )}
-               { (activeEditorSection === 'login') && (
-                  <>
-                    <SettingField label="Login Title" value={tempSettings.adminLoginTitle || ''} onChange={v => updateTempSettings({ adminLoginTitle: v })} />
-                    <SettingField label="Login Subtitle" value={tempSettings.adminLoginSubtitle || ''} onChange={v => updateTempSettings({ adminLoginSubtitle: v })} />
-                    <SingleImageUploader label="Login Hero Image" value={tempSettings.adminLoginHeroImage || ''} onChange={v => updateTempSettings({ adminLoginHeroImage: v })} />
-                    <div className="flex items-center gap-4 mt-6">
-                       <input 
-                          type="checkbox" 
-                          checked={tempSettings.adminLoginAccentEnabled || false} 
-                          onChange={e => updateTempSettings({ adminLoginAccentEnabled: e.target.checked })} 
-                          className="w-5 h-5 rounded border-slate-700 bg-slate-900"
-                       />
-                       <span className="text-white font-bold text-sm">Enable Primary Glow Effect</span>
-                    </div>
-                  </>
-               )}
-               { (activeEditorSection === 'legal') && (
-                  <>
-                    <div className="space-y-6">
-                      <h4 className="text-white font-bold">Disclosure</h4>
-                      <SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
-                      <SettingField label="Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={8} />
-                    </div>
-                    <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <h4 className="text-white font-bold">Privacy Policy</h4>
-                      <SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
-                      <SettingField label="Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={8} />
-                    </div>
-                    <div className="space-y-6 pt-6 border-t border-slate-800">
-                      <h4 className="text-white font-bold">Terms of Service</h4>
-                      <SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
-                      <SettingField label="Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={8} />
-                    </div>
-                  </>
-               )}
-               { (activeEditorSection === 'integrations') && (
-                  <>
-                    <AdminTip title="Third-Party Tracking">
-                       Add your tracking IDs here. These scripts will automatically inject into the head of your site for analytics and retargeting.
-                    </AdminTip>
-                    <IntegrationGuide />
-                    <div className="space-y-6">
-                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Analytics & Pixels</h4>
-                       <SettingField label="Google Analytics 4 (G-XXXXXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
-                       <SettingField label="Meta Pixel ID (Dataset ID)" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
-                       <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
-                       <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
-                    </div>
-                    <div className="space-y-6 pt-6 border-t border-slate-800">
-                       <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Communications</h4>
-                       <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl mb-4 text-xs text-yellow-500">
-                          <strong>Note:</strong> EmailJS is currently hardcoded for reliability. Update 'constants.tsx' for custom email logic if required.
-                       </div>
-                    </div>
-                  </>
-               )}
-             </div>
-             <div className="flex flex-col md:flex-row gap-4 pt-12 border-t border-slate-800 mt-8">
-                <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Publish Changes</button>
-                <button onClick={() => setEditorDrawerOpen(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Discard</button>
-             </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default Admin;
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate
