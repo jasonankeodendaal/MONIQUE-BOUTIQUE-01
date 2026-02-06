@@ -580,7 +580,7 @@ export const PERMISSION_TREE: PermissionNode[] = [
 export const INITIAL_ADMINS: AdminUser[] = [
   {
     id: 'owner',
-    name: 'Main Administrator',
+    name: 'The Head Curator',
     email: 'admin@findara.com',
     role: 'owner',
     permissions: ['*'], // * implies all
@@ -599,39 +599,30 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
     email: 'sarah.j@example.com',
     whatsapp: '+27 82 555 0123',
     subject: 'Styling Consultation',
-    message: 'Hi there, I am looking for a personal stylist for an upcoming gala in Cape Town. Do you offer virtual consultations?',
+    message: 'Hi there, I saw your story and love your style. I am looking for a personal stylist for an upcoming gala. Do you offer virtual consultations?',
     createdAt: Date.now() - 86400000 * 2, // 2 days ago
     status: 'unread'
-  },
-  {
-    id: 'e2',
-    name: 'Michael Nkosi',
-    email: 'michael.n@example.com',
-    subject: 'Product Curation Inquiry',
-    message: 'I saw the Autumn Silk Series and I am interested in the bulk purchasing options for my boutique in Durban.',
-    createdAt: Date.now() - 86400000 * 5, // 5 days ago
-    status: 'read'
   }
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
   companyName: "Findara",
-  slogan: 'Curating the Exceptional',
+  slogan: 'Your Trusted Style Bridge',
   companyLogo: 'F',
   companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
   primaryColor: '#D4AF37',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
   navHomeLabel: 'Home',
-  navProductsLabel: 'Collections',
-  navAboutLabel: 'My Journey',
+  navProductsLabel: 'My Picks',
+  navAboutLabel: 'My Story',
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
   contactEmail: 'contact@findara.com',
   contactPhone: '+27 76 836 0325',
   whatsappNumber: '27768360325',
-  address: 'Mokopane, Limpopo, 0601',
+  address: 'Curated Online',
   socialLinks: [
     { id: '1', name: 'Instagram', url: 'https://instagram.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
     { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }
@@ -639,108 +630,106 @@ export const INITIAL_SETTINGS: SiteSettings = {
   contactFaqs: [
     {
       question: "Do you ship products directly?",
-      answer: "As a curation bridge page, we direct you to verified third-party luxury retailers. Shipping and returns are handled directly by the brand you purchase from."
+      answer: "No, I am a curator and affiliate marketer. I find the best deals and link you directly to verified partners like Shein. Your purchase and shipping are handled securely by them."
     },
     {
-      question: "How do I book a styling consultation?",
-      answer: "Please select 'Styling Consultation' in the inquiry form. Our team will coordinate a virtual or in-person session based on your location."
+      question: "Why should I buy through your links?",
+      answer: "I spend hours filtering through thousands of low-quality items to find the genuine 'hidden gems.' When you use my links, you're getting my personal stamp of approval on quality and style."
     },
     {
-      question: "Are the luxury items authenticated?",
-      answer: "Absolutely. We only affiliate with authorized retailers and brands that guarantee 100% authenticity on every piece listed."
+      question: "Are there extra costs using your links?",
+      answer: "Never. In fact, I often have exclusive discount codes for my community. You get the same (or better) price, and the brand pays me a small commission for the referral."
     }
   ],
 
-  productAcquisitionLabel: 'Secure Acquisition',
-  productSpecsLabel: 'Technical Specifications',
+  productAcquisitionLabel: 'View on Partner Site',
+  productSpecsLabel: 'Why I Selected This',
 
-  footerDescription: "The premier bridge page system marketing various affiliate programs. Your curated gateway to global fashion trends.",
+  footerDescription: "The premier bridge page for curated global trends. I find the best affiliate deals so you don't have to.",
   footerCopyrightText: "All rights reserved.",
   footerNavHeader: 'Navigation',
   footerPolicyHeader: 'Policy',
 
   // Home Page Content
-  homeHeroBadge: 'Curator Exclusive',
-  homeAboutTitle: 'My Narrative. Your Unique Style.',
-  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond. I spend hours finding the "hidden gems" so you don\'t have to.',
+  homeHeroBadge: 'Affiliate Curator',
+  homeAboutTitle: 'My Narrative. My Curation.',
+  homeAboutDescription: 'I spent years overspending on items that looked great online but failed in person. Findara is the result of my journey to find high-fashion aesthetics at everyday prices. This bridge page connects you to my personal favorites from trusted global partners like Shein, vetted for quality and true-to-style aesthetics.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
-  homeAboutCta: 'Explore My Story',
-  homeCategorySectionTitle: 'Curated Departments',
-  homeCategorySectionSubtitle: 'The Collection',
-  homeNicheHeader: 'Shop by Niche',
-  homeNicheSubheader: 'Curated Portals',
-  homeTrustHeader: 'Why trust my selections?',
+  homeAboutCta: 'Full Story',
+  homeCategorySectionTitle: 'Curated Portals',
+  homeCategorySectionSubtitle: 'The Edit',
+  homeNicheHeader: 'The Curated Vault',
+  homeNicheSubheader: 'Personal Portals',
+  homeTrustHeader: 'Why trust my story?',
   homeTrustSubheader: 'Curation Integrity',
-  homeTrustSectionTitle: 'Why Shop Here',
+  homeTrustSectionTitle: 'The Bridge Difference',
   
-  homeTrustItem1Title: 'Verified Affiliate',
-  homeTrustItem1Desc: 'Official partner with major global retailers like Shein and Revolve.',
+  homeTrustItem1Title: 'Personally Vetted',
+  homeTrustItem1Desc: 'I never link a product I wouldn\'t wear or use myself.',
   homeTrustItem1Icon: 'https://cdn-icons-png.flaticon.com/512/3260/3260814.png', 
 
-  homeTrustItem2Title: 'Personal Curation',
-  homeTrustItem2Desc: 'I personally select and review every item on this bridge page for quality.',
+  homeTrustItem2Title: 'Hidden Gems',
+  homeTrustItem2Desc: 'I filter through the noise of global retail to find the true quality pieces.',
   homeTrustItem2Icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png', 
 
-  homeTrustItem3Title: 'Direct Links',
-  homeTrustItem3Desc: 'Click through directly to the official merchant for secure checkout.',
+  homeTrustItem3Title: 'Direct & Secure',
+  homeTrustItem3Desc: 'My links take you directly to official merchants for safe checkout.',
   homeTrustItem3Icon: 'https://cdn-icons-png.flaticon.com/512/3260/3260815.png', 
 
   // Products Page Content
-  productsHeroTitle: 'Affiliate Catalog',
-  productsHeroSubtitle: 'Browse my hand-picked selections from top affiliate programs.',
+  productsHeroTitle: 'The Curator\'s Vault',
+  productsHeroSubtitle: 'My hand-picked selections from the world\'s largest trend-setters.',
   productsHeroImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
   productsHeroImages: [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=2000',
-    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000',
-    'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=80&w=2000'
+    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2000'
   ],
-  productsSearchPlaceholder: 'Search selections...',
+  productsSearchPlaceholder: 'Search my picks...',
 
   // About Page Content
-  aboutHeroTitle: 'My Narrative. Your Style.',
-  aboutHeroSubtitle: 'Authenticity is the thread that weaves every selection together. Welcome to my curated world.',
+  aboutHeroTitle: 'Authentic Curation. Real Story.',
+  aboutHeroSubtitle: 'I’m not just a marketer; I’m a shopper who found a better way to style.',
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'The Findara Curator',
-  aboutLocation: 'Cape Town, Online',
+  aboutFounderName: 'The Lead Curator',
+  aboutLocation: 'Cape Town & Online',
 
-  aboutHistoryTitle: 'The Bridge System',
-  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a platform. Findara isn\'t just about affiliate links; it\'s about the story behind every garment. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nThis bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator.',
+  aboutHistoryTitle: 'How It Started',
+  aboutHistoryBody: 'Findara began as a simple list I shared with friends who were tired of returning low-quality online orders. In 2024, I realized that many people want the convenience of global retailers like Shein, but don\'t have the time to find the high-quality items hidden in the catalog.\n\nMy bridge system is built on one simple rule: Trust. I spend hours every week ordering, testing, and reviewing items. This platform is where I share those winners with you. Every click helps me keep this research going, bringing you the best of the web without the guesswork.',
   
-  aboutMissionTitle: 'Marketing Mission',
-  aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers with transparency and taste.',
+  aboutMissionTitle: 'Curation Mission',
+  aboutMissionBody: 'To act as your filter between overwhelming global catalogs and your personal wardrobe.',
   aboutMissionIcon: 'https://cdn-icons-png.flaticon.com/512/3260/3260814.png',
 
-  aboutCommunityTitle: 'Join the Community',
-  aboutCommunityBody: 'Follow our journey as we discover new trends and deals that define modern luxury.',
+  aboutCommunityTitle: 'The Inner Circle',
+  aboutCommunityBody: 'Join thousands of curators who follow my daily finds and style hacks.',
   aboutCommunityIcon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
   
   aboutIntegrityTitle: 'Transparency',
-  aboutIntegrityBody: 'We are upfront about our role as an affiliate marketer. This system is built on trust and curation integrity.',
+  aboutIntegrityBody: 'I am a professional affiliate marketer. My story is real, and my recommendations are backed by honest use.',
   aboutIntegrityIcon: 'https://cdn-icons-png.flaticon.com/512/3260/3260815.png',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
   aboutGalleryImages: [
     'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800',
-    'https://images.unsplash.com/photo-1551488852-0801d863dc34?auto=format&fit=crop&q=80&w=800'
+    'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800'
   ],
 
   // Contact Page Content
-  contactHeroTitle: 'Connect with Us.',
-  contactHeroSubtitle: 'Have questions about a specific find or our curation process? Our concierge desk is here to assist.',
+  contactHeroTitle: 'Contact My Concierge.',
+  contactHeroSubtitle: 'Need help finding a specific piece or want to discuss styling? I\'m here to help.',
   contactFormNameLabel: 'Name',
   contactFormEmailLabel: 'Email',
   contactFormSubjectLabel: 'Subject',
   contactFormMessageLabel: 'Message',
-  contactFormButtonText: 'Transmit Message',
+  contactFormButtonText: 'Send to Curator',
   
-  contactInfoTitle: 'Headquarters',
+  contactInfoTitle: 'Bridge HQ',
   contactAddressLabel: 'Location',
-  contactHoursLabel: 'Concierge Hours',
-  contactHoursWeekdays: 'Monday - Friday: 09:00 - 18:00',
-  contactHoursWeekends: 'Weekends: 10:00 - 14:00 (Digital Response)',
+  contactHoursLabel: 'Response Hours',
+  contactHoursWeekdays: 'Mon-Fri: 09:00 - 17:00',
+  contactHoursWeekends: 'Weekends: Limited Support',
 
   // Legal Content
   disclosureTitle: 'Affiliate Disclosure',
@@ -769,66 +758,65 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     id: '1',
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'Modern Curation',
-    subtitle: 'Connecting you to the most influential global trends through a personal lens.',
-    cta: 'View Collection'
+    title: 'My Personal Selections',
+    subtitle: 'High-fashion aesthetics meet everyday prices. Discover the hidden gems I\'ve vetted for you.',
+    cta: 'Browse My Picks'
   },
   {
     id: '2',
     image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
-    title: 'High Tech Luxury',
-    subtitle: 'Smart solutions for a seamless lifestyle, personally vetted for performance.',
-    cta: 'Explore Devices'
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=2000',
-    type: 'image',
-    title: 'The Elite Vault',
-    subtitle: 'Exclusive handbags and jewelry for the discerning few.',
-    cta: 'Shop Accessories'
+    title: 'The Narrative Edit',
+    subtitle: 'Behind every recommendation is a story of quality testing and style exploration.',
+    cta: 'Read My Story'
   }
 ];
 
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat1', name: 'Accessories', icon: 'Handbag', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800&h=800', description: 'Curated bags and fine jewelry pieces.' },
-  { id: 'cat2', name: 'Footwear', icon: 'Heel', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800&h=800', description: 'Step into high-street fashion.' },
-  { id: 'cat3', name: 'Smart Life', icon: 'Watch', image: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800&h=800', description: 'Wearable tech and personal innovation.' },
-  { id: 'cat4', name: 'Home Living', icon: 'Package', image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800&h=800', description: 'Modern aesthetics for your living space.' }
+  { id: 'cat1', name: 'Wardrobe Essentials', icon: 'Dress', image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800&h=800', description: 'The foundation of my personal style.' },
+  { id: 'cat2', name: 'Accessories Vault', icon: 'Handbag', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800&h=800', description: 'Curated bags and fine jewelry.' }
 ];
 
 export const INITIAL_SUBCATEGORIES: SubCategory[] = [
-  { id: 'sub1', categoryId: 'cat1', name: 'Handbags' },
-  { id: 'sub2', categoryId: 'cat1', name: 'Jewelry' },
-  { id: 'sub3', categoryId: 'cat2', name: 'Luxury Heels' },
-  { id: 'sub4', categoryId: 'cat3', name: 'Smartwatches' },
-  { id: 'sub5', categoryId: 'cat4', name: 'Kitchen Tech' }
+  { id: 'sub1', categoryId: 'cat1', name: 'Summer Dresses' },
+  { id: 'sub2', categoryId: 'cat2', name: 'Designer Alternatives' }
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'p1',
-    name: 'Quilted Leather Crossbody',
-    sku: 'F-BAG-001',
-    price: 12500,
-    affiliateLink: 'https://example.com/handbag',
+    name: 'Silk Blend Slip Dress',
+    sku: 'CUR-DR-001',
+    price: 850,
+    affiliateLink: 'https://example.com/dress',
     categoryId: 'cat1',
     subCategoryId: 'sub1',
-    description: 'A timeless quilted masterpiece featuring hand-stitched leather and gold-tone hardware.',
-    features: ['Premium Calf Leather', 'Gold-plated hardware'],
-    specifications: { 'Material': 'Calf Leather' },
-    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800', name: 'Handbag', type: 'image/jpeg', size: 0 }],
+    description: 'I found this after searching for the perfect slip dress for months. It has the weight of real silk at a fraction of the cost.',
+    features: ['Vetted for true-to-size fit', 'Premium luster finish'],
+    specifications: { 'Reason for Selection': 'Perfect drape' },
+    media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800', name: 'Dress', type: 'image/jpeg', size: 0 }],
     createdAt: Date.now()
   }
 ];
 
 export const TRAINING_MODULES: TrainingModule[] = [
   {
+    id: 'tm_bridge',
+    title: 'Bridge Page Conversion Mastery',
+    platform: 'General',
+    description: 'Learn how to turn your personal story into affiliate commissions.',
+    strategies: ['Use the "I had this problem" narrative to build empathy.', 'Focus on vetting quality to overcome retail friction.'],
+    actionItems: ['Write your "About" story in the Canvas.', 'Add your first 5 "Hidden Gems" to the catalog.'],
+    icon: 'https://cdn-icons-png.flaticon.com/512/3260/3260814.png',
+    steps: [
+      { title: 'Define Your Why', description: 'Explain exactly why you started this bridge page. People buy from people they trust.', type: 'image' }
+    ]
+  },
+  {
     id: 'tm1',
     title: 'Instagram Aesthetic Curation',
     platform: 'Instagram',
-    description: 'Master visual storytelling on Instagram.',
+    description: 'Master visual storytelling on Instagram to drive traffic to your bridge.',
     strategies: ['Use high-contrast editorial photography.'],
     actionItems: ['Create 5 OOTD reels.'],
     icon: 'https://cdn-icons-png.flaticon.com/512/174/174855.png',
