@@ -117,7 +117,7 @@ export interface TrainingModule {
   description: string;
   strategies: string[];
   actionItems: string[];
-  icon: string; // Image URL (replaces Lucide icon name)
+  icon: string;
   steps: TrainingStep[];
   // Added missing metadata fields for synchronization
   createdAt?: number;

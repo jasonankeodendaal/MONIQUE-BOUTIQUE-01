@@ -43,14 +43,13 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-10">
           {displayItems.map((cat, idx) => {
-            const isIconUrl = cat.icon?.startsWith('http') || cat.icon?.startsWith('data:');
-            const IconComponent = !isIconUrl ? (CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LucideIcons.Package) : null;
+            const IconComponent = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LucideIcons.Package;
 
             return (
               <button
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat.id)}
-                className="group relative aspect-square md:aspect-auto md:h-[700px] w-full overflow-hidden rounded-[2rem] md:rounded-[4rem] transition-all duration-700 hover:shadow-[0_60px_100px_-20px_rgba(0,0,0,0.3)] border border-white/20 hover:border-primary/40 hover:-translate-y-6"
+                className="group relative h-[300px] md:h-[700px] w-full overflow-hidden rounded-[2rem] md:rounded-[4rem] transition-all duration-700 hover:shadow-[0_60px_100px_-20px_rgba(0,0,0,0.3)] border border-white/20 hover:border-primary/40 hover:-translate-y-6"
               >
                 <div 
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-110"
@@ -63,12 +62,8 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
                 <div className="absolute inset-0 border-[1px] border-white/10 rounded-[inherit] pointer-events-none group-hover:border-primary/20 transition-all duration-700"></div>
                 
                 <div className="absolute inset-0 p-6 md:p-14 flex flex-col justify-end items-start text-left z-10 w-full">
-                  <div className="w-10 h-10 md:w-20 md:h-20 glass-card rounded-2xl md:rounded-[2rem] flex items-center justify-center text-white mb-4 md:mb-12 border border-white/30 transform -translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 shadow-2xl overflow-hidden">
-                    {isIconUrl ? (
-                      <img src={cat.icon} className="w-full h-full object-cover" alt={cat.name} />
-                    ) : (
-                      <IconComponent size={18} className="md:w-10 md:h-10 text-primary" strokeWidth={1} />
-                    )}
+                  <div className="w-10 h-10 md:w-20 md:h-20 glass-card rounded-2xl md:rounded-[2rem] flex items-center justify-center text-white mb-4 md:mb-12 border border-white/30 transform -translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 shadow-2xl">
+                    <IconComponent size={18} className="md:w-10 md:h-10 text-primary" strokeWidth={1} />
                   </div>
                   
                   <span className="text-[8px] md:text-[12px] font-black text-white/50 uppercase tracking-[0.5em] mb-2 md:mb-5">

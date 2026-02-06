@@ -1,10 +1,11 @@
+
 import React, { useMemo } from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
-import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, ArrowRight, Heart, Star, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
+import { LayoutGrid, ShieldCheck, Globe, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 
@@ -18,37 +19,33 @@ const SectionDivider: React.FC = () => (
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { settings, categories, products } = useSettings();
+  const { settings, categories } = useSettings();
 
+  // Shuffle categories and pick exactly 4 to show on the home page
+  // This logic runs on every "reload" (mount of the Home component)
   const featuredCategories = useMemo(() => {
     if (!categories || categories.length === 0) return [];
+    
+    // Create a copy to avoid mutating original list, then shuffle
     const shuffled = [...categories].sort(() => Math.random() - 0.5);
+    
+    // Limit to 4 departments as requested
     return shuffled.slice(0, 4);
   }, [categories]);
-
-  const renderIcon = (iconSource: string, className?: string) => {
-    if (!iconSource) return <LayoutGrid className={className} />;
-    
-    const isUrl = iconSource.startsWith('http') || iconSource.startsWith('data:') || iconSource.includes('/');
-    
-    if (isUrl) {
-      return <img src={iconSource} className="w-full h-full object-cover aspect-square" alt="Icon" />;
-    }
-
-    const IconComponent = (CustomIcons as any)[iconSource] || (LucideIcons as any)[iconSource] || LucideIcons.LayoutGrid;
-    return <IconComponent className={className || "w-full h-full p-6"} strokeWidth={1} />;
-  };
 
   return (
     <main className="pt-0">
       <Hero />
       
+      {/* Editorial Story Preview - Centered more for branding */}
       <div className="bg-copper-wash relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
         <AboutSection />
       </div>
 
-      {/* Category Icons Strip - Updated with Image Icons */}
+      <SectionDivider />
+
+      {/* Category Icons Strip */}
       <section className="py-8 md:py-16 bg-copper-wash">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="text-center mb-8 md:mb-16">
@@ -58,20 +55,23 @@ const Home: React.FC = () => {
             </h2>
           </div>
           <div className="grid grid-cols-4 md:grid-cols-4 gap-4 md:gap-12">
-            {featuredCategories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => navigate(`/products?category=${cat.id}`)}
-                className="flex flex-col items-center group"
-              >
-                <div className="w-16 h-16 md:w-28 md:h-28 bg-white/40 backdrop-blur-sm rounded-[2rem] md:rounded-[3rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-3 transition-all duration-500 shadow-sm border border-slate-100/50 group-hover:border-primary/20 overflow-hidden">
-                  {renderIcon(cat.image || cat.icon, "w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 p-4 md:p-8")}
-                </div>
-                <span className="mt-4 md:mt-6 text-[8px] md:text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors truncate w-full text-center">
-                  {cat.name}
-                </span>
-              </button>
-            ))}
+            {featuredCategories.map((cat) => {
+              const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => navigate(`/products?category=${cat.id}`)}
+                  className="flex flex-col items-center group"
+                >
+                  <div className="w-16 h-16 md:w-28 md:h-28 bg-white/40 backdrop-blur-sm rounded-[2rem] md:rounded-[3rem] flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary group-hover:-translate-y-3 transition-all duration-500 shadow-sm border border-slate-100/50 group-hover:border-primary/20">
+                    <Icon size={24} className="md:w-10 md:h-10" strokeWidth={1.2} />
+                  </div>
+                  <span className="mt-4 md:mt-6 text-[8px] md:text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-900 transition-colors truncate w-full text-center">
+                    {cat.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -80,8 +80,9 @@ const Home: React.FC = () => {
         <CategoryGrid items={featuredCategories} />
       </div>
 
-      {/* Trust & Methodology Section - Updated with Image Icons */}
+      {/* Trust & Methodology Section */}
       <section className="py-12 md:py-40 bg-copper-wash relative overflow-hidden border-t border-slate-100/20">
+        {/* Decorative BG */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10 text-center">
@@ -94,18 +95,21 @@ const Home: React.FC = () => {
            
            <div className="grid grid-cols-3 gap-2 md:gap-16">
               {[
-                { iconUrl: settings.homeTrustItem1Icon, title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
-                { iconUrl: settings.homeTrustItem2Icon, title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
-                { iconUrl: settings.homeTrustItem3Icon, title: settings.homeTrustItem3Title, desc: settings.homeTrustItem3Desc }
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center group">
-                  <div className="mb-3 md:mb-10 w-12 h-12 md:w-28 md:h-28 bg-white/60 backdrop-blur-md rounded-xl md:rounded-[3.5rem] shadow-lg border border-white/40 overflow-hidden group-hover:scale-110 group-hover:rotate-3 transition-all duration-700 flex items-center justify-center p-3 md:p-8">
-                    {renderIcon(item.iconUrl)}
+                { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
+                { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
+                { iconName: settings.homeTrustItem3Icon || 'Globe', title: settings.homeTrustItem3Title, desc: settings.homeTrustItem3Desc }
+              ].map((item, i) => {
+                const IconComponent = CustomIcons[item.iconName] || (LucideIcons as any)[item.iconName] || ShieldCheck;
+                return (
+                  <div key={i} className="flex flex-col items-center group">
+                    <div className="mb-3 md:mb-10 w-12 h-12 md:w-28 md:h-28 bg-white/60 backdrop-blur-md rounded-xl md:rounded-[3.5rem] shadow-lg border border-white/40 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
+                      <IconComponent size={20} className="md:w-12 md:h-12" strokeWidth={1} />
+                    </div>
+                    <h4 className="text-[10px] md:text-2xl font-bold mb-1 md:mb-5 tracking-tight line-clamp-2 text-balance">{item.title}</h4>
+                    <p className="text-slate-500 font-light leading-snug max-w-xs text-[8px] md:text-lg line-clamp-3 text-balance">{item.desc}</p>
                   </div>
-                  <h4 className="text-[10px] md:text-2xl font-bold mb-1 md:mb-5 tracking-tight line-clamp-2 text-balance">{item.title}</h4>
-                  <p className="text-slate-500 font-light leading-snug max-w-xs text-[8px] md:text-lg line-clamp-3 text-balance">{item.desc}</p>
-                </div>
-              ))}
+                );
+              })}
            </div>
            
            <div className="mt-12 md:mt-32">
