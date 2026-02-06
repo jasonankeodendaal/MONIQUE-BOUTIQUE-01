@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Target, Sparkles, Heart, ArrowRight, GraduationCap } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { useSettings } from '../App';
-import { TRAINING_MODULES } from '../constants';
+import { CustomIcons } from '../components/CustomIcons';
 
 const About: React.FC = () => {
   const { settings, products } = useSettings();
@@ -23,8 +24,17 @@ const About: React.FC = () => {
     year: 'numeric' 
   }).format(new Date());
 
-  const renderIcon = (iconUrl: string) => {
-    return <img src={iconUrl} className="w-6 h-6 lg:w-10 lg:h-10 object-cover aspect-square rounded-lg lg:rounded-2xl" alt="Module Icon" />;
+  const renderIcon = (iconSource: string) => {
+    if (!iconSource) return <Sparkles size={24} />;
+    
+    const isUrl = iconSource.startsWith('http') || iconSource.startsWith('data:') || iconSource.includes('/');
+    
+    if (isUrl) {
+      return <img src={iconSource} className="w-full h-full object-cover" alt="Icon" />;
+    }
+
+    const IconComponent = (CustomIcons as any)[iconSource] || (LucideIcons as any)[iconSource] || LucideIcons.Sparkles;
+    return <IconComponent className="w-full h-full" strokeWidth={1.5} />;
   };
 
   return (
@@ -84,7 +94,7 @@ const About: React.FC = () => {
                       
                       <div className="space-y-6 text-left relative z-10">
                           <div className="flex items-center gap-4 text-primary">
-                             <div className="p-3 lg:p-5 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100 overflow-hidden">
+                             <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100 overflow-hidden p-3 lg:p-4 flex items-center justify-center">
                                {renderIcon(settings.aboutMissionIcon)}
                              </div>
                              <h4 className="text-xl lg:text-3xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
@@ -94,7 +104,7 @@ const About: React.FC = () => {
 
                       <div className="space-y-6 text-left relative z-10">
                           <div className="flex items-center gap-4 text-primary">
-                             <div className="p-3 lg:p-5 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100 overflow-hidden">
+                             <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100 overflow-hidden p-3 lg:p-4 flex items-center justify-center">
                                {renderIcon(settings.aboutCommunityIcon)}
                              </div>
                              <h4 className="text-xl lg:text-3xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
@@ -212,7 +222,7 @@ const About: React.FC = () => {
            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-16 lg:gap-32 text-left">
               
               <div className="w-full lg:w-1/3 flex flex-row lg:flex-col items-center lg:items-start gap-8 lg:gap-10">
-                 <div className="p-6 lg:p-10 bg-white/5 rounded-[2rem] lg:rounded-[3.5rem] border border-white/10 text-primary shadow-2xl animate-soft-flicker shrink-0 overflow-hidden">
+                 <div className="w-20 h-20 lg:w-32 lg:h-32 bg-white/5 rounded-[2rem] lg:rounded-[3.5rem] border border-white/10 text-primary shadow-2xl animate-soft-flicker shrink-0 overflow-hidden flex items-center justify-center p-6 lg:p-10">
                     {renderIcon(settings.aboutIntegrityIcon)}
                  </div>
                  <h2 className="text-4xl lg:text-7xl font-serif tracking-tight leading-none text-balance">

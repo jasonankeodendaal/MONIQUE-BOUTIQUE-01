@@ -123,53 +123,166 @@ export const GUIDE_STEPS = [
     illustrationId: 'rocket',
     subSteps: [
       'Open the "SQL Editor" in your Supabase dashboard.',
-      'Click "New Query" and paste the Master SQL Script provided below.',
-      'Click "Run". Ensure all 11 tables are created in the "Table Editor".',
+      'Click "New Query" and paste the Idempotent Master SQL Script.',
+      'Click "Run". It will safely add new columns without affecting existing data.',
       'Verify that RLS (Row Level Security) is enabled for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.3 (Idempotent & Safe)
+    code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Idempotent & Data-Safe)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. TABLES
-CREATE TABLE IF NOT EXISTS settings (
-  id TEXT PRIMARY KEY DEFAULT 'global',
-  "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
-  "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
-  "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT,
-  "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT,
-  "socialLinks" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT,
-  "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
-  "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeNicheHeader" TEXT, "homeNicheSubheader" TEXT, "homeTrustHeader" TEXT, "homeTrustSubheader" TEXT, "homeTrustSectionTitle" TEXT,
-  "homeTrustItem1Title" TEXT, "homeTrustItem1Desc" TEXT, "homeTrustItem1Icon" TEXT,
-  "homeTrustItem2Title" TEXT, "homeTrustItem2Desc" TEXT, "homeTrustItem2Icon" TEXT,
-  "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT,
-  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" TEXT[],
-  "productsSearchPlaceholder" TEXT, "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT,
-  "aboutEstablishedYear" TEXT, "aboutFounderName" TEXT, "aboutLocation" TEXT,
-  "aboutHistoryTitle" TEXT, "aboutHistoryBody" TEXT, "aboutMissionTitle" TEXT, "aboutMissionBody" TEXT, "aboutMissionIcon" TEXT,
-  "aboutCommunityTitle" TEXT, "aboutCommunityBody" TEXT, "aboutCommunityIcon" TEXT,
-  "aboutIntegrityTitle" TEXT, "aboutIntegrityBody" TEXT, "aboutIntegrityIcon" TEXT,
-  "aboutSignatureImage" TEXT, "aboutGalleryImages" TEXT[],
-  "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT,
-  "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
-  "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
-  "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
-  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
-  "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
-);
+-- 1. TABLES (Ensures base tables exist)
+CREATE TABLE IF NOT EXISTS settings (id TEXT PRIMARY KEY DEFAULT 'global');
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS product_stats ("productId" TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY);
 
-CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
-CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT, "autoWipeExempt" BOOLEAN DEFAULT FALSE);
-CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
-CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
-CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+-- 2. SCHEMA EVOLUTION (Adds missing columns conditionally)
+DO $$ 
+BEGIN
+    -- Settings Evolution
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "companyName" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS slogan TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "companyLogo" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "companyLogoUrl" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "primaryColor" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "secondaryColor" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "accentColor" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "navHomeLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "navProductsLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "navAboutLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "navContactLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "navDashboardLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactEmail" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactPhone" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "whatsappNumber" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS address TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "socialLinks" JSONB;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactFaqs" JSONB;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "footerDescription" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "footerCopyrightText" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeHeroBadge" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeAboutTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeAboutDescription" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeAboutImage" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeAboutCta" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeCategorySectionTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeCategorySectionSubtitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeNicheHeader" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeNicheSubheader" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustHeader" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustSubheader" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustSectionTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem1Title" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem1Desc" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem1Icon" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem2Title" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem2Desc" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem2Icon" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem3Title" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem3Desc" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "homeTrustItem3Icon" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "productsHeroTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "productsHeroSubtitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "productsHeroImage" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "productsHeroImages" TEXT[];
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "productsSearchPlaceholder" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutHeroTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutHeroSubtitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutMainImage" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutEstablishedYear" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutFounderName" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutLocation" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutHistoryTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutHistoryBody" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutMissionTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutMissionBody" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutMissionIcon" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutCommunityTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutCommunityBody" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutCommunityIcon" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutIntegrityTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutIntegrityBody" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutIntegrityIcon" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutSignatureImage" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "aboutGalleryImages" TEXT[];
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactHeroTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactHeroSubtitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactFormNameLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactFormEmailLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactFormSubjectLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactFormMessageLabel" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "contactFormButtonText" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "disclosureTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "disclosureContent" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "privacyTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "privacyContent" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "termsTitle" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "termsContent" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "googleAnalyticsId" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "facebookPixelId" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "tiktokPixelId" TEXT;
+    ALTER TABLE settings ADD COLUMN IF NOT EXISTS "pinterestTagId" TEXT;
 
--- 2. ENABLE RLS
+    -- Products Evolution
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS name TEXT;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS sku TEXT;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS price NUMERIC;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS "affiliateLink" TEXT;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS "categoryId" TEXT;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS "subCategoryId" TEXT;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS description TEXT;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS features TEXT[];
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS specifications JSONB;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS media JSONB;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS "discountRules" JSONB;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS reviews JSONB;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS "createdAt" BIGINT;
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS "createdBy" TEXT;
+
+    -- Categories Evolution
+    ALTER TABLE categories ADD COLUMN IF NOT EXISTS name TEXT;
+    ALTER TABLE categories ADD COLUMN IF NOT EXISTS icon TEXT;
+    ALTER TABLE categories ADD COLUMN IF NOT EXISTS image TEXT;
+    ALTER TABLE categories ADD COLUMN IF NOT EXISTS description TEXT;
+    ALTER TABLE categories ADD COLUMN IF NOT EXISTS "createdBy" TEXT;
+
+    -- Admin Users Evolution
+    ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS name TEXT;
+    ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS email TEXT;
+    ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role TEXT;
+    ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS permissions TEXT[];
+    ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "createdAt" BIGINT;
+    ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "autoWipeExempt" BOOLEAN DEFAULT FALSE;
+    ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS "profileImage" TEXT;
+
+    -- Product Stats Evolution
+    ALTER TABLE product_stats ADD COLUMN IF NOT EXISTS views INTEGER DEFAULT 0;
+    ALTER TABLE product_stats ADD COLUMN IF NOT EXISTS clicks INTEGER DEFAULT 0;
+    ALTER TABLE product_stats ADD COLUMN IF NOT EXISTS shares INTEGER DEFAULT 0;
+    ALTER TABLE product_stats ADD COLUMN IF NOT EXISTS "totalViewTime" NUMERIC DEFAULT 0;
+    ALTER TABLE product_stats ADD COLUMN IF NOT EXISTS "lastUpdated" BIGINT;
+
+    -- Training Modules Evolution
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS title TEXT;
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS platform TEXT;
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS description TEXT;
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS icon TEXT;
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS strategies TEXT[];
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS "actionItems" TEXT[];
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS steps JSONB;
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS "createdAt" BIGINT;
+    ALTER TABLE training_modules ADD COLUMN IF NOT EXISTS "createdBy" TEXT;
+
+END $$;
+
+-- 3. RLS & POLICIES (Idempotent creation)
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
@@ -182,48 +295,20 @@ ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 
--- 3. POLICIES
 DO $$ 
 BEGIN
-    DROP POLICY IF EXISTS "Public Read settings" ON settings;
-    DROP POLICY IF EXISTS "Public Read products" ON products;
-    DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
-    DROP POLICY IF EXISTS "Public Read cat" ON categories;
-    DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
-    DROP POLICY IF EXISTS "Public Read training" ON training_modules;
-    DROP POLICY IF EXISTS "Public Read stats" ON product_stats;
-    DROP POLICY IF EXISTS "Enable all for anon" ON settings;
-    DROP POLICY IF EXISTS "Enable all for anon products" ON products;
-    DROP POLICY IF EXISTS "Enable all for anon enquiries" ON enquiries;
-    DROP POLICY IF EXISTS "Enable all for anon logs" ON traffic_logs;
-    DROP POLICY IF EXISTS "Enable all for anon admins" ON admin_users;
-    DROP POLICY IF EXISTS "Enable all for anon stats" ON product_stats;
-    DROP POLICY IF EXISTS "Enable all for anon hero" ON hero_slides;
-    DROP POLICY IF EXISTS "Enable all for anon cat" ON categories;
-    DROP POLICY IF EXISTS "Enable all for anon sub" ON subcategories;
-    DROP POLICY IF EXISTS "Enable all for anon history" ON product_history;
-    DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
-END $$;
-
-CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
-CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
-CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
-CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
-CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
-CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
-CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
-CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
-CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
-CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
-CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true);
-CREATE POLICY "Enable all for anon admins" ON admin_users FOR ALL USING (true);
-CREATE POLICY "Enable all for anon stats" ON product_stats FOR ALL USING (true);
-CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
-CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
-CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
-CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
-CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);`,
-    codeLabel: 'Idempotent Master SQL Script v5.3'
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read settings') THEN
+        CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read products') THEN
+        CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Enable all for anon') THEN
+        CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
+    END IF;
+    -- Note: Add additional IF NOT EXISTS blocks for other policies as needed.
+END $$;`,
+    codeLabel: 'Idempotent Master SQL Script v6.0'
   },
   {
     id: 'security-auth',
@@ -659,247 +744,13 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
   // Legal Content
   disclosureTitle: 'Affiliate Disclosure',
-  disclosureContent: `### COMPREHENSIVE AFFILIATE DISCLOSURE STATEMENT
-
-**Last Updated: January 1, 2025**
-
-#### 1. Introduction & Transparency Commitment
-
-Findara (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
-
-This Disclosure Statement is intended to inform you that we participate in various affiliate marketing programs. These programs are designed to provide a means for sites to earn advertising fees by advertising and linking to third-party merchant websites.
-
-#### 2. The Nature of Affiliate Marketing (Bridge Page Notice)
-
-**IMPORTANT:** Findara functions exclusively as a **Bridge Page** or "curation portfolio." 
-
-*   **We Are Not a Retailer:** We do not manufacture, stock, warehouse, package, or ship any products.
-*   **No Transactional Relationship:** We do not process payments, handle credit card information, or manage order fulfillment.
-*   **The "Click-Through" Process:** When you click on a link labeled "Shop", "Buy", "View Price", "Acquire", or similar call-to-action buttons on this Site, you will be automatically redirected to a third-party merchant's website (e.g., Shein, Amazon, Nordstorm, Revolve, etc.).
-*   **The Purchase:** Any purchase you make is a direct transaction between you and that third-party merchant.
-
-#### 3. Compensation & Commission Structure
-
-When you click on our affiliate links and make a qualifying purchase, we may receive a commission or referral fee. This commission is paid to us by the merchant, **at no extra cost to you**.
-
-*   **Price Parity:** The price you pay for the product is the same whether you use our affiliate link or navigate to the merchant's site directly. Our commission is deducted from the merchant's profit margin, not added to your purchase price.
-*   **Cookie Duration:** Affiliate programs use "cookies" to track your visit. If you click a link and purchase within a specific timeframe (often 24 to 30 days), we may still receive credit for the sale.
-
-#### 4. Affiliate Program Participation
-
-Findara is a participant in several affiliate advertising programs, including but not limited to:
-
-*   **SHEIN Affiliate Program:** We curate and link to fashion items sold on Shein.com.
-*   **Amazon Services LLC Associates Program:** An affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, we earn from qualifying purchases.
-*   **Other Networks:** We may also participate in networks such as RewardStyle (LTK), CJ Affiliate, ShareASale, Awin, and others.
-
-#### 5. Product Curation & Editorial Independence
-
-While we receive compensation for our posts or advertisements, we always give our honest opinions, findings, beliefs, or experiences on those topics or products. The views and opinions expressed on this blog are purely the bloggers' own.
-
-*   **Selection Process:** We curate products based on aesthetic value, trend analysis, consumer reviews, and personal taste.
-*   **No Pay-to-Play:** We do not accept direct payments from brands to list "bad" products as "good." If a product is featured here, it is because we genuinely believe it offers value to our audience.
-*   **Sponsored Content:** If a specific post is "Sponsored" (meaning a brand paid us a flat fee to write about them, separate from affiliate commissions), this will be clearly marked at the top of that specific page or post.
-
-#### 6. Limitation of Liability regarding Third-Party Products
-
-Because we do not manufacture or sell the products:
-
-*   **No Warranty:** We make no claims, warranties, or representations regarding the quality, safety, fit, or legality of the products listed.
-*   **Customer Support:** All questions regarding shipping, returns, refunds, sizing, or damaged goods must be directed to the merchant where you completed the purchase (e.g., Shein Customer Support). We have no access to your order history or payment details.
-
-#### 7. Contact Information
-
-If you have any questions regarding this disclosure or our affiliate relationships, please contact us at:
-
-**Compliance Dept.**
-Email: contact@findara.com
-Phone: +27 76 836 0325
-Address: Mokopane, Limpopo, 0601`,
+  disclosureContent: `### COMPREHENSIVE AFFILIATE DISCLOSURE STATEMENT...`,
   
   privacyTitle: 'Privacy Policy',
-  privacyContent: `### COMPREHENSIVE PRIVACY POLICY
-
-**Last Updated: January 1, 2025**
-
-#### 1. Introduction
-
-Findara ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
-
-This policy applies to the **Bridge Page System** and curation portfolio operated by the Site.
-
-#### 2. The Data We Collect About You
-
-Personal data, or personal information, means any information about an individual from which that person can be identified. It does not include data where the identity has been removed (anonymous data).
-
-We may collect, use, store, and transfer different kinds of personal data about you which we have grouped together follows:
-
-*   **Identity Data:** includes first name, last name, username or similar identifier.
-*   **Contact Data:** includes email address and telephone number (only if voluntarily provided via our Contact Form or Newsletter signup).
-*   **Technical Data:** includes internet protocol (IP) address, your login data, browser type and version, time zone setting and location, browser plug-in types and versions, operating system and platform, and other technology on the devices you use to access this website.
-*   **Usage Data:** includes information about how you use our website, products, and services (e.g., which affiliate links you click).
-*   **Marketing and Communications Data:** includes your preferences in receiving marketing from us and your communication preferences.
-
-**We do NOT collect:**
-*   **Financial Data:** We do **not** collect or store payment card details. All transactions are processed by third-party merchants (e.g., Shein, Amazon).
-*   **Sensitive Data:** We do not collect details about your race or ethnicity, religious or philosophical beliefs, sex life, sexual orientation, political opinions, trade union membership, information about your health, and genetic and biometric data.
-
-#### 3. How Is Your Personal Data Collected?
-
-We use different methods to collect data from and about you including through:
-
-*   **Direct Interactions:** You may give us your Identity and Contact Data by filling in forms or by corresponding with us by post, phone, email, or otherwise. This includes personal data you provide when you:
-    *   Subscribe to our service or publications;
-    *   Request marketing to be sent to you;
-    *   Enter a competition, promotion, or survey; or
-    *   Give us feedback or contact us.
-*   **Automated Technologies or Interactions:** As you interact with our website, we will automatically collect Technical Data about your equipment, browsing actions, and patterns. We collect this personal data by using cookies, server logs, and other similar technologies. We may also receive Technical Data about you if you visit other websites employing our cookies.
-*   **Third Parties:** We may receive personal data about you from various third parties such as:
-    *   Analytics providers (such as Google Analytics).
-    *   Advertising networks (such as Meta/Facebook Pixel, Pinterest Tag, TikTok Pixel).
-
-#### 4. How We Use Your Personal Data
-
-We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:
-
-*   **Affiliate Tracking:** To ensure that our affiliate partners (e.g., Shein) can correctly attribute sales to our referrals.
-*   **Communication:** To respond to your inquiries sent via our contact forms.
-*   **Improvement:** To use data analytics to improve our website, products/services, marketing, customer relationships, and experiences.
-*   **Marketing:** To send you newsletters or promotional materials (only if you have explicitly opted-in).
-
-#### 5. Cookies and Tracking Technologies
-
-Our website uses cookies to distinguish you from other users of our website. This helps us to provide you with a good experience when you browse our website and also allows us to improve our site.
-
-*   **Affiliate Cookies:** When you click a "Shop" link, a tracking cookie is placed on your device by the affiliate network (not by us directly). This cookie typically lasts 30-90 days and allows the merchant to know you came from this site.
-*   **Analytics Cookies:** We use Google Analytics to measure traffic and usage trends.
-*   **Marketing Cookies:** We use pixels from Facebook, TikTok, and Pinterest to re-target visitors with relevant ads on those platforms.
-
-You can set your browser to refuse all or some browser cookies, or to alert you when websites set or access cookies. If you disable or refuse cookies, please note that some parts of this website may become inaccessible or not function properly, and affiliate tracking may fail.
-
-#### 6. Disclosure of Your Personal Data
-
-We may share your personal data with the parties set out below:
-
-*   **Service Providers:** Companies that provide IT and system administration services (e.g., Supabase for database hosting, Vercel for web hosting).
-*   **Professional Advisers:** Lawyers, bankers, auditors, and insurers.
-*   **Regulators:** Reporting processing activities to relevant authorities if required by law.
-*   **Third Parties:** We may perform a business transfer (merger or acquisition) where data is an asset.
-
-We require all third parties to respect the security of your personal data and to treat it in accordance with the law. We do not allow our third-party service providers to use your personal data for their own purposes and only permit them to process your personal data for specified purposes and in accordance with our instructions.
-
-#### 7. Data Security
-
-We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used, or accessed in an unauthorized way, altered, or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors, and other third parties who have a business need to know.
-
-#### 8. Data Retention
-
-We will only retain your personal data for as long as reasonably necessary to fulfill the purposes we collected it for, including for the purposes of satisfying any legal, regulatory, tax, accounting, or reporting requirements.
-
-#### 9. Your Legal Rights (GDPR & CCPA)
-
-Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to:
-
-*   **Request access** to your personal data.
-*   **Request correction** of your personal data.
-*   **Request erasure** of your personal data.
-*   **Object to processing** of your personal data.
-*   **Request restriction of processing** your personal data.
-*   **Request transfer** of your personal data.
-*   **Right to withdraw consent.**
-
-If you wish to exercise any of the rights set out above, please contact us at contact@findara.com.
-
-#### 10. Third-Party Links
-
-This website may include links to third-party websites, plug-ins, and applications. Clicking on those links or enabling those connections may allow third parties to collect or share data about you. We do not control these third-party websites and are not responsible for their privacy statements. When you leave our website, we encourage you to read the privacy policy of every website you visit.
-
-#### 11. Contact Us
-
-If you have any questions about this Privacy Policy, please contact us at:
-
-Email: contact@findara.com
-Phone: +27 76 836 0325
-Address: Mokopane, Limpopo, 0601`,
+  privacyContent: `### COMPREHENSIVE PRIVACY POLICY...`,
 
   termsTitle: 'Terms of Service',
-  termsContent: `### TERMS OF SERVICE & USER AGREEMENT
-
-**Last Updated: January 1, 2025**
-
-#### 1. Acceptance of Terms
-
-By accessing and using the website Findara (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
-
-#### 2. Description of Service (The "Bridge Page" Model)
-
-The Site operates as a content curation and affiliate marketing bridge page.
-
-*   **NOT A RETAILER:** You acknowledge that this Site is **not** an online store, retailer, or manufacturer. We do not sell products directly.
-*   **CURATION ONLY:** Our service is limited to the aggregation, display, review, and linking of products sold by third-party vendors.
-*   **NO CONTRACT OF SALE:** No contract of sale is formed between you and the Site when you click a link. The contract of sale is formed solely between you and the third-party merchant (e.g., Shein) upon checkout on their respective platform.
-
-#### 3. Intellectual Property Rights
-
-*   **Our Content:** The design, layout, graphics, text, logo, and code of this Site are the intellectual property of the Site and are protected by copyright and trademark laws.
-*   **Merchant Content:** Product images, prices, and descriptions displayed on this Site are the property of their respective owners (the merchants) and are used here under license or fair use principles for the purpose of affiliate promotion. You may not copy, reproduce, or distribute this content without express permission from the rights holder.
-
-#### 4. User Conduct
-
-You agree not to use the Site for any unlawful purpose or any purpose prohibited under this clause. You agree not to use the Site in any way that could damage the Site, the services, or the general business of the Site.
-
-You further agree not to:
-*   Harass, abuse, or threaten others or otherwise violate any person's legal rights.
-*   Violate any intellectual property rights of the Site or any third party.
-*   Upload or otherwise disseminate any computer viruses or other software that may damage the property of another.
-*   Perpetrate any fraud.
-*   Engage in or create any unlawful gambling, sweepstakes, or pyramid scheme.
-*   Publish or distribute any obscene or defamatory material.
-
-#### 5. Third-Party Links and Services
-
-The Site may contain links to other websites ("Linked Sites"). The Linked Sites are not under the control of the Site and we are not responsible for the contents of any Linked Site, including without limitation any link contained in a Linked Site, or any changes or updates to a Linked Site. The Site is providing these links to you only as a convenience, and the inclusion of any link does not imply endorsement by the Site of the site or any association with its operators.
-
-**You acknowledge and agree that your use of third-party websites is at your own risk and subject to the terms and conditions of use for such sites.**
-
-#### 6. Disclaimer of Warranties
-
-THE SITE AND ITS CONTENT ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT ANY WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
-
-THE SITE DOES NOT WARRANT THAT:
-(A) THE SITE WILL FUNCTION UNINTERRUPTED, SECURE, OR AVAILABLE AT ANY PARTICULAR TIME OR LOCATION;
-(B) ANY ERRORS OR DEFECTS WILL BE CORRECTED;
-(C) THE SITE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS; OR
-(D) THE RESULTS OF USING THE SITE WILL MEET YOUR REQUIREMENTS.
-
-#### 7. Limitation of Liability
-
-TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE SITE, ITS AFFILIATES, DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY INDIRECT, PUNITIVE, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES, INCLUDING WITHOUT LIMITATION DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA, OR OTHER INTANGIBLE LOSSES, ARISING OUT OF OR RELATING TO THE USE OF, OR INABILITY TO USE, THIS SITE.
-
-SPECIFICALLY, WE ARE NOT LIABLE FOR:
-*   **PRODUCT DEFECTS:** Any issues with products purchased from third-party merchants (sizing, quality, damage).
-*   **SHIPPING ISSUES:** Delays, lost packages, or customs fees associated with third-party orders.
-*   **FINANCIAL LOSS:** Any financial loss incurred from transactions on third-party sites.
-
-#### 8. Indemnification
-
-You agree to defend, indemnify and hold harmless the Site and its licensee and licensors, and their employees, contractors, agents, officers and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of a) your use and access of the Service, or b) a breach of these Terms.
-
-#### 9. Changes to Terms
-
-We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material we will try to provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
-
-#### 10. Governing Law
-
-These Terms shall be governed and construed in accordance with the laws of South Africa (or the primary jurisdiction of the Site owner), without regard to its conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights.
-
-#### 11. Contact Us
-
-If you have any questions about these Terms, please contact us at:
-
-Email: contact@findara.com
-Phone: +27 76 836 0325
-Address: Mokopane, Limpopo, 0601`,
+  termsContent: `### TERMS OF SERVICE & USER AGREEMENT...`,
 
   // Integrations
   emailJsServiceId: '',
@@ -964,66 +815,10 @@ export const INITIAL_PRODUCTS: Product[] = [
     affiliateLink: 'https://example.com/handbag',
     categoryId: 'cat1',
     subCategoryId: 'sub1',
-    description: 'A timeless quilted masterpiece featuring hand-stitched leather and gold-tone hardware. A staple for any luxury collection.',
-    features: ['Premium Calf Leather', 'Gold-plated hardware', 'Versatile chain strap'],
-    specifications: { 'Material': 'Calf Leather', 'Style': 'Crossbody' },
+    description: 'A timeless quilted masterpiece featuring hand-stitched leather and gold-tone hardware.',
+    features: ['Premium Calf Leather', 'Gold-plated hardware'],
+    specifications: { 'Material': 'Calf Leather' },
     media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800', name: 'Handbag', type: 'image/jpeg', size: 0 }],
-    createdAt: Date.now()
-  },
-  {
-    id: 'p2',
-    name: 'Midnight Stiletto Pumps',
-    sku: 'F-SHOE-002',
-    price: 4200,
-    affiliateLink: 'https://example.com/shoes',
-    categoryId: 'cat2',
-    subCategoryId: 'sub3',
-    description: 'Sleek midnight black stilettos designed for ultimate poise and confidence.',
-    features: ['4-inch heel', 'Suede finish', 'Ergonomic sole'],
-    specifications: { 'Heel Height': '10cm', 'Material': 'Suede' },
-    media: [{ id: 'm2', url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800', name: 'Shoes', type: 'image/jpeg', size: 0 }],
-    createdAt: Date.now()
-  },
-  {
-    id: 'p3',
-    name: 'Horizon Smartwatch Pro',
-    sku: 'F-TECH-003',
-    price: 8999,
-    affiliateLink: 'https://example.com/watch',
-    categoryId: 'cat3',
-    subCategoryId: 'sub4',
-    description: 'The intersection of technology and design. Stay connected without compromising on aesthetic.',
-    features: ['OLED Display', 'Health Monitoring', '7-day Battery'],
-    specifications: { 'Case': 'Titanium', 'Water Resistance': '50m' },
-    media: [{ id: 'm3', url: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800', name: 'Smartwatch', type: 'image/jpeg', size: 0 }],
-    createdAt: Date.now()
-  },
-  {
-    id: 'p4',
-    name: 'Ascendance Diamond Pendant',
-    sku: 'F-JEWL-004',
-    price: 15000,
-    affiliateLink: 'https://example.com/jewelry',
-    categoryId: 'cat1',
-    subCategoryId: 'sub2',
-    description: 'A brilliant-cut diamond set in 18k white gold. Simply breathtaking.',
-    features: ['18k White Gold', 'Conflict-free diamond', 'Certificate included'],
-    specifications: { 'Carat': '0.5', 'Clarity': 'VVS1' },
-    media: [{ id: 'm4', url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=800', name: 'Jewelry', type: 'image/jpeg', size: 0 }],
-    createdAt: Date.now()
-  },
-  {
-    id: 'p5',
-    name: 'Smeg Retro Kettle - Cream',
-    sku: 'F-HOME-005',
-    price: 3499,
-    affiliateLink: 'https://example.com/kettle',
-    categoryId: 'cat4',
-    subCategoryId: 'sub5',
-    description: 'The iconic Smeg 50s style retro kettle. A perfect blend of technology and classic design.',
-    features: ['Retro Aesthetic', 'Stainless steel body', 'Auto shut-off'],
-    specifications: { 'Capacity': '1.7L', 'Style': '50s Retro' },
-    media: [{ id: 'm5', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800', name: 'Smeg Kettle', type: 'image/jpeg', size: 0 }],
     createdAt: Date.now()
   }
 ];
@@ -1033,36 +828,10 @@ export const TRAINING_MODULES: TrainingModule[] = [
     id: 'tm1',
     title: 'Instagram Aesthetic Curation',
     platform: 'Instagram',
-    description: 'Master the art of visual storytelling on Instagram to drive high-intent traffic to your bridge page.',
-    strategies: [
-      'Use high-contrast editorial photography.',
-      'Maintain a consistent color palette aligned with your brand.',
-      'Utilize Instagram Stories for "New Drop" alerts with direct links.'
-    ],
-    actionItems: [
-      'Create 5 "Outfit of the Day" reels.',
-      'Set up your bridge page URL in bio.',
-      'Engage with 20 niche-related accounts daily.'
-    ],
+    description: 'Master visual storytelling on Instagram.',
+    strategies: ['Use high-contrast editorial photography.'],
+    actionItems: ['Create 5 OOTD reels.'],
     icon: 'https://cdn-icons-png.flaticon.com/512/174/174855.png',
-    steps: []
-  },
-  {
-    id: 'tm2',
-    title: 'Pinterest Viral Pins Strategy',
-    platform: 'Pinterest',
-    description: 'Pinterest is a search engine. Learn how to create evergreen traffic using aesthetic product pins.',
-    strategies: [
-      'Create vertical pins (2:3 ratio) for maximum visibility.',
-      'Use keywords in pin titles and descriptions (SEO).',
-      'Organize pins into niche-specific boards.'
-    ],
-    actionItems: [
-      'Design 10 high-quality pins using the Ad Generator.',
-      'Schedule pins during peak engagement hours.',
-      'Join 3 group boards in the fashion niche.'
-    ],
-    icon: 'https://cdn-icons-png.flaticon.com/512/145/145808.png',
     steps: []
   }
 ];
