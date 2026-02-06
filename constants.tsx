@@ -581,8 +581,8 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
   // Home Page Content
   homeHeroBadge: 'Curator Exclusive',
-  homeAboutTitle: 'The Curator\'s Journey.',
-  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.',
+  homeAboutTitle: 'My Narrative. Your Unique Style.',
+  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond. I spend hours finding the "hidden gems" so you don\'t have to.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Explore My Story',
   homeCategorySectionTitle: 'Curated Departments',
@@ -594,16 +594,16 @@ export const INITIAL_SETTINGS: SiteSettings = {
   homeTrustSectionTitle: 'Why Shop Here',
   
   homeTrustItem1Title: 'Verified Affiliate',
-  homeTrustItem1Desc: 'Official partner with major global retailers like Shein.',
-  homeTrustItem1Icon: 'ShieldCheck', 
+  homeTrustItem1Desc: 'Official partner with major global retailers like Shein and Revolve.',
+  homeTrustItem1Icon: 'https://cdn-icons-png.flaticon.com/512/3260/3260814.png', 
 
   homeTrustItem2Title: 'Personal Curation',
-  homeTrustItem2Desc: 'I personally select and review every item on this bridge page.',
-  homeTrustItem2Icon: 'User', 
+  homeTrustItem2Desc: 'I personally select and review every item on this bridge page for quality.',
+  homeTrustItem2Icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png', 
 
   homeTrustItem3Title: 'Direct Links',
-  homeTrustItem3Desc: 'Click through directly to the merchant for secure checkout.',
-  homeTrustItem3Icon: 'Link', 
+  homeTrustItem3Desc: 'Click through directly to the official merchant for secure checkout.',
+  homeTrustItem3Icon: 'https://cdn-icons-png.flaticon.com/512/3260/3260815.png', 
 
   // Products Page Content
   productsHeroTitle: 'Affiliate Catalog',
@@ -622,7 +622,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Findara Curator',
+  aboutFounderName: 'The Findara Curator',
   aboutLocation: 'Cape Town, Online',
 
   aboutHistoryTitle: 'The Bridge System',
@@ -630,15 +630,15 @@ export const INITIAL_SETTINGS: SiteSettings = {
   
   aboutMissionTitle: 'Marketing Mission',
   aboutMissionBody: 'To bridge the gap between you and the best global affiliate offers with transparency and taste.',
-  aboutMissionIcon: 'Target',
+  aboutMissionIcon: 'https://cdn-icons-png.flaticon.com/512/3260/3260814.png',
 
   aboutCommunityTitle: 'Join the Community',
   aboutCommunityBody: 'Follow our journey as we discover new trends and deals that define modern luxury.',
-  aboutCommunityIcon: 'Users',
+  aboutCommunityIcon: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
   
   aboutIntegrityTitle: 'Transparency',
   aboutIntegrityBody: 'We are upfront about our role as an affiliate marketer. This system is built on trust and curation integrity.',
-  aboutIntegrityIcon: 'Shield',
+  aboutIntegrityIcon: 'https://cdn-icons-png.flaticon.com/512/3260/3260815.png',
 
   aboutSignatureImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/John_Hancock_Signature.svg/1200px-John_Hancock_Signature.svg.png',
   aboutGalleryImages: [
@@ -924,7 +924,7 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     image: 'https://images.unsplash.com/photo-1492707892479-7bc8d5a4ee93?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
     title: 'Modern Curation',
-    subtitle: 'Connecting you to the most influential global trends.',
+    subtitle: 'Connecting you to the most influential global trends through a personal lens.',
     cta: 'View Collection'
   },
   {
@@ -932,7 +932,7 @@ export const INITIAL_CAROUSEL: CarouselSlide[] = [
     image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=2000',
     type: 'image',
     title: 'High Tech Luxury',
-    subtitle: 'Smart solutions for a seamless lifestyle.',
+    subtitle: 'Smart solutions for a seamless lifestyle, personally vetted for performance.',
     cta: 'Explore Devices'
   },
   {
@@ -1049,7 +1049,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Set up your bridge page URL in bio.',
       'Engage with 20 niche-related accounts daily.'
     ],
-    icon: 'Instagram',
+    icon: 'https://cdn-icons-png.flaticon.com/512/174/174855.png',
     steps: []
   },
   {
@@ -1067,7 +1067,7 @@ export const TRAINING_MODULES: TrainingModule[] = [
       'Schedule pins during peak engagement hours.',
       'Join 3 group boards in the fashion niche.'
     ],
-    icon: 'Pin',
+    icon: 'https://cdn-icons-png.flaticon.com/512/145/145808.png',
     steps: []
   }
 ];

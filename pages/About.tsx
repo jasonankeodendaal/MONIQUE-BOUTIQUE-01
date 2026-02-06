@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Target, Sparkles, Heart, ArrowRight, GraduationCap } from 'lucide-react';
@@ -148,38 +147,6 @@ const About: React.FC = () => {
                   )}
               </div>
           </div>
-        </div>
-      </section>
-
-      {/* Strategy Methodology - New Section */}
-      <section className="py-24 lg:py-56 bg-white relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-           <div className="text-center mb-16 lg:mb-32">
-              <span className="text-[11px] font-black uppercase tracking-[0.5em] text-primary mb-6 block flex items-center justify-center gap-3">
-                <GraduationCap size={16} /> Marketing Architecture
-              </span>
-              <h3 className="text-4xl md:text-7xl font-serif text-slate-900 tracking-tight">The <span className="italic font-light text-primary">Strategic</span> Approach</h3>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-16">
-              {TRAINING_MODULES.map((module) => (
-                <div key={module.id} className="group text-left space-y-8 p-10 bg-slate-50 rounded-[3rem] border border-slate-100 hover:bg-white hover:shadow-2xl transition-all duration-700">
-                   <div className="w-20 h-20 lg:w-28 lg:h-28 rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-xl border-4 border-white transform transition-transform duration-700 group-hover:-translate-y-4 group-hover:rotate-3">
-                      <img src={module.icon} className="w-full h-full object-cover aspect-square" alt={module.title} />
-                   </div>
-                   <div className="space-y-4">
-                      <h4 className="text-2xl lg:text-3xl font-serif text-slate-900 leading-tight group-hover:text-primary transition-colors">{module.title}</h4>
-                      <p className="text-slate-500 font-light text-base lg:text-lg leading-relaxed line-clamp-4">
-                        {module.description}
-                      </p>
-                   </div>
-                   <div className="pt-4 flex items-center gap-4 text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-10px] group-hover:translate-x-0 duration-700">
-                      <span className="text-[10px] font-black uppercase tracking-widest">Mastery Level : Advanced</span>
-                      <div className="h-px w-12 bg-primary"></div>
-                   </div>
-                </div>
-              ))}
-           </div>
         </div>
       </section>
 

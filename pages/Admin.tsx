@@ -46,7 +46,7 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
       const timer = setTimeout(() => setVisible(false), 3000);
       return () => clearTimeout(timer);
     }
-  }, [status]);
+  }, status);
 
   if (!visible) return null;
 
@@ -839,7 +839,7 @@ const EliteReportModal: React.FC<{
       case '3y': return 1095 * day;
       default: return 30 * day;
     }
-  }, [timeframe]);
+  }, timeframe);
 
   const reportData = useMemo(() => {
     const now = Date.now();
@@ -2249,7 +2249,19 @@ const Admin: React.FC = () => {
           <div className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-8">
              <AdminTip title="Department Structuring">Define your niches. Departments categorize your curations into logical shopping flows for the end user.</AdminTip>
              <div className="grid md:grid-cols-2 gap-8 text-left">
-                <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
+                <div className="space-y-6">
+                   <h3 className="text-white font-bold text-xl mb-4">Department Details</h3>
+                   <SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} />
+                   <div className="space-y-2">
+                      <SingleImageUploader 
+                        label="Custom Icon Image" 
+                        value={catData.icon || ''} 
+                        onChange={v => setCatData({...catData, icon: v})} 
+                        className="h-16 w-16 rounded-xl"
+                      />
+                   </div>
+                   <SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" />
+                </div>
                 <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex flex-wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
              </div>
              <div className="flex flex-col md:flex-row gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
@@ -2961,20 +2973,32 @@ const Admin: React.FC = () => {
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
                           <SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} />
                           <SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} />
-                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
-                          <IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} />
+                          <SingleImageUploader 
+                            label="Icon Asset" 
+                            value={tempSettings.homeTrustItem1Icon || ''} 
+                            onChange={v => updateTempSettings({ homeTrustItem1Icon: v })} 
+                            className="h-14 w-14 rounded-xl mt-2"
+                          />
                         </div>
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
                           <SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} />
                           <SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} />
-                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
-                          <IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} />
+                          <SingleImageUploader 
+                            label="Icon Asset" 
+                            value={tempSettings.homeTrustItem2Icon || ''} 
+                            onChange={v => updateTempSettings({ homeTrustItem2Icon: v })} 
+                            className="h-14 w-14 rounded-xl mt-2"
+                          />
                         </div>
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
                           <SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} />
                           <SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} />
-                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
-                          <IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} />
+                          <SingleImageUploader 
+                            label="Icon Asset" 
+                            value={tempSettings.homeTrustItem3Icon || ''} 
+                            onChange={v => updateTempSettings({ homeTrustItem3Icon: v })} 
+                            className="h-14 w-14 rounded-xl mt-2"
+                          />
                         </div>
                       </div>
                     </div>
@@ -3031,12 +3055,37 @@ const Admin: React.FC = () => {
                     <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
                     <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
-                    <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
-                    <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
-                    <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
-                    <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
-                    <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
-                    <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
+                    
+                    <div className="space-y-6 bg-slate-900/50 p-6 rounded-3xl border border-slate-800">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-grow">
+                          <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
+                        </div>
+                        <SingleImageUploader label="Icon" value={tempSettings.aboutMissionIcon || ''} onChange={v => updateTempSettings({ aboutMissionIcon: v })} className="h-14 w-14 rounded-xl" />
+                      </div>
+                      <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
+                    </div>
+
+                    <div className="space-y-6 bg-slate-900/50 p-6 rounded-3xl border border-slate-800">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-grow">
+                          <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
+                        </div>
+                        <SingleImageUploader label="Icon" value={tempSettings.aboutCommunityIcon || ''} onChange={v => updateTempSettings({ aboutCommunityIcon: v })} className="h-14 w-14 rounded-xl" />
+                      </div>
+                      <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
+                    </div>
+
+                    <div className="space-y-6 bg-slate-900/50 p-6 rounded-3xl border border-slate-800">
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-grow">
+                          <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
+                        </div>
+                        <SingleImageUploader label="Icon" value={tempSettings.aboutIntegrityIcon || ''} onChange={v => updateTempSettings({ aboutIntegrityIcon: v })} className="h-14 w-14 rounded-xl" />
+                      </div>
+                      <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
+                    </div>
+
                     <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
                   </>
                )}
