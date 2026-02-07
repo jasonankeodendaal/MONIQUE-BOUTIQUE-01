@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X, RefreshCcw, ArrowRight } from 'lucide-react';
@@ -50,7 +51,6 @@ const Footer: React.FC = () => {
     <>
       <footer className="bg-slate-900 text-slate-400 py-8 md:py-24 border-t border-slate-800 relative z-20">
         <div className="max-w-7xl mx-auto px-4 md:px-12">
-          {/* Main Content Grid: Forced 2 columns on mobile */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-20 mb-8 md:mb-16 text-left items-start">
             <div className="col-span-2 space-y-4 md:space-y-8">
               <div className="flex items-center space-x-3 md:space-x-6">
@@ -120,7 +120,6 @@ const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Bar: Forced side-by-side on mobile */}
           <div className="pt-6 border-t border-slate-800 text-[8px] md:text-[10px] uppercase tracking-widest font-medium text-slate-500 flex flex-row justify-between items-center gap-2">
             <p className="truncate max-w-[40%] md:max-w-none">&copy; {new Date().getFullYear()} {settings.companyName}</p>
             
@@ -381,9 +380,6 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
   return null;
 };
 
-/**
- * STRICT AUTHENTICATION PROTOCOLS
- */
 const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetTimer = useCallback(() => {
@@ -442,6 +438,24 @@ const getLocalState = <T,>(key: string, fallback: T): T => {
 
 const GlobalLayoutOverwrites: React.FC = () => (
   <style>{`
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+      /* Ensure everything feels anchored even when zoomed */
+      scroll-padding-top: 100px;
+    }
+    #root {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .shrink-to-fit-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      flex-grow: 1;
+    }
     .subcategory-scroll-area {
        display: flex;
        overflow-x: auto;
@@ -742,10 +756,10 @@ const App: React.FC = () => {
         <TrafficTracker logEvent={logEvent} />
         <GlobalLayoutOverwrites />
         <style>{` .text-primary { color: var(--primary-color); } .bg-primary { background-color: var(--primary-color); } .border-primary { border-color: var(--primary-color); } .hover\\:bg-primary:hover { background-color: var(--primary-color); } `}</style>
-        <div className="min-h-screen flex flex-col relative">
+        <div className="min-h-screen flex flex-col relative shrink-to-fit-container overflow-x-hidden">
           <PlexusBackground />
           <Header />
-          <div className="flex-grow z-10">
+          <div className="flex-grow z-10 w-full max-w-full overflow-x-hidden">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
