@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Mail, MessageCircle, Send, ArrowLeft, ArrowRight, Globe, MapPin, Clock, HelpCircle, Plus, Minus, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../App';
@@ -12,276 +13,99 @@ const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const lastUpdatedDate = new Intl.DateTimeFormat('en-US', { 
-    month: 'long', 
-    day: 'numeric', 
-    year: 'numeric' 
-  }).format(new Date());
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    const newEnquiry: Enquiry = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...formState,
-      createdAt: Date.now(),
-      status: 'unread'
-    };
-
-    // Exclusively synchronize with Supabase backend
+    const newEnquiry: Enquiry = { id: Math.random().toString(36).substr(2, 9), ...formState, createdAt: Date.now(), status: 'unread' };
     await updateData('enquiries', newEnquiry);
-
-    setIsSubmitting(false);
-    setSubmitted(true);
+    setIsSubmitting(false); setSubmitted(true);
     setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
-    
     setTimeout(() => setSubmitted(false), 8000);
   };
 
-  const faqs = settings.contactFaqs || [];
-
   return (
-    <div className="min-h-screen bg-[#FDF5F2] relative">
-       {/* Background Elements - Warmer Rose Glow */}
-       <div className="fixed top-0 right-0 w-[50vw] h-[50vw] bg-[#B76E79]/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-       <div className="fixed bottom-0 left-0 w-[30vw] h-[30vw] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
-       
-       {/* Back Button */}
-       <button 
-            onClick={() => navigate('/')}
-            className="fixed top-6 left-6 z-50 w-12 h-12 bg-white/80 backdrop-blur-md border border-[#B76E79]/10 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-lg group"
-        >
-            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        </button>
+    <div className="min-h-screen bg-[#FDF5F2] shrink-fit">
+      <style>{` .shrink-fit { width: 100%; max-width: 100vw; } `}</style>
+      
+      {/* PERSISTENT BACK BUTTON - HEADER CLEARANCE */}
+      <button 
+          onClick={() => navigate('/')}
+          className="fixed top-24 left-6 z-[100] w-12 h-12 bg-white/80 backdrop-blur-md border border-primary/10 rounded-full flex items-center justify-center text-slate-900 shadow-lg"
+      >
+          <ArrowLeft size={20} />
+      </button>
 
-      <div className="pt-32 md:pt-48 pb-20 md:pb-32 max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-        
-        {/* Header Section */}
-        <div className="mb-16 md:mb-24">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-[9px] font-black uppercase tracking-widest mb-6 border border-green-500/20">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                Concierge Online
-              </div>
-              <h1 className="font-serif text-slate-900 leading-[0.9] tracking-tighter mb-6 text-balance" style={{ fontSize: 'clamp(3rem, 10vw, 8rem)' }}>
-                {settings.contactHeroTitle}
-              </h1>
-              <p className="text-lg md:text-xl text-slate-500 font-light max-w-xl leading-relaxed text-pretty">
-                {settings.contactHeroSubtitle}
-              </p>
-            </div>
-            
-            <div className="flex gap-4">
-               <a href={`mailto:${settings.contactEmail}`} className="w-16 h-16 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-slate-900 hover:text-white transition-all duration-300 group">
-                 <Mail size={24} className="group-hover:scale-110 transition-transform" />
-               </a>
-               <a href={`https://wa.me/${settings.whatsappNumber}`} target="_blank" rel="noreferrer" className="w-16 h-16 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300 group">
-                 <MessageCircle size={24} className="group-hover:scale-110 transition-transform" />
-               </a>
-            </div>
-          </div>
+      <div className="pt-32 md:pt-48 pb-20 max-w-7xl mx-auto px-6 relative z-10 shrink-fit">
+        <div className="mb-16 md:mb-24 text-left">
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-[9px] font-black uppercase tracking-widest mb-6 border border-green-500/20">Concierge Active</span>
+          <h1 className="font-serif text-slate-900 leading-[0.9] tracking-tighter mb-6" style={{ fontSize: 'clamp(2.5rem, 8vw, 6rem)' }}>{settings.contactHeroTitle}</h1>
+          <p className="text-lg md:text-xl text-slate-500 font-light max-w-xl">{settings.contactHeroSubtitle}</p>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-20">
-          
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-16">
           <div className="lg:col-span-7 order-2 lg:order-1">
-            <div className="bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(183,110,121,0.1)] border border-white flex flex-col justify-center">
-               
+            <div className="bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-[2rem] shadow-xl border border-white">
                {submitted ? (
-                 <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in duration-700">
-                    <div className="relative mb-10">
-                       <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-                       <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-primary relative z-10 border border-primary/10 shadow-2xl">
-                          <CheckCircle2 size={64} strokeWidth={1} />
-                       </div>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-serif text-slate-900 mb-4 tracking-tight">Secure Transmission Successful</h2>
-                    <p className="text-slate-500 mb-10 max-w-sm mx-auto leading-relaxed">Your inquiry has been encrypted and synchronized with our concierge desk. Expect a response within 24 hours.</p>
-                    <div className="flex flex-col items-center gap-4">
-                       <button onClick={() => setSubmitted(false)} className="text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:text-slate-900 transition-colors border-b-2 border-primary/20 pb-1">Submit New Inquiry</button>
-                       <div className="flex items-center gap-2 text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-4">
-                          <ShieldCheck size={12} className="text-green-500" />
-                          End-to-End Cloud Handshake Verified
-                       </div>
-                    </div>
+                 <div className="py-20 text-center animate-in zoom-in duration-700">
+                    <CheckCircle2 size={64} className="text-primary mx-auto mb-6" />
+                    <h2 className="text-2xl font-serif text-slate-900 mb-2">Transmission Received</h2>
+                    <p className="text-slate-500 text-sm">We will respond to your inquiry shortly.</p>
                  </div>
                ) : (
-                 <form className="space-y-8" onSubmit={handleSubmit}>
+                 <form className="space-y-6 text-left" onSubmit={handleSubmit}>
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormNameLabel}</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={formState.name}
-                          onChange={(e) => setFormState({...formState, name: e.target.value})}
-                          className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
-                          placeholder="Your Name" 
-                        />
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{settings.contactFormNameLabel}</label>
+                        <input type="text" required value={formState.name} onChange={e => setFormState({...formState, name: e.target.value})} className="w-full px-5 py-4 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/20 transition-all" />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormEmailLabel}</label>
-                        <input 
-                          type="email" 
-                          required
-                          value={formState.email}
-                          onChange={(e) => setFormState({...formState, email: e.target.value})}
-                          className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
-                          placeholder="email@address.com" 
-                        />
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{settings.contactFormEmailLabel}</label>
+                        <input type="email" required value={formState.email} onChange={e => setFormState({...formState, email: e.target.value})} className="w-full px-5 py-4 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/20 transition-all" />
                       </div>
                     </div>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">WhatsApp (Optional)</label>
-                        <input 
-                          type="tel" 
-                          value={formState.whatsapp}
-                          onChange={(e) => setFormState({...formState, whatsapp: e.target.value})}
-                          className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
-                          placeholder="+27..." 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormSubjectLabel}</label>
-                        <div className="relative">
-                          <select 
-                            value={formState.subject}
-                            onChange={(e) => setFormState({...formState, subject: e.target.value})}
-                            className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium appearance-none cursor-pointer"
-                          >
-                            <option>Product Curation Inquiry</option>
-                            <option>Styling Consultation</option>
-                            <option>Brand Partnership</option>
-                            <option>Order Assistance</option>
-                          </select>
-                          <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none rotate-90" size={16} />
-                        </div>
-                      </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-2">{settings.contactFormMessageLabel}</label>
+                      <textarea rows={5} required value={formState.message} onChange={e => setFormState({...formState, message: e.target.value})} className="w-full px-5 py-4 bg-slate-50 rounded-xl outline-none focus:bg-white border-2 border-transparent focus:border-primary/20 transition-all resize-none" />
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormMessageLabel}</label>
-                      <textarea 
-                        rows={5} 
-                        required
-                        value={formState.message}
-                        onChange={(e) => setFormState({...formState, message: e.target.value})}
-                        className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium resize-none placeholder:text-slate-300" 
-                        placeholder="Type your message..."
-                      ></textarea>
-                    </div>
-
-                    <button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-6 bg-slate-900 text-white font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-primary hover:text-slate-900 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4 group disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                      ) : (
-                        <>
-                          <span>{settings.contactFormButtonText}</span>
-                          <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                        </>
-                      )}
+                    <button type="submit" disabled={isSubmitting} className="w-full py-5 bg-slate-900 text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-xl hover:bg-primary hover:text-slate-900 transition-all flex items-center justify-center gap-3">
+                      {isSubmitting ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} />}
+                      {settings.contactFormButtonText}
                     </button>
                  </form>
                )}
             </div>
           </div>
 
-          <div className="lg:col-span-5 order-1 lg:order-2 space-y-10">
-             <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#B76E79]/30 rounded-full blur-[50px] -mr-10 -mt-10"></div>
-                
-                <h3 className="text-2xl font-serif mb-8 flex items-center gap-3">
-                  <Globe size={20} className="text-primary"/> {settings.contactInfoTitle || 'Global HQ'}
-                </h3>
-                
+          <div className="lg:col-span-5 order-1 lg:order-2 space-y-8 text-left">
+             <div className="bg-slate-900 rounded-[2rem] p-10 text-white">
+                <h3 className="text-xl font-serif mb-8 flex items-center gap-3"><Globe size={20} className="text-primary"/> {settings.contactInfoTitle}</h3>
                 <div className="space-y-6">
                   <div className="flex gap-4">
-                     <MapPin className="text-slate-500 mt-1 flex-shrink-0" size={20} />
-                     <div>
-                       <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{settings.contactAddressLabel || 'Address'}</span>
-                       <p className="text-lg leading-snug font-medium">{settings.address || 'Johannesburg, South Africa'}</p>
-                     </div>
+                     <MapPin className="text-slate-500 shrink-0" size={20} />
+                     <div><span className="block text-[8px] font-black uppercase text-slate-500 mb-1">{settings.contactAddressLabel}</span><p className="text-base font-medium">{settings.address}</p></div>
                   </div>
-                  
                   <div className="flex gap-4">
-                     <Clock className="text-slate-500 mt-1 flex-shrink-0" size={20} />
-                     <div>
-                       <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{settings.contactHoursLabel || 'Operating Hours'}</span>
-                       <p className="text-sm text-slate-300">{settings.contactHoursWeekdays}</p>
-                       <p className="text-sm text-slate-300">{settings.contactHoursWeekends}</p>
-                     </div>
-                  </div>
-                </div>
-
-                <div className="mt-12 pt-8 border-t border-white/10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">Follow us :</span>
-                  <div className="flex flex-wrap gap-8 items-center">
-                    {(settings.socialLinks || []).map((link) => (
-                      <a 
-                        key={link.id} 
-                        href={link.url} 
-                        target="_blank" 
-                        rel="noreferrer" 
-                        className="flex items-center justify-center transition-all duration-500 group relative"
-                        title={link.name}
-                      >
-                        {/* Interactive Blur Glow */}
-                        <div className="absolute inset-0 bg-[#B76E79]/40 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        
-                        {link.iconUrl ? (
-                          <img 
-                            src={link.iconUrl} 
-                            className="w-10 h-10 object-contain transition-all duration-500 group-hover:scale-125 filter group-hover:brightness-125 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]" 
-                            alt={link.name}
-                          />
-                        ) : (
-                          <ArrowRight size={24} className="-rotate-45 text-white group-hover:text-primary transition-colors" />
-                        )}
-                      </a>
-                    ))}
+                     <Clock className="text-slate-500 shrink-0" size={20} />
+                     <div><span className="block text-[8px] font-black uppercase text-slate-500 mb-1">{settings.contactHoursLabel}</span><p className="text-xs text-slate-300">{settings.contactHoursWeekdays}</p><p className="text-xs text-slate-300">{settings.contactHoursWeekends}</p></div>
                   </div>
                 </div>
              </div>
-
-             <div className="space-y-4">
-                <h3 className="text-xl font-serif text-slate-900 px-4 flex items-center gap-2">
-                  <HelpCircle size={18} className="text-primary"/> Common Enquiries
-                </h3>
-                <div className="space-y-2">
-                   {faqs.map((faq, idx) => (
-                     <div key={idx} className="bg-white/60 backdrop-blur-md border border-[#B76E79]/10 rounded-2xl overflow-hidden transition-all duration-300">
-                        <button 
-                          onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                          className="w-full px-6 py-4 flex items-center justify-between text-left"
-                        >
-                          <span className="text-sm font-bold text-slate-900 pr-4">{faq.question}</span>
-                          <div className={`w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300 ${openFaq === idx ? 'rotate-180 bg-slate-900 text-white' : 'text-slate-400'}`}>
-                             {openFaq === idx ? <Minus size={12}/> : <Plus size={12}/>}
-                          </div>
-                        </button>
-                        <div className={`px-6 overflow-hidden transition-all duration-300 ${openFaq === idx ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 pb-0 opacity-0'}`}>
-                           <p className="text-xs text-slate-500 leading-relaxed font-light">{faq.answer}</p>
-                        </div>
-                     </div>
-                   ))}
-                </div>
+             
+             <div className="space-y-3">
+                <h4 className="text-sm font-bold text-slate-900 px-2 flex items-center gap-2"><HelpCircle size={16} className="text-primary"/> FAQs</h4>
+                {settings.contactFaqs?.map((faq, i) => (
+                  <div key={i} className="bg-white/60 border border-primary/5 rounded-xl overflow-hidden">
+                    <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full px-5 py-4 flex items-center justify-between text-left">
+                      <span className="text-xs font-bold text-slate-800">{faq.question}</span>
+                      {openFaq === i ? <Minus size={12}/> : <Plus size={12}/>}
+                    </button>
+                    <div className={`px-5 overflow-hidden transition-all duration-300 ${openFaq === i ? 'max-h-32 pb-4 opacity-100' : 'max-h-0 opacity-0'}`}>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">{faq.answer}</p>
+                    </div>
+                  </div>
+                ))}
              </div>
           </div>
-        </div>
-
-        <div className="mt-24 pt-12 border-t border-[#B76E79]/10 text-center">
-           <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Last Updated: {lastUpdatedDate}</p>
         </div>
       </div>
     </div>
