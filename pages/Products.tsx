@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, FileText, Video as VideoIcon, ChevronDown, ArrowUpDown, ArrowLeft, Layers, Tag, LayoutGrid, Check, Filter } from 'lucide-react';
@@ -187,7 +186,15 @@ const Products: React.FC = () => {
         }
       `}</style>
       
-      {/* --- HERO SECTION: Flush to top, button clears header --- */}
+      {/* Persistent Fixed Back Button for catalog page */}
+      <button 
+        onClick={() => navigate('/')}
+        className="fixed top-8 left-6 md:top-12 md:left-12 z-[60] w-12 h-12 md:w-16 md:h-16 bg-white/60 backdrop-blur-2xl border border-primary/20 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-2xl group"
+      >
+        <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+      </button>
+
+      {/* --- HERO SECTION --- */}
       <div className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden bg-black">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
@@ -199,14 +206,6 @@ const Products: React.FC = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
         
-        {/* Back button shifted down to clear fixed header */}
-        <button 
-            onClick={() => navigate('/')}
-            className="absolute top-24 left-6 md:top-32 md:left-10 z-30 w-10 h-10 md:w-14 md:h-14 bg-white/10 backdrop-blur-2xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-2xl border border-white/20 group"
-        >
-            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        </button>
-
         <div 
           className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-center items-center text-center pb-12 pt-24 md:pt-32"
           style={{ 

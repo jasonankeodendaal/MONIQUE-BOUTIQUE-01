@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-// Added ShieldCheck to the lucide-react imports
 import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../App';
 import { Review, Product } from '../types';
@@ -37,7 +36,7 @@ const ProductDetail: React.FC = () => {
     }
 
     return () => clearTimeout(timeout);
-  }, [id, product]);
+  }, [id, product, logEvent]);
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,27 +62,29 @@ const ProductDetail: React.FC = () => {
   const adContent = useMemo(() => {
     if (!product) return { caption: '', pitch: '', shortPitch: '' };
     
+    const desc = product.description || '';
+    const compName = settings.companyName || 'Maison';
     const discount = product.discountRules?.[0];
     const discountString = discount 
       ? (discount.type === 'percentage' ? `${discount.value}% OFF` : `R${discount.value} OFF`) 
       : '';
     
-    const pitch = `✨ Curated Find: ${product.name}\n\n${product.description.substring(0, 120)}...\n\n${discountString ? `🔥 Limited Offer: ${discountString}\n` : ''}💎 Exclusive to ${settings.companyName}`;
-    const fullCaption = `${pitch}\n\nShop here: ${window.location.href}\n\n#${settings.companyName.replace(/\s/g, '')} #Curation #LuxuryStyle`;
+    const pitch = `✨ Curated Find: ${product.name}\n\n${desc.substring(0, 120)}${desc.length > 120 ? '...' : ''}\n\n${discountString ? `🔥 Limited Offer: ${discountString}\n` : ''}💎 Exclusive to ${compName}`;
+    const fullCaption = `${pitch}\n\nShop here: ${window.location.href}\n\n#${compName.replace(/\s/g, '')} #Curation #LuxuryStyle`;
     
-    return { caption: fullCaption, pitch, shortPitch: `Check out this ${product.name} at ${settings.companyName}!` };
+    return { caption: fullCaption, pitch, shortPitch: `Check out this ${product.name} at ${compName}!` };
   }, [product, settings]);
 
   const handleShareTrigger = () => {
     if (!product) return;
-    logEvent('share', `Product: ${product.name}`);
+    logEvent('share', `Product: ${product.name} - Preview`);
     setIsShareOpen(true);
   };
 
   const executeNativeShare = async () => {
     if (!product) return;
     setIsPreparingBundle(true);
-    logEvent('share', `Product: ${product.name}`);
+    logEvent('share', `Product: ${product.name} - Executed`);
 
     const shareData: ShareData = {
       title: product.name,
@@ -142,7 +143,7 @@ const ProductDetail: React.FC = () => {
       { name: 'X', icon: Twitter, color: 'bg-black', text: 'text-white', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}` },
       { name: 'LinkedIn', icon: Linkedin, color: 'bg-[#0A66C2]', text: 'text-white', url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
     ];
-  }, [adContent, product]);
+  }, [adContent]);
 
   if (!product) {
     return (
@@ -277,7 +278,7 @@ const ProductDetail: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col border-l border-slate-100 pl-8">
-                   <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">Maison SKU</span>
+                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Maison SKU</span>
                    <span className="text-xs font-mono font-bold text-slate-400 tracking-tighter uppercase">{product.sku}</span>
                 </div>
               </div>
