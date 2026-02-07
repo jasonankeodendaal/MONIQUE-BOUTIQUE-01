@@ -101,6 +101,7 @@ const Hero: React.FC = () => {
         </div>
       </div>
 
+      {/* Hero Slides */}
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -127,7 +128,7 @@ const Hero: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
           
           <div className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-end items-center pb-12 md:pb-24">
-            <div className={`max-w-4xl flex flex-col items-center text-center transition-all duration-[1s] delay-500 transform ${
+            <div className={`max-w-5xl flex flex-col items-center text-center transition-all duration-[1s] delay-500 transform ${
               index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}>
               <div className="flex items-center justify-center gap-4 mb-3 md:mb-6">
@@ -138,10 +139,10 @@ const Hero: React.FC = () => {
                 <div className="h-px w-8 md:w-12 bg-primary"></div>
               </div>
               
-              <h1 className="font-serif text-white mb-4 md:mb-6 leading-[1.1] md:leading-[0.9] tracking-tighter text-balance"
-                  style={{ fontSize: 'clamp(2.2rem, 7vw, 7.5rem)' }}>
+              <h1 className="font-serif text-white mb-4 md:mb-6 leading-[1.1] md:leading-[0.95] tracking-tighter text-balance capitalize"
+                  style={{ fontSize: 'clamp(1.8rem, 9vw, 7.5rem)' }}>
                 {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
-                <span className="text-primary italic font-light lowercase">
+                <span className="text-primary italic font-light">
                   {slide.title.split(' ').slice(-1)}
                 </span>
               </h1>
