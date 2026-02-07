@@ -853,11 +853,14 @@ const EliteReportModal: React.FC<{
     const targetProductNames = new Set(targetProducts.map(p => p.name));
 
     // 2. FILTER TRAFFIC LOGS BY CURATOR PRODUCTS & TIMEFRAME
+    // We filter logs where text includes the product name of one of the target curator's products
     const filterLogs = (logs: any[], start: number, end: number) => {
       return logs.filter(e => {
         if (e.timestamp < start || e.timestamp > end) return false;
-        if (curatorId === 'all') return true; 
+        if (curatorId === 'all') return true; // Show all if global
         
+        // Match specific product context in logs
+        // Product log format is usually "Product: [Name]"
         const logText = e.text || '';
         const isProductLog = logText.startsWith('Product: ');
         if (isProductLog) {
@@ -871,6 +874,7 @@ const EliteReportModal: React.FC<{
     const currentPeriodLogs = filterLogs(trafficEvents, periodStart, now);
     const prevPeriodLogs = filterLogs(trafficEvents, prevPeriodStart, periodStart);
 
+    // Calculate metrics from logs for accurate timeframe representation
     const totalViews = currentPeriodLogs.filter(l => l.type === 'view').length;
     const totalClicks = currentPeriodLogs.filter(l => l.type === 'click').length;
     const totalShares = currentPeriodLogs.filter(l => l.type === 'share').length;
@@ -912,39 +916,9 @@ const EliteReportModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 animate-in fade-in duration-500 overflow-y-auto print:absolute print:inset-0 print:overflow-visible print:bg-white print:p-0">
-      <style>{`
-        @media print {
-          body * { visibility: hidden !important; }
-          .print-report-root, .print-report-root * { visibility: visible !important; }
-          .print-report-root {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            height: auto !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            box-shadow: none !important;
-            background: white !important;
-            color: black !important;
-            overflow: visible !important;
-          }
-          .no-print { display: none !important; }
-          .print-bg-fix { 
-            -webkit-print-color-adjust: exact !important; 
-            print-color-adjust: exact !important; 
-          }
-          @page {
-             size: auto;
-             margin: 10mm;
-          }
-          .custom-scrollbar { overflow: visible !important; }
-        }
-      `}</style>
-      
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 animate-in fade-in duration-500 overflow-y-auto print:p-0 print:bg-white">
       {isGenerating ? (
-        <div className="flex flex-col items-center gap-6 no-print">
+        <div className="flex flex-col items-center gap-6">
            <div className="relative">
               <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
               <FilePieChart size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" />
@@ -955,9 +929,9 @@ const EliteReportModal: React.FC<{
            </div>
         </div>
       ) : (
-        <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col min-h-[90vh] max-h-[95vh] print:min-h-0 print:max-h-none print:shadow-none print:rounded-none print-report-root print-bg-fix">
+        <div className="w-full max-w-5xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col min-h-[90vh] max-h-[95vh] print:rounded-none print:shadow-none print:min-h-0 print:m-0">
            {/* Header Controls */}
-           <div className="p-6 bg-slate-900 flex flex-col md:flex-row justify-between items-center text-white flex-shrink-0 no-print gap-4">
+           <div className="p-6 bg-slate-900 flex flex-col md:flex-row justify-between items-center text-white flex-shrink-0 print:hidden gap-4">
               <div className="flex items-center gap-3">
                  <ShieldCheck className="text-primary" size={24} />
                  <div>
@@ -967,6 +941,7 @@ const EliteReportModal: React.FC<{
               </div>
               
               <div className="flex items-center gap-4">
+                 {/* TIMEFRAME SELECTOR */}
                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
                     {(['7d', '14d', '30d', '1y', '2y', '3y'] as const).map((t) => (
                       <button 
@@ -991,14 +966,14 @@ const EliteReportModal: React.FC<{
            {/* PDF Body Container */}
            <div className="flex-grow overflow-y-auto custom-scrollbar p-12 md:p-20 text-slate-900 text-left print:p-8 print:overflow-visible">
               {/* Branding Section */}
-              <div className="flex justify-between items-start mb-20 border-b-2 border-slate-100 pb-12 print:mb-10">
+              <div className="flex justify-between items-start mb-20 border-b-2 border-slate-100 pb-12">
                  <div>
-                    {settings.companyLogoUrl && <img src={settings.companyLogoUrl} className="h-20 w-auto mb-6 grayscale print-bg-fix" alt="Logo" />}
+                    {settings.companyLogoUrl && <img src={settings.companyLogoUrl} className="h-20 w-auto mb-6 grayscale" alt="Logo" />}
                     <h1 className="text-4xl font-serif font-black tracking-tighter uppercase">{settings.companyName}</h1>
                     <p className="text-slate-500 uppercase tracking-[0.4em] font-black text-[10px] mt-1">{settings.slogan}</p>
                  </div>
                  <div className="text-right">
-                    <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block print-bg-fix">Period: {reportData.timeframeLabel}</span>
+                    <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block">Period: {reportData.timeframeLabel}</span>
                     <h2 className="text-4xl font-serif italic text-slate-300">Elite Performance</h2>
                     <p className="text-slate-400 text-sm mt-2">FY {new Date().getFullYear()} • Contextual Snapshot</p>
                     <p className="text-slate-900 font-bold mt-4 uppercase tracking-widest text-xs">Curator: {reportData.curatorName}</p>
@@ -1006,14 +981,14 @@ const EliteReportModal: React.FC<{
               </div>
 
               {/* Core Vitality Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-20 print:gap-4 print:mb-10">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
                  {[
                    { label: 'Segment Impressions', val: reportData.totalViews.toLocaleString(), icon: Eye, color: 'text-slate-900' },
                    { label: 'Direct Conversions', val: reportData.totalClicks.toLocaleString(), icon: MousePointerClick, color: 'text-primary' },
                    { label: 'Conversion Delta (CTR)', val: `${reportData.ctr}%`, icon: ZapIcon, color: 'text-slate-900' },
                    { label: 'Viral Circulation', val: reportData.totalShares.toLocaleString(), icon: Share2, color: 'text-slate-900' }
                  ].map((m, i) => (
-                   <div key={i} className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 flex flex-col justify-between h-44 print:p-6 print:h-36 print-bg-fix">
+                   <div key={i} className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 flex flex-col justify-between h-44">
                       <m.icon size={24} className={`${m.color} opacity-80`} />
                       <div>
                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-1">{m.label}</span>
@@ -1024,16 +999,16 @@ const EliteReportModal: React.FC<{
               </div>
 
               {/* Engagement Dynamics (Graph) */}
-              <div className="grid grid-cols-12 gap-16 mb-20 print:mb-10 print:gap-8">
+              <div className="grid grid-cols-12 gap-16 mb-20">
                  <div className="col-span-12 lg:col-span-7">
-                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3 print:mb-5 print:text-lg">
+                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
                        <BarChart3 size={20} className="text-primary"/> Engagement Intensity ({reportData.timeframeLabel})
                     </h3>
-                    <div className="h-64 w-full flex items-end gap-3 px-4 border-b border-l border-slate-200 pb-2 print:h-48">
+                    <div className="h-64 w-full flex items-end gap-3 px-4 border-b border-l border-slate-200 pb-2">
                        {[40, 65, 30, 85, 45, 95, 70, 55, 80, 60, 40, 75].map((h, i) => (
-                          <div key={i} className="flex-1 bg-slate-100 rounded-t-lg relative group transition-all hover:bg-primary/20 print-bg-fix">
-                             <div className="absolute inset-x-0 bottom-0 bg-slate-900 rounded-t-lg transition-all print-bg-fix" style={{ height: `${h}%` }}></div>
-                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 no-print opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-bold bg-slate-900 text-white px-2 py-1 rounded">
+                          <div key={i} className="flex-1 bg-slate-100 rounded-t-lg relative group transition-all hover:bg-primary/20">
+                             <div className="absolute inset-x-0 bottom-0 bg-slate-900 rounded-t-lg transition-all" style={{ height: `${h}%` }}></div>
+                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap text-[8px] font-bold bg-slate-900 text-white px-2 py-1 rounded">
                                 Rel Vol: {h}%
                              </div>
                           </div>
@@ -1046,11 +1021,11 @@ const EliteReportModal: React.FC<{
                  </div>
 
                  {/* Predictive Analytics */}
-                 <div className="col-span-12 lg:col-span-5 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden print-bg-fix print:rounded-[2rem] print:p-8">
-                    <Presentation className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5 rotate-12 no-print" />
-                    <h3 className="text-lg font-bold uppercase tracking-widest mb-8 text-primary print:mb-4">Forward Guidance</h3>
-                    <div className="space-y-8 print:space-y-4">
-                       <div className="flex justify-between items-center pb-6 border-b border-white/10 print:pb-3">
+                 <div className="col-span-12 lg:col-span-5 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden">
+                    <Presentation className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5 rotate-12" />
+                    <h3 className="text-lg font-bold uppercase tracking-widest mb-8 text-primary">Forward Guidance</h3>
+                    <div className="space-y-8">
+                       <div className="flex justify-between items-center pb-6 border-b border-white/10">
                           <div>
                              <span className="text-[10px] text-slate-400 uppercase font-black block mb-1">Growth Trajectory</span>
                              <div className="flex items-center gap-2">
@@ -1058,20 +1033,20 @@ const EliteReportModal: React.FC<{
                                 <span className="text-3xl font-bold">{ Math.abs(reportData.growthRate).toFixed(1) }%</span>
                              </div>
                           </div>
-                          <span className={`text-[10px] px-3 py-1 rounded-full font-bold print-bg-fix ${reportData.growthRate >= 0 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+                          <span className={`text-[10px] px-3 py-1 rounded-full font-bold ${reportData.growthRate >= 0 ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                              {reportData.growthRate >= 0 ? 'EXPANDING' : 'RECEDING'}
                           </span>
                        </div>
 
-                       <div className="space-y-4 print:space-y-2">
+                       <div className="space-y-4">
                           <span className="text-[10px] text-slate-400 uppercase font-black block">Forecast (Next Cycle)</span>
-                          <div className="p-5 bg-white/5 rounded-2xl border border-white/10 print:p-4 print-bg-fix">
+                          <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
                              <div className="flex justify-between mb-2">
                                 <span className="text-xs font-bold">Estimated Engagement</span>
                                 <span className="text-xs font-bold text-primary">{ Math.round(reportData.projectedNextMonth).toLocaleString() }</span>
                              </div>
-                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden print-bg-fix">
-                                <div className="h-full bg-primary print-bg-fix" style={{ width: '85%' }}></div>
+                             <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary animate-[grow_2s_ease-out]" style={{ width: '85%' }}></div>
                              </div>
                              <p className="text-[8px] text-slate-500 mt-3 italic">* Calculation based on current period delta.</p>
                           </div>
@@ -1080,31 +1055,31 @@ const EliteReportModal: React.FC<{
                  </div>
               </div>
 
-              {/* Staff Performance Matrix */}
+              {/* Staff / Curator Performance (Only if global) */}
               { curatorId === 'all' && (
-                 <div className="mb-20 print:mb-10">
-                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3 print:mb-5">
+                 <div className="mb-20">
+                    <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
                        <Users size={20} className="text-primary"/> Relative Performance Matrix
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        {reportData.staffPerformance.map((staff, idx) => (
-                          <div key={idx} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center gap-8 print:p-5 print:rounded-[1.5rem] print-bg-fix">
-                             <div className="w-20 h-20 bg-white rounded-[1.5rem] border border-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm uppercase print:w-16 print:h-16 print:text-xl print-bg-fix">
+                          <div key={idx} className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex items-center gap-8">
+                             <div className="w-20 h-20 bg-white rounded-[1.5rem] border border-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm uppercase">
                                 {staff.name.charAt(0)}
                              </div>
                              <div className="flex-grow">
-                                <div className="flex justify-between items-center mb-4 print:mb-2">
-                                   <h4 className="font-bold text-lg print:text-base">{staff.name}</h4>
+                                <div className="flex justify-between items-center mb-4">
+                                   <h4 className="font-bold text-lg">{staff.name}</h4>
                                    <span className="text-[9px] font-black uppercase text-primary tracking-widest">{staff.productCount} Items</span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                    <div>
                                       <span className="text-[8px] font-black uppercase text-slate-400 block">Traffic</span>
-                                      <span className="text-base font-bold print:text-sm">{staff.views.toLocaleString()}</span>
+                                      <span className="text-base font-bold">{staff.views.toLocaleString()}</span>
                                    </div>
                                    <div>
                                       <span className="text-[8px] font-black uppercase text-slate-400 block">Conv.</span>
-                                      <span className="text-base font-bold print:text-sm">{staff.clicks.toLocaleString()}</span>
+                                      <span className="text-base font-bold">{staff.clicks.toLocaleString()}</span>
                                    </div>
                                 </div>
                              </div>
@@ -1115,11 +1090,13 @@ const EliteReportModal: React.FC<{
               )}
 
               {/* Footer Stamp */}
-              <div className="pt-12 border-t border-slate-100 flex justify-between items-center opacity-40 print:pt-6">
+              <div className="pt-12 border-t border-slate-100 flex justify-between items-center opacity-40">
                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    © {new Date().getFullYear()} {settings.companyName} • Elite Analytics Module
+                    © {new Date().getFullYear()} Findara Elite Analytics System • Dynamic Report Module
                  </div>
                  <div className="flex items-center gap-4">
+                    <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" className="h-6 w-auto grayscale" alt="JSTYP" />
+                    <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
                     <span className="text-[10px] font-bold text-slate-400">AUTHENTICATED SNAPSHOT</span>
                  </div>
               </div>
@@ -1171,6 +1148,7 @@ const Admin: React.FC = () => {
   const [curatorFilter, setCuratorFilter] = useState<string>('all'); 
   const [showEliteReport, setShowEliteReport] = useState(false);
 
+  // Manual Purge State
   const [showPurgeModal, setShowPurgeModal] = useState(false);
   const [purgeConfirmText, setPurgeConfirmText] = useState('');
   const [isPurging, setIsPurging] = useState(false);
@@ -1179,6 +1157,7 @@ const Admin: React.FC = () => {
   const [historyProducts, setHistoryProducts] = useState<ProductHistory[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // Phase Overhaul: Training Management
   const [isTrainingManagementMode, setIsTrainingManagementMode] = useState(false);
   const [showTrainingForm, setShowTrainingForm] = useState(false);
   const [trainingData, setTrainingData] = useState<Partial<TrainingModule>>({ strategies: [], actionItems: [], steps: [] });
@@ -1983,6 +1962,7 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
+        {/* Manual Purge High-Friction Modal */}
         {showPurgeModal && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
              <div className="bg-slate-900 border border-slate-800 w-full max-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
@@ -2038,6 +2018,7 @@ const Admin: React.FC = () => {
       ( (productCatFilter === 'all') || p.categoryId === productCatFilter )
     );
 
+    // Identify orphan items (uncategorized)
     const categorisedIds = new Set(categories.map(c => c.id));
     const orphans = filteredBase.filter(p => !p.categoryId || !categorisedIds.has(p.categoryId));
 
@@ -2048,6 +2029,7 @@ const Admin: React.FC = () => {
 
     const groupedProducts = [...standardGroups];
     
+    // Append orphans to the bottom of the list if viewing all
     if (orphans.length > 0 && productCatFilter === 'all') {
       groupedProducts.push({
         id: 'orphans',
@@ -2381,6 +2363,7 @@ const Admin: React.FC = () => {
            </div>
         ) : (
            <div className="space-y-16">
+             {/* THE PRINCIPALS SECTION */}
              <section className="animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="flex items-center gap-4 mb-8">
                    <h3 className="text-white font-black text-xs uppercase tracking-[0.4em] border-l-4 border-primary pl-4 py-1">I. The Principals</h3>
@@ -2391,6 +2374,7 @@ const Admin: React.FC = () => {
                       const isCurrentUser = user && ( (a.id === user.id) || (a.email === user.email) );
                       return (
                         <div key={a.id} className={`bg-slate-900 p-8 rounded-[2.5rem] md:rounded-[3rem] border transition-all relative group overflow-hidden ${isCurrentUser ? 'border-primary shadow-[0_0_40px_rgba(var(--primary-rgb),0.15)]' : 'border-white/5 hover:border-primary/40'}`}>
+                           {/* BG Decorative Crown */}
                            <Crown size={120} className="absolute -right-8 -bottom-8 opacity-[0.02] text-primary group-hover:opacity-[0.05] transition-opacity" />
                            
                            <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 text-center md:text-left">
@@ -2436,6 +2420,7 @@ const Admin: React.FC = () => {
                 </div>
              </section>
 
+             {/* MAISON STAFF SECTION */}
              <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="flex items-center gap-4 mb-8">
                    <h3 className="text-white font-black text-xs uppercase tracking-[0.4em] border-l-4 border-slate-700 pl-4 py-1">II. Maison Staff</h3>

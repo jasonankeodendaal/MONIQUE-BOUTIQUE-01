@@ -9,8 +9,8 @@ const AboutSection: React.FC = () => {
   return (
     <section className="py-12 md:py-36 bg-copper-wash overflow-hidden relative border-y border-slate-200/40 section-vignette">
       <div className="max-w-7xl mx-auto px-4 md:px-20">
-        {/* Decorative Background Shadow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/[0.02] blur-[150px] pointer-events-none"></div>
+        {/* Decorative Background Shadow with Rose gold hint */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/[0.04] blur-[150px] pointer-events-none"></div>
 
         <div className="flex flex-row items-start gap-6 md:gap-24 relative z-10">
           
@@ -18,7 +18,7 @@ const AboutSection: React.FC = () => {
           <div className="w-1/3 md:w-4/12 relative">
             <div className="relative z-10 group">
               {/* Stacked Shadow Effect */}
-              <div className="absolute -inset-2 bg-black/5 rounded-[4.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+              <div className="absolute -inset-2 bg-[#B76E79]/5 rounded-[4.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
               
               <div className="relative overflow-hidden rounded-2xl md:rounded-[4rem] shadow-2xl transition-all duration-1000 group-hover:-translate-y-4">
                 <img 
@@ -29,7 +29,7 @@ const AboutSection: React.FC = () => {
               </div>
               
               {/* Founder Tag with Glassmorphism and Depth */}
-              <div className="absolute -bottom-4 -right-2 md:bottom-12 md:-right-10 z-30 glass-card p-3 md:p-8 rounded-xl md:rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] border border-white/60 flex flex-col items-start min-w-[100px] md:min-w-[240px] transform group-hover:translate-x-2 transition-transform duration-700">
+              <div className="absolute -bottom-4 -right-2 md:bottom-12 md:-right-10 z-30 glass-card p-3 md:p-8 rounded-xl md:rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(183,110,121,0.2)] border border-white/60 flex flex-col items-start min-w-[100px] md:min-w-[240px] transform group-hover:translate-x-2 transition-transform duration-700">
                  <span className="text-[6px] md:text-[11px] font-black uppercase tracking-[0.3em] text-primary mb-1 md:mb-3 text-contrast-shadow">The Curator</span>
                  <h4 className="text-[10px] md:text-3xl font-serif text-slate-900 leading-tight">{settings.aboutFounderName}</h4>
               </div>
@@ -39,8 +39,8 @@ const AboutSection: React.FC = () => {
           {/* Smaller Text Column */}
           <div className="w-2/3 md:w-8/12 text-left min-w-0 flex flex-col justify-center py-4">
             <div className="flex items-center gap-3 mb-4 md:mb-10">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Sparkles size={14} className="text-primary md:w-6 md:h-6" />
+              <div className="p-2 bg-[#B76E79]/10 rounded-full">
+                <Sparkles size={14} className="text-[#B76E79] md:w-6 md:h-6" />
               </div>
               <span className="text-[8px] md:text-[13px] font-black uppercase tracking-[0.5em] text-slate-400">The Curation Narrative</span>
             </div>

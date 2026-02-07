@@ -124,17 +124,18 @@ const Hero: React.FC = () => {
             />
           )}
           
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
           
-          <div className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-center items-start pt-12">
-            <div className={`max-w-4xl transition-all duration-[1s] delay-500 transform ${
+          <div className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-end items-center pb-12 md:pb-24">
+            <div className={`max-w-4xl flex flex-col items-center text-center transition-all duration-[1s] delay-500 transform ${
               index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}>
-              <div className="flex items-center gap-4 mb-3 md:mb-6">
+              <div className="flex items-center justify-center gap-4 mb-3 md:mb-6">
                 <div className="h-px w-8 md:w-12 bg-primary"></div>
                 <span className="text-[9px] md:text-[10px] font-black tracking-[0.4em] md:tracking-[0.6em] text-primary uppercase">
                   {settings.homeHeroBadge || 'Curation Exclusive'}
                 </span>
+                <div className="h-px w-8 md:w-12 bg-primary"></div>
               </div>
               
               <h1 className="font-serif text-white mb-4 md:mb-6 leading-[1.1] md:leading-[0.9] tracking-tighter text-balance"
@@ -145,7 +146,7 @@ const Hero: React.FC = () => {
                 </span>
               </h1>
               
-              <p className="text-sm md:text-xl text-white/70 md:text-white/60 mb-6 md:mb-10 max-w-xs md:max-w-md font-light leading-relaxed text-balance">
+              <p className="text-sm md:text-xl text-white/70 md:text-white/60 mb-6 md:mb-10 max-w-xs md:max-w-md font-light leading-relaxed text-balance mx-auto">
                 {slide.subtitle}
               </p>
               

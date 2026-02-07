@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, FileText, Video as VideoIcon, ChevronDown, ArrowUpDown, ArrowLeft, Layers, Tag, LayoutGrid, Check, Filter } from 'lucide-react';
@@ -156,7 +155,7 @@ const Products: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDFBF7] max-w-full overflow-x-hidden pt-24">
+    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDF5F2] max-w-full overflow-x-hidden pt-24">
       <style>{`
         .subcat-row-container {
           display: flex;
@@ -197,7 +196,7 @@ const Products: React.FC = () => {
             opacity: Math.max(0.3, 1 - scrollY / 800)
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF7] via-[#FDFBF7]/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#FDF5F2] via-[#FDF5F2]/20 to-transparent" />
         <div className="absolute inset-0 bg-black/10" />
         
         <button 
@@ -224,7 +223,7 @@ const Products: React.FC = () => {
             <h1 className="text-3xl md:text-[4.5rem] font-serif text-slate-900 mb-2 md:mb-4 tracking-tighter leading-[0.9] text-balance">
               {heroContent.title}
             </h1>
-            <p className="text-slate-500 text-xs md:text-lg font-light leading-relaxed max-w-2xl text-pretty border-l border-slate-200 pl-4 md:pl-6">
+            <p className="text-slate-500 text-xs md:text-lg font-light leading-relaxed max-w-2xl text-pretty border-l border-[#B76E79]/20 pl-4 md:pl-6">
               {heroContent.subtitle}
             </p>
           </div>
@@ -238,7 +237,7 @@ const Products: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-8">
            <div className="relative flex-grow group">
               <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-              <div className="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-primary/5 focus-within:-translate-y-1">
+              <div className="relative flex items-center bg-white/80 backdrop-blur-md border border-[#B76E79]/10 rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-primary/5 focus-within:-translate-y-1">
                 <Search className="ml-6 text-slate-300" size={20} />
                 <input
                   type="text"
@@ -264,7 +263,7 @@ const Products: React.FC = () => {
                 </button>
                 
                 {isCatOpen && (
-                  <div className="absolute top-full left-0 md:right-0 mt-3 w-72 bg-white border border-slate-100 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-2">
+                  <div className="absolute top-full left-0 md:right-0 mt-3 w-72 bg-white border border-slate-100 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(183,110,121,0.2)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-2">
                     <button 
                       onClick={() => { setSelectedCat('all'); setSelectedSub('all'); setIsCatOpen(false); }}
                       className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${selectedCat === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
@@ -325,7 +324,7 @@ const Products: React.FC = () => {
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-2">
                  <Tag size={12} className="text-primary" /> Curated Niches
               </span>
-              <div className="h-px flex-grow mx-6 bg-slate-100"></div>
+              <div className="h-px flex-grow mx-6 bg-[#B76E79]/10"></div>
               {selectedSub !== 'all' && (
                 <button 
                   onClick={() => setSelectedSub('all')}
@@ -386,11 +385,11 @@ const Products: React.FC = () => {
                       {group.name}
                     </h2>
                   </div>
-                  <div className="h-px flex-grow bg-slate-200/60 relative">
+                  <div className="h-px flex-grow bg-[#B76E79]/10 relative">
                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-1 bg-primary rounded-full"></div>
                   </div>
                   <div className="hidden md:block">
-                     <span className="px-4 py-2 rounded-full bg-white border border-slate-100 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                     <span className="px-4 py-2 rounded-full bg-white/50 border border-white/80 text-[9px] font-black uppercase tracking-widest text-slate-400">
                         {group.items.length} Selections
                      </span>
                   </div>
@@ -401,7 +400,7 @@ const Products: React.FC = () => {
                     <div 
                       key={product.id}
                       onClick={() => navigate(`/product/${product.id}`)}
-                      className="bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] transition-all duration-700 group hover:-translate-y-3 flex flex-col relative cursor-pointer"
+                      className="bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-[#B76E79]/10 shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(183,110,121,0.15)] transition-all duration-700 group hover:-translate-y-3 flex flex-col relative cursor-pointer"
                     >
                       {product.discountRules && product.discountRules.length > 0 && (
                         <div className="absolute top-3 right-3 md:top-5 md:right-5 bg-red-600 text-white px-3 py-1 rounded-full font-black text-[7px] md:text-[9px] uppercase tracking-widest shadow-lg z-20">
@@ -444,8 +443,8 @@ const Products: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-32 bg-white rounded-[3rem] border border-dashed border-slate-200">
-            <div className="w-24 h-24 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-8">
+          <div className="text-center py-32 bg-white/40 rounded-[3rem] border border-dashed border-[#B76E79]/20">
+            <div className="w-24 h-24 bg-[#B76E79]/5 text-[#B76E79]/20 rounded-full flex items-center justify-center mx-auto mb-8">
               <Filter size={40} />
             </div>
             <h3 className="text-2xl font-serif text-slate-900 mb-4 tracking-tight">Refinement Required</h3>

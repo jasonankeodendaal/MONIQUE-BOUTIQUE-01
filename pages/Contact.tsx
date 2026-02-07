@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Mail, MessageCircle, Send, ArrowLeft, ArrowRight, Globe, MapPin, Clock, HelpCircle, Plus, Minus, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../App';
@@ -43,14 +42,15 @@ const Contact: React.FC = () => {
   const faqs = settings.contactFaqs || [];
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] relative">
-       {/* Background Elements */}
-       <div className="fixed top-0 right-0 w-[50vw] h-[50vw] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+    <div className="min-h-screen bg-[#FDF5F2] relative">
+       {/* Background Elements - Warmer Rose Glow */}
+       <div className="fixed top-0 right-0 w-[50vw] h-[50vw] bg-[#B76E79]/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+       <div className="fixed bottom-0 left-0 w-[30vw] h-[30vw] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
        
        {/* Back Button */}
        <button 
             onClick={() => navigate('/')}
-            className="fixed top-6 left-6 z-50 w-12 h-12 bg-white/80 backdrop-blur-md border border-slate-200 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-lg group"
+            className="fixed top-6 left-6 z-50 w-12 h-12 bg-white/80 backdrop-blur-md border border-[#B76E79]/10 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-lg group"
         >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         </button>
@@ -77,10 +77,10 @@ const Contact: React.FC = () => {
             </div>
             
             <div className="flex gap-4">
-               <a href={`mailto:${settings.contactEmail}`} className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center text-slate-900 border border-slate-100 shadow-sm hover:bg-slate-900 hover:text-white transition-all duration-300 group">
+               <a href={`mailto:${settings.contactEmail}`} className="w-16 h-16 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-slate-900 hover:text-white transition-all duration-300 group">
                  <Mail size={24} className="group-hover:scale-110 transition-transform" />
                </a>
-               <a href={`https://wa.me/${settings.whatsappNumber}`} target="_blank" rel="noreferrer" className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl flex items-center justify-center text-slate-900 border border-slate-100 shadow-sm hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300 group">
+               <a href={`https://wa.me/${settings.whatsappNumber}`} target="_blank" rel="noreferrer" className="w-16 h-16 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300 group">
                  <MessageCircle size={24} className="group-hover:scale-110 transition-transform" />
                </a>
             </div>
@@ -90,7 +90,7 @@ const Contact: React.FC = () => {
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-20">
           
           <div className="lg:col-span-7 order-2 lg:order-1">
-            <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-100 relative overflow-hidden min-h-[600px] flex flex-col justify-center">
+            <div className="bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(183,110,121,0.1)] border border-white flex flex-col justify-center">
                
                {submitted ? (
                  <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in duration-700">
@@ -120,7 +120,7 @@ const Contact: React.FC = () => {
                           required
                           value={formState.name}
                           onChange={(e) => setFormState({...formState, name: e.target.value})}
-                          className="w-full px-6 py-4 bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-900 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
+                          className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
                           placeholder="Your Name" 
                         />
                       </div>
@@ -131,7 +131,7 @@ const Contact: React.FC = () => {
                           required
                           value={formState.email}
                           onChange={(e) => setFormState({...formState, email: e.target.value})}
-                          className="w-full px-6 py-4 bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-900 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
+                          className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
                           placeholder="email@address.com" 
                         />
                       </div>
@@ -144,7 +144,7 @@ const Contact: React.FC = () => {
                           type="tel" 
                           value={formState.whatsapp}
                           onChange={(e) => setFormState({...formState, whatsapp: e.target.value})}
-                          className="w-full px-6 py-4 bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-900 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
+                          className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium placeholder:text-slate-300" 
                           placeholder="+27..." 
                         />
                       </div>
@@ -154,7 +154,7 @@ const Contact: React.FC = () => {
                           <select 
                             value={formState.subject}
                             onChange={(e) => setFormState({...formState, subject: e.target.value})}
-                            className="w-full px-6 py-4 bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-900 rounded-2xl outline-none transition-all text-slate-900 font-medium appearance-none cursor-pointer"
+                            className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium appearance-none cursor-pointer"
                           >
                             <option>Product Curation Inquiry</option>
                             <option>Styling Consultation</option>
@@ -173,7 +173,7 @@ const Contact: React.FC = () => {
                         required
                         value={formState.message}
                         onChange={(e) => setFormState({...formState, message: e.target.value})}
-                        className="w-full px-6 py-4 bg-slate-50 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-slate-900 rounded-2xl outline-none transition-all text-slate-900 font-medium resize-none placeholder:text-slate-300" 
+                        className="w-full px-6 py-4 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border-2 border-transparent focus:border-[#B76E79]/30 rounded-2xl outline-none transition-all text-slate-900 font-medium resize-none placeholder:text-slate-300" 
                         placeholder="Type your message..."
                       ></textarea>
                     </div>
@@ -199,7 +199,7 @@ const Contact: React.FC = () => {
 
           <div className="lg:col-span-5 order-1 lg:order-2 space-y-10">
              <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-[50px] -mr-10 -mt-10"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#B76E79]/30 rounded-full blur-[50px] -mr-10 -mt-10"></div>
                 
                 <h3 className="text-2xl font-serif mb-8 flex items-center gap-3">
                   <Globe size={20} className="text-primary"/> {settings.contactInfoTitle || 'Global HQ'}
@@ -224,7 +224,7 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-slate-800">
+                <div className="mt-12 pt-8 border-t border-white/10">
                   <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">Follow us :</span>
                   <div className="flex flex-wrap gap-8 items-center">
                     {(settings.socialLinks || []).map((link) => (
@@ -237,7 +237,7 @@ const Contact: React.FC = () => {
                         title={link.name}
                       >
                         {/* Interactive Blur Glow */}
-                        <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="absolute inset-0 bg-[#B76E79]/40 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         
                         {link.iconUrl ? (
                           <img 
@@ -260,7 +260,7 @@ const Contact: React.FC = () => {
                 </h3>
                 <div className="space-y-2">
                    {faqs.map((faq, idx) => (
-                     <div key={idx} className="bg-white border border-slate-100 rounded-2xl overflow-hidden transition-all duration-300">
+                     <div key={idx} className="bg-white/60 backdrop-blur-md border border-[#B76E79]/10 rounded-2xl overflow-hidden transition-all duration-300">
                         <button 
                           onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                           className="w-full px-6 py-4 flex items-center justify-between text-left"
@@ -280,7 +280,7 @@ const Contact: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-24 pt-12 border-t border-slate-100 text-center">
+        <div className="mt-24 pt-12 border-t border-[#B76E79]/10 text-center">
            <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Last Updated: {lastUpdatedDate}</p>
         </div>
       </div>

@@ -20,9 +20,9 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
   };
 
   return (
-    <section className="py-16 md:py-48 bg-[#F4F1EC] relative overflow-hidden">
-      {/* Dynamic Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+    <section className="py-16 md:py-48 bg-[#FDF5F2] relative overflow-hidden">
+      {/* Dynamic Background Pattern with subtle rose gold dot */}
+      <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#B76E79 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-6 md:gap-12">
@@ -34,7 +34,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
               Shop by <br className="hidden md:block"/> <span className="italic font-light text-primary text-contrast-shadow">Department</span>
             </h2>
           </div>
-          <div className="hidden md:block p-8 border-l border-slate-300/50 max-w-xs shrink-0">
+          <div className="hidden md:block p-8 border-l border-[#B76E79]/20 max-w-xs shrink-0">
             <p className="text-slate-500 font-light leading-relaxed text-sm md:text-lg italic">
               "Curation is the art of seeing what others miss."
             </p>
@@ -49,7 +49,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
               <button
                 key={cat.id}
                 onClick={() => handleCategoryClick(cat.id)}
-                className="group relative h-[320px] md:h-[650px] w-full overflow-hidden rounded-[2rem] md:rounded-[4rem] transition-all duration-700 hover:shadow-[0_60px_100px_-20px_rgba(0,0,0,0.3)] border border-white/20 hover:border-primary/40 hover:-translate-y-6"
+                className="group relative h-[320px] md:h-[650px] w-full overflow-hidden rounded-[2rem] md:rounded-[4rem] transition-all duration-700 hover:shadow-[0_60px_100px_-20px_rgba(183,110,121,0.2)] border border-white/40 hover:border-primary/40 hover:-translate-y-6"
               >
                 <div 
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-110"

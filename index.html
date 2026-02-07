@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -26,30 +25,32 @@
     <meta property="twitter:image" content="https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png" />
 
     <link rel="icon" href="https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/manifest.json?v=1.0.1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <style>
       :root {
-        /* Deeper, warmer background palette */
-        --bg-stone: #EBE4D8;
-        --bg-sand: #F2EBE1;
-        --bg-paper: #FDFBF7;
-        --bg-accent: #FAF3E6;
+        /* Rose Gold & Champagne Palette */
+        --bg-rose: #FDF5F2;
+        --bg-stone: #E5D5D0;
+        --bg-sand: #F2E8E4;
+        --bg-paper: #FCF8F7;
+        --bg-accent: #F9EBE8;
+        --rose-gold-glow: rgba(229, 193, 205, 0.2);
         
         /* High-definition layered shadows */
         --soft-shadow: 
           0 2px 4px rgba(0,0,0,0.02),
-          0 10px 20px rgba(0,0,0,0.04),
-          0 20px 40px rgba(0,0,0,0.04);
+          0 10px 20px rgba(183, 110, 121, 0.04),
+          0 20px 40px rgba(183, 110, 121, 0.04);
         
         --deep-shadow: 
-          0 10px 15px -3px rgba(0, 0, 0, 0.1), 
-          0 25px 50px -12px rgba(0, 0, 0, 0.15),
-          0 50px 100px -20px rgba(0, 0, 0, 0.2);
+          0 10px 15px -3px rgba(0, 0, 0, 0.05), 
+          0 25px 50px -12px rgba(183, 110, 121, 0.1),
+          0 50px 100px -20px rgba(183, 110, 121, 0.1);
 
-        --primary-glow: 0 20px 40px -10px rgba(212, 175, 55, 0.3);
-        --brand-pink: #FF3366;
+        --primary-glow: 0 20px 40px -10px rgba(212, 175, 55, 0.2);
+        --brand-pink: #E5C1CD;
         --brand-green: #22c55e;
         
         --bg-copper-fade: linear-gradient(180deg, var(--bg-paper) 0%, var(--bg-sand) 100%);
@@ -57,7 +58,7 @@
       
       body {
         font-family: 'Inter', sans-serif;
-        background-color: var(--bg-sand);
+        background-color: var(--bg-rose);
         background-image: var(--bg-copper-fade);
         background-attachment: fixed;
         min-height: 100vh;
@@ -67,7 +68,7 @@
         scrollbar-color: var(--primary-color, #D4AF37) transparent;
       }
 
-      /* Premium "Top Class" Webkit Scrollbar - Slightly Larger for better UX */
+      /* Premium "Top Class" Webkit Scrollbar */
       ::-webkit-scrollbar {
         width: 14px;
       }
@@ -78,7 +79,6 @@
 
       ::-webkit-scrollbar-thumb {
         background-color: var(--primary-color, #D4AF37);
-        /* The border creates a larger padding effect around the scrollbar thumb */
         border: 4px solid transparent;
         background-clip: padding-box;
         border-radius: 20px;
@@ -87,7 +87,6 @@
 
       ::-webkit-scrollbar-thumb:hover {
         background-color: var(--secondary-color, #1E293B);
-        border: 3px solid transparent;
       }
 
       /* Subtle Film Grain Effect */
@@ -99,7 +98,7 @@
         width: 100%;
         height: 100%;
         background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        opacity: 0.04;
+        opacity: 0.05;
         pointer-events: none;
         z-index: 9999;
       }
@@ -108,7 +107,6 @@
         font-family: 'Playfair Display', serif;
       }
       
-      /* Specific custom scrollbar for overflow containers */
       .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
       }
@@ -127,11 +125,6 @@
         0% { transform: scale(1); }
         100% { transform: scale(1.05); }
       }
-      @keyframes soft-flicker {
-        0% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.8; transform: scale(0.98); }
-        100% { opacity: 1; transform: scale(1); }
-      }
       
       .animate-kenburns {
         animation: kenburns 20s ease-out infinite alternate;
@@ -147,15 +140,15 @@
       }
       
       .glass-card {
-        background: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.45);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.6);
         box-shadow: var(--soft-shadow);
       }
       
       .inset-shadow {
-        box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        box-shadow: inset 0 2px 10px rgba(183, 110, 121, 0.05);
       }
 
       .bg-copper-wash {
@@ -170,7 +163,7 @@
       }
       
       .text-contrast-shadow {
-        text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+        text-shadow: 0px 2px 4px rgba(183, 110, 121, 0.1);
       }
 
       /* Depth Vignette for sections */
@@ -182,7 +175,7 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.02) 100%);
+        background: radial-gradient(circle at center, transparent 60%, rgba(183, 110, 121, 0.03) 100%);
       }
     </style>
   <script type="importmap">
@@ -191,7 +184,6 @@
     "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react-dom": "https://esm.sh/react-dom@^19.2.3",
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.0",
@@ -208,9 +200,13 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          const scriptUrl = '/sw.js';
+          navigator.serviceWorker.register(scriptUrl)
             .then(reg => console.log('SW active:', reg.scope))
-            .catch(err => console.debug('Offline mode limited:', err.message));
+            .catch(err => {
+               navigator.serviceWorker.register('./sw.js')
+                 .catch(err2 => console.debug('Offline mode limited:', err2.message));
+            });
         });
       }
     </script>
