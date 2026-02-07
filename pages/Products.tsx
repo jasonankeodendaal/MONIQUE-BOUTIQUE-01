@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, FileText, Video as VideoIcon, ChevronDown, ArrowUpDown, ArrowLeft, Layers, Tag, LayoutGrid, Check, Filter } from 'lucide-react';
@@ -155,7 +156,7 @@ const Products: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDF5F2] max-w-full overflow-x-hidden pt-24">
+    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDF5F2] max-w-full overflow-x-hidden pt-0">
       <style>{`
         .subcat-row-container {
           display: flex;
@@ -186,44 +187,45 @@ const Products: React.FC = () => {
         }
       `}</style>
       
-      {/* --- HERO SECTION --- */}
-      <div className="relative h-[40vh] md:h-[55vh] w-full overflow-hidden bg-slate-950">
+      {/* --- HERO SECTION: Flush to top, button clears header --- */}
+      <div className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden bg-black">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
           style={{ 
             backgroundImage: `url(${heroContent.image})`,
             transform: `translateY(${scrollY * 0.4}px) scale(${1 + scrollY * 0.0005})`,
-            opacity: Math.max(0.3, 1 - scrollY / 800)
+            opacity: Math.max(0.4, 1 - scrollY / 800)
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#FDF5F2] via-[#FDF5F2]/20 to-transparent" />
-        <div className="absolute inset-0 bg-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
         
+        {/* Back button shifted down to clear fixed header */}
         <button 
             onClick={() => navigate('/')}
-            className="absolute top-6 left-6 md:top-10 md:left-10 z-30 w-10 h-10 md:w-14 md:h-14 bg-white/10 backdrop-blur-2xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-2xl border border-white/20 group"
+            className="absolute top-24 left-6 md:top-32 md:left-10 z-30 w-10 h-10 md:w-14 md:h-14 bg-white/10 backdrop-blur-2xl rounded-full flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all shadow-2xl border border-white/20 group"
         >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         </button>
 
         <div 
-          className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-end pb-8 md:pb-16"
+          className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-center items-center text-center pb-12 pt-24 md:pt-32"
           style={{ 
             transform: `translateY(${scrollY * 0.15}px)`,
             opacity: 1 - scrollY / 700 
           }}
         >
           <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="flex items-center gap-4 mb-3">
+            <div className="flex items-center justify-center gap-4 mb-3">
               <div className="h-px w-8 md:w-12 bg-primary"></div>
               <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.6em] text-primary">
                 {heroContent.badge}
               </span>
+              <div className="h-px w-8 md:w-12 bg-primary"></div>
             </div>
-            <h1 className="text-3xl md:text-[4.5rem] font-serif text-slate-900 mb-2 md:mb-4 tracking-tighter leading-[0.9] text-balance">
+            <h1 className="text-3xl md:text-[4.5rem] font-serif text-white mb-2 md:mb-4 tracking-tighter leading-[0.9] text-balance">
               {heroContent.title}
             </h1>
-            <p className="text-slate-500 text-xs md:text-lg font-light leading-relaxed max-w-2xl text-pretty border-l border-[#B76E79]/20 pl-4 md:pl-6">
+            <p className="text-white/70 text-xs md:text-lg font-light leading-relaxed max-w-2xl text-pretty mx-auto">
               {heroContent.subtitle}
             </p>
           </div>
