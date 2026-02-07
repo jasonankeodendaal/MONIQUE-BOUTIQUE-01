@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 import { X, RefreshCcw, ArrowRight } from 'lucide-react';
@@ -128,9 +127,9 @@ const Footer: React.FC = () => {
             <div className="flex items-center gap-2 md:gap-10">
                <button 
                   onClick={() => setShowCreatorModal(true)} 
-                  className="flex items-center gap-1 md:gap-3 px-2 md:px-5 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all active:scale-95 shrink-0"
+                  className="flex items-center gap-1.5 md:gap-3 px-3 md:px-5 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all active:scale-95 shrink-0"
                >
-                  <span className="text-[7px] md:text-[10px] font-bold text-slate-500 hidden xs:inline">By</span>
+                  <span className="text-[7px] md:text-[10px] font-bold text-slate-500 whitespace-nowrap uppercase tracking-tighter">Meet the Creator</span>
                   <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-2 md:h-5 w-auto opacity-60 brightness-0 invert" />
                </button>
 
@@ -602,7 +601,7 @@ const App: React.FC = () => {
     const manifest = {
       name: settings.companyName, short_name: settings.companyName,
       description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
-      id: "/", start_url: "/", display: "standalone", orientation: "portrait-primary", background_color: "#FDFCFB",
+      id: "/", start_url: "/", document_url: "/", display: "standalone", orientation: "portrait-primary", background_color: "#FDFCFB",
       theme_color: settings.primaryColor || "#D4AF37",
       icons: [{ src: settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png", sizes: "512x512", type: "image/png", purpose: "any" }]
     };
