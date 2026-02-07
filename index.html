@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -25,7 +26,7 @@
     <meta property="twitter:image" content="https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png" />
 
     <link rel="icon" href="https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png" />
-    <link rel="manifest" href="/manifest.json?v=1.0.1" />
+    <link rel="manifest" href="/manifest.json" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
     <style>
@@ -190,6 +191,7 @@
     "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.0",
@@ -206,13 +208,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          const scriptUrl = '/sw.js';
-          navigator.serviceWorker.register(scriptUrl)
+          navigator.serviceWorker.register('/sw.js')
             .then(reg => console.log('SW active:', reg.scope))
-            .catch(err => {
-               navigator.serviceWorker.register('./sw.js')
-                 .catch(err2 => console.debug('Offline mode limited:', err2.message));
-            });
+            .catch(err => console.debug('Offline mode limited:', err.message));
         });
       }
     </script>
