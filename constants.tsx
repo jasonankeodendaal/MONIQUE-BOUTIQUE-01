@@ -1,4 +1,3 @@
-
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
@@ -24,7 +23,7 @@ export const EMAIL_TEMPLATE_HTML = `
     /* HEADER */
     .header { background-color: #1E293B; padding: 40px 20px; text-align: center; }
     .brand-title { color: #FFFFFF; font-family: 'Playfair Display', Times, serif; font-size: 28px; letter-spacing: 2px; text-transform: uppercase; margin: 0; font-weight: 400; }
-    .brand-subtitle { color: #D4AF37; font-size: 10px; text-transform: uppercase; letter-spacing: 4px; margin-top: 5px; font-weight: 700; display: block; }
+    .brand-subtitle { color: #E5C1CD; font-size: 10px; text-transform: uppercase; letter-spacing: 4px; margin-top: 5px; font-weight: 700; display: block; }
     
     /* CONTENT */
     .content { padding: 40px; background-color: #FFFFFF; }
@@ -33,14 +32,14 @@ export const EMAIL_TEMPLATE_HTML = `
     
     /* BUTTON */
     .btn-container { text-align: center; margin: 35px 0; }
-    .btn { display: inline-block; background-color: #D4AF37; color: #FFFFFF; padding: 16px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); }
+    .btn { display: inline-block; background-color: #E5C1CD; color: #FFFFFF; padding: 16px 36px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; box-shadow: 0 10px 20px -5px rgba(229, 193, 205, 0.4); }
     
     /* FOOTER */
     .footer { background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0; }
     .footer-text { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
     .address { color: #cbd5e1; font-size: 10px; line-height: 1.5; margin-top: 10px; }
     .socials { margin-top: 20px; }
-    .social-link { color: #D4AF37; font-size: 11px; text-decoration: none; margin: 0 10px; font-weight: 700; }
+    .social-link { color: #E5C1CD; font-size: 11px; text-decoration: none; margin: 0 10px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -189,7 +188,7 @@ BEGIN
     DROP POLICY IF EXISTS "Public Read settings" ON settings;
     DROP POLICY IF EXISTS "Public Read products" ON products;
     DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
-    DROP POLICY IF EXISTS "Public Read cat" ON categories;
+    DROP POLICY IF EXISTS "Public Read banner" ON categories;
     DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
     DROP POLICY IF EXISTS "Public Read training" ON training_modules;
     DROP POLICY IF EXISTS "Public Read stats" ON product_stats;
@@ -539,7 +538,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   slogan: 'Curating the Exceptional',
   companyLogo: 'F',
   companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
-  primaryColor: '#D4AF37',
+  primaryColor: '#E5C1CD',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
   navHomeLabel: 'Home',
