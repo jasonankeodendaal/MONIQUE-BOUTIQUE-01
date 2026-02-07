@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 // Added ShieldCheck to the lucide-react imports
@@ -77,14 +76,14 @@ const ProductDetail: React.FC = () => {
 
   const handleShareTrigger = () => {
     if (!product) return;
-    logEvent('share_preview', `Product: ${product.name}`);
+    logEvent('share', `Product: ${product.name}`);
     setIsShareOpen(true);
   };
 
   const executeNativeShare = async () => {
     if (!product) return;
     setIsPreparingBundle(true);
-    logEvent('share_execute', `Product: ${product.name}`);
+    logEvent('share', `Product: ${product.name}`);
 
     const shareData: ShareData = {
       title: product.name,
@@ -278,7 +277,7 @@ const ProductDetail: React.FC = () => {
                 </div>
                 
                 <div className="flex flex-col border-l border-slate-100 pl-8">
-                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Maison SKU</span>
+                   <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-1">Maison SKU</span>
                    <span className="text-xs font-mono font-bold text-slate-400 tracking-tighter uppercase">{product.sku}</span>
                 </div>
               </div>
