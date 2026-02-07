@@ -2019,10 +2019,29 @@ const Admin: React.FC = () => {
       ( (productCatFilter === 'all') || p.categoryId === productCatFilter )
     );
 
-    const groupedProducts = categories.map(cat => ({
+    // Identify orphan items (uncategorized)
+    const categorisedIds = new Set(categories.map(c => c.id));
+    const orphans = filteredBase.filter(p => !p.categoryId || !categorisedIds.has(p.categoryId));
+
+    const standardGroups = categories.map(cat => ({
       ...cat,
       items: filteredBase.filter(p => p.categoryId === cat.id)
-    })).filter(group => (group.items.length > 0) || ( (productCatFilter !== 'all') && (group.id === productCatFilter) ));
+    }));
+
+    const groupedProducts = [...standardGroups];
+    
+    // Append orphans to the bottom of the list if viewing all
+    if (orphans.length > 0 && productCatFilter === 'all') {
+      groupedProducts.push({
+        id: 'orphans',
+        name: 'Uncategorized Items',
+        icon: 'AlertTriangle',
+        image: '',
+        items: orphans
+      } as any);
+    }
+
+    const filteredGroups = groupedProducts.filter(group => (group.items.length > 0) || ( (productCatFilter !== 'all') && (group.id === productCatFilter) ));
 
     return (
       <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
@@ -2117,9 +2136,9 @@ const Admin: React.FC = () => {
                </div>
             </div>
 
-            { (productCatFilter === 'all') && (groupedProducts.length > 1) && (
+            { (productCatFilter === 'all') && (filteredGroups.length > 1) && (
                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 sticky top-[170px] z-20 bg-slate-950">
-                  {groupedProducts.map(group => {
+                  {filteredGroups.map(group => {
                      const IconComp = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
                      return (
                         <button 
@@ -2143,11 +2162,11 @@ const Admin: React.FC = () => {
                   <Loader2 className="animate-spin mx-auto mb-4" size={32} />
                   <p className="font-bold uppercase text-[10px] tracking-widest">Retrieving Archives...</p>
                 </div>
-              ) : (groupedProducts.length === 0) ? (
+              ) : (filteredGroups.length === 0) ? (
                 <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
                   No products matching your search found.
                 </div>
-              ) : groupedProducts.map(group => {
+              ) : filteredGroups.map(group => {
                 const GroupIcon = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
                 return (
                   <div key={group.id} id={`cat-section-${group.id}`} className="space-y-6">
@@ -2432,7 +2451,7 @@ const Admin: React.FC = () => {
                                       <h4 className="text-white text-lg font-bold truncate">{a.name}</h4>
                                       <span className="px-3 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700 text-[8px] font-black uppercase tracking-widest">CURATOR STAFF</span>
                                    </div>
-                                   <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm">
+                                   <div className="flex wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm">
                                       <span className="flex items-center gap-2"><Mail size={12} className="text-primary opacity-40"/> {a.email}</span>
                                       {a.phone && <span className="flex items-center gap-2"><Phone size={12} className="text-primary opacity-40"/> {a.phone}</span>}
                                    </div>
@@ -2524,7 +2543,7 @@ const Admin: React.FC = () => {
                      </div>
                      <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Module Icon</label>
-                        <IconPicker selected={trainingData.icon || 'GraduationCap'} onSelect={v => setTrainingData({...trainingData, icon: v})} />
+                        <IconPicker selected={trainingData.icon || 'GraduationCap'} onSelect={v => updateTrainingData({ icon: v })} />
                      </div>
                   </div>
                   <SettingField label="High-Level Summary" value={trainingData.description || ''} onChange={v => setTrainingData({...trainingData, description: v})} type="textarea" />
@@ -2717,7 +2736,7 @@ const Admin: React.FC = () => {
                            <div className="mt-10 pt-6 border-t border-slate-800 flex justify-between items-center">
                               { isTrainingManagementMode && (
                                  <div className="flex gap-2">
-                                    <button onClick={() => { setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-700"><Edit2 size={14}/> Edit Syallbus</button>
+                                    <button onClick={() => { setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-700"><Edit2 size={14}/> Edit Syllabus</button>
                                     <button onClick={() => { if(confirm("Purge module?")) deleteData('training_modules', module.id).then(loadTrainingModules); }} className="px-6 py-3 bg-slate-800 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-slate-700"><Trash2 size={14}/> Delete</button>
                                  </div>
                               )}
