@@ -179,7 +179,7 @@ const ProductDetail: React.FC = () => {
           transform: perspective(2000px) rotateY(-4deg) rotateX(2deg) scale(1.02);
         }
         .modal-container {
-          max-height: 90vh;
+          max-height: 85vh;
           overflow-y: auto;
         }
         @media (max-width: 1024px) {
@@ -425,29 +425,29 @@ const ProductDetail: React.FC = () => {
       
       {/* Deploy Advert Modal - Optimized for perfect fit and scrolling */}
       {isShareOpen && (
-         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-12 animate-in fade-in duration-500">
-            <div className="bg-white rounded-[2rem] w-full max-w-5xl relative shadow-2xl overflow-hidden flex flex-col md:flex-row modal-container custom-scrollbar">
+         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-8 animate-in fade-in duration-500">
+            <div className="bg-white rounded-[2rem] w-full max-w-4xl relative shadow-2xl overflow-hidden flex flex-col md:flex-row modal-container custom-scrollbar">
                
-               <button onClick={() => setIsShareOpen(false)} className="absolute top-6 right-6 z-[110] p-2 bg-slate-100 hover:bg-slate-900 hover:text-white rounded-full transition-all">
-                 <X size={20} />
+               <button onClick={() => setIsShareOpen(false)} className="absolute top-4 right-4 z-[110] p-2 bg-slate-100 hover:bg-slate-900 hover:text-white rounded-full transition-all">
+                 <X size={18} />
                </button>
 
-               {/* Preview Panel */}
-               <div className="w-full md:w-5/12 bg-slate-50 p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100">
-                  <span className="text-[8px] font-black uppercase text-primary tracking-[0.5em] mb-8">Deploy Preview</span>
+               {/* Preview Panel - Condensed */}
+               <div className="w-full md:w-5/12 bg-slate-50 p-6 md:p-8 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100">
+                  <span className="text-[8px] font-black uppercase text-primary tracking-[0.5em] mb-4 md:mb-6">Deploy Preview</span>
                   
-                  <div className="w-full max-w-[280px] bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-                     <div className="p-3 flex items-center gap-2 border-b border-slate-50">
-                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-[8px] font-black">
+                  <div className="w-full max-w-[200px] md:max-w-[240px] bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100 scale-95 md:scale-100">
+                     <div className="p-2 flex items-center gap-2 border-b border-slate-50">
+                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-white text-[7px] font-black">
                            {settings.companyLogo}
                         </div>
-                        <span className="text-[9px] font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>
+                        <span className="text-[8px] font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>
                      </div>
                      <div className="aspect-square bg-slate-100 overflow-hidden">
                         <img src={currentMedia?.url} className="w-full h-full object-cover" alt="Preview" />
                      </div>
-                     <div className="p-4 text-left">
-                        <p className="text-[10px] text-slate-600 line-clamp-3 leading-relaxed">
+                     <div className="p-3 text-left">
+                        <p className="text-[9px] text-slate-600 line-clamp-3 leading-tight">
                            <span className="font-bold mr-1">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>
                            {adContent.pitch}
                         </p>
@@ -455,52 +455,52 @@ const ProductDetail: React.FC = () => {
                   </div>
                </div>
 
-               {/* Actions Panel */}
-               <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center text-left space-y-8">
+               {/* Actions Panel - Tighter Spacing */}
+               <div className="w-full md:w-7/12 p-6 md:p-10 flex flex-col justify-center text-left space-y-6">
                   <div>
-                     <h3 className="text-2xl md:text-4xl font-serif text-slate-900 mb-2">Deploy <span className="italic font-light text-primary">Advert</span></h3>
-                     <p className="text-slate-500 text-sm font-light">Asset bundling is complete. Select a channel for deployment.</p>
+                     <h3 className="text-xl md:text-3xl font-serif text-slate-900 mb-1">Deploy <span className="italic font-light text-primary">Advert</span></h3>
+                     <p className="text-slate-500 text-[11px] font-light">Asset bundling is complete. Select a channel for deployment.</p>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-4 gap-3">
                      {socialShares.map((s) => (
                         <a 
                          key={s.name} 
                          href={s.url} 
                          target="_blank" 
                          rel="noopener noreferrer"
-                         className="flex flex-col items-center gap-2 group"
+                         className="flex flex-col items-center gap-1.5 group"
                         >
-                           <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-md ${s.color} ${s.text} group-hover:scale-110 transition-all`}>
-                              <s.icon size={20} />
+                           <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-sm ${s.color} ${s.text} group-hover:scale-110 transition-all`}>
+                              <s.icon size={18} />
                            </div>
                            <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{s.name}</span>
                         </a>
                      ))}
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                      <button 
                         onClick={executeNativeShare}
                         disabled={isPreparingBundle}
-                        className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                        className="w-full py-4 bg-slate-900 text-white rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                      >
-                        {isPreparingBundle ? <RefreshCcw size={18} className="animate-spin" /> : <Rocket size={18} />}
+                        {isPreparingBundle ? <RefreshCcw size={16} className="animate-spin" /> : <Rocket size={16} />}
                         Launch Advert Bundle
                      </button>
 
                      <button 
                         onClick={handleCopyLink} 
-                        className="w-full py-3 bg-white text-slate-400 rounded-xl font-black uppercase text-[8px] tracking-widest hover:text-slate-900 transition-all border border-slate-100 flex items-center justify-center gap-2"
+                        className="w-full py-2.5 bg-white text-slate-400 rounded-lg font-black uppercase text-[7px] tracking-widest hover:text-slate-900 transition-all border border-slate-100 flex items-center justify-center gap-2"
                      >
-                        {copySuccess ? <CheckCircle size={14} className="text-green-500"/> : <Copy size={14}/>}
+                        {copySuccess ? <CheckCircle size={12} className="text-green-500"/> : <Copy size={12}/>}
                         {copySuccess ? 'Copied' : 'Manual Link Copy'}
                      </button>
                   </div>
                   
-                  <div className="pt-4 border-t border-slate-50 flex items-center gap-3">
-                     <ShieldCheck size={16} className="text-green-500" />
-                     <span className="text-[8px] font-black uppercase text-slate-300 tracking-widest">Universal Handshake protocol active</span>
+                  <div className="pt-2 border-t border-slate-50 flex items-center gap-3">
+                     <ShieldCheck size={14} className="text-green-500" />
+                     <span className="text-[7px] font-black uppercase text-slate-300 tracking-widest">Universal Handshake protocol active</span>
                   </div>
                </div>
 
