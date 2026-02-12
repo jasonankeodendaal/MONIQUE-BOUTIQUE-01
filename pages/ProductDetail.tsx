@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck } from 'lucide-react';
@@ -283,10 +282,15 @@ const ProductDetail: React.FC = () => {
               <div className="flex flex-wrap items-center gap-6 pt-4">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Acquisition Value</span>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-end gap-4 flex-wrap">
                     <span className="text-3xl md:text-4xl font-black text-slate-900">R {(product.price || 0).toLocaleString()}</span>
+                    {product.wasPrice && product.wasPrice > 0 && (
+                      <span className="text-lg md:text-xl font-bold text-slate-300 line-through decoration-primary/40 mb-1.5">
+                        R {product.wasPrice.toLocaleString()}
+                      </span>
+                    )}
                     {product.discountRules && product.discountRules.length > 0 && (
-                      <span className="px-3 py-1 bg-red-500 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20">
+                      <span className="px-3 py-1 bg-red-500 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 mb-1.5">
                         {product.discountRules[0].type === 'percentage' ? `${product.discountRules[0].value}% OFF` : `R${product.discountRules[0].value} OFF`}
                       </span>
                     )}

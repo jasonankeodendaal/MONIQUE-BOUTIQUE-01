@@ -43,6 +43,7 @@ export interface Product {
   name: string;
   sku: string;
   price: number;
+  wasPrice?: number;
   affiliateLink: string;
   categoryId: string;
   subCategoryId: string;

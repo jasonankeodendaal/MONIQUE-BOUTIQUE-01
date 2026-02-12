@@ -411,9 +411,16 @@ const Products: React.FC = () => {
                       
                       <div className="relative aspect-square overflow-hidden bg-slate-50">
                         {renderProductMedia(product)}
-                        <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 z-10">
-                          <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl text-[10px] md:text-sm font-black text-slate-900 shadow-xl border border-white/50">
-                            R {(product.price || 0).toLocaleString()}
+                        <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 z-10 flex flex-col items-start gap-1">
+                          <div className="flex items-center gap-2">
+                            <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl text-[10px] md:text-sm font-black text-slate-900 shadow-xl border border-white/50">
+                              R {(product.price || 0).toLocaleString()}
+                            </div>
+                            {product.wasPrice && product.wasPrice > 0 && (
+                              <div className="bg-slate-900/40 backdrop-blur-md px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-[8px] md:text-[10px] font-bold text-slate-100 line-through decoration-primary decoration-1 shadow-lg border border-white/10">
+                                R {product.wasPrice.toLocaleString()}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center z-10">

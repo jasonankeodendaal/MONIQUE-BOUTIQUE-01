@@ -1,3 +1,4 @@
+
 import { CarouselSlide, Category, Product, SiteSettings, SubCategory, AdminUser, Enquiry, PermissionNode, TrainingModule } from './types';
 
 // EMAIL_TEMPLATE_HTML used for the reply system in Admin.tsx
@@ -126,7 +127,7 @@ export const GUIDE_STEPS = [
       'Click "Run". Ensure all 11 tables are created in the "Table Editor".',
       'Verify that RLS (Row Level Security) is enabled for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.2 (Idempotent & Safe)
+    code: `-- MASTER ARCHITECTURE SCRIPT v5.3 (Idempotent & Safe)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. TABLES
@@ -157,7 +158,7 @@ CREATE TABLE IF NOT EXISTS settings (
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
@@ -166,7 +167,7 @@ CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TE
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 
 -- 2. ENABLE RLS
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
@@ -227,7 +228,7 @@ CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);`,
-    codeLabel: 'Idempotent Master SQL Script v5.2'
+    codeLabel: 'Idempotent Master SQL Script v5.3'
   },
   {
     id: 'security-auth',
@@ -965,6 +966,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Quilted Leather Crossbody',
     sku: 'F-BAG-001',
     price: 12500,
+    wasPrice: 14500,
     affiliateLink: 'https://example.com/handbag',
     categoryId: 'cat1',
     subCategoryId: 'sub1',
@@ -993,6 +995,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Horizon Smartwatch Pro',
     sku: 'F-TECH-003',
     price: 8999,
+    wasPrice: 11000,
     affiliateLink: 'https://example.com/watch',
     categoryId: 'cat3',
     subCategoryId: 'sub4',
@@ -1021,6 +1024,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Smeg Retro Kettle - Cream',
     sku: 'F-HOME-005',
     price: 3499,
+    wasPrice: 4200,
     affiliateLink: 'https://example.com/kettle',
     categoryId: 'cat4',
     subCategoryId: 'sub5',
