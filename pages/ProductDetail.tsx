@@ -498,13 +498,13 @@ const ProductDetail: React.FC = () => {
                <>
                  <button 
                    onClick={(e) => { e.stopPropagation(); prevMedia(); }}
-                   className="absolute left-4 md:left-12 z-[310] w-14 h-14 bg-white/10 hover:bg-white text-white hover:text-black rounded-full flex items-center justify-center transition-all border border-white/10 shadow-2xl"
+                   className="absolute left-4 md:left-12 z-[310] w-14 h-14 bg-white/20 backdrop-blur-md hover:bg-white text-white hover:text-black rounded-full flex items-center justify-center transition-all border border-white/30 shadow-2xl"
                  >
                    <ChevronLeft size={32} />
                  </button>
                  <button 
                    onClick={(e) => { e.stopPropagation(); nextMedia(); }}
-                   className="absolute right-4 md:right-12 z-[310] w-14 h-14 bg-white/10 hover:bg-white text-white hover:text-black rounded-full flex items-center justify-center transition-all border border-white/10 shadow-2xl"
+                   className="absolute right-4 md:right-12 z-[310] w-14 h-14 bg-white/20 backdrop-blur-md hover:bg-white text-white hover:text-black rounded-full flex items-center justify-center transition-all border border-white/30 shadow-2xl"
                  >
                    <ChevronRight size={32} />
                  </button>
