@@ -681,6 +681,10 @@ const App: React.FC = () => {
 
   const updateData = async (table: string, data: any) => {
     setSaveStatus('saving');
+    // Ensure tags exist for products
+    if (table === 'products') {
+        data.tags = data.tags || [];
+    }
     const updateLocalState = (prev: any[]) => { const exists = prev.some(item => item.id === data.id); return exists ? prev.map(item => item.id === data.id ? data : item) : [data, ...prev]; };
     switch(table) {
         case 'products': setProducts(updateLocalState(products)); break;
@@ -726,11 +730,13 @@ const App: React.FC = () => {
         const productName = label.replace('Product: ', '').trim();
         const product = productsRef.current.find(p => p.name === productName);
         if (product) {
-            const currentStat = statsRef.current.find(s => s.productId === product.id) || { productId: product.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: Date.now() };
+            // Defensively handle tags to prevent potential undefined errors
+            const safeProduct = { ...product, tags: product.tags || [] };
+            const currentStat = statsRef.current.find(s => s.productId === safeProduct.id) || { productId: safeProduct.id, views: 0, clicks: 0, shares: 0, totalViewTime: 0, lastUpdated: Date.now() };
             const newStat: ProductStats = { ...currentStat, views: currentStat.views + (type === 'view' ? 1 : 0), clicks: currentStat.clicks + (type === 'click' ? 1 : 0), shares: (currentStat.shares || 0) + (type === 'share' ? 1 : 0), lastUpdated: Date.now() };
-            setStats(prev => { const filtered = prev.filter(s => s.productId !== product.id); return [...filtered, newStat]; });
+            setStats(prev => { const filtered = prev.filter(s => s.productId !== safeProduct.id); return [...filtered, newStat]; });
             if (isSupabaseConfigured) { try { await upsertData('product_stats', newStat); } catch (e: any) { const { shares, ...legacyStat } = newStat as any; try { await upsertData('product_stats', legacyStat); } catch (e2) {} } } 
-            else { const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]'); const otherStats = localStats.filter((s: any) => s.productId !== product.id); localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat])); }
+            else { const localStats = JSON.parse(localStorage.getItem('admin_product_stats') || '[]'); const otherStats = localStats.filter((s: any) => s.productId !== safeProduct.id); localStorage.setItem('admin_product_stats', JSON.stringify([...otherStats, newStat])); }
         }
     }
   }, []);

@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS settings (
   "googleAnalyticsId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "pinterestTagId" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags TEXT[], "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TE
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags TEXT[], "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 
 -- 2. ENABLE RLS
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
@@ -420,7 +420,7 @@ CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (
     subSteps: [
       'Review the "Instagram Aesthetic" training for visual consistency.',
       'Apply the "Pinterest Viral Pins" strategy for evergreen traffic.',
-      'Follow "TikTok Trend Jacking" to capture viral fashion moments.',
+      'Follow "TikTok Trend Jacking" to capture viral fashion fashion moments.',
       'Complete "SEO for Luxury" to rank for high-intent search terms.'
     ]
   },
@@ -974,6 +974,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['Premium Calf Leather', 'Gold-plated hardware', 'Versatile chain strap'],
     specifications: { 'Material': 'Calf Leather', 'Style': 'Crossbody' },
     media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800', name: 'Handbag', type: 'image/jpeg', size: 0 }],
+    tags: [],
     createdAt: Date.now()
   },
   {
@@ -988,6 +989,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['4-inch heel', 'Suede finish', 'Ergonomic sole'],
     specifications: { 'Heel Height': '10cm', 'Material': 'Suede' },
     media: [{ id: 'm2', url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800', name: 'Shoes', type: 'image/jpeg', size: 0 }],
+    tags: [],
     createdAt: Date.now()
   },
   {
@@ -1003,6 +1005,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['OLED Display', 'Health Monitoring', '7-day Battery'],
     specifications: { 'Case': 'Titanium', 'Water Resistance': '50m' },
     media: [{ id: 'm3', url: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800', name: 'Smartwatch', type: 'image/jpeg', size: 0 }],
+    tags: [],
     createdAt: Date.now()
   },
   {
@@ -1017,6 +1020,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['18k White Gold', 'Conflict-free diamond', 'Certificate included'],
     specifications: { 'Carat': '0.5', 'Clarity': 'VVS1' },
     media: [{ id: 'm4', url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=800', name: 'Jewelry', type: 'image/jpeg', size: 0 }],
+    tags: [],
     createdAt: Date.now()
   },
   {
@@ -1032,6 +1036,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['Retro Aesthetic', 'Stainless steel body', 'Auto shut-off'],
     specifications: { 'Capacity': '1.7L', 'Style': '50s Retro' },
     media: [{ id: 'm5', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800', name: 'Smeg Kettle', type: 'image/jpeg', size: 0 }],
+    tags: [],
     createdAt: Date.now()
   }
 ];

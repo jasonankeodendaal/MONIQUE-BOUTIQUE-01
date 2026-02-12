@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
@@ -34,15 +33,16 @@ const About: React.FC = () => {
   return (
     <div className={`min-h-screen bg-sand overflow-x-hidden transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
-      {/* Editorial Hero Spread with intense depth */}
-      <div className="relative min-h-[90vh] lg:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
+      {/* Editorial Hero Spread - Optimised for perfect fit */}
+      <div className="relative h-screen lg:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.05)_0%,transparent_70%)]"></div>
         
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none hidden lg:block overflow-hidden w-full text-center">
            <span className="text-[20vw] font-serif font-black text-white/[0.02] leading-none select-none tracking-tighter whitespace-nowrap inline-block animate-kenburns">EST. {settings.aboutEstablishedYear}</span>
         </div>
 
-        <div className="w-full lg:w-1/2 h-[50vh] lg:h-full relative overflow-hidden">
+        {/* Image Column - Shrinks to fit */}
+        <div className="w-full lg:w-1/2 h-1/2 lg:h-full relative overflow-hidden flex-shrink-0 lg:flex-shrink">
            <div 
              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out"
              style={{ 
@@ -54,21 +54,22 @@ const About: React.FC = () => {
            <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]"></div>
         </div>
         
-        <div className="w-full lg:w-1/2 flex items-center p-8 md:p-16 lg:p-32 relative z-10 bg-slate-950 lg:bg-transparent">
-           <div className="max-w-2xl text-left">
-              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-primary text-[9px] md:text-[11px] font-black uppercase tracking-[0.5em] mb-8 lg:mb-16 border border-primary/20 shadow-lg">
+        {/* Content Column - Shrinks to fit */}
+        <div className="w-full lg:w-1/2 h-1/2 lg:h-full flex items-center p-6 md:p-12 lg:p-24 xl:p-32 relative z-10 bg-slate-950 lg:bg-transparent overflow-hidden">
+           <div className="max-w-2xl text-left h-full flex flex-col justify-center">
+              <div className="inline-flex items-center gap-3 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary/10 text-primary text-[8px] md:text-[11px] font-black uppercase tracking-[0.5em] mb-4 md:mb-8 lg:mb-12 border border-primary/20 shadow-lg w-fit">
                   <Sparkles size={12} className="animate-pulse"/> {settings.aboutFounderName}
               </div>
               
-              <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-8 lg:mb-16 text-balance animate-in slide-in-from-bottom-16 duration-1000" style={{ fontSize: 'clamp(3rem, 10vw, 7.5rem)' }}>
+              <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-4 md:mb-8 lg:mb-12 text-balance animate-in slide-in-from-bottom-16 duration-1000" style={{ fontSize: 'clamp(2.5rem, 8vw, 6.5rem)' }}>
                   {settings.aboutHeroTitle.split(' ').map((word, i) => (
                       <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block drop-shadow-2xl" : "block"}>{word}</span>
                   ))}
               </h1>
 
-              <div className="relative pl-8 lg:pl-16">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
-                <p className="text-lg md:text-2xl lg:text-3xl text-slate-300 font-light leading-relaxed italic text-pretty">
+              <div className="relative pl-6 lg:pl-12">
+                <div className="absolute left-0 top-0 bottom-0 w-0.5 md:w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
+                <p className="text-sm md:text-xl lg:text-2xl text-slate-300 font-light leading-relaxed italic text-pretty line-clamp-4 lg:line-clamp-none">
                   {settings.aboutHeroSubtitle}
                 </p>
               </div>

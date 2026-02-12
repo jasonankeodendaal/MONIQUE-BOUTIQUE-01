@@ -53,6 +53,7 @@ export interface Product {
   media: MediaFile[]; 
   discountRules?: DiscountRule[];
   reviews?: Review[];
+  tags: string[];
   createdAt: number;
   createdBy?: string;
   archivedAt?: number;

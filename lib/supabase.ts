@@ -25,7 +25,14 @@ export const supabase = createClient(
  */
 export async function syncLocalToCloud(table: string, data: any[]) {
   if (!isSupabaseConfigured || !data.length) return;
-  const { error } = await supabase.from(table).upsert(data);
+  // Standardize products before bulk sync
+  const sanitizedData = data.map(item => {
+    if (table === 'products' || table === 'product_history') {
+      return { ...item, tags: item.tags || [] };
+    }
+    return item;
+  });
+  const { error } = await supabase.from(table).upsert(sanitizedData);
   if (error) console.error(`Sync error for ${table}:`, error);
 }
 
@@ -67,6 +74,12 @@ export async function fetchCurationHistory() {
  */
 export async function upsertData(table: string, item: any) {
   if (!isSupabaseConfigured) return false;
+  
+  // Standardize tags if it's a product table to ensure consistency in cloud store
+  if (table === 'products' || table === 'product_history') {
+    item.tags = item.tags || [];
+  }
+
   const cleanItem = JSON.parse(JSON.stringify(item));
   const { error } = await supabase.from(table).upsert(cleanItem);
   if (error) {
@@ -134,8 +147,6 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
 
   const start = performance.now();
   try {
-    // We add a count and head to make it lightweight, but we use a filter to prevent caching
-    // The filter 'id' 'neq' 'zero' is just a dummy logic to force a lookup
     const { error } = await supabase
         .from('settings')
         .select('id', { count: 'exact', head: true })
@@ -146,8 +157,6 @@ export async function measureConnection(): Promise<{ status: 'online' | 'offline
     
     if (error) throw error;
     
-    // Ensure we capture even sub-millisecond differences on fast networks
-    // On mobile, if cached, this might be very low, so we enforce a floor of 1ms if successful to show activity
     let latency = Math.round(end - start);
     if (latency === 0) latency = 1; 
 
