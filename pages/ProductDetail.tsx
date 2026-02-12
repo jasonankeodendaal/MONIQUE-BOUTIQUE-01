@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2 } from 'lucide-react';
 import { useSettings } from '../App';
 import { Review, Product } from '../types';
 
@@ -14,6 +14,7 @@ const ProductDetail: React.FC = () => {
   
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   
   // Review Form State
   const [newReview, setNewReview] = useState({ userName: '', comment: '', rating: 5 });
@@ -37,6 +38,28 @@ const ProductDetail: React.FC = () => {
 
     return () => clearTimeout(timeout);
   }, [id, product, logEvent]);
+
+  // Handle Esc key to close modal & Toggle body class for header hiding
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsImageModalOpen(false);
+        setIsShareOpen(false);
+      }
+    };
+
+    if (isImageModalOpen || isShareOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+      document.body.classList.remove('modal-open');
+    };
+  }, [isImageModalOpen, isShareOpen]);
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,7 +234,10 @@ const ProductDetail: React.FC = () => {
           <div className="relative h-full w-full z-10 flex items-center justify-center p-8 md:p-16 lg:p-24">
             {currentMedia ? (
               <div className="relative w-full h-full flex items-center justify-center">
-                <div className="poster-lean relative bg-white rounded-lg p-2 md:p-4 overflow-hidden">
+                <div 
+                  onClick={() => setIsImageModalOpen(true)}
+                  className="poster-lean relative bg-white rounded-lg p-2 md:p-4 overflow-hidden cursor-zoom-in group/poster"
+                >
                    {currentMedia.type.startsWith('video') ? (
                     <video 
                       key={currentMedia.id}
@@ -232,6 +258,13 @@ const ProductDetail: React.FC = () => {
                   )}
                   {/* Subtle paper reflection */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-black/5 pointer-events-none"></div>
+                  
+                  {/* Maximize Icon Overlay */}
+                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/poster:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 shadow-xl transform scale-75 group-hover/poster:scale-100 transition-transform duration-500">
+                      <Maximize2 size={20} />
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -438,6 +471,74 @@ const ProductDetail: React.FC = () => {
         </div>
       </div>
       
+      {/* Product Image Fullscreen Modal */}
+      {isImageModalOpen && (
+        <div className="fixed inset-0 z-[300] bg-black/98 backdrop-blur-2xl flex flex-col items-center justify-center p-4 md:p-12 animate-in fade-in duration-500">
+           
+           {/* High-Contrast Back Arrow for the Modal (Top Left) */}
+           <button 
+             onClick={() => setIsImageModalOpen(false)}
+             className="absolute top-8 left-8 z-[310] w-14 h-14 bg-white hover:bg-primary text-slate-900 hover:text-white rounded-full transition-all border border-white/10 flex items-center justify-center shadow-[0_15px_30px_rgba(0,0,0,0.5)] group/return"
+             title="Return to Product Details"
+           >
+             <ArrowLeft size={28} className="group-hover/return:-translate-x-1 transition-transform" />
+           </button>
+
+           {/* High-Contrast Close Button for the Modal (Top Right) */}
+           <button 
+             onClick={() => setIsImageModalOpen(false)}
+             className="absolute top-8 right-8 z-[310] w-14 h-14 bg-white hover:bg-red-500 text-slate-900 hover:text-white rounded-full transition-all border border-white/10 flex items-center justify-center shadow-[0_15px_30px_rgba(0,0,0,0.5)]"
+             title="Close Modal"
+           >
+             <X size={28} />
+           </button>
+           
+           <div className="relative w-full h-full flex items-center justify-center">
+             {media.length > 1 && (
+               <>
+                 <button 
+                   onClick={(e) => { e.stopPropagation(); prevMedia(); }}
+                   className="absolute left-4 md:left-12 z-[310] w-14 h-14 bg-white/10 hover:bg-white text-white hover:text-black rounded-full flex items-center justify-center transition-all border border-white/10 shadow-2xl"
+                 >
+                   <ChevronLeft size={32} />
+                 </button>
+                 <button 
+                   onClick={(e) => { e.stopPropagation(); nextMedia(); }}
+                   className="absolute right-4 md:right-12 z-[310] w-14 h-14 bg-white/10 hover:bg-white text-white hover:text-black rounded-full flex items-center justify-center transition-all border border-white/10 shadow-2xl"
+                 >
+                   <ChevronRight size={32} />
+                 </button>
+               </>
+             )}
+
+             <div className="max-w-7xl max-h-full flex items-center justify-center animate-in zoom-in duration-500">
+               {currentMedia.type.startsWith('video') ? (
+                 <video 
+                   src={currentMedia.url} 
+                   autoPlay 
+                   loop 
+                   controls 
+                   className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-lg"
+                 />
+               ) : (
+                 <img 
+                   src={currentMedia.url} 
+                   alt={product.name} 
+                   className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-lg"
+                 />
+               )}
+             </div>
+
+             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 text-center">
+                <h3 className="text-white font-serif text-2xl md:text-3xl tracking-tight">{product.name}</h3>
+                <span className="px-4 py-1 rounded-full bg-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest border border-white/10">
+                  Slide {activeMediaIndex + 1} of {media.length}
+                </span>
+             </div>
+           </div>
+        </div>
+      )}
+
       {/* Deploy Advert Modal - Optimized for perfect fit and scrolling */}
       {isShareOpen && (
          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-8 animate-in fade-in duration-500">

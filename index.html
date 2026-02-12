@@ -178,6 +178,17 @@
         pointer-events: none;
         background: radial-gradient(circle at center, transparent 60%, rgba(183, 110, 121, 0.03) 100%);
       }
+
+      /* Fullscreen Modal Header Removal */
+      body.modal-open header {
+        transform: translateY(-100%);
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      body.modal-open {
+        overflow: hidden !important;
+      }
     </style>
   <script type="importmap">
 {
