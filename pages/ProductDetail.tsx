@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag } from 'lucide-react';
 import { useSettings } from '../App';
 import { Review, Product } from '../types';
 
@@ -297,6 +297,17 @@ const ProductDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Tiny Tags */}
+              {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {product.tags.map((tag, idx) => (
+                    <span key={idx} className="px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-md text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+                      <Tag size={8} /> {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4 pt-10 border-t border-slate-50">
