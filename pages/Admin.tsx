@@ -1107,7 +1107,7 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo';
 
 const Admin: React.FC = () => {
   const { 
@@ -1254,6 +1254,7 @@ const Admin: React.FC = () => {
     { id: 'site_editor', label: 'Canvas', icon: Palette },
     { id: 'team', label: 'Maison', icon: Users },
     { id: 'training', label: 'Training', icon: GraduationCap },
+    { id: 'seo', label: 'SEO Settings', icon: Globe },
     { id: 'system', label: 'System', icon: Activity },
     { id: 'guide', label: 'Pilot', icon: Rocket }
   ];
@@ -1747,6 +1748,116 @@ const Admin: React.FC = () => {
             curatorId={curatorFilter}
           />
         )}
+      </div>
+    );
+  };
+
+  const generateSitemap = () => {
+    try {
+      const baseUrl = window.location.origin;
+      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+      
+      const staticRoutes = ['/', '/products', '/about', '/contact', '/legal'];
+      staticRoutes.forEach(route => {
+        sitemap += `  <url>\n    <loc>${baseUrl}${route}</loc>\n    <changefreq>daily</changefreq>\n    <priority>${route === '/' ? '1.0' : '0.8'}</priority>\n  </url>\n`;
+      });
+
+      if (products && products.length > 0) {
+        products.forEach(product => {
+          sitemap += `  <url>\n    <loc>${baseUrl}/product/${product.id}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+        });
+      }
+
+      sitemap += `</urlset>`;
+
+      const blob = new Blob([sitemap], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating sitemap:', error);
+      alert('Failed to generate sitemap.');
+    }
+  };
+
+  const renderSEO = () => {
+    return (
+      <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-serif text-white mb-2 tracking-tight">Search Engine Optimization</h2>
+            <p className="text-slate-400">Manage global meta tags and generate sitemaps to improve discoverability.</p>
+          </div>
+          <button
+            onClick={generateSitemap}
+            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+          >
+            <Globe className="w-5 h-5" />
+            Generate sitemap.xml
+          </button>
+        </div>
+
+        <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl">
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Global SEO Title</label>
+              <input
+                type="text"
+                value={settings?.seoTitle || ''}
+                onChange={(e) => updateSettings({ seoTitle: e.target.value })}
+                placeholder="e.g., Findara - Premium Curated Products"
+                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              <p className="text-xs text-slate-500 mt-2">Appears in browser tabs and search engine results.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Global Meta Description</label>
+              <textarea
+                value={settings?.seoDescription || ''}
+                onChange={(e) => updateSettings({ seoDescription: e.target.value })}
+                placeholder="A brief description of your site for search engines..."
+                rows={3}
+                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+              />
+              <p className="text-xs text-slate-500 mt-2">Recommended length: 150-160 characters.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Meta Keywords</label>
+              <input
+                type="text"
+                value={settings?.seoKeywords || ''}
+                onChange={(e) => updateSettings({ seoKeywords: e.target.value })}
+                placeholder="e.g., curated, premium, lifestyle, design"
+                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              <p className="text-xs text-slate-500 mt-2">Comma-separated list of keywords.</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Default Open Graph Image URL</label>
+              <input
+                type="text"
+                value={settings?.seoOgImage || ''}
+                onChange={(e) => updateSettings({ seoOgImage: e.target.value })}
+                placeholder="https://example.com/og-image.jpg"
+                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              <p className="text-xs text-slate-500 mt-2">The default image shown when your site is shared on social media.</p>
+              {settings?.seoOgImage && (
+                <div className="mt-4 rounded-xl overflow-hidden border border-slate-800 max-w-md">
+                  <img src={settings.seoOgImage} alt="OG Preview" className="w-full h-auto object-cover aspect-video" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -2877,6 +2988,7 @@ const Admin: React.FC = () => {
         { (activeTab === 'training') && renderTraining() }
         { (activeTab === 'system') && renderSystem() }
         { (activeTab === 'guide') && renderGuide() }
+        { (activeTab === 'seo') && renderSEO() }
       </main>
 
       {editorDrawerOpen && (

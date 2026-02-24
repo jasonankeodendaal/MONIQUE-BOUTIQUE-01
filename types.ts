@@ -266,6 +266,12 @@ export interface SiteSettings {
   pinterestTagId?: string; // New
   amazonAssociateId?: string;
   webhookUrl?: string; // Zapier/Make
+
+  // SEO Settings
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  seoOgImage?: string;
 }
 
 export interface PermissionNode {

@@ -17,6 +17,8 @@ import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATE
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, moveRecord } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 
+import { HelmetProvider, Helmet } from 'react-helmet-async';
+
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const useSettings = () => {
@@ -755,8 +757,17 @@ const App: React.FC = () => {
   }, [settings.primaryColor]);
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, connectionHealth, systemLogs, storageStats }}>
-      <Router>
+    <HelmetProvider>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, connectionHealth, systemLogs, storageStats }}>
+        <Helmet>
+          {settings.seoTitle && <title>{settings.seoTitle}</title>}
+          {settings.seoDescription && <meta name="description" content={settings.seoDescription} />}
+          {settings.seoKeywords && <meta name="keywords" content={settings.seoKeywords} />}
+          {settings.seoOgImage && <meta property="og:image" content={settings.seoOgImage} />}
+          {settings.seoTitle && <meta property="og:title" content={settings.seoTitle} />}
+          {settings.seoDescription && <meta property="og:description" content={settings.seoDescription} />}
+        </Helmet>
+        <Router>
         <ScrollToTop />
         <TrackingInjector />
         <TrafficTracker logEvent={logEvent} />
@@ -783,6 +794,7 @@ const App: React.FC = () => {
         </div>
       </Router>
     </SettingsContext.Provider>
+    </HelmetProvider>
   );
 };
 
