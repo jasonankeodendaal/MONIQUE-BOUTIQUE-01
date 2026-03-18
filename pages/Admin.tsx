@@ -21,7 +21,7 @@ import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } fr
 import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { CustomIcons } from '../components/CustomIcons';
 
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -1338,7 +1338,7 @@ const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats,
-    updateData, deleteData, refreshAllData, connectionHealth, systemLogs, storageStats
+    updateData, deleteData, refreshAllData, logout, connectionHealth, systemLogs, storageStats
   } = useSettings();
   
   const navigate = useNavigate();
@@ -1537,7 +1537,7 @@ const Admin: React.FC = () => {
       .slice(0, 50);
   }, [trafficEvents, minErrorTimestamp]);
 
-  const handleLogout = async () => { if (isSupabaseConfigured) await supabase.auth.signOut(); navigate('/login'); };
+  const handleLogout = async () => { await logout(); };
   const handleFactoryReset = async () => { if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { localStorage.clear(); window.location.reload(); } };
   const handleBackup = () => { const data = { products, categories, subCategories, heroSlides, enquiries, admins, settings, stats }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); };
   
@@ -4045,13 +4045,12 @@ const Admin: React.FC = () => {
           </div>
           <div className="flex flex-col gap-2 w-full md:w-fit">
             <div className="flex gap-2">
-              <a 
-                href="/" 
-                target="_blank" 
+              <Link 
+                to="/" 
                 className="flex flex-1 px-6 py-3 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-primary hover:text-slate-900 transition-all justify-center"
               >
                 <Eye size={14} /> View Website
-              </a>
+              </Link>
               <button 
                 onClick={handleLogout} 
                 className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all justify-center"

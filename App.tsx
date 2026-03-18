@@ -22,11 +22,11 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const MaintenanceOverlay: React.FC = () => {
-  const { settings, user } = useSettings();
+  const { settings, user, loadingAuth } = useSettings();
   const location = useLocation();
   
   if (!settings.isMaintenanceMode) return null;
-  if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  if (loadingAuth || user || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
   
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6 overflow-hidden">
@@ -746,6 +746,39 @@ const App: React.FC = () => {
     } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
   };
 
+  const logout = async () => {
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
+    setUser(null);
+    window.location.hash = '#/login';
+  };
+
+  useEffect(() => {
+    if (!user) return;
+
+    let timeoutId: NodeJS.Timeout;
+    const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutes
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        addSystemLog('AUTH', 'SESSION', 'Auto-logout due to 30min inactivity', 0);
+        logout();
+      }, INACTIVITY_LIMIT);
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => document.addEventListener(event, resetTimer));
+
+    resetTimer();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach(event => document.removeEventListener(event, resetTimer));
+    };
+  }, [user, isSupabaseConfigured]);
+
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving'); const updated = { ...settings, ...newSettings }; setSettings(updated);
     localStorage.setItem('site_settings', JSON.stringify(updated));
@@ -830,7 +863,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, connectionHealth, systemLogs, storageStats }}>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
           {settings.seoTitle && <title>{settings.seoTitle}</title>}
           {settings.seoDescription && <meta name="description" content={settings.seoDescription} />}

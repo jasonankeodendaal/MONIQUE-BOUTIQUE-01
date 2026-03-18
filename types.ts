@@ -368,6 +368,7 @@ export interface SettingsContextType {
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
   logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
+  logout: () => Promise<void>;
   
   // Monitoring
   connectionHealth: { status: 'online' | 'offline', latency: number, message: string } | null;
