@@ -1936,8 +1936,14 @@ const Admin: React.FC = () => {
                       }`}
                     />
                     <div className="flex justify-between items-center mt-2">
-                      <p className="text-[10px] text-slate-500">
-                        {(settings?.seoTitle?.length || 0) < 40 ? 'Too short' : (settings?.seoTitle?.length || 0) > 60 ? 'May be truncated' : 'Optimal length'}
+                      <p className="text-[10px] font-medium flex items-center gap-1">
+                        {(settings?.seoTitle?.length || 0) < 40 ? (
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Aim for 50-60 characters for best visibility.</span></>
+                        ) : (settings?.seoTitle?.length || 0) > 60 ? (
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Google will truncate this title in search results.</span></>
+                        ) : (
+                          <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Optimal length. Great for search engines!</span></>
+                        )}
                       </p>
                       <p className={`text-[10px] ${
                         (settings?.seoTitle?.length || 0) > 60 || (settings?.seoTitle?.length || 0) < 40 ? 'text-amber-400 font-medium' : 'text-emerald-400'
@@ -1968,8 +1974,14 @@ const Admin: React.FC = () => {
                       }`}
                     />
                     <div className="flex justify-between items-center mt-2">
-                      <p className="text-[10px] text-slate-500">
-                        {(settings?.seoDescription?.length || 0) < 120 ? 'Too short for impact' : (settings?.seoDescription?.length || 0) > 160 ? 'Will be truncated' : 'Perfect length'}
+                      <p className="text-[10px] font-medium flex items-center gap-1">
+                        {(settings?.seoDescription?.length || 0) < 120 ? (
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Compelling descriptions improve click-through rate.</span></>
+                        ) : (settings?.seoDescription?.length || 0) > 160 ? (
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Keep the most important info at the start.</span></>
+                        ) : (
+                          <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Perfect length. This will look great on Google!</span></>
+                        )}
                       </p>
                       <p className={`text-[10px] ${
                         (settings?.seoDescription?.length || 0) > 160 || (settings?.seoDescription?.length || 0) < 120 ? 'text-amber-400 font-medium' : 'text-emerald-400'
@@ -2077,31 +2089,49 @@ const Admin: React.FC = () => {
                     </div>
                   </div>
                   <div className="lg:col-span-2">
-                    <input
-                      type="text"
-                      value={settings?.seoOgImage || ''}
-                      onChange={(e) => updateSettings({ seoOgImage: e.target.value })}
-                      placeholder="https://example.com/og-image.jpg"
-                      className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all mb-4 ${
-                        settings?.seoOgImage && !settings.seoOgImage.match(/^https?:\/\/.+\..+/) ? 'border-red-500/50 focus:ring-red-500' : 'border-slate-800'
-                      }`}
-                    />
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={settings?.seoOgImage || ''}
+                        onChange={(e) => updateSettings({ seoOgImage: e.target.value })}
+                        placeholder="https://example.com/og-image.jpg"
+                        className={`flex-grow bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                          settings?.seoOgImage && !settings.seoOgImage.match(/^https?:\/\/.+\..+/) ? 'border-red-500/50 focus:ring-red-500' : 'border-slate-800'
+                        }`}
+                      />
+                      {settings?.seoOgImage && (
+                        <div className="w-12 h-12 rounded-lg border border-slate-800 overflow-hidden bg-slate-950 flex-shrink-0">
+                          <img 
+                            src={settings.seoOgImage} 
+                            alt="OG Preview" 
+                            className="w-full h-full object-cover"
+                            onError={(e) => (e.currentTarget.src = 'https://placehold.co/1200x630/1e293b/ffffff?text=Invalid+URL')}
+                          />
+                        </div>
+                      )}
+                    </div>
                     {settings?.seoOgImage && !settings.seoOgImage.match(/^https?:\/\/.+\..+/) && (
                       <p className="text-[10px] text-red-400 font-medium mt-1 mb-3">Please enter a valid URL starting with http:// or https://</p>
                     )}
-                    {settings?.seoOgImage ? (
-                      <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900 relative group">
-                        <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-md font-medium z-10 flex items-center gap-1">
-                          <Share2 className="w-3 h-3" /> Social Media Preview
+                    <div className="mt-4 p-4 bg-[#1a1a1b] border border-slate-800 rounded-xl">
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
+                        <Share2 className="w-3 h-3" /> Social Media Preview Example
+                      </p>
+                      <div className="border border-[#343536] rounded-lg overflow-hidden bg-[#1a1a1b] max-w-sm mx-auto shadow-2xl">
+                        {settings?.seoOgImage ? (
+                          <img src={settings.seoOgImage} className="w-full aspect-[1.91/1] object-cover" alt="Social Preview" />
+                        ) : (
+                          <div className="w-full aspect-[1.91/1] bg-slate-800 flex items-center justify-center text-slate-600">
+                            <Globe className="w-8 h-8" />
+                          </div>
+                        )}
+                        <div className="p-3 border-t border-[#343536]">
+                          <p className="text-[10px] text-[#818384] uppercase truncate">{window.location.hostname}</p>
+                          <p className="text-sm font-medium text-[#d7dadc] truncate mt-0.5">{settings?.seoTitle || 'Site Title'}</p>
+                          <p className="text-xs text-[#818384] line-clamp-1 mt-0.5">{settings?.seoDescription || 'Site description goes here...'}</p>
                         </div>
-                        <img src={settings.seoOgImage} alt="OG Preview" className="w-full h-auto object-cover aspect-video" />
                       </div>
-                    ) : (
-                      <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 aspect-video flex flex-col items-center justify-center text-slate-500">
-                        <Image className="w-8 h-8 mb-2 opacity-50" />
-                        <span className="text-xs">No image provided</span>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2309,6 +2339,28 @@ const Admin: React.FC = () => {
                           value={settings?.localBusinessWebsite || ''}
                           onChange={(e) => updateSettings({ localBusinessWebsite: e.target.value })}
                           placeholder="e.g., https://findara.com"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Business Phone</label>
+                        <input
+                          type="text"
+                          value={settings?.localBusinessPhone || ''}
+                          onChange={(e) => updateSettings({ localBusinessPhone: e.target.value })}
+                          placeholder="e.g., +1 234 567 8900"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Opening Hours</label>
+                        <input
+                          type="text"
+                          value={settings?.localBusinessOpeningHours || ''}
+                          onChange={(e) => updateSettings({ localBusinessOpeningHours: e.target.value })}
+                          placeholder="e.g., Mo-Fr 09:00-18:00"
                           className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                         />
                       </div>

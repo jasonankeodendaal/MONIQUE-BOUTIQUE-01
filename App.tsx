@@ -476,6 +476,20 @@ const GlobalLayoutOverwrites: React.FC = () => (
   `}</style>
 );
 
+const HomeRoute = () => {
+  const { user, loadingAuth } = useSettings();
+  if (loadingAuth) return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest animate-pulse">Establishing Secure Handshake...</p>
+      </div>
+    </div>
+  );
+  if (user) return <Navigate to="/admin" replace />;
+  return <Home />;
+};
+
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(() => getLocalState('site_settings', INITIAL_SETTINGS));
   const [settingsId, setSettingsId] = useState<string>('global');
@@ -768,7 +782,6 @@ const App: React.FC = () => {
         <Helmet>
           {settings.seoTitle && <title>{settings.seoTitle}</title>}
           {settings.seoDescription && <meta name="description" content={settings.seoDescription} />}
-          {settings.seoKeywords && <meta name="keywords" content={settings.seoKeywords} />}
           {settings.seoOgImage && <meta property="og:image" content={settings.seoOgImage} />}
           {settings.seoTitle && <meta property="og:title" content={settings.seoTitle} />}
           {settings.seoDescription && <meta property="og:description" content={settings.seoDescription} />}
@@ -805,7 +818,7 @@ const App: React.FC = () => {
           <Header />
           <main className="flex-grow z-10 w-full max-w-full overflow-x-hidden">
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<HomeRoute />} />
               <Route path="/login" element={<Login />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />

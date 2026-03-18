@@ -271,7 +271,6 @@ export interface SiteSettings {
   // SEO Settings
   seoTitle?: string;
   seoDescription?: string;
-  seoKeywords?: string;
   seoOgImage?: string;
   gscVerificationId?: string;
 
