@@ -302,6 +302,7 @@ export interface SiteSettings {
   seoForceHttps?: boolean;
   seoEnableCanonicalTags?: boolean;
   seoShowLastUpdated?: boolean;
+  isMaintenanceMode?: boolean;
 }
 
 export interface PermissionNode {

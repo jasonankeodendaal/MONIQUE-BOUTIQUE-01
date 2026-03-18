@@ -3833,7 +3833,34 @@ const Admin: React.FC = () => {
               );
             })}
           </div>
-          <button onClick={handleLogout} className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all w-full md:w-fit justify-center self-start"><LogOut size={14} /> Exit</button>
+          <div className="flex flex-col gap-2 w-full md:w-fit">
+            <div className="flex gap-2">
+              <a 
+                href="/" 
+                target="_blank" 
+                className="flex flex-1 px-6 py-3 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-primary hover:text-slate-900 transition-all justify-center"
+              >
+                <Eye size={14} /> View Website
+              </a>
+              <button 
+                onClick={handleLogout} 
+                className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all justify-center"
+              >
+                <LogOut size={14} /> Exit
+              </button>
+            </div>
+            <button 
+              onClick={() => updateSettings({ isMaintenanceMode: !settings.isMaintenanceMode })}
+              className={`flex px-6 py-3 border rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 transition-all w-full justify-center ${
+                settings.isMaintenanceMode 
+                  ? 'bg-yellow-500 text-slate-950 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.3)]' 
+                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-yellow-500/50 hover:text-yellow-500'
+              }`}
+            >
+              <AlertTriangle size={14} /> 
+              {settings.isMaintenanceMode ? 'Maintenance: ON' : 'Maintenance Mode'}
+            </button>
+          </div>
         </div>
       </header>
 

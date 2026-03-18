@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
-import { X, RefreshCcw, ArrowRight } from 'lucide-react';
+import { X, RefreshCcw, ArrowRight, Construction, Lock } from 'lucide-react';
 import Header from './components/Header';
 import PlexusBackground from './components/PlexusBackground';
 import Home from './pages/Home';
@@ -20,6 +20,58 @@ import { User } from '@supabase/supabase-js';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+
+const MaintenanceOverlay: React.FC = () => {
+  const { settings, user } = useSettings();
+  const location = useLocation();
+  
+  if (!settings.isMaintenanceMode) return null;
+  if (location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  
+  return (
+    <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6 overflow-hidden">
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)] animate-pulse" />
+      <div className="relative z-10 text-center max-w-2xl">
+        <div className="w-20 h-20 md:w-24 md:h-24 bg-primary/10 border border-primary/20 rounded-3xl flex items-center justify-center text-primary mx-auto mb-8 animate-bounce overflow-hidden">
+          {settings.companyLogoUrl ? (
+            <img src={settings.companyLogoUrl} alt={settings.companyName} className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+          ) : (
+            <div className="text-2xl md:text-3xl font-black">{settings.companyLogo}</div>
+          )}
+        </div>
+        <h1 className="text-4xl md:text-7xl font-serif text-white mb-6 tracking-tighter italic">Under <span className="text-primary">Construction</span></h1>
+        <p className="text-slate-400 text-base md:text-xl font-light leading-relaxed mb-12">
+          We are currently refining our digital experience to bring you something truly exceptional. Please check back soon.
+        </p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="px-6 py-2 bg-slate-900 border border-slate-800 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+            System Maintenance in Progress
+          </div>
+          {user && (
+            <Link to="/admin" className="text-primary text-xs font-bold hover:underline">
+              Access Admin Portal
+            </Link>
+          )}
+        </div>
+      </div>
+      
+      {/* Decorative Curtains */}
+      <div className="absolute top-0 left-0 w-1/4 h-full bg-slate-900/50 border-r border-white/5 backdrop-blur-sm transform -skew-x-6 -translate-x-12 hidden md:block" />
+      <div className="absolute top-0 right-0 w-1/4 h-full bg-slate-900/50 border-l border-white/5 backdrop-blur-sm transform skew-x-6 translate-x-12 hidden md:block" />
+      
+      {/* Admin Access Link */}
+      <Link 
+        to="/login" 
+        className="absolute bottom-6 left-6 flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.3em] text-slate-800 hover:text-primary transition-all duration-500 group z-50"
+      >
+        <div className="w-6 h-6 rounded-lg border border-slate-900 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
+          <Lock size={10} />
+        </div>
+        <span className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all">Portal Access</span>
+      </Link>
+    </div>
+  );
+};
 
 export const useSettings = () => {
   const context = useContext(SettingsContext);
@@ -808,6 +860,7 @@ const App: React.FC = () => {
           )}
         </Helmet>
         <Router>
+        <MaintenanceOverlay />
         <ScrollToTop />
         <TrackingInjector />
         <TrafficTracker logEvent={logEvent} />

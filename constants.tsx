@@ -923,7 +923,8 @@ Address: Mokopane, Limpopo, 0601`,
   localBusinessName: 'Findara',
   localBusinessAddress: 'Mokopane, Limpopo, 0601',
   localBusinessPhone: '+27 76 836 0325',
-  localBusinessOpeningHours: 'Mo-Fr 09:00-18:00'
+  localBusinessOpeningHours: 'Mo-Fr 09:00-18:00',
+  isMaintenanceMode: false
 };
 
 export const INITIAL_CAROUSEL: CarouselSlide[] = [
