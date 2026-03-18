@@ -586,6 +586,12 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (settings.seoForceHttps !== false && window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+      window.location.href = window.location.href.replace('http:', 'https:');
+    }
+  }, [settings.seoForceHttps]);
+
+  useEffect(() => {
     const updateMetaTags = () => {
       document.title = settings.companyName;
       const updateOrAddMeta = (property: string, content: string, attr = 'property') => {
@@ -766,6 +772,27 @@ const App: React.FC = () => {
           {settings.seoOgImage && <meta property="og:image" content={settings.seoOgImage} />}
           {settings.seoTitle && <meta property="og:title" content={settings.seoTitle} />}
           {settings.seoDescription && <meta property="og:description" content={settings.seoDescription} />}
+          {settings.gscVerificationId && <meta name="google-site-verification" content={settings.gscVerificationId} />}
+          {settings.seoEnableCanonicalTags !== false && <link rel="canonical" href={window.location.href.split('?')[0]} />}
+          {settings.enableSchemaMarkup && (
+            <script type="application/ld+json">
+              {JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "LocalBusiness",
+                "name": settings.localBusinessName || settings.companyName,
+                "image": settings.companyLogoUrl,
+                "telephone": settings.localBusinessPhone || settings.contactPhone,
+                "address": {
+                  "@type": "PostalAddress",
+                  "streetAddress": settings.localBusinessAddress || settings.address
+                },
+                "openingHoursSpecification": {
+                  "@type": "OpeningHoursSpecification",
+                  "description": settings.localBusinessOpeningHours || settings.contactHoursWeekdays
+                }
+              })}
+            </script>
+          )}
         </Helmet>
         <Router>
         <ScrollToTop />
@@ -776,7 +803,7 @@ const App: React.FC = () => {
         <div className="min-h-screen flex flex-col relative shrink-to-fit-container overflow-x-hidden">
           <PlexusBackground />
           <Header />
-          <div className="flex-grow z-10 w-full max-w-full overflow-x-hidden">
+          <main className="flex-grow z-10 w-full max-w-full overflow-x-hidden">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -789,7 +816,7 @@ const App: React.FC = () => {
               <Route path="/privacy" element={<Legal />} />
               <Route path="/terms" element={<Legal />} />
             </Routes>
-          </div>
+          </main>
           <Footer />
         </div>
       </Router>

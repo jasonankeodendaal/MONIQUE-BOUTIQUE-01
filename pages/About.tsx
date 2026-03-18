@@ -31,7 +31,7 @@ const About: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-sand overflow-x-hidden transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
+    <main className={`min-h-screen bg-sand overflow-x-hidden transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
       {/* Editorial Hero Spread - Optimised for perfect fit */}
       <div className="relative h-screen lg:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
@@ -106,7 +106,7 @@ const About: React.FC = () => {
 
                       {settings.aboutSignatureImage && (
                          <div className="pt-12 lg:pt-20 border-t border-slate-200/60 flex flex-col items-center">
-                            <img src={settings.aboutSignatureImage} className="h-16 lg:h-28 w-auto object-contain opacity-60 mix-blend-multiply" alt="Signature" />
+                            <img src={settings.aboutSignatureImage} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="h-16 lg:h-28 w-auto object-contain opacity-60 mix-blend-multiply" alt="Signature" />
                             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-4">Verified Narrative</span>
                          </div>
                       )}
@@ -143,7 +143,7 @@ const About: React.FC = () => {
                     <div className="mt-24 lg:mt-48 grid grid-cols-2 md:grid-cols-3 gap-6 lg:gap-12">
                       {settings.aboutGalleryImages.slice(0,3).map((img, i) => (
                         <div key={i} className={`rounded-[2.5rem] lg:rounded-[5rem] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] aspect-[3/4] ${i === 1 ? 'mt-10 lg:mt-24' : ''} ${i === 2 ? 'hidden md:block' : ''} transform transition-all duration-1000 hover:scale-105 hover:-translate-y-4`}>
-                          <img src={img} className="w-full h-full object-cover" alt="Gallery" />
+                          <img src={img} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="w-full h-full object-cover" alt="Gallery" />
                         </div>
                       ))}
                     </div>
@@ -184,7 +184,8 @@ const About: React.FC = () => {
                           {product.media?.[0]?.url ? (
                             <img 
                               src={product.media[0].url} 
-                              alt={product.name} 
+                              alt={product.media[0].altText || product.name} 
+                              loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
                               className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 group-hover:rotate-1" 
                             />
                           ) : (
@@ -262,7 +263,7 @@ const About: React.FC = () => {
          </div>
       </div>
 
-    </div>
+    </main>
   );
 };
 

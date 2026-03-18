@@ -71,6 +71,7 @@ const Home: React.FC = () => {
                     <img 
                       src={cat.image || 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800'} 
                       alt={cat.name}
+                      loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
                       className="absolute inset-0 w-full h-full object-cover opacity-0 scale-150 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-100"
                     />
 

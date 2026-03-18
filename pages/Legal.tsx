@@ -43,7 +43,7 @@ const Legal: React.FC = () => {
   const { title, content, icon } = getPageData();
 
   return (
-    <div className="min-h-screen pt-28 md:pt-40 pb-24 bg-[#FDFCFB] relative">
+    <main className="min-h-screen pt-28 md:pt-40 pb-24 bg-[#FDFCFB] relative">
       <div className="max-w-3xl mx-auto px-6">
         
         {/* Back Button */}
@@ -81,7 +81,7 @@ const Legal: React.FC = () => {
           <p className="text-xs md:text-sm text-slate-500">{lastUpdatedDate}</p>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

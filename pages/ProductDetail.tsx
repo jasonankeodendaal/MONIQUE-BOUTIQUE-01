@@ -185,6 +185,13 @@ const ProductDetail: React.FC = () => {
   const nextMedia = () => setActiveMediaIndex((prev) => (prev === media.length - 1 ? 0 : prev + 1));
   const prevMedia = () => setActiveMediaIndex((prev) => (prev === 0 ? media.length - 1 : prev - 1));
 
+  const relatedProducts = useMemo(() => {
+    if (!product || settings.seoAutoRelatedProducts === false) return [];
+    return products
+      .filter(p => p.id !== product.id && p.categoryId === product.categoryId)
+      .slice(0, 4);
+  }, [product, products, settings.seoAutoRelatedProducts]);
+
   return (
     <main className={`min-h-screen bg-[#FDFCFB] transition-opacity duration-1000 pt-20 md:pt-28 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       
@@ -220,7 +227,7 @@ const ProductDetail: React.FC = () => {
         <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
       </button>
 
-      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden">
+      <article className="flex flex-col lg:flex-row min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden">
         
         {/* Left Side: Poster Style Media Gallery */}
         <div className="w-full lg:w-3/5 h-[65vh] md:h-[75vh] lg:h-full relative overflow-hidden group bg-slate-50/50">
@@ -252,7 +259,8 @@ const ProductDetail: React.FC = () => {
                     <img 
                       key={currentMedia.id}
                       src={currentMedia.url} 
-                      alt={product.name} 
+                      alt={currentMedia.altText || product.name} 
+                      loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
                       className="w-auto h-auto max-w-full max-h-[70vh] object-contain rounded shadow-inner"
                     />
                   )}
@@ -312,6 +320,12 @@ const ProductDetail: React.FC = () => {
                 <span className="italic font-light text-primary">{product.name.split(' ').slice(-1)}</span>
               </h1>
               
+              {settings.seoShowLastUpdated !== false && product.createdAt && (
+                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
+                  Last Updated: {new Date(product.createdAt).toLocaleDateString()}
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center gap-6 pt-4">
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Acquisition Value</span>
@@ -469,7 +483,42 @@ const ProductDetail: React.FC = () => {
 
           </div>
         </div>
-      </div>
+      </article>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <section className="py-24 bg-white border-t border-slate-100">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <h2 className="text-3xl font-serif text-slate-900 mb-12 text-center">You May Also Like</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {relatedProducts.map(rp => (
+                <div 
+                  key={rp.id} 
+                  className="group cursor-pointer"
+                  onClick={() => navigate(`/products/${rp.id}`)}
+                >
+                  <div className="aspect-[3/4] bg-slate-50 overflow-hidden mb-4 rounded-lg">
+                    {rp.media?.[0]?.type?.startsWith('image/') ? (
+                      <img 
+                        src={rp.media[0].url} 
+                        alt={rp.media[0].altText || rp.name}
+                        loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-300">
+                        <Package size={32} />
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">{rp.name}</h3>
+                  <p className="text-xs text-slate-500">R{rp.price.toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
       
       {/* Product Image Fullscreen Modal */}
       {isImageModalOpen && (
@@ -523,7 +572,8 @@ const ProductDetail: React.FC = () => {
                ) : (
                  <img 
                    src={currentMedia.url} 
-                   alt={product.name} 
+                   alt={currentMedia.altText || product.name} 
+                   loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
                    className="max-w-full max-h-[85vh] object-contain shadow-2xl rounded-lg"
                  />
                )}
@@ -560,7 +610,7 @@ const ProductDetail: React.FC = () => {
                         <span className="text-[8px] font-bold text-slate-900">{settings.companyName.toLowerCase().replace(/\s/g, '_')}</span>
                      </div>
                      <div className="aspect-square bg-slate-100 overflow-hidden">
-                        <img src={currentMedia?.url} className="w-full h-full object-cover" alt="Preview" />
+                        <img src={currentMedia?.url} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="w-full h-full object-cover" alt="Preview" />
                      </div>
                      <div className="p-3 text-left">
                         <p className="text-[9px] text-slate-600 line-clamp-3 leading-tight">

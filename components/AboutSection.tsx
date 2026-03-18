@@ -24,6 +24,7 @@ const AboutSection: React.FC = () => {
                 <img 
                   src={settings.homeAboutImage} 
                   alt={settings.aboutFounderName} 
+                  loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
                   className="w-full h-auto aspect-[3/4] object-cover relative z-10 transition-transform duration-[2s] group-hover:scale-105"
                 />
               </div>

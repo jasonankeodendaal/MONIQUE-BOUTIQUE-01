@@ -21,6 +21,7 @@ export interface MediaFile {
   name: string;
   type: string; // mime type
   size: number;
+  altText?: string;
 }
 
 export interface DiscountRule {
@@ -272,6 +273,36 @@ export interface SiteSettings {
   seoDescription?: string;
   seoKeywords?: string;
   seoOgImage?: string;
+  gscVerificationId?: string;
+
+  // Advanced SEO & Local
+  enableSchemaMarkup?: boolean;
+  schemaType?: 'Organization' | 'LocalBusiness' | 'WebSite' | 'Store';
+  customSchemaJson?: string;
+  localBusinessName?: string;
+  localBusinessAddress?: string;
+  localBusinessPhone?: string;
+  localBusinessOpeningHours?: string;
+  localBusinessCountry?: string;
+  localBusinessLat?: number;
+  localBusinessLng?: number;
+  localBusinessWebsite?: string;
+  localBusinessCategory?: string;
+
+  // SEO Status & Generation
+  robotsGeneratedAt?: number;
+  sitemapGeneratedAt?: number;
+  robotsStatus?: 'valid' | 'invalid' | 'pending';
+  sitemapStatus?: 'valid' | 'invalid' | 'pending';
+
+  // Additional SEO Toggles
+  seoAutoCleanUrls?: boolean;
+  seoEnableLazyLoading?: boolean;
+  seoRequireAltText?: boolean;
+  seoAutoRelatedProducts?: boolean;
+  seoForceHttps?: boolean;
+  seoEnableCanonicalTags?: boolean;
+  seoShowLastUpdated?: boolean;
 }
 
 export interface PermissionNode {

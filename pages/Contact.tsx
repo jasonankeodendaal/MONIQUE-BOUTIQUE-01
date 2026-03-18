@@ -42,7 +42,7 @@ const Contact: React.FC = () => {
   const faqs = settings.contactFaqs || [];
 
   return (
-    <div className="min-h-screen bg-[#FDF5F2] relative">
+    <main className="min-h-screen bg-[#FDF5F2] relative">
        {/* Background Elements - Warmer Rose Glow */}
        <div className="fixed top-0 right-0 w-[50vw] h-[50vw] bg-[#B76E79]/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
        <div className="fixed bottom-0 left-0 w-[30vw] h-[30vw] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
@@ -284,7 +284,7 @@ const Contact: React.FC = () => {
            <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Last Updated: {lastUpdatedDate}</p>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

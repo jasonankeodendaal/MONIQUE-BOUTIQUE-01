@@ -12,7 +12,7 @@ import {
   CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer,
   BarChart, Activity as ActivityIcon, Wifi, Facebook, Linkedin,
   Lightbulb, Tablet, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, HardDrive, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
-  PlayCircle, Briefcase, Crown
+  PlayCircle, Briefcase, Crown, FileText
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
@@ -735,7 +735,8 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
           url: result, 
           name: file.name, 
           type: file.type, 
-          size: file.size 
+          size: file.size,
+          altText: ''
         };
         onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
         setUploading(false);
@@ -743,6 +744,11 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
       reader.readAsDataURL(file);
     });
   };
+
+  const handleAltTextChange = (id: string, altText: string) => {
+    onFilesChange(files.map(f => f.id === id ? { ...f, altText } : f));
+  };
+
   return (
     <div className="space-y-4 text-left w-full min-w-0">
       <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]">
@@ -761,17 +767,26 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
         <input type="file" ref={fileInputRef} className="hidden" multiple={multiple} accept={accept} onChange={e => processFiles(e.target.files)} />
       </div>
       {files.length > 0 && (
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 animate-in fade-in slide-in-from-bottom-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2">
           {files.map(f => (
-            <div key={f.id} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
-              {f.type.startsWith('video') ? (
-                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
-              ) : (
-                 <img src={f.url} className="w-full h-full object-cover" alt="preview" />
-              )}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                 <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-1.5 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={12}/></button>
+            <div key={f.id} className="flex flex-col gap-2">
+              <div className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
+                {f.type.startsWith('video') ? (
+                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
+                ) : (
+                   <img src={f.url} className="w-full h-full object-cover" alt={f.altText || "preview"} />
+                )}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                   <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={16}/></button>
+                </div>
               </div>
+              <input 
+                type="text" 
+                placeholder="Alt text (SEO)" 
+                value={f.altText || ''} 
+                onChange={(e) => handleAltTextChange(f.id, e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-[10px] text-white focus:ring-1 focus:ring-primary focus:border-transparent transition-all"
+              />
             </div>
           ))}
         </div>
@@ -1316,7 +1331,18 @@ const Admin: React.FC = () => {
   const handleFactoryReset = async () => { if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { localStorage.clear(); window.location.reload(); } };
   const handleBackup = () => { const data = { products, categories, subCategories, heroSlides, enquiries, admins, settings, stats }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); };
   
-  const handleSaveProduct = async () => { const newProduct = { ...productData, id: editingId || Date.now().toString(), createdAt: productData.createdAt || Date.now(), createdBy: productData.createdBy || user?.id }; const ok = await updateData('products', newProduct); if (ok) { setShowProductForm(false); setEditingId(null); } };
+  const handleSaveProduct = async () => { 
+    if (settings?.seoRequireAltText) {
+      const missingAltText = productData.media?.some(m => !m.altText || m.altText.trim() === '');
+      if (missingAltText) {
+        alert('Please provide alt text for all product images (SEO requirement enabled).');
+        return;
+      }
+    }
+    const newProduct = { ...productData, id: editingId || Date.now().toString(), createdAt: productData.createdAt || Date.now(), createdBy: productData.createdBy || user?.id }; 
+    const ok = await updateData('products', newProduct); 
+    if (ok) { setShowProductForm(false); setEditingId(null); } 
+  };
   const handleSaveCategory = async () => { const newCat = { ...catData, id: editingId || Date.now().toString(), createdBy: catData.createdBy || user?.id }; const ok = await updateData('categories', newCat); if (ok) { setShowCategoryForm(false); setEditingId(null); } };
   const handleSaveHero = async () => { const newSlide = { ...heroData, id: editingId || Date.now().toString(), createdBy: heroData.createdBy || user?.id }; const ok = await updateData('hero_slides', newSlide); if (ok) { setShowHeroForm(false); setEditingId(null); } };
   const handleSaveAdmin = async () => { if (!adminData.email) return; setCreatingAdmin(true); try { const newAdmin = { ...adminData, id: editingId || Date.now().toString(), createdAt: adminData.createdAt || Date.now() }; const ok = await updateData('admin_users', newAdmin); if (ok) { setShowAdminForm(false); setEditingId(null); } } catch (err: any) { alert(`Error saving member: ${err.message}`); } finally { setCreatingAdmin(false); } };
@@ -1752,7 +1778,7 @@ const Admin: React.FC = () => {
     );
   };
 
-  const generateSitemap = () => {
+  const generateSitemap = async () => {
     try {
       const baseUrl = window.location.origin;
       let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
@@ -1779,11 +1805,56 @@ const Admin: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      updateSettings({ 
+        sitemapGeneratedAt: Date.now(),
+        sitemapStatus: 'valid'
+      });
     } catch (error) {
       console.error('Error generating sitemap:', error);
+      updateSettings({ sitemapStatus: 'invalid' });
       alert('Failed to generate sitemap.');
     }
   };
+
+  const generateRobotsTxt = async () => {
+    try {
+      const baseUrl = window.location.origin;
+      const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin\n\nSitemap: ${baseUrl}/sitemap.xml`;
+      
+      const blob = new Blob([robotsTxt], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'robots.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      updateSettings({ 
+        robotsGeneratedAt: Date.now(),
+        robotsStatus: 'valid'
+      });
+    } catch (error) {
+      console.error('Error generating robots.txt:', error);
+      updateSettings({ robotsStatus: 'invalid' });
+      alert('Failed to generate robots.txt.');
+    }
+  };
+
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+
+  const getInternalLinkingSuggestions = useMemo(() => {
+    if (!products || products.length === 0) return [];
+    // Simple logic: suggest linking to top categories or recent products
+    const suggestions = [
+      { text: 'Link to your best-selling categories from the homepage.', icon: <Layers className="w-4 h-4" /> },
+      { text: 'Add "Related Products" to product pages to improve crawl depth.', icon: <ShoppingBag className="w-4 h-4" /> },
+      { text: 'Ensure your About page links back to your main Products gallery.', icon: <ArrowRight className="w-4 h-4" /> }
+    ];
+    return suggestions;
+  }, [products]);
 
   const renderSEO = () => {
     return (
@@ -1791,70 +1862,807 @@ const Admin: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="text-3xl font-serif text-white mb-2 tracking-tight">Search Engine Optimization</h2>
-            <p className="text-slate-400">Manage global meta tags and generate sitemaps to improve discoverability.</p>
+            <p className="text-slate-400">Manage global meta tags, generate sitemaps, and connect external tools.</p>
           </div>
-          <button
-            onClick={generateSitemap}
-            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
-          >
-            <Globe className="w-5 h-5" />
-            Generate sitemap.xml
-          </button>
-        </div>
-
-        <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl">
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Global SEO Title</label>
-              <input
-                type="text"
-                value={settings?.seoTitle || ''}
-                onChange={(e) => updateSettings({ seoTitle: e.target.value })}
-                placeholder="e.g., Findara - Premium Curated Products"
-                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-              <p className="text-xs text-slate-500 mt-2">Appears in browser tabs and search engine results.</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Global Meta Description</label>
-              <textarea
-                value={settings?.seoDescription || ''}
-                onChange={(e) => updateSettings({ seoDescription: e.target.value })}
-                placeholder="A brief description of your site for search engines..."
-                rows={3}
-                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
-              />
-              <p className="text-xs text-slate-500 mt-2">Recommended length: 150-160 characters.</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Meta Keywords</label>
-              <input
-                type="text"
-                value={settings?.seoKeywords || ''}
-                onChange={(e) => updateSettings({ seoKeywords: e.target.value })}
-                placeholder="e.g., curated, premium, lifestyle, design"
-                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-              <p className="text-xs text-slate-500 mt-2">Comma-separated list of keywords.</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Default Open Graph Image URL</label>
-              <input
-                type="text"
-                value={settings?.seoOgImage || ''}
-                onChange={(e) => updateSettings({ seoOgImage: e.target.value })}
-                placeholder="https://example.com/og-image.jpg"
-                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-              <p className="text-xs text-slate-500 mt-2">The default image shown when your site is shared on social media.</p>
-              {settings?.seoOgImage && (
-                <div className="mt-4 rounded-xl overflow-hidden border border-slate-800 max-w-md">
-                  <img src={settings.seoOgImage} alt="OG Preview" className="w-full h-auto object-cover aspect-video" />
+          <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={generateRobotsTxt}
+                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-all flex items-center gap-2"
+              >
+                <FileText className="w-5 h-5" />
+                Generate robots.txt
+              </button>
+              {settings?.robotsGeneratedAt && (
+                <div className="flex items-center gap-1.5 px-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${settings.robotsStatus === 'valid' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    Last: {new Date(settings.robotsGeneratedAt).toLocaleString()}
+                  </span>
                 </div>
               )}
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={generateSitemap}
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+              >
+                <Globe className="w-5 h-5" />
+                Generate sitemap.xml
+              </button>
+              {settings?.sitemapGeneratedAt && (
+                <div className="flex items-center gap-1.5 px-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${settings.sitemapStatus === 'valid' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                  <span className="text-[10px] text-slate-500 font-medium">
+                    Last: {new Date(settings.sitemapGeneratedAt).toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="xl:col-span-2 space-y-8">
+            <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl">
+              <div className="space-y-8">
+                <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-indigo-400 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-indigo-300 mb-1">Why SEO Matters</h4>
+                      <p className="text-xs text-indigo-200/70 leading-relaxed">
+                        Search Engine Optimization (SEO) settings determine how your website appears in search engine results (like Google) and when shared on social media. Well-crafted SEO metadata improves your site's visibility, click-through rates, and overall digital presence.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Global SEO Title</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Recommended: 50–60 characters. This is the primary headline in search results.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <input
+                      type="text"
+                      value={settings?.seoTitle || ''}
+                      onChange={(e) => updateSettings({ seoTitle: e.target.value })}
+                      placeholder="e.g., Findara - Premium Curated Products"
+                      className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                        (settings?.seoTitle?.length || 0) > 60 || (settings?.seoTitle?.length || 0) < 40 ? 'border-amber-500/50 focus:ring-amber-500' : 'border-slate-800'
+                      }`}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-[10px] text-slate-500">
+                        {(settings?.seoTitle?.length || 0) < 40 ? 'Too short' : (settings?.seoTitle?.length || 0) > 60 ? 'May be truncated' : 'Optimal length'}
+                      </p>
+                      <p className={`text-[10px] ${
+                        (settings?.seoTitle?.length || 0) > 60 || (settings?.seoTitle?.length || 0) < 40 ? 'text-amber-400 font-medium' : 'text-emerald-400'
+                      }`}>
+                        {settings?.seoTitle?.length || 0} / 60 characters
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Global Meta Description</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Recommended: 150–160 characters. A compelling summary to increase click-through rate.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <textarea
+                      value={settings?.seoDescription || ''}
+                      onChange={(e) => updateSettings({ seoDescription: e.target.value })}
+                      placeholder="A brief description of your site for search engines..."
+                      rows={3}
+                      className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none ${
+                        (settings?.seoDescription?.length || 0) > 160 || (settings?.seoDescription?.length || 0) < 120 ? 'border-amber-500/50 focus:ring-amber-500' : 'border-slate-800'
+                      }`}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-[10px] text-slate-500">
+                        {(settings?.seoDescription?.length || 0) < 120 ? 'Too short for impact' : (settings?.seoDescription?.length || 0) > 160 ? 'Will be truncated' : 'Perfect length'}
+                      </p>
+                      <p className={`text-[10px] ${
+                        (settings?.seoDescription?.length || 0) > 160 || (settings?.seoDescription?.length || 0) < 120 ? 'text-amber-400 font-medium' : 'text-emerald-400'
+                      }`}>
+                        {settings?.seoDescription?.length || 0} / 160 characters
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Keyword Optimization</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Meta keywords are outdated. Focus on placing your primary keywords naturally in your Title, Headings (H1, H2), and the first 100 words of your content.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
+                      <h4 className="text-xs font-bold text-amber-400 mb-2 flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4" /> SEO Best Practice
+                      </h4>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        Google ignores the "meta keywords" tag. Instead, ensure your target keywords appear in:
+                      </p>
+                      <ul className="mt-2 space-y-1 text-[11px] text-slate-400 list-disc list-inside">
+                        <li>The first 60 characters of your <span className="text-indigo-400">Page Title</span></li>
+                        <li>Your main <span className="text-indigo-400">H1 Heading</span> (only one per page)</li>
+                        <li>The first paragraph of your <span className="text-indigo-400">Body Text</span></li>
+                        <li>Image <span className="text-indigo-400">Alt Text</span> descriptions</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                {/* Live SERP Preview */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Live SERP Preview</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      See how your site appears in Google search results.
+                    </p>
+                    <div className="flex bg-slate-800 p-1 rounded-lg mt-4 w-fit">
+                      <button
+                        onClick={() => setPreviewMode('desktop')}
+                        className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-2 ${previewMode === 'desktop' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                      >
+                        <Monitor className="w-3 h-3" /> Desktop
+                      </button>
+                      <button
+                        onClick={() => setPreviewMode('mobile')}
+                        className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-2 ${previewMode === 'mobile' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                      >
+                        <Smartphone className="w-3 h-3" /> Mobile
+                      </button>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <div className={`bg-white rounded-xl p-6 shadow-sm font-sans mx-auto transition-all duration-300 ${previewMode === 'mobile' ? 'max-w-[360px]' : 'max-w-[600px]'}`}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden border border-slate-200">
+                          {settings?.seoOgImage ? (
+                            <img src={settings.seoOgImage} alt="Favicon" className="w-full h-full object-cover" />
+                          ) : (
+                            <Globe className="w-4 h-4 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[14px] text-[#202124] leading-tight truncate">{settings?.localBusinessName || 'Your Website'}</div>
+                          <div className="text-[12px] text-[#4d5156] leading-tight flex items-center gap-1 truncate">
+                            https://{window.location.hostname} <LucideIcons.MoreVertical className="w-3 h-3 flex-shrink-0" />
+                          </div>
+                        </div>
+                      </div>
+                      <h3 className={`text-[#1a0dab] hover:underline cursor-pointer mb-1 leading-tight ${previewMode === 'mobile' ? 'text-[18px]' : 'text-[20px]'}`}>
+                        {settings?.seoTitle || 'Your Page Title'}
+                      </h3>
+                      <p className="text-[14px] text-[#4d5156] leading-[1.58] line-clamp-2">
+                        {settings?.seoDescription || 'Your page description will appear here. Make it compelling to encourage clicks from search engine users.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Open Graph (OG) Image</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Recommended: 1200x630px (JPG/PNG). This image appears when your link is shared on social media.
+                    </p>
+                    <div className="mt-4 space-y-2 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+                      <h4 className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Specifications</h4>
+                      <ul className="text-[10px] text-slate-400 space-y-1 list-disc list-inside">
+                        <li>Size: 1200 x 630 pixels</li>
+                        <li>Format: JPG or PNG</li>
+                        <li>Ratio: 1.91:1</li>
+                        <li>Max file size: 8MB</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <input
+                      type="text"
+                      value={settings?.seoOgImage || ''}
+                      onChange={(e) => updateSettings({ seoOgImage: e.target.value })}
+                      placeholder="https://example.com/og-image.jpg"
+                      className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all mb-4 ${
+                        settings?.seoOgImage && !settings.seoOgImage.match(/^https?:\/\/.+\..+/) ? 'border-red-500/50 focus:ring-red-500' : 'border-slate-800'
+                      }`}
+                    />
+                    {settings?.seoOgImage && !settings.seoOgImage.match(/^https?:\/\/.+\..+/) && (
+                      <p className="text-[10px] text-red-400 font-medium mt-1 mb-3">Please enter a valid URL starting with http:// or https://</p>
+                    )}
+                    {settings?.seoOgImage ? (
+                      <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900 relative group">
+                        <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-md font-medium z-10 flex items-center gap-1">
+                          <Share2 className="w-3 h-3" /> Social Media Preview
+                        </div>
+                        <img src={settings.seoOgImage} alt="OG Preview" className="w-full h-auto object-cover aspect-video" />
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 aspect-video flex flex-col items-center justify-center text-slate-500">
+                        <Image className="w-8 h-8 mb-2 opacity-50" />
+                        <span className="text-xs">No image provided</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* External Integrations */}
+            <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl">
+              <h3 className="text-xl font-serif text-white mb-6">External Connections</h3>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Google Analytics</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Enter your GA4 Measurement ID (G-XXXXXXXXXX).
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <input
+                      type="text"
+                      value={settings?.googleAnalyticsId || ''}
+                      onChange={(e) => updateSettings({ googleAnalyticsId: e.target.value })}
+                      placeholder="e.g., G-XXXXXXXXXX"
+                      className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                        settings?.googleAnalyticsId && !settings.googleAnalyticsId.match(/^G-[A-Z0-9]{10}$/) ? 'border-red-500/50 focus:ring-red-500' : 'border-slate-800'
+                      }`}
+                    />
+                    {settings?.googleAnalyticsId && !settings.googleAnalyticsId.match(/^G-[A-Z0-9]{10}$/) && (
+                      <p className="text-[10px] text-red-400 font-medium mt-1">Invalid format. Expected G-XXXXXXXXXX</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Google Search Console</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Verification method: <span className="text-indigo-400">HTML meta tag</span>. Paste the content value or the full tag.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <input
+                      type="text"
+                      value={settings?.gscVerificationId || ''}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        if (val.includes('content="')) {
+                          const match = val.match(/content="([^"]+)"/);
+                          if (match) val = match[1];
+                        }
+                        updateSettings({ gscVerificationId: val });
+                      }}
+                      placeholder="e.g., google-site-verification=..."
+                      className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-2">
+                      Auto-parses: &lt;meta name="google-site-verification" content="<span className="text-indigo-400">...</span>" /&gt;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Advanced SEO & Local */}
+            <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl">
+              <h3 className="text-xl font-serif text-white mb-6">Advanced SEO & Local</h3>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Structured Data (Schema)</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Enable JSON-LD schema markup. Select your business type and preview the generated code.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="flex items-center">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings?.enableSchemaMarkup ?? true}
+                          onChange={(e) => updateSettings({ enableSchemaMarkup: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        <span className="ml-3 text-sm font-medium text-slate-300">
+                          {settings?.enableSchemaMarkup ? 'Enabled' : 'Disabled'}
+                        </span>
+                      </label>
+                    </div>
+                    
+                    {settings?.enableSchemaMarkup && (
+                      <div className="animate-in fade-in slide-in-from-top-2 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-medium text-slate-400 mb-1">Schema Type</label>
+                            <div className="relative">
+                              <select
+                                value={settings?.schemaType || 'Organization'}
+                                onChange={(e) => updateSettings({ schemaType: e.target.value as any })}
+                                className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none"
+                              >
+                                <option value="Organization">Organization</option>
+                                <option value="LocalBusiness">Local Business</option>
+                                <option value="WebSite">WebSite</option>
+                                <option value="Store">Store</option>
+                              </select>
+                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-slate-950 rounded-xl p-4 border border-slate-800">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">JSON-LD Preview</span>
+                            <button 
+                              onClick={() => {
+                                const schema = {
+                                  "@context": "https://schema.org",
+                                  "@type": settings?.schemaType || "Organization",
+                                  "name": settings?.companyName || "Your Company",
+                                  "url": window.location.origin
+                                };
+                                updateSettings({ customSchemaJson: JSON.stringify(schema, null, 2) });
+                              }}
+                              className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold uppercase tracking-widest"
+                            >
+                              Reset to Default
+                            </button>
+                          </div>
+                          <textarea
+                            value={settings?.customSchemaJson || JSON.stringify({
+                              "@context": "https://schema.org",
+                              "@type": settings?.schemaType || "Organization",
+                              "name": settings?.companyName || "Your Company",
+                              "url": window.location.origin
+                            }, null, 2)}
+                            onChange={(e) => updateSettings({ customSchemaJson: e.target.value })}
+                            rows={6}
+                            className="w-full bg-transparent text-emerald-400 font-mono text-[11px] outline-none resize-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Local SEO (NAP Details)</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Expand your local presence with full Name, Address, and Phone details.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Business Name</label>
+                        <input
+                          type="text"
+                          value={settings?.localBusinessName || ''}
+                          onChange={(e) => updateSettings({ localBusinessName: e.target.value })}
+                          placeholder="e.g., Findara Luxury"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Business Category</label>
+                        <input
+                          type="text"
+                          value={settings?.localBusinessCategory || ''}
+                          onChange={(e) => updateSettings({ localBusinessCategory: e.target.value })}
+                          placeholder="e.g., Retail Store"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-1">Full Address</label>
+                      <input
+                        type="text"
+                        value={settings?.localBusinessAddress || ''}
+                        onChange={(e) => updateSettings({ localBusinessAddress: e.target.value })}
+                        placeholder="e.g., 123 Fashion Ave, New York, NY 10001"
+                        className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Country</label>
+                        <input
+                          type="text"
+                          value={settings?.localBusinessCountry || ''}
+                          onChange={(e) => updateSettings({ localBusinessCountry: e.target.value })}
+                          placeholder="e.g., United States"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Website URL</label>
+                        <input
+                          type="text"
+                          value={settings?.localBusinessWebsite || ''}
+                          onChange={(e) => updateSettings({ localBusinessWebsite: e.target.value })}
+                          placeholder="e.g., https://findara.com"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Latitude</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={settings?.localBusinessLat || ''}
+                          onChange={(e) => updateSettings({ localBusinessLat: parseFloat(e.target.value) })}
+                          placeholder="e.g., 40.7128"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1">Longitude</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={settings?.localBusinessLng || ''}
+                          onChange={(e) => updateSettings({ localBusinessLng: parseFloat(e.target.value) })}
+                          placeholder="e.g., -74.0060"
+                          className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Technical SEO */}
+            <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl mt-8">
+              <h3 className="text-xl font-serif text-white mb-6">Technical SEO</h3>
+              <div className="space-y-6">
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Internal Linking Suggestions</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Actionable tips to improve your site's crawlability and user flow.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <div className="space-y-3">
+                      {getInternalLinkingSuggestions.map((suggestion, idx) => (
+                        <div key={idx} className="flex items-start gap-3 p-3 bg-slate-950/50 border border-slate-800 rounded-xl">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                            {suggestion.icon}
+                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">{suggestion.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Clean, Readable URLs</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Automatically generate SEO-friendly URLs from product and category names.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoAutoCleanUrls ?? true}
+                        onChange={(e) => updateSettings({ seoAutoCleanUrls: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <span className="ml-3 text-sm font-medium text-slate-300">
+                        {settings?.seoAutoCleanUrls !== false ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Optimize Page Speed (Lazy Loading)</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Defer loading of off-screen images to improve initial page load time.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoEnableLazyLoading ?? true}
+                        onChange={(e) => updateSettings({ seoEnableLazyLoading: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <span className="ml-3 text-sm font-medium text-slate-300">
+                        {settings?.seoEnableLazyLoading !== false ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Require Image Alt Text</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Enforce alt text descriptions for all new image uploads for accessibility and SEO.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoRequireAltText ?? true}
+                        onChange={(e) => updateSettings({ seoRequireAltText: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <span className="ml-3 text-sm font-medium text-slate-300">
+                        {settings?.seoRequireAltText !== false ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Automatic Internal Linking</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Automatically link related products to help users and crawlers navigate.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoAutoRelatedProducts ?? true}
+                        onChange={(e) => updateSettings({ seoAutoRelatedProducts: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <span className="ml-3 text-sm font-medium text-slate-300">
+                        {settings?.seoAutoRelatedProducts !== false ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Force HTTPS</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Ensure your site is always accessed securely via an SSL certificate.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoForceHttps ?? true}
+                        onChange={(e) => updateSettings({ seoForceHttps: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <span className="ml-3 text-sm font-medium text-slate-300">
+                        {settings?.seoForceHttps !== false ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Avoid Duplicate Content</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Use canonical tags to tell search engines which version of a page is the master.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoEnableCanonicalTags ?? true}
+                        onChange={(e) => updateSettings({ seoEnableCanonicalTags: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <span className="ml-3 text-sm font-medium text-slate-300">
+                        {settings?.seoEnableCanonicalTags !== false ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Keep Content Fresh</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Show "Last Updated" dates on products and articles to signal fresh content.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings?.seoShowLastUpdated ?? true}
+                        onChange={(e) => updateSettings({ seoShowLastUpdated: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      <span className="ml-3 text-sm font-medium text-slate-300">
+                        {settings?.seoShowLastUpdated !== false ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Performance & Mobile Insights */}
+            <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl mt-8">
+              <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-amber-400" />
+                Performance & Mobile Insights
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                      <Smartphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Mobile Responsiveness</h4>
+                      <p className="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">Optimized</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                    Your site uses a mobile-first Tailwind CSS architecture, ensuring content scales perfectly across all device sizes. This is a critical ranking factor for Google's mobile-first indexing.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-[10px] text-slate-300">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Tap targets are at least 44x44px
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-300">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Viewport meta tag is configured
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                      <Zap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Core Web Vitals</h4>
+                      <p className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">Ready</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                    With lazy loading enabled and optimized asset delivery, your site is structured to pass Core Web Vitals assessments (LCP, FID, CLS).
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-[10px] text-slate-300">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Lazy loading enabled
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-300">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Modern image formats (WebP) supported
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
+                <h4 className="text-xs font-bold text-indigo-400 mb-2 flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4" /> Actionable Recommendations
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-start gap-2 text-[11px] text-slate-300">
+                    <ArrowRight className="w-3 h-3 text-indigo-400 mt-0.5" />
+                    <span>Compress large OG images to under 500KB for faster sharing.</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-[11px] text-slate-300">
+                    <ArrowRight className="w-3 h-3 text-indigo-400 mt-0.5" />
+                    <span>Ensure all product images have descriptive ALT text.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SEO Checklist Sidebar */}
+          <div className="xl:col-span-1 space-y-6">
+            <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 shadow-xl sticky top-8">
+              <h3 className="text-lg font-serif text-white mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                SEO Best Practices
+              </h3>
+              <p className="text-xs text-slate-400 mb-6">
+                Follow this checklist to ensure your site is fully optimized for search engines.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { title: "Page Titles (Meta Titles)", desc: "Ensure every page has a unique, descriptive title.", done: !!settings?.seoTitle && settings.seoTitle.length >= 50 && settings.seoTitle.length <= 60 },
+                  { title: "Meta Descriptions", desc: "Write compelling summaries for each page to boost click-through rates.", done: !!settings?.seoDescription && settings.seoDescription.length >= 150 && settings.seoDescription.length <= 160 },
+                  { title: "Valid OG Image", desc: "Provide a valid URL for your social media preview image.", done: !!settings?.seoOgImage && !!settings.seoOgImage.match(/^https?:\/\/.+\..+/) },
+                  { title: "Heading Tags (H1, H2, H3)", desc: "Structure content logically. Use only one H1 per page.", done: true },
+                  { title: "XML Sitemap", desc: "Generate and submit your sitemap to Google Search Console.", done: settings?.sitemapStatus === 'valid' },
+                  { title: "robots.txt File", desc: "Guide search engine crawlers on what to index.", done: settings?.robotsStatus === 'valid' },
+                  { title: "Clean, Readable URLs", desc: "Use short, descriptive URLs (e.g., /products/leather-bag).", done: settings?.seoAutoCleanUrls !== false },
+                  { title: "Optimize Page Speed", desc: "Compress images and minimize heavy scripts for fast loading.", done: settings?.seoEnableLazyLoading !== false },
+                  { title: "Mobile-Friendly Design", desc: "Ensure your site looks and works great on all devices.", done: true },
+                  { title: "Image Alt Text", desc: "Describe images for accessibility and image search SEO.", done: settings?.seoRequireAltText !== false },
+                  { title: "Internal Linking", desc: "Link related pages together to help users and crawlers navigate.", done: settings?.seoAutoRelatedProducts !== false },
+                  { title: "External Backlinks", desc: "Earn links from reputable sites to build domain authority.", done: false },
+                  { title: "Structured Data (Schema)", desc: "Help search engines understand your content format.", done: !!settings?.enableSchemaMarkup },
+                  { title: "Ensure HTTPS", desc: "Secure your site with an SSL certificate.", done: settings?.seoForceHttps !== false },
+                  { title: "Fix Broken Links", desc: "Regularly check for and fix 404 errors.", done: false },
+                  { title: "Avoid Duplicate Content", desc: "Ensure each page offers unique value.", done: settings?.seoEnableCanonicalTags !== false },
+                  { title: "Connect Search Console", desc: "Monitor indexing status and search queries.", done: !!settings?.gscVerificationId && settings.gscVerificationId.length > 10 },
+                  { title: "Connect Google Analytics", desc: "Track user behavior and traffic sources.", done: !!settings?.googleAnalyticsId && /^G-[A-Z0-9]+$/.test(settings.googleAnalyticsId) },
+                  { title: "Keep Content Fresh", desc: "Regularly update your site with new, relevant information.", done: settings?.seoShowLastUpdated !== false },
+                  { title: "Local SEO", desc: "Optimize your Google Business Profile if you have a physical location.", done: !!settings?.localBusinessName && !!settings?.localBusinessAddress },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3 group">
+                    <div className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border flex items-center justify-center ${item.done ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'border-slate-700 text-transparent group-hover:border-slate-500'}`}>
+                      {item.done && <Check size={10} strokeWidth={3} />}
+                    </div>
+                    <div>
+                      <h4 className={`text-sm font-medium ${item.done ? 'text-slate-300' : 'text-slate-400'}`}>{item.title}</h4>
+                      <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

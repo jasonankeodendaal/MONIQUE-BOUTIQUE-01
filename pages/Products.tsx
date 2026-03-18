@@ -134,7 +134,7 @@ const Products: React.FC = () => {
     if (!primary) return <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200"><ShoppingBag size={32} /></div>;
 
     if (primary.type?.startsWith('image/')) {
-      return <img src={primary.url} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />;
+      return <img src={primary.url} alt={primary.altText || product.name} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />;
     }
     
     if (primary.type?.startsWith('video/')) {
@@ -155,7 +155,7 @@ const Products: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-32 bg-[#FDF5F2] max-w-full overflow-x-hidden pt-0">
+    <main className="min-h-screen pb-20 md:pb-32 bg-[#FDF5F2] max-w-full overflow-x-hidden pt-0">
       <style>{`
         .subcat-row-container {
           display: flex;
@@ -466,7 +466,7 @@ const Products: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 
