@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import * as d3 from 'd3';
+import { feature } from 'topojson-client';
 import { 
   Plus, Edit2, Trash2, 
   Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
@@ -389,28 +391,125 @@ const getPlatformStyles = (sourceName: string) => {
   };
 };
 
+const TrafficMap: React.FC<{ data: any[]; isEnlarged?: boolean; onClick?: () => void }> = ({ data, isEnlarged = false, onClick }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [worldData, setWorldData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json')
+      .then(res => res.json())
+      .then(topology => {
+        setWorldData(feature(topology, (topology as any).objects.countries));
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!worldData || !svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
+
+    const width = svgRef.current.clientWidth;
+    const height = svgRef.current.clientHeight;
+
+    const projection = d3.geoMercator()
+      .scale(width / (2 * Math.PI))
+      .translate([width / 2, height / 1.5]);
+
+    const path = d3.geoPath().projection(projection);
+
+    const g = svg.append('g');
+
+    // Draw ocean background
+    g.append('rect')
+      .attr('width', width * 2)
+      .attr('height', height * 2)
+      .attr('x', -width / 2)
+      .attr('y', -height / 2)
+      .attr('fill', '#020617');
+
+    // Draw map
+    g.selectAll('path')
+      .data(worldData.features)
+      .enter()
+      .append('path')
+      .attr('d', path as any)
+      .attr('fill', '#0f172a')
+      .attr('stroke', '#1e293b')
+      .attr('stroke-width', 0.3)
+      .attr('class', 'transition-colors duration-500 hover:fill-slate-800');
+
+    // Add pins
+    const pins = g.selectAll('circle')
+      .data(data.filter(d => d.lat && d.lon))
+      .enter()
+      .append('circle')
+      .attr('cx', d => projection([d.lon, d.lat])?.[0] || 0)
+      .attr('cy', d => projection([d.lon, d.lat])?.[1] || 0)
+      .attr('r', isEnlarged ? 1.5 : 0.8)
+      .attr('fill', 'var(--primary-color)')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 0.1)
+      .attr('class', 'animate-pulse');
+
+    // Add tooltips if enlarged
+    if (isEnlarged) {
+      pins.append('title')
+        .text(d => `${d.city}, ${d.country}\n${d.device} - ${d.source}`);
+    }
+
+    // Zoom behavior for enlarged map
+    if (isEnlarged) {
+      const zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        .on('zoom', (event) => {
+          g.attr('transform', event.transform);
+        });
+      svg.call(zoom as any);
+    }
+
+  }, [worldData, data, isEnlarged]);
+
+  return (
+    <div 
+      className={`relative w-full h-full bg-slate-950 rounded-2xl overflow-hidden border border-white/5 ${!isEnlarged ? 'cursor-zoom-in' : ''}`}
+      onClick={onClick}
+    >
+      <svg ref={svgRef} className="w-full h-full" />
+      {!isEnlarged && (
+        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[8px] font-black text-white uppercase tracking-widest border border-white/10">
+          Click to Enlarge
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TrafficAreaChart: React.FC = () => {
   const [geoStats, setGeoStats] = useState<any[]>([]);
+  const [rawData, setRawData] = useState<any[]>([]);
   const [totalTraffic, setTotalTraffic] = useState(0);
   const [deviceStats, setDeviceStats] = useState<{mobile: number, desktop: number, tablet: number}>({mobile: 0, desktop: 0, tablet: 0});
+  const [isMapEnlarged, setIsMapEnlarged] = useState(false);
   
   useEffect(() => {
     const loadDetailedGeo = () => {
-      let rawData = [];
+      let data = [];
       try {
-        rawData = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
-        if (!Array.isArray(rawData)) rawData = [];
+        data = JSON.parse(localStorage.getItem('site_visitor_locations') || '[]');
+        if (!Array.isArray(data)) data = [];
       } catch (e) {
         console.warn("Failed to parse geo stats", e);
-        rawData = [];
+        data = [];
       }
       
-      setTotalTraffic(rawData.length);
+      setRawData(data);
+      setTotalTraffic(data.length);
 
       const agg: Record<string, any> = {};
       let dev = { mobile: 0, desktop: 0, tablet: 0 };
       
-      rawData.forEach((entry: any) => {
+      data.forEach((entry: any) => {
         if (!entry) return;
         
         const city = entry.city || 'Unknown City';
@@ -434,7 +533,9 @@ const TrafficAreaChart: React.FC = () => {
             browser: entry.browser || 'Unknown',
             source: entry.source || 'Direct',
             count: 0,
-            lastActive: 0
+            lastActive: 0,
+            lat: entry.lat,
+            lon: entry.lon
           };
         }
         agg[key].count += 1;
@@ -458,13 +559,33 @@ const TrafficAreaChart: React.FC = () => {
     return <IconComp size={12} className={styles.color} />;
   };
 
+  const categorizedData = useMemo(() => {
+    const countries: Record<string, { count: number; regions: Record<string, { count: number; cities: Record<string, number> }> }> = {};
+    
+    rawData.forEach(entry => {
+      const c = entry.country || 'Unknown';
+      const r = entry.region || 'Unknown Region';
+      const ci = entry.city || 'Unknown City';
+      
+      if (!countries[c]) countries[c] = { count: 0, regions: {} };
+      countries[c].count++;
+      
+      if (!countries[c].regions[r]) countries[c].regions[r] = { count: 0, cities: {} };
+      countries[c].regions[r].count++;
+      
+      countries[c].regions[r].cities[ci] = (countries[c].regions[r].cities[ci] || 0) + 1;
+    });
+    
+    return Object.entries(countries).sort((a, b) => b[1].count - a[1].count);
+  }, [rawData]);
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
       <div className="xl:col-span-2 relative min-h-[600px] bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
         
         <div className="relative z-10 p-8 md:p-10 pb-4 border-b border-white/5 flex flex-col md:flex-row justify-between items-start text-left gap-4">
-           <div>
+           <div className="flex-grow">
               <div className="flex items-center gap-3 mb-2">
                  <div className="relative w-3 h-3">
                     <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
@@ -474,11 +595,100 @@ const TrafficAreaChart: React.FC = () => {
               </div>
               <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Precise <span className="text-primary">Location</span></h3>
            </div>
+           
+           <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+              <TrafficMap data={rawData} onClick={() => setIsMapEnlarged(true)} />
+           </div>
+
            <div className="text-left md:text-right">
               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Hits</span>
               <span className="text-3xl font-bold text-white font-mono">{totalTraffic.toLocaleString()}</span>
            </div>
         </div>
+
+        {/* Enlarged Map Modal */}
+        {isMapEnlarged && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black animate-in fade-in duration-300">
+            <div className="relative w-full h-full bg-slate-900 border-none overflow-hidden flex flex-col">
+              <div className="p-8 border-b border-white/5 flex justify-between items-center">
+                <div>
+                  <h3 className="text-white font-black italic uppercase tracking-tighter text-2xl">Global <span className="text-primary">Traffic Intelligence</span></h3>
+                  <p className="text-slate-500 text-xs mt-1 uppercase tracking-widest font-black">High-precision geographic distribution of all historical visitors</p>
+                </div>
+                <button 
+                  onClick={() => setIsMapEnlarged(false)}
+                  className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all border border-white/10"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="flex-grow flex flex-col lg:flex-row overflow-hidden">
+                <div className="flex-grow p-4 lg:p-8 relative">
+                   <TrafficMap data={rawData} isEnlarged />
+                   <div className="absolute bottom-12 left-12 p-4 bg-slate-950/80 backdrop-blur-md border border-white/10 rounded-2xl hidden lg:block">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Active Node</span>
+                      </div>
+                      <div className="text-[9px] text-slate-400 leading-tight uppercase tracking-tighter">
+                        Each dot represents a unique <br /> interaction session.
+                      </div>
+                   </div>
+                </div>
+                
+                <div className="w-full lg:w-96 bg-slate-950/50 border-l border-white/5 flex flex-col overflow-hidden">
+                  <div className="p-6 border-b border-white/5 bg-slate-900/50">
+                    <h4 className="text-white text-[10px] font-black uppercase tracking-[0.3em] mb-1">Categorized Locations</h4>
+                    <p className="text-slate-500 text-[9px] uppercase tracking-widest">Sorted by interaction volume</p>
+                  </div>
+                  <div className="flex-grow overflow-y-auto custom-scrollbar p-4 space-y-4">
+                    {categorizedData.map(([country, data]: any) => (
+                      <div key={country} className="space-y-2">
+                        <div className="flex justify-between items-center px-2 py-1 bg-white/5 rounded-lg">
+                          <span className="text-white text-[10px] font-black uppercase tracking-widest">{country}</span>
+                          <span className="text-primary text-[10px] font-mono font-bold">{data.count}</span>
+                        </div>
+                        <div className="pl-4 space-y-1 border-l border-white/5 ml-2">
+                          {Object.entries(data.regions).sort((a: any, b: any) => b[1].count - a[1].count).map(([region, rData]: any) => (
+                            <div key={region} className="space-y-1">
+                              <div className="flex justify-between text-[9px] text-slate-400 uppercase tracking-tighter">
+                                <span>{region}</span>
+                                <span>{rData.count}</span>
+                              </div>
+                              <div className="pl-3 space-y-0.5 opacity-60">
+                                {Object.entries(rData.cities).sort((a: any, b: any) => b[1] - a[1]).map(([city, count]: any) => (
+                                  <div key={city} className="flex justify-between text-[8px] text-slate-500 italic">
+                                    <span>{city}</span>
+                                    <span>{count}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-slate-950/50 border-t border-white/5 text-center flex justify-between items-center px-12">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Use mouse wheel to zoom • Drag to pan</span>
+                <div className="flex gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black">Visitor Node</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-slate-800 rounded-full border border-slate-700"></div>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black">Inactive Zone</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-4 md:p-8">
           {geoStats.length > 0 ? (

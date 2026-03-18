@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
+    "@types/d3": "^7.4.3",
+    "@types/topojson-client": "^3.1.5",
+    "d3": "^7.9.0",
     "lucide-react": "^0.462.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet-async": "^2.0.5",
-    "react-router-dom": "^7.1.1"
+    "react-router-dom": "^7.1.1",
+    "topojson-client": "^3.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.1",
