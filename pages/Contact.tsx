@@ -66,7 +66,7 @@ const Contact: React.FC = () => {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                Concierge Online
+                {settings.contactConciergeLabel || 'Concierge Online'}
               </div>
               <h1 className="font-serif text-slate-900 leading-[0.9] tracking-tighter mb-6 text-balance" style={{ fontSize: 'clamp(3rem, 10vw, 8rem)' }}>
                 {settings.contactHeroTitle}
@@ -100,13 +100,13 @@ const Contact: React.FC = () => {
                           <CheckCircle2 size={64} strokeWidth={1} />
                        </div>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-serif text-slate-900 mb-4 tracking-tight">Secure Transmission Successful</h2>
-                    <p className="text-slate-500 mb-10 max-w-sm mx-auto leading-relaxed">Your inquiry has been encrypted and synchronized with our concierge desk. Expect a response within 24 hours.</p>
+                    <h2 className="text-3xl md:text-4xl font-serif text-slate-900 mb-4 tracking-tight">{settings.contactSuccessTitle || 'Secure Transmission Successful'}</h2>
+                    <p className="text-slate-500 mb-10 max-w-sm mx-auto leading-relaxed">{settings.contactSuccessMessage || 'Your inquiry has been encrypted and synchronized with our concierge desk. Expect a response within 24 hours.'}</p>
                     <div className="flex flex-col items-center gap-4">
-                       <button onClick={() => setSubmitted(false)} className="text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:text-slate-900 transition-colors border-b-2 border-primary/20 pb-1">Submit New Inquiry</button>
+                       <button onClick={() => setSubmitted(false)} className="text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:text-slate-900 transition-colors border-b-2 border-primary/20 pb-1">{settings.contactSubmitNewBtn || 'Submit New Inquiry'}</button>
                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-4">
                           <ShieldCheck size={12} className="text-green-500" />
-                          End-to-End Cloud Handshake Verified
+                          {settings.contactVerifiedLabel || 'End-to-End Cloud Handshake Verified'}
                        </div>
                     </div>
                  </div>
@@ -139,7 +139,7 @@ const Contact: React.FC = () => {
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">WhatsApp (Optional)</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactWhatsappLabel || 'WhatsApp (Optional)'}</label>
                         <input 
                           type="tel" 
                           value={formState.whatsapp}
@@ -225,7 +225,7 @@ const Contact: React.FC = () => {
                 </div>
 
                 <div className="mt-12 pt-8 border-t border-white/10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">Follow us :</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">{settings.contactFollowUsLabel || 'Follow us :'}</span>
                   <div className="flex flex-wrap gap-8 items-center">
                     {(settings.socialLinks || []).map((link) => (
                       <a 
@@ -256,7 +256,7 @@ const Contact: React.FC = () => {
 
              <div className="space-y-4">
                 <h3 className="text-xl font-serif text-slate-900 px-4 flex items-center gap-2">
-                  <HelpCircle size={18} className="text-primary"/> Common Enquiries
+                  <HelpCircle size={18} className="text-primary"/> {settings.contactFaqTitle || 'Common Enquiries'}
                 </h3>
                 <div className="space-y-2">
                    {faqs.map((faq, idx) => (
@@ -281,7 +281,7 @@ const Contact: React.FC = () => {
         </div>
 
         <div className="mt-24 pt-12 border-t border-[#B76E79]/10 text-center">
-           <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">Last Updated: {lastUpdatedDate}</p>
+           <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.4em]">{settings.contactLastUpdatedLabel || 'Last Updated:'} {lastUpdatedDate}</p>
         </div>
       </div>
     </main>

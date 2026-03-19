@@ -67,7 +67,7 @@ const Header: React.FC = () => {
               <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] ${
                 !isDarkSection ? 'text-primary' : 'text-primary/90'
               }`}>
-                {settings.slogan || 'Boutique Curation'}
+                {settings.slogan}
               </span>
             </div>
           </Link>

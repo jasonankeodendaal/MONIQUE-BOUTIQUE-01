@@ -7,6 +7,7 @@ import * as LucideIcons from 'lucide-react';
 import { LayoutGrid, ShieldCheck, Globe, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
+import { IconRenderer } from '../components/IconRenderer';
 
 const SectionDivider: React.FC = () => (
   <div className="max-w-xs mx-auto py-12 md:py-20 flex items-center justify-center gap-4 opacity-20">
@@ -52,7 +53,6 @@ const Home: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16">
             {featuredCategories.map((cat) => {
-              const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
               return (
                 <button
                   key={cat.id}
@@ -64,7 +64,7 @@ const Home: React.FC = () => {
                     
                     {/* Default Icon Layer */}
                     <div className="absolute inset-0 flex items-center justify-center text-slate-400 transition-all duration-500 z-10 group-hover:opacity-0 group-hover:scale-50">
-                      <Icon size={28} className="md:w-16 md:h-16" strokeWidth={1} />
+                      <IconRenderer icon={cat.icon} size={28} className="md:w-16 md:h-16" strokeWidth={1} />
                     </div>
 
                     {/* Reveal Image Layer */}
@@ -117,11 +117,10 @@ const Home: React.FC = () => {
                 { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
                 { iconName: settings.homeTrustItem3Icon || 'Globe', title: settings.homeTrustItem3Title, desc: settings.homeTrustItem3Desc }
               ].map((item, i) => {
-                const IconComponent = CustomIcons[item.iconName] || (LucideIcons as any)[item.iconName] || ShieldCheck;
                 return (
                   <div key={i} className="flex flex-col items-center group">
                     <div className="mb-3 md:mb-10 w-12 h-12 md:w-28 md:h-28 bg-white/60 backdrop-blur-md rounded-xl md:rounded-[3.5rem] shadow-lg border border-white/40 text-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-700">
-                      <IconComponent size={20} className="md:w-12 md:h-12" strokeWidth={1} />
+                      <IconRenderer icon={item.iconName} size={20} className="md:w-12 md:h-12" strokeWidth={1} />
                     </div>
                     <h4 className="text-[9px] md:text-2xl font-bold mb-1 md:mb-5 tracking-tight line-clamp-2 text-balance">{item.title}</h4>
                     <p className="text-slate-500 font-light leading-snug max-w-xs text-[7px] md:text-lg line-clamp-3 text-balance">{item.desc}</p>
@@ -135,7 +134,7 @@ const Home: React.FC = () => {
                 onClick={() => navigate('/about')}
                 className="inline-flex items-center gap-2 md:gap-4 px-6 py-3 md:px-10 md:py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-2xl group"
               >
-                Read Full Story
+                {settings.homeReadStoryBtn || 'Read Full Story'}
                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </button>
            </div>

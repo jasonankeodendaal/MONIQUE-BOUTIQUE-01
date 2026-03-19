@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { useSettings } from '../App';
-import { CustomIcons } from './CustomIcons';
+import { IconRenderer } from './IconRenderer';
 import { Category } from '../types';
 
 interface CategoryGridProps {
@@ -11,7 +11,7 @@ interface CategoryGridProps {
 
 const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
   const navigate = useNavigate();
-  const { categories: allCategories } = useSettings();
+  const { settings, categories: allCategories } = useSettings();
   
   const displayItems = items || allCategories;
 
@@ -28,23 +28,21 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-6 md:gap-12">
           <div className="max-w-3xl text-center md:text-left w-full">
             <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.6em] text-primary mb-4 md:mb-8 block text-contrast-shadow break-words">
-              Curated Masterpieces
+              {settings.homeNicheHeader}
             </span>
             <h2 className="font-serif text-slate-900 leading-none tracking-tighter text-balance drop-shadow-sm break-words" style={{ fontSize: 'clamp(2rem, 6vw, 5rem)' }}>
-              Shop by <br className="hidden md:block"/> <span className="italic font-light text-primary text-contrast-shadow">Department</span>
+              {settings.homeCategoryShopByLabel || 'Shop by'} <br className="hidden md:block"/> <span className="italic font-light text-primary text-contrast-shadow">{settings.productsDeptLabel}</span>
             </h2>
           </div>
           <div className="hidden md:block p-8 border-l border-[#B76E79]/20 max-w-xs shrink-0">
             <p className="text-slate-500 font-light leading-relaxed text-sm md:text-lg italic">
-              "Curation is the art of seeing what others miss."
+              "{settings.homeNicheDescription}"
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-10">
           {displayItems.map((cat, idx) => {
-            const IconComponent = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LucideIcons.Package;
-
             return (
               <button
                 key={cat.id}
@@ -63,11 +61,11 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
                 
                 <div className="absolute inset-0 p-5 md:p-12 flex flex-col justify-end items-start text-left z-10 w-full">
                   <div className="w-10 h-10 md:w-16 md:h-16 glass-card rounded-2xl md:rounded-[1.5rem] flex items-center justify-center text-white mb-4 md:mb-8 border border-white/30 transform -translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 shadow-2xl">
-                    <IconComponent size={18} className="md:w-8 md:h-8 text-primary" strokeWidth={1} />
+                    <IconRenderer icon={cat.icon} size={18} className="md:w-8 md:h-8 text-primary" strokeWidth={1} />
                   </div>
                   
                   <span className="text-[8px] md:text-[10px] font-black text-white/50 uppercase tracking-[0.5em] mb-2 md:mb-4">
-                    Portfolio {idx + 1}
+                    {settings.homeCategoryPortfolioLabel || 'Portfolio'} {idx + 1}
                   </span>
                   
                   <h3 className="text-lg md:text-2xl lg:text-3xl font-serif text-white mb-2 md:mb-6 leading-tight group-hover:text-primary transition-colors duration-500 break-words text-balance w-full line-clamp-2">
@@ -79,7 +77,7 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
                   </p>
                   
                   <div className="flex items-center gap-3 md:gap-5 text-white text-[8px] md:text-[11px] font-black uppercase tracking-[0.4em] group-hover:gap-6 transition-all duration-700">
-                    Discover Collection
+                    {settings.homeCategoryDiscoverLabel || 'Discover Collection'}
                     <div className="h-px w-4 md:w-12 bg-primary shadow-[0_0_15px_rgba(212,175,55,0.8)]"></div>
                   </div>
                 </div>

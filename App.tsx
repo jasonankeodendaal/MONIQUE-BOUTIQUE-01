@@ -39,9 +39,9 @@ const MaintenanceOverlay: React.FC = () => {
             <div className="text-2xl md:text-3xl font-black">{settings.companyLogo}</div>
           )}
         </div>
-        <h1 className="text-4xl md:text-7xl font-serif text-white mb-6 tracking-tighter italic">Under <span className="text-primary">Construction</span></h1>
+        <h1 className="text-4xl md:text-7xl font-serif text-white mb-6 tracking-tighter italic">{settings.maintenanceTitle}</h1>
         <p className="text-slate-400 text-base md:text-xl font-light leading-relaxed mb-12">
-          We are currently refining our digital experience to bring you something truly exceptional. Please check back soon.
+          {settings.maintenanceMessage}
         </p>
         <div className="flex flex-col items-center gap-4">
           <div className="px-6 py-2 bg-slate-900 border border-slate-800 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
@@ -80,12 +80,12 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, loadingAuth, isLocalMode } = useSettings();
+  const { settings, user, loadingAuth, isLocalMode } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest animate-pulse">Establishing Secure Handshake...</p>
+        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest animate-pulse">{settings.loadingMessage}</p>
       </div>
     </div>
   );
@@ -125,7 +125,7 @@ const Footer: React.FC = () => {
               </p>
               
               <div className="space-y-3 md:space-y-6">
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] text-primary/80 block">Socials :</span>
+                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] text-primary/80 block">{settings.footerSocialsLabel || 'Socials :'}</span>
                 <div className="flex flex-wrap gap-4 md:gap-8 items-center">
                   {(settings.socialLinks || []).map((link) => (
                     <a 
@@ -182,7 +182,7 @@ const Footer: React.FC = () => {
                   onClick={() => setShowCreatorModal(true)} 
                   className="flex items-center gap-1.5 md:gap-3 px-3 md:px-5 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all active:scale-95 shrink-0"
                >
-                  <span className="text-[7px] md:text-[10px] font-bold text-slate-500 whitespace-nowrap uppercase tracking-tighter">Meet the Creator</span>
+                  <span className="text-[7px] md:text-[10px] font-bold text-slate-500 whitespace-nowrap uppercase tracking-tighter">{settings.footerCreatorRole || 'Meet the Creator'}</span>
                   <img src="https://i.ibb.co/ZR8bZRSp/JSTYP-me-Logo.png" alt="JSTYP.me" className="h-2 md:h-5 w-auto opacity-60 brightness-0 invert" />
                </button>
 
@@ -529,16 +529,15 @@ const GlobalLayoutOverwrites: React.FC = () => (
 );
 
 const HomeRoute = () => {
-  const { user, loadingAuth } = useSettings();
+  const { settings, user, loadingAuth } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest animate-pulse">Establishing Secure Handshake...</p>
+        <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest animate-pulse">{settings.loadingMessage}</p>
       </div>
     </div>
   );
-  if (user) return <Navigate to="/admin" replace />;
   return <Home />;
 };
 
@@ -575,20 +574,11 @@ const App: React.FC = () => {
   }, []);
 
   useInactivityTimer(() => { 
-    if (user && !window.location.hash.includes('login')) {
+    const isAdminRoute = window.location.hash.includes('admin');
+    if (user && isAdminRoute && !window.location.hash.includes('login')) {
       performLogout();
     }
   }, 300000);
-
-  useEffect(() => {
-    const checkReload = async () => {
-      const [nav] = performance.getEntriesByType('navigation') as any;
-      if (nav && nav.type === 'reload') {
-        await performLogout();
-      }
-    };
-    checkReload();
-  }, [performLogout]);
 
   const calculateStorage = useCallback(() => {
       const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats];
@@ -755,7 +745,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !window.location.pathname.startsWith('/admin')) return;
 
     let timeoutId: NodeJS.Timeout;
     const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutes

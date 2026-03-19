@@ -134,7 +134,7 @@ const Hero: React.FC = () => {
               <div className="flex items-center justify-center gap-3 mb-3 md:mb-5">
                 <div className="h-px w-6 md:w-10 bg-primary"></div>
                 <span className="text-[8px] md:text-[9px] font-black tracking-[0.4em] md:tracking-[0.5em] text-primary uppercase">
-                  {settings.homeHeroBadge || 'Curation Exclusive'}
+                  {settings.homeHeroBadge}
                 </span>
                 <div className="h-px w-6 md:w-10 bg-primary"></div>
               </div>

@@ -154,15 +154,13 @@ export interface SiteSettings {
   socialLinks: SocialLink[];
   contactFaqs: ContactFaq[];
 
-  // Product Display
-  productAcquisitionLabel: string;
-  productSpecsLabel: string;
-
   // Footer
   footerDescription: string;
   footerCopyrightText: string;
   footerNavHeader: string;
   footerPolicyHeader: string;
+  footerCreatorRole: string;
+  footerSocialsLabel: string;
 
   // Home Page Content
   homeHeroBadge: string;
@@ -189,6 +187,12 @@ export interface SiteSettings {
   homeTrustItem3Title: string;
   homeTrustItem3Desc: string;
   homeTrustItem3Icon: string; 
+  homeReadStoryBtn: string;
+  homeAboutCuratorLabel: string;
+  homeAboutNarrativeLabel: string;
+  homeCategoryShopByLabel: string;
+  homeCategoryPortfolioLabel: string;
+  homeCategoryDiscoverLabel: string;
 
   // Products Page Content
   productsHeroTitle: string;
@@ -209,8 +213,11 @@ export interface SiteSettings {
   aboutFounderName: string;
   aboutLocation: string;
 
+  aboutHistoryBadge: string;
   aboutHistoryTitle: string;
   aboutHistoryBody: string;
+  aboutManifestoBadge: string;
+  aboutManifestoTitle: string;
   
   aboutMissionTitle: string;
   aboutMissionBody: string;
@@ -226,6 +233,12 @@ export interface SiteSettings {
 
   aboutSignatureImage: string; 
   aboutGalleryImages: string[]; 
+  aboutEstLabel: string;
+  aboutVerifiedNarrativeLabel: string;
+  aboutCuratorsEditTitle: string;
+  aboutCuratorsEditDesc: string;
+  aboutExploreCollectionBtn: string;
+  aboutPortfolioVerifiedLabel: string;
 
   // Contact Page Content
   contactHeroTitle: string;
@@ -235,10 +248,21 @@ export interface SiteSettings {
   contactFormSubjectLabel: string;
   contactFormMessageLabel: string;
   contactFormButtonText: string;
+  contactSuccessTitle: string;
+  contactConciergeLabel: string;
+  contactSuccessMessage: string;
+  contactSubmitNewBtn: string;
+  contactVerifiedLabel: string;
+  contactWhatsappLabel: string;
+  contactFollowUsLabel: string;
+  contactFaqTitle: string;
+  contactLastUpdatedLabel: string;
   
   // New Contact Editable Fields
   contactInfoTitle: string;
   contactAddressLabel: string;
+  contactEmailLabel: string;
+  contactPhoneLabel: string;
   contactHoursLabel: string;
   contactHoursWeekdays: string;
   contactHoursWeekends: string;
@@ -303,6 +327,158 @@ export interface SiteSettings {
   seoEnableCanonicalTags?: boolean;
   seoShowLastUpdated?: boolean;
   isMaintenanceMode?: boolean;
+
+  // Maintenance & Loading
+  maintenanceTitle: string;
+  maintenanceMessage: string;
+  loadingMessage: string;
+
+  // Home Page Additional
+  homeNicheDescription: string;
+  homeTrustBadge: string;
+  homeTrustTitle: string;
+  homeTrustDescription: string;
+  homeTrustCta: string;
+
+  // About Page Additional
+  aboutHeroBadge: string;
+  aboutHeroDescription: string;
+  aboutIntegrityBadge1: string;
+  aboutIntegrityBadge2: string;
+
+  // Contact Page Additional
+  contactHeroBadge: string;
+  contactHeroDescription: string;
+  contactFormNamePlaceholder: string;
+  contactFormEmailPlaceholder: string;
+  contactFormSubjectPlaceholder: string;
+  contactFormMessagePlaceholder: string;
+  contactFormSubmitLabel: string;
+  contactFormSubmittingLabel: string;
+  contactFormSuccessMessage: string;
+  contactSocialTitle: string;
+
+  // Products Page Additional
+  productsHeroBadge: string;
+  productsHeroDescription: string;
+  productsFilterAll: string;
+  productsEmptyMessage: string;
+  productsDeptLabel: string;
+  productsAllCollectionsLabel: string;
+  productsBrowseEverythingLabel: string;
+  productsNichesLabel: string;
+  productsClearFilterLabel: string;
+  productsShowAllLabel: string;
+  productsSelectionsLabel: string;
+  productRefLabel: string;
+  sortLatestLabel: string;
+  sortPriceLowLabel: string;
+  sortPriceHighLabel: string;
+  sortNameLabel: string;
+  emptyProductsTitle: string;
+  emptyProductsResetLabel: string;
+
+  // Product Detail Page
+  productNotFoundTitle: string;
+  productNotFoundCta: string;
+  productPriceLabel: string;
+  productSpecsLabel: string;
+  productLastUpdatedLabel: string;
+  productMerchantVerifiedLabel: string;
+  productAcquisitionLabel: string;
+  reviewSectionTitle: string;
+  reviewWriteCta: string;
+  reviewCountLabel: string;
+  reviewRatingLabel: string;
+  reviewIdentityLabel: string;
+  reviewIdentityPlaceholder: string;
+  reviewCommentPlaceholder: string;
+  reviewSubmitLabel: string;
+  reviewSubmittingLabel: string;
+  emptyReviewsMessage: string;
+  relatedProductsTitle: string;
+  modalReturnTitle: string;
+  modalCloseTitle: string;
+  modalSlideLabel: string;
+  modalOfLabel: string;
+  sharePreviewLabel: string;
+  shareTitlePrefix: string;
+  shareTitleSuffix: string;
+  shareSubtitle: string;
+  shareLaunchLabel: string;
+  shareCopiedLabel: string;
+  shareCopyLinkLabel: string;
+  shareSecurityLabel: string;
+
+  // Login Page
+  loginHeroBadge: string;
+  loginHeroTitle: string;
+  loginHeroDescription: string;
+  loginEmailLabel: string;
+  loginPasswordLabel: string;
+  loginEmailPlaceholder: string;
+  loginPasswordPlaceholder: string;
+  loginSubmitLabel: string;
+  loginSubmittingLabel: string;
+  loginGoogleLabel: string;
+  loginBackToSite: string;
+
+  loginSuccessBadge: string;
+  loginSuccessTitlePrefix: string;
+  loginSuccessTitleSuffix: string;
+  loginSuccessMessage: string;
+  loginSecurityLabel: string;
+  loginDividerLabel: string;
+
+  // Admin UI
+  adminSaveIndicatorErrorTitle: string;
+  adminSaveIndicatorErrorMessage: string;
+  adminSaveIndicatorSuccessTitle: string;
+  adminSaveIndicatorSuccessMessage: string;
+  adminUploadLabel: string;
+  adminSocialNewPlatform: string;
+  adminSocialProfilesLabel: string;
+  adminSocialAddLabel: string;
+  adminSocialPlatformPlaceholder: string;
+  adminSocialUrlPlaceholder: string;
+  adminSocialEmptyMessage: string;
+  adminFaqNewQuestion: string;
+  adminFaqNewAnswer: string;
+  adminFaqLabel: string;
+  adminFaqAddLabel: string;
+  adminFaqQuestionLabel: string;
+  adminFaqAnswerLabel: string;
+  adminFaqQuestionPlaceholder: string;
+  adminFaqAnswerPlaceholder: string;
+  adminFaqEmptyMessage: string;
+  adminTrafficLiveLabel: string;
+  adminTrafficLocationTitle: string;
+  adminTrafficTotalHitsLabel: string;
+  adminTrafficMapEnlargeLabel: string;
+  adminTrafficMapModalTitle: string;
+  adminTrafficMapModalSubtitle: string;
+  adminTrafficMapModalActiveNode: string;
+  adminTrafficMapModalNodeDescription: string;
+  adminTrafficMapModalCategorizedLabel: string;
+  adminTrafficMapModalSortedLabel: string;
+  adminTrafficMapModalInstructions: string;
+  adminTrafficMapModalVisitorNode: string;
+  adminTrafficMapModalInactiveZone: string;
+  adminTrafficTableLocationHeader: string;
+  adminTrafficTableHitsHeader: string;
+  adminTrafficTableDeviceHeader: string;
+  adminTrafficStatusOnline: string;
+  adminTrafficEmptyMessage: string;
+  adminTrafficEmptyDescription: string;
+  adminDeviceBreakdownTitle: string;
+  adminDeviceBreakdownSubtitle: string;
+  adminDeviceShareLabel: string;
+  adminPermissionOwnerMessage: string;
+  adminPermissionDeselectAll: string;
+  adminPermissionSelectAll: string;
+  
+  reviewDefaultName: string;
+  shareCopySuccessMessage: string;
 }
 
 export interface PermissionNode {

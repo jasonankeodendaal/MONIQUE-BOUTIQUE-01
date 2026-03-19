@@ -135,7 +135,7 @@ const Login: React.FC = () => {
         <div className="absolute bottom-0 left-0 p-16 w-full">
            <div className="mb-6">
              <span className="inline-block px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                Internal Portal
+                {settings.loginHeroBadge}
              </span>
              <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
                 {settings.companyName}
@@ -160,9 +160,9 @@ const Login: React.FC = () => {
         <div className="w-full max-w-md space-y-12 relative z-10">
           <div>
             <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
-              <Lock size={24} className="text-primary"/> {settings.adminLoginTitle || "Concierge Access"}
+              <Lock size={24} className="text-primary"/> {settings.loginHeroTitle}
             </h2>
-            <p className="text-slate-500">{settings.adminLoginSubtitle || "Authenticate to enter the bridge dashboard."}</p>
+            <p className="text-slate-500">{settings.loginHeroDescription}</p>
           </div>
 
           {error && (
@@ -184,24 +184,24 @@ const Login: React.FC = () => {
           )}
 
           <div className="space-y-6">
-            <button 
+             <button 
               onClick={handleGoogleLogin}
               disabled={loading || isLocalMode}
               className="w-full py-4 bg-white text-slate-900 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
                {loading ? <Loader2 size={18} className="animate-spin" /> : <Chrome size={18} />}
-               <span>Continue with Google</span>
+               <span>{settings.loginGoogleLabel}</span>
             </button>
 
             <div className="relative flex py-2 items-center">
               <div className="flex-grow border-t border-slate-800"></div>
-              <span className="flex-shrink-0 mx-4 text-slate-600 text-xs font-bold uppercase tracking-widest">Or via Credentials</span>
+              <span className="flex-shrink-0 mx-4 text-slate-600 text-xs font-bold uppercase tracking-widest">{settings.loginDividerLabel}</span>
               <div className="flex-grow border-t border-slate-800"></div>
             </div>
 
             <form onSubmit={handleEmailLogin} className="space-y-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Email Identity</label>
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginEmailLabel}</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                   <input 
@@ -211,13 +211,13 @@ const Login: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder="admin@brand.com"
+                    placeholder={settings.loginEmailPlaceholder}
                   />
                 </div>
               </div>
               
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Passkey</label>
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginPasswordLabel}</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                   <input 
@@ -227,7 +227,7 @@ const Login: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder="••••••••"
+                    placeholder={settings.loginPasswordPlaceholder}
                   />
                 </div>
               </div>
@@ -241,7 +241,7 @@ const Login: React.FC = () => {
                   <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
                 ) : (
                   <>
-                    <span>Enter Portal</span>
+                    <span>{settings.loginSubmitLabel}</span>
                     <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}

@@ -259,7 +259,7 @@ const Products: React.FC = () => {
                   }`}
                 >
                   <Layers size={14} className={isCatOpen || selectedCat !== 'all' ? 'text-slate-900' : 'text-primary'} />
-                  <span className="min-w-[120px] text-left">Dept: {selectedCat === 'all' ? 'All Collections' : categories.find(c => c.id === selectedCat)?.name}</span>
+                  <span className="min-w-[120px] text-left">{settings.productsDeptLabel || 'Dept'}: {selectedCat === 'all' ? (settings.productsAllCollectionsLabel || 'All Collections') : categories.find(c => c.id === selectedCat)?.name}</span>
                   <ChevronDown size={14} className={`transition-transform duration-300 ${isCatOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
@@ -269,7 +269,7 @@ const Products: React.FC = () => {
                       onClick={() => { setSelectedCat('all'); setSelectedSub('all'); setIsCatOpen(false); }}
                       className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${selectedCat === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
                     >
-                      Browse Everything
+                      {settings.productsBrowseEverythingLabel || 'Browse Everything'}
                     </button>
                     <div className="max-h-80 overflow-y-auto custom-scrollbar">
                       {categories.map(cat => (
@@ -323,7 +323,7 @@ const Products: React.FC = () => {
         <div className="relative mb-12">
            <div className="flex items-center justify-between px-2 mb-4">
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-2">
-                 <Tag size={12} className="text-primary" /> Curated Niches
+                 <Tag size={12} className="text-primary" /> {settings.productsNichesLabel || 'Curated Niches'}
               </span>
               <div className="h-px flex-grow mx-6 bg-[#B76E79]/10"></div>
               {selectedSub !== 'all' && (
@@ -331,7 +331,7 @@ const Products: React.FC = () => {
                   onClick={() => setSelectedSub('all')}
                   className="text-[9px] font-black uppercase text-primary hover:text-slate-900 transition-colors flex items-center gap-2"
                 >
-                  Clear Filter <Check size={10} />
+                  {settings.productsClearFilterLabel || 'Clear Filter'} <Check size={10} />
                 </button>
               )}
            </div>
@@ -348,7 +348,7 @@ const Products: React.FC = () => {
                     selectedSub === 'all' ? 'bg-primary text-slate-900 border-primary scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
                   }`}
                 >
-                  Show All
+                  {settings.productsFilterAll || 'Show All'}
                 </button>
 
                 {currentSubCategories.map((sub: SubCategory) => (
@@ -391,7 +391,7 @@ const Products: React.FC = () => {
                   </div>
                   <div className="hidden md:block">
                      <span className="px-4 py-2 rounded-full bg-white/50 border border-white/80 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                        {group.items.length} Selections
+                        {group.items.length} {settings.productsSelectionsLabel || 'Selections'}
                      </span>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ const Products: React.FC = () => {
                           {product.name}
                         </h3>
                         <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                          <span className="text-[7px] md:text-[8px] font-bold text-slate-300 font-mono tracking-tighter truncate max-w-[80px] uppercase">Ref: {product.sku}</span>
+                          <span className="text-[7px] md:text-[8px] font-bold text-slate-300 font-mono tracking-tighter truncate max-w-[80px] uppercase">{settings.productRefLabel || 'Ref:'} {product.sku}</span>
                           <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-primary/10 group-hover:text-primary transition-all">
                              <Check size={12} />
                           </div>
@@ -455,13 +455,13 @@ const Products: React.FC = () => {
             <div className="w-24 h-24 bg-[#B76E79]/5 text-[#B76E79]/20 rounded-full flex items-center justify-center mx-auto mb-8">
               <Filter size={40} />
             </div>
-            <h3 className="text-2xl font-serif text-slate-900 mb-4 tracking-tight">Refinement Required</h3>
-            <p className="text-slate-400 max-w-sm mx-auto text-sm font-light leading-relaxed">We couldn't find any pieces matching these specific parameters. Try broadening your discovery.</p>
+            <h3 className="text-2xl font-serif text-slate-900 mb-4 tracking-tight">{settings.emptyProductsTitle || 'Refinement Required'}</h3>
+            <p className="text-slate-400 max-w-sm mx-auto text-sm font-light leading-relaxed">{settings.productsEmptyMessage || 'We couldn\'t find any pieces matching these specific parameters. Try broadening your discovery.'}</p>
             <button 
               onClick={() => { setSelectedCat('all'); setSelectedSub('all'); setSearch(''); }} 
               className="mt-10 px-8 py-4 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest text-[9px] hover:bg-primary hover:text-slate-900 transition-all shadow-xl"
             >
-              Reset Discovery
+              {settings.emptyProductsResetLabel || 'Reset Discovery'}
             </button>
           </div>
         )}

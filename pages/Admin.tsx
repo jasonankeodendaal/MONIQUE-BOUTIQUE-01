@@ -23,6 +23,7 @@ import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 import { CustomIcons } from '../components/CustomIcons';
+import { IconRenderer } from '../components/IconRenderer';
 
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-yellow-500/5 border border-yellow-500/20 p-5 md:p-6 rounded-3xl mb-8 flex gap-4 md:gap-5 items-start text-left animate-in fade-in slide-in-from-top-2">
@@ -797,10 +798,139 @@ const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: st
 };
 
 const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void }> = ({ selected, onSelect }) => {
-  const [search, setSearch] = useState(''); const [isOpen, setIsOpen] = useState(false); const [limit, setLimit] = useState(100);
-  const CUSTOM_KEYS = Object.keys(CustomIcons); const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { const val = (LucideIcons as any)[key]; return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); });
-  const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; const displayed = filtered.slice(0, limit); const SelectedIconComponent = CustomIcons[selected] || (LucideIcons as any)[selected] || LucideIcons.Package;
-  return (<div className="relative text-left w-full"><button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"><div className="flex items-center gap-3"><SelectedIconComponent size={18} /><span className="text-xs font-bold">{selected}</span></div><ChevronDown size={14} /></button>{isOpen && (<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"><div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden"><div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800"><div><h3 className="text-white font-bold text-lg flex items-center gap-2"><LayoutGrid size={18} className="text-primary"/> Icon Library</h3><p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons</p></div><button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors"><X size={20}/></button></div><div className="p-4 bg-slate-900 border-b border-slate-800"><div className="relative"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" placeholder="Search icons..." value={search} onChange={e => { setSearch(e.target.value); setLimit(100); }} autoFocus /></div></div><div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950"><div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">{displayed.map(name => { const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; if (!IconComp) return null; return (<button key={name} onClick={() => { onSelect(name); setIsOpen(false); }} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}><IconComp size={24} /><span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span></button>) })}</div>{displayed.length < filtered.length && (<button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">Load More</button>)}</div></div></div>)}</div>);
+  const [search, setSearch] = useState(''); 
+  const [isOpen, setIsOpen] = useState(false); 
+  const [limit, setLimit] = useState(100);
+  const [activeTab, setActiveTab] = useState<'library' | 'custom'>('library');
+
+  const CUSTOM_KEYS = Object.keys(CustomIcons); 
+  const LUCIDE_KEYS = Object.keys(LucideIcons).filter(key => { 
+    const val = (LucideIcons as any)[key]; 
+    return /^[A-Z]/.test(key) && typeof val === 'function' && !key.includes('Icon') && !key.includes('Context'); 
+  });
+  
+  const ALL_ICONS = [...CUSTOM_KEYS, ...LUCIDE_KEYS]; 
+  const filtered = search ? ALL_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase())) : ALL_ICONS; 
+  const displayed = filtered.slice(0, limit); 
+
+  return (
+    <div className="relative text-left w-full">
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="w-full flex items-center justify-between px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 rounded-xl text-slate-300 hover:bg-slate-700 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <IconRenderer icon={selected} size={18} />
+          <span className="text-xs font-bold truncate max-w-[150px]">{selected.startsWith('http') ? 'Custom Image' : selected}</span>
+        </div>
+        <ChevronDown size={14} />
+      </button>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800">
+              <div>
+                <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <LayoutGrid size={18} className="text-primary"/> Icon Library
+                </h3>
+                <p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons or upload your own</p>
+              </div>
+              <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors">
+                <X size={20}/>
+              </button>
+            </div>
+
+            <div className="flex border-b border-slate-800 bg-slate-900">
+              <button 
+                onClick={() => setActiveTab('library')}
+                className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'library' ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                Library
+              </button>
+              <button 
+                onClick={() => setActiveTab('custom')}
+                className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'custom' ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                Custom Upload
+              </button>
+            </div>
+
+            {activeTab === 'library' ? (
+              <>
+                <div className="p-4 bg-slate-900 border-b border-slate-800">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <input 
+                      className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" 
+                      placeholder="Search icons..." 
+                      value={search} 
+                      onChange={e => { setSearch(e.target.value); setLimit(100); }} 
+                      autoFocus 
+                    />
+                  </div>
+                </div>
+                <div className="flex-grow overflow-y-auto p-6 custom-scrollbar bg-slate-950">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+                    {displayed.map(name => { 
+                      const IconComp = CustomIcons[name] || (LucideIcons as any)[name]; 
+                      if (!IconComp) return null; 
+                      return (
+                        <button 
+                          key={name} 
+                          onClick={() => { onSelect(name); setIsOpen(false); }} 
+                          className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all border ${selected === name ? 'bg-primary text-slate-900 border-primary shadow-lg scale-105' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}
+                        >
+                          <IconComp size={24} />
+                          <span className="text-[9px] font-medium truncate w-full px-2 text-center opacity-70">{name}</span>
+                        </button>
+                      ) 
+                    })}
+                  </div>
+                  {displayed.length < filtered.length && (
+                    <button onClick={() => setLimit(prev => prev + 100)} className="w-full mt-6 py-4 bg-slate-800 text-slate-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-colors">
+                      Load More
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex-grow flex flex-col items-center justify-center p-12 bg-slate-950">
+                <div className="w-full max-w-md space-y-8">
+                  <div className="text-center space-y-2">
+                    <h4 className="text-white font-bold">Upload Custom Icon</h4>
+                    <p className="text-slate-400 text-xs">Recommended size: 64x64px. PNG or SVG preferred.</p>
+                  </div>
+                  
+                  <SingleImageUploader 
+                    label="Icon Asset" 
+                    value={selected.startsWith('http') ? selected : ''} 
+                    onChange={v => { onSelect(v); setIsOpen(false); }} 
+                    className="h-32 w-32 mx-auto"
+                  />
+
+                  {selected.startsWith('http') && (
+                    <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src={selected} className="w-10 h-10 object-contain rounded-lg bg-slate-800 p-1" alt="Current" />
+                        <span className="text-xs text-slate-400 truncate max-w-[200px]">Current Custom Icon</span>
+                      </div>
+                      <button 
+                        onClick={() => onSelect('Package')} 
+                        className="text-red-500 hover:text-red-400 text-[10px] font-black uppercase tracking-widest"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const PLATFORMS = [ { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', maxLength: 2200, hashTags: true }, { id: 'facebook', name: 'Facebook', icon: Facebook, color: '#1877F2', maxLength: 63206, hashTags: false }, { id: 'twitter', name: 'X (Twitter)', icon: Twitter, color: '#1DA1F2', maxLength: 280, hashTags: true }, { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: '#0A66C2', maxLength: 3000, hashTags: true }, { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: '#25D366', maxLength: 1000, hashTags: false } ];
@@ -1909,11 +2039,10 @@ const Admin: React.FC = () => {
            </h3>
            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
              {categoryPerformance.map((cat, i) => {
-               const Icon = CustomIcons[cat.icon] || (LucideIcons as any)[cat.icon] || LayoutGrid;
                return (
                  <div key={i} className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 group hover:border-primary/40 transition-all shadow-xl">
                    <div className="w-24 h-24 bg-slate-800 rounded-3xl flex items-center justify-center text-primary shrink-0 shadow-inner group-hover:scale-110 transition-transform border border-slate-700">
-                      <Icon size={40} />
+                      <IconRenderer icon={cat.icon} size={40} />
                    </div>
                    <div className="flex-grow w-full text-center md:text-left">
                       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
@@ -3344,7 +3473,6 @@ const Admin: React.FC = () => {
             { (productCatFilter === 'all') && (filteredGroups.length > 1) && (
                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 sticky top-[170px] z-20 bg-slate-950">
                   {filteredGroups.map(group => {
-                     const IconComp = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
                      return (
                         <button 
                           key={group.id}
@@ -3354,7 +3482,7 @@ const Admin: React.FC = () => {
                           }}
                           className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:border-primary transition-all flex items-center gap-2 whitespace-nowrap"
                         >
-                          <IconComp size={12}/> {group.name} ({group.items.length})
+                          <IconRenderer icon={group.icon} size={12}/> {group.name} ({group.items.length})
                         </button>
                      );
                   })}
@@ -3372,12 +3500,11 @@ const Admin: React.FC = () => {
                   No products matching your search found.
                 </div>
               ) : filteredGroups.map(group => {
-                const GroupIcon = CustomIcons[group.icon] || (LucideIcons as any)[group.icon] || LayoutGrid;
                 return (
                   <div key={group.id} id={`cat-section-${group.id}`} className="space-y-6">
                     <div className="flex items-center gap-4 px-4">
                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                          <GroupIcon size={20} />
+                          <IconRenderer icon={group.icon} size={20} />
                        </div>
                        <div className="flex flex-col">
                           <h3 className="text-xl font-bold text-white uppercase tracking-tight">{group.name}</h3>
@@ -3485,10 +3612,9 @@ const Admin: React.FC = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
                {displayCategories.map(c => {
-                  const IconComp = (LucideIcons as any)[c.icon] || LucideIcons.Package;
                   return (
                     <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
-                       <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0"><IconComp size={20} /></div><h4 className="font-bold text-white text-lg truncate">{c.name}</h4></div></div>
+                       <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0"><IconRenderer icon={c.icon} size={20} /></div><h4 className="font-bold text-white text-lg truncate">{c.name}</h4></div></div>
                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div>
                     </div>
                   );
@@ -3876,13 +4002,12 @@ const Admin: React.FC = () => {
                </div>
             ) : trainingModules.map((module) => {
                const isExpanded = expandedTraining === module.id;
-               const ModuleIcon = CustomIcons[module.icon] || (LucideIcons as any)[module.icon] || GraduationCap;
                return (
                   <div key={module.id} className={`bg-slate-900 border transition-all duration-300 overflow-hidden flex flex-col ${isExpanded ? 'lg:col-span-3 md:col-span-2 border-primary/50 shadow-2xl shadow-primary/10 rounded-[2.5rem]' : 'border-slate-800 hover:border-slate-600 rounded-[2rem]'}`}>
                      <div className="relative group/module">
                         <button onClick={() => setExpandedTraining(isExpanded ? null : module.id)} className="w-full p-6 md:p-8 flex items-start text-left group h-full">
                            <div className="flex items-start gap-4 md:gap-6 w-full">
-                              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${ (module.platform === 'Pinterest') ? 'bg-red-600' : (module.platform === 'TikTok') ? 'bg-black border border-slate-700' : (module.platform === 'Instagram') ? 'bg-pink-600' : (module.platform === 'WhatsApp') ? 'bg-green-500' : (module.platform === 'SEO') ? 'bg-blue-600' : 'bg-slate-800 text-slate-300' }`}><ModuleIcon size={28} /></div>
+                              <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shrink-0 transition-transform group-hover:scale-105 ${ (module.platform === 'Pinterest') ? 'bg-red-600' : (module.platform === 'TikTok') ? 'bg-black border border-slate-700' : (module.platform === 'Instagram') ? 'bg-pink-600' : (module.platform === 'WhatsApp') ? 'bg-green-500' : (module.platform === 'SEO') ? 'bg-blue-600' : 'bg-slate-800 text-slate-300' }`}><IconRenderer icon={module.icon} size={28} /></div>
                               <div className="flex-grow min-w-0">
                                  <div className="flex justify-between items-start">
                                     <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>
@@ -4152,6 +4277,8 @@ const Admin: React.FC = () => {
                       <SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" />
                       <div className="mt-4">
                         <SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} />
+                        <SettingField label="Creator Role Label" value={tempSettings.footerCreatorRole} onChange={v => updateTempSettings({ footerCreatorRole: v })} />
+                        <SettingField label="Socials Label" value={tempSettings.footerSocialsLabel} onChange={v => updateTempSettings({ footerSocialsLabel: v })} />
                       </div>
                     </div>
                   </>
@@ -4172,6 +4299,11 @@ const Admin: React.FC = () => {
                       <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" />
                       <SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} />
                       <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} />
+                    </div>
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Category Section</h4>
+                      <SettingField label="Category Section Title" value={tempSettings.homeCategorySectionTitle} onChange={v => updateTempSettings({ homeCategorySectionTitle: v })} />
+                      <SettingField label="Category Section Subtitle" value={tempSettings.homeCategorySectionSubtitle} onChange={v => updateTempSettings({ homeCategorySectionSubtitle: v })} />
                     </div>
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Trust Signals</h4>
@@ -4198,6 +4330,14 @@ const Admin: React.FC = () => {
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
                           <IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} />
                         </div>
+                      </div>
+                      <SettingField label="Read Story Button" value={tempSettings.homeReadStoryBtn} onChange={v => updateTempSettings({ homeReadStoryBtn: v })} />
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <SettingField label="About Curator Label" value={tempSettings.homeAboutCuratorLabel} onChange={v => updateTempSettings({ homeAboutCuratorLabel: v })} />
+                        <SettingField label="About Narrative Label" value={tempSettings.homeAboutNarrativeLabel} onChange={v => updateTempSettings({ homeAboutNarrativeLabel: v })} />
+                        <SettingField label="Category Shop By Label" value={tempSettings.homeCategoryShopByLabel} onChange={v => updateTempSettings({ homeCategoryShopByLabel: v })} />
+                        <SettingField label="Category Portfolio Label" value={tempSettings.homeCategoryPortfolioLabel} onChange={v => updateTempSettings({ homeCategoryPortfolioLabel: v })} />
+                        <SettingField label="Category Discover Label" value={tempSettings.homeCategoryDiscoverLabel} onChange={v => updateTempSettings({ homeCategoryDiscoverLabel: v })} />
                       </div>
                     </div>
                   </>
@@ -4228,6 +4368,23 @@ const Admin: React.FC = () => {
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
                       <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
+                      <SettingField label="Department Label" value={tempSettings.productsDeptLabel} onChange={v => updateTempSettings({ productsDeptLabel: v })} />
+                      <SettingField label="All Collections Label" value={tempSettings.productsAllCollectionsLabel} onChange={v => updateTempSettings({ productsAllCollectionsLabel: v })} />
+                      <SettingField label="Browse Everything Label" value={tempSettings.productsBrowseEverythingLabel} onChange={v => updateTempSettings({ productsBrowseEverythingLabel: v })} />
+                      <SettingField label="Niches Label" value={tempSettings.productsNichesLabel} onChange={v => updateTempSettings({ productsNichesLabel: v })} />
+                      <SettingField label="Clear Filter Label" value={tempSettings.productsClearFilterLabel} onChange={v => updateTempSettings({ productsClearFilterLabel: v })} />
+                      <SettingField label="Show All Label" value={tempSettings.productsShowAllLabel} onChange={v => updateTempSettings({ productsShowAllLabel: v })} />
+                      <SettingField label="Selections Label" value={tempSettings.productsSelectionsLabel} onChange={v => updateTempSettings({ productsSelectionsLabel: v })} />
+                      <SettingField label="Product Ref Label" value={tempSettings.productRefLabel} onChange={v => updateTempSettings({ productRefLabel: v })} />
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Sort Latest Label" value={tempSettings.sortLatestLabel} onChange={v => updateTempSettings({ sortLatestLabel: v })} />
+                        <SettingField label="Sort Price Low Label" value={tempSettings.sortPriceLowLabel} onChange={v => updateTempSettings({ sortPriceLowLabel: v })} />
+                        <SettingField label="Sort Price High Label" value={tempSettings.sortPriceHighLabel} onChange={v => updateTempSettings({ sortPriceHighLabel: v })} />
+                        <SettingField label="Sort Name Label" value={tempSettings.sortNameLabel} onChange={v => updateTempSettings({ sortNameLabel: v })} />
+                      </div>
+                      <SettingField label="Empty State Title" value={tempSettings.emptyProductsTitle} onChange={v => updateTempSettings({ emptyProductsTitle: v })} />
+                      <SettingField label="Empty State Message" value={tempSettings.productsEmptyMessage} onChange={v => updateTempSettings({ productsEmptyMessage: v })} />
+                      <SettingField label="Empty State Reset Label" value={tempSettings.emptyProductsResetLabel} onChange={v => updateTempSettings({ emptyProductsResetLabel: v })} />
                     </div>
 
                     <div className="pt-6 border-t border-slate-800 space-y-6">
@@ -4235,6 +4392,29 @@ const Admin: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <SettingField label="Buy Button Label" value={tempSettings.productAcquisitionLabel} onChange={v => updateTempSettings({ productAcquisitionLabel: v })} />
                         <SettingField label="Specs Title Label" value={tempSettings.productSpecsLabel} onChange={v => updateTempSettings({ productSpecsLabel: v })} />
+                        <SettingField label="Price Label" value={tempSettings.productPriceLabel} onChange={v => updateTempSettings({ productPriceLabel: v })} />
+                        <SettingField label="Last Updated Label" value={tempSettings.productLastUpdatedLabel} onChange={v => updateTempSettings({ productLastUpdatedLabel: v })} />
+                        <SettingField label="Merchant Verified Label" value={tempSettings.productMerchantVerifiedLabel} onChange={v => updateTempSettings({ productMerchantVerifiedLabel: v })} />
+                        <SettingField label="Not Found Title" value={tempSettings.productNotFoundTitle} onChange={v => updateTempSettings({ productNotFoundTitle: v })} />
+                        <SettingField label="Not Found CTA" value={tempSettings.productNotFoundCta} onChange={v => updateTempSettings({ productNotFoundCta: v })} />
+                        <SettingField label="Related Products Title" value={tempSettings.relatedProductsTitle} onChange={v => updateTempSettings({ relatedProductsTitle: v })} />
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Review Section Labels</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Section Title" value={tempSettings.reviewSectionTitle} onChange={v => updateTempSettings({ reviewSectionTitle: v })} />
+                        <SettingField label="Write CTA" value={tempSettings.reviewWriteCta} onChange={v => updateTempSettings({ reviewWriteCta: v })} />
+                        <SettingField label="Count Label" value={tempSettings.reviewCountLabel} onChange={v => updateTempSettings({ reviewCountLabel: v })} />
+                        <SettingField label="Rating Label" value={tempSettings.reviewRatingLabel} onChange={v => updateTempSettings({ reviewRatingLabel: v })} />
+                        <SettingField label="Identity Label" value={tempSettings.reviewIdentityLabel} onChange={v => updateTempSettings({ reviewIdentityLabel: v })} />
+                        <SettingField label="Identity Placeholder" value={tempSettings.reviewIdentityPlaceholder} onChange={v => updateTempSettings({ reviewIdentityPlaceholder: v })} />
+                        <SettingField label="Comment Placeholder" value={tempSettings.reviewCommentPlaceholder} onChange={v => updateTempSettings({ reviewCommentPlaceholder: v })} />
+                        <SettingField label="Submit Label" value={tempSettings.reviewSubmitLabel} onChange={v => updateTempSettings({ reviewSubmitLabel: v })} />
+                        <SettingField label="Submitting Label" value={tempSettings.reviewSubmittingLabel} onChange={v => updateTempSettings({ reviewSubmittingLabel: v })} />
+                        <SettingField label="Empty Message" value={tempSettings.emptyReviewsMessage} onChange={v => updateTempSettings({ emptyReviewsMessage: v })} />
+                        <SettingField label="Default Name" value={tempSettings.reviewDefaultName} onChange={v => updateTempSettings({ reviewDefaultName: v })} />
                       </div>
                     </div>
                   </>
@@ -4250,6 +4430,7 @@ const Admin: React.FC = () => {
                       <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
                     </div>
                     <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
+                    <SettingField label="Manifesto Title" value={tempSettings.aboutManifestoTitle} onChange={v => updateTempSettings({ aboutManifestoTitle: v })} />
                     <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
                     <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
@@ -4273,10 +4454,37 @@ const Admin: React.FC = () => {
                     <SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} />
                     <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" />
                     <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Contact Info Labels</h4>
+                      <SettingField label="Info Title" value={tempSettings.contactInfoTitle} onChange={v => updateTempSettings({ contactInfoTitle: v })} />
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Address Label" value={tempSettings.contactAddressLabel} onChange={v => updateTempSettings({ contactAddressLabel: v })} />
+                        <SettingField label="Hours Label" value={tempSettings.contactHoursLabel} onChange={v => updateTempSettings({ contactHoursLabel: v })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Weekdays Hours" value={tempSettings.contactHoursWeekdays} onChange={v => updateTempSettings({ contactHoursWeekdays: v })} />
+                        <SettingField label="Weekends Hours" value={tempSettings.contactHoursWeekends} onChange={v => updateTempSettings({ contactHoursWeekends: v })} />
+                      </div>
+                    </div>
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
                       <FaqsManager faqs={tempSettings.contactFaqs || []} onChange={v => updateTempSettings({ contactFaqs: v })} />
                     </div>
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <SettingField label="Name Label" value={tempSettings.contactFormNameLabel} onChange={v => updateTempSettings({ contactFormNameLabel: v })} />
+                      <SettingField label="Email Label" value={tempSettings.contactFormEmailLabel} onChange={v => updateTempSettings({ contactFormEmailLabel: v })} />
+                      <SettingField label="Subject Label" value={tempSettings.contactFormSubjectLabel} onChange={v => updateTempSettings({ contactFormSubjectLabel: v })} />
+                      <SettingField label="Message Label" value={tempSettings.contactFormMessageLabel} onChange={v => updateTempSettings({ contactFormMessageLabel: v })} />
+                    </div>
                     <SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} />
+                    <SettingField label="Success Title" value={tempSettings.contactSuccessTitle} onChange={v => updateTempSettings({ contactSuccessTitle: v })} />
+                    <SettingField label="Success Message" value={tempSettings.contactSuccessMessage} onChange={v => updateTempSettings({ contactSuccessMessage: v })} />
+                    <SettingField label="Submit New Button" value={tempSettings.contactSubmitNewBtn} onChange={v => updateTempSettings({ contactSubmitNewBtn: v })} />
+                    <SettingField label="Verified Label" value={tempSettings.contactVerifiedLabel} onChange={v => updateTempSettings({ contactVerifiedLabel: v })} />
+                    <SettingField label="Concierge Label" value={tempSettings.contactConciergeLabel} onChange={v => updateTempSettings({ contactConciergeLabel: v })} />
+                    <SettingField label="WhatsApp Label" value={tempSettings.contactWhatsappLabel} onChange={v => updateTempSettings({ contactWhatsappLabel: v })} />
+                    <SettingField label="Follow Us Label" value={tempSettings.contactFollowUsLabel} onChange={v => updateTempSettings({ contactFollowUsLabel: v })} />
+                    <SettingField label="FAQ Title" value={tempSettings.contactFaqTitle} onChange={v => updateTempSettings({ contactFaqTitle: v })} />
+                    <SettingField label="Last Updated Label" value={tempSettings.contactLastUpdatedLabel} onChange={v => updateTempSettings({ contactLastUpdatedLabel: v })} />
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Socials</h4>
                     <SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} />
                   </>

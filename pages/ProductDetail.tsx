@@ -68,7 +68,7 @@ const ProductDetail: React.FC = () => {
     
     const review: Review = {
         id: Date.now().toString(),
-        userName: newReview.userName || 'Guest',
+        userName: newReview.userName || settings.reviewDefaultName || 'Guest',
         rating: newReview.rating,
         comment: newReview.comment,
         createdAt: Date.now()
@@ -172,8 +172,8 @@ const ProductDetail: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-white text-center p-6 pt-24">
         <div>
           <Package size={64} className="text-slate-200 mx-auto mb-6" />
-          <h2 className="text-3xl font-serif mb-4">Piece Not Found</h2>
-          <button onClick={() => navigate('/products')} className="text-primary font-bold uppercase tracking-widest text-xs">Return to Collection</button>
+          <h2 className="text-3xl font-serif mb-4">{settings.productNotFoundTitle || 'Piece Not Found'}</h2>
+          <button onClick={() => navigate('/products')} className="text-primary font-bold uppercase tracking-widest text-xs">{settings.productNotFoundCta || 'Return to Collection'}</button>
         </div>
       </div>
     );
@@ -308,7 +308,7 @@ const ProductDetail: React.FC = () => {
                       <Star key={star} size={14} fill={star <= averageRating ? "currentColor" : "none"} />
                     ))}
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">({product.reviews?.length || 0} Appraisals)</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">({product.reviews?.length || 0} {settings.reviewCountLabel || 'Appraisals'})</span>
                 </div>
                 <button onClick={handleShareTrigger} className="p-3 rounded-full bg-slate-50 hover:bg-primary/20 text-slate-400 hover:text-primary transition-all duration-300 flex items-center justify-center">
                   <Share2 size={20} />
@@ -322,13 +322,13 @@ const ProductDetail: React.FC = () => {
               
               {settings.seoShowLastUpdated !== false && product.createdAt && (
                 <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
-                  Last Updated: {new Date(product.createdAt).toLocaleDateString()}
+                  {settings.productLastUpdatedLabel || 'Last Updated'}: {new Date(product.createdAt).toLocaleDateString()}
                 </div>
               )}
 
               <div className="flex flex-wrap items-center gap-6 pt-4">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Acquisition Value</span>
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">{settings.productPriceLabel || 'Acquisition Value'}</span>
                   <div className="flex items-end gap-4 flex-wrap">
                     <span className="text-3xl md:text-4xl font-black text-slate-900">R {(product.price || 0).toLocaleString()}</span>
                     {product.wasPrice && product.wasPrice > 0 && (
@@ -372,7 +372,7 @@ const ProductDetail: React.FC = () => {
                </div>
                <div className="flex items-center justify-center gap-2 text-[8px] font-black text-slate-300 uppercase tracking-widest">
                   <ShieldCheck size={12} className="text-green-500" />
-                  Direct Merchant Link Verified
+                  {settings.productMerchantVerifiedLabel || 'Direct Merchant Link Verified'}
                </div>
             </div>
 
@@ -420,15 +420,15 @@ const ProductDetail: React.FC = () => {
             {/* PERSPECTIVES SECTION */}
             <div className="pt-10 border-t border-slate-100">
                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-serif text-slate-900">Appraisals</h3>
-                  <button onClick={() => setOpenAccordion(openAccordion === 'review' ? null : 'review')} className="px-4 py-1.5 rounded-full border border-slate-200 text-[8px] font-black uppercase tracking-widest text-slate-500 hover:border-primary hover:text-primary transition-all">Write Perspective</button>
+                  <h3 className="text-xl font-serif text-slate-900">{settings.reviewSectionTitle || 'Appraisals'}</h3>
+                  <button onClick={() => setOpenAccordion(openAccordion === 'review' ? null : 'review')} className="px-4 py-1.5 rounded-full border border-slate-200 text-[8px] font-black uppercase tracking-widest text-slate-500 hover:border-primary hover:text-primary transition-all">{settings.reviewWriteCta || 'Write Perspective'}</button>
                </div>
 
                <div className={`transition-all duration-700 overflow-hidden ${openAccordion === 'review' ? 'max-h-[600px] opacity-100 pb-10' : 'max-h-0 opacity-0'}`}>
                  <form onSubmit={handleSubmitReview} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                        <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-slate-400 ml-2">Rating</label>
+                          <label className="text-[8px] font-black uppercase text-slate-400 ml-2">{settings.reviewRatingLabel || 'Rating'}</label>
                           <div className="flex gap-1 p-2 bg-white rounded-xl border border-slate-100 w-fit">
                              {[1,2,3,4,5].map(star => (
                                 <button type="button" key={star} onClick={() => setNewReview({...newReview, rating: star})}>
@@ -438,14 +438,14 @@ const ProductDetail: React.FC = () => {
                           </div>
                        </div>
                        <div className="space-y-1">
-                          <label className="text-[8px] font-black uppercase text-slate-400 ml-2">Identity</label>
+                          <label className="text-[8px] font-black uppercase text-slate-400 ml-2">{settings.reviewIdentityLabel || 'Identity'}</label>
                           <input 
                            type="text" 
                            required
                            value={newReview.userName}
                            onChange={e => setNewReview({...newReview, userName: e.target.value})}
                            className="w-full px-4 py-2.5 rounded-xl border border-slate-100 text-xs bg-white outline-none"
-                           placeholder="Guest"
+                           placeholder={settings.reviewIdentityPlaceholder || 'Guest'}
                           />
                        </div>
                     </div>
@@ -455,10 +455,10 @@ const ProductDetail: React.FC = () => {
                       value={newReview.comment}
                       onChange={e => setNewReview({...newReview, comment: e.target.value})}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-100 text-xs bg-white outline-none resize-none"
-                      placeholder="Share your thoughts..."
+                      placeholder={settings.reviewCommentPlaceholder || 'Share your thoughts...'}
                     />
                     <button disabled={isSubmittingReview} className="w-full py-3 bg-slate-900 text-white rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-primary transition-all">
-                       {isSubmittingReview ? 'Processing...' : 'Submit Appraisal'}
+                       {isSubmittingReview ? (settings.reviewSubmittingLabel || 'Processing...') : (settings.reviewSubmitLabel || 'Submit Appraisal')}
                     </button>
                  </form>
                </div>
@@ -476,7 +476,7 @@ const ProductDetail: React.FC = () => {
                         <p className="text-slate-500 text-sm leading-relaxed font-light">{review.comment}</p>
                      </div>
                   )) : (
-                     <p className="text-center text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] py-10">No appraisals yet.</p>
+                     <p className="text-center text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] py-10">{settings.emptyReviewsMessage || 'No appraisals yet.'}</p>
                   )}
                </div>
             </div>
@@ -489,7 +489,7 @@ const ProductDetail: React.FC = () => {
       {relatedProducts.length > 0 && (
         <section className="py-24 bg-white border-t border-slate-100">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <h2 className="text-3xl font-serif text-slate-900 mb-12 text-center">You May Also Like</h2>
+            <h2 className="text-3xl font-serif text-slate-900 mb-12 text-center">{settings.relatedProductsTitle || 'You May Also Like'}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {relatedProducts.map(rp => (
                 <div 

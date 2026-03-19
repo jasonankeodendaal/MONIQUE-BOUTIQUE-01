@@ -58,7 +58,7 @@ const About: React.FC = () => {
         <div className="w-full lg:w-1/2 h-1/2 lg:h-full flex items-center p-6 md:p-12 lg:p-24 xl:p-32 relative z-10 bg-slate-950 lg:bg-transparent overflow-hidden">
            <div className="max-w-2xl text-left h-full flex flex-col justify-center">
               <div className="inline-flex items-center gap-3 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary/10 text-primary text-[8px] md:text-[11px] font-black uppercase tracking-[0.5em] mb-4 md:mb-8 lg:mb-12 border border-primary/20 shadow-lg w-fit">
-                  <Sparkles size={12} className="animate-pulse"/> {settings.aboutFounderName}
+                  <Sparkles size={12} className="animate-pulse"/> {settings.aboutHeroBadge}
               </div>
               
               <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-4 md:mb-8 lg:mb-12 text-balance animate-in slide-in-from-bottom-16 duration-1000" style={{ fontSize: 'clamp(2.5rem, 8vw, 6.5rem)' }}>
@@ -117,7 +117,7 @@ const About: React.FC = () => {
               <div className="w-full lg:col-span-8 text-left min-w-0">
                   <div className="flex items-center gap-6 lg:gap-10 mb-10 lg:mb-20">
                      <div className="h-[3px] w-16 lg:w-32 bg-primary shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
-                     <span className="text-[12px] lg:text-[15px] font-black uppercase tracking-[0.6em] text-primary text-contrast-shadow">The Curation Manifesto</span>
+                     <span className="text-[12px] lg:text-[15px] font-black uppercase tracking-[0.6em] text-primary text-contrast-shadow">{settings.aboutManifestoTitle || 'The Curation Manifesto'}</span>
                   </div>
                   
                   <h3 className="text-4xl md:text-6xl lg:text-8xl font-serif text-slate-900 mb-12 lg:mb-24 leading-[1] tracking-tighter break-words drop-shadow-sm">
@@ -161,7 +161,7 @@ const About: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                <div className="text-left">
                   <span className="text-[11px] font-black uppercase tracking-[0.5em] text-primary mb-5 block flex items-center gap-3 text-contrast-shadow">
-                    <Heart size={14} className="fill-current animate-pulse" /> Personal Curation Vault
+                    <Heart size={14} className="fill-current animate-pulse" /> {settings.aboutHeroBadge}
                   </span>
                   <h3 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight">The Curator's Edit</h3>
                   <p className="text-slate-500 font-light mt-6 max-w-lg text-lg md:text-xl leading-relaxed">
@@ -210,7 +210,7 @@ const About: React.FC = () => {
               </div>
             ) : (
               <div className="w-full py-32 glass-card rounded-[3rem] border border-dashed border-slate-300 text-center text-slate-400 font-black uppercase text-[12px] tracking-[0.4em]">
-                 Populating Personal Collection...
+                 {settings.productsEmptyMessage}
               </div>
             )}
          </div>
@@ -239,11 +239,11 @@ const About: React.FC = () => {
                  <div className="mt-16 flex flex-wrap gap-12 lg:gap-20 opacity-40">
                     <div className="flex items-center gap-4">
                        <Heart size={20} className="text-primary"/>
-                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">Affiliate Verified</span>
+                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">{settings.aboutIntegrityBadge1}</span>
                     </div>
                     <div className="flex items-center gap-4">
                        <Calendar size={20} className="text-primary"/>
-                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">Fresh Edits</span>
+                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">{settings.aboutIntegrityBadge2}</span>
                     </div>
                  </div>
               </div>
