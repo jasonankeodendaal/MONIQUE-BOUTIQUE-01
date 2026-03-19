@@ -48,8 +48,8 @@ const MaintenanceOverlay: React.FC = () => {
             System Maintenance in Progress
           </div>
           {user && (
-            <Link to="/admin" className="text-primary text-xs font-bold hover:underline">
-              Access Admin Portal
+            <Link to="/admin" className="px-8 py-4 bg-primary text-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-transform shadow-xl shadow-primary/20">
+              Return to Admin Dashboard
             </Link>
           )}
         </div>
@@ -60,15 +60,44 @@ const MaintenanceOverlay: React.FC = () => {
       <div className="absolute top-0 right-0 w-1/4 h-full bg-slate-900/50 border-l border-white/5 backdrop-blur-sm transform skew-x-6 translate-x-12 hidden md:block" />
       
       {/* Admin Access Link */}
-      <Link 
-        to="/login" 
-        className="absolute bottom-6 left-6 flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.3em] text-slate-800 hover:text-primary transition-all duration-500 group z-50"
-      >
-        <div className="w-6 h-6 rounded-lg border border-slate-900 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
-          <Lock size={10} />
+      {!user && (
+        <Link 
+          to="/login" 
+          className="absolute bottom-6 left-6 flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.3em] text-slate-800 hover:text-primary transition-all duration-500 group z-50"
+        >
+          <div className="w-6 h-6 rounded-lg border border-slate-900 flex items-center justify-center group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
+            <Lock size={10} />
+          </div>
+          <span className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all">Portal Access</span>
+        </Link>
+      )}
+    </div>
+  );
+};
+
+const AdminPreviewBadge: React.FC = () => {
+  const { settings, user } = useSettings();
+  const location = useLocation();
+  
+  if (!settings.isMaintenanceMode || !user || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  
+  return (
+    <div className="fixed bottom-8 right-8 z-[9998] flex flex-col items-end gap-3 animate-in slide-in-from-bottom-8 duration-700">
+      <div className="bg-yellow-500/10 backdrop-blur-xl border border-yellow-500/20 rounded-2xl p-4 shadow-2xl flex items-center gap-4">
+        <div className="w-10 h-10 bg-yellow-500 text-slate-950 rounded-xl flex items-center justify-center shadow-lg">
+          <Construction size={20} />
         </div>
-        <span className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all">Portal Access</span>
-      </Link>
+        <div>
+          <h4 className="text-white font-bold text-xs">Construction Mode Active</h4>
+          <p className="text-yellow-500/70 text-[10px] font-medium uppercase tracking-wider">Only you can see the site</p>
+        </div>
+        <Link 
+          to="/admin" 
+          className="ml-4 px-4 py-2 bg-yellow-500 text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-yellow-400 transition-colors"
+        >
+          Admin Panel
+        </Link>
+      </div>
     </div>
   );
 };
@@ -855,18 +884,35 @@ const App: React.FC = () => {
     <HelmetProvider>
       <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
-          {settings.seoTitle && <title>{settings.seoTitle}</title>}
-          {settings.seoDescription && <meta name="description" content={settings.seoDescription} />}
-          {settings.seoOgImage && <meta property="og:image" content={settings.seoOgImage} />}
-          {settings.seoTitle && <meta property="og:title" content={settings.seoTitle} />}
-          {settings.seoDescription && <meta property="og:description" content={settings.seoDescription} />}
+          <title>{settings.seoTitle || settings.companyName}</title>
+          <meta name="description" content={settings.seoDescription || settings.footerDescription} />
+          
+          {/* Open Graph / Facebook */}
+          <meta property="og:type" content="website" />
+          <meta property="og:title" content={settings.seoTitle || settings.companyName} />
+          <meta property="og:description" content={settings.seoDescription || settings.footerDescription} />
+          <meta property="og:image" content={settings.seoOgImage || settings.companyLogoUrl} />
+          
+          {/* Twitter */}
+          <meta property="twitter:card" content="summary_large_image" />
+          <meta property="twitter:title" content={settings.seoTitle || settings.companyName} />
+          <meta property="twitter:description" content={settings.seoDescription || settings.footerDescription} />
+          <meta property="twitter:image" content={settings.seoOgImage || settings.companyLogoUrl} />
+
+          {/* Verification */}
           {settings.gscVerificationId && <meta name="google-site-verification" content={settings.gscVerificationId} />}
-          {settings.seoEnableCanonicalTags !== false && <link rel="canonical" href={window.location.href.split('?')[0]} />}
+          
+          {/* Canonical Tags */}
+          {settings.seoEnableCanonicalTags && (
+            <link rel="canonical" href={window.location.origin + (window.location.hash ? window.location.hash.substring(1) : window.location.pathname)} />
+          )}
+
+          {/* Schema Markup */}
           {settings.enableSchemaMarkup && (
             <script type="application/ld+json">
-              {JSON.stringify({
+              {settings.customSchemaJson || JSON.stringify({
                 "@context": "https://schema.org",
-                "@type": "LocalBusiness",
+                "@type": settings.schemaType || "LocalBusiness",
                 "name": settings.localBusinessName || settings.companyName,
                 "image": settings.companyLogoUrl,
                 "telephone": settings.localBusinessPhone || settings.contactPhone,

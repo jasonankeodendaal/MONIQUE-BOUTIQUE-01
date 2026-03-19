@@ -2119,36 +2119,13 @@ const Admin: React.FC = () => {
 
   const generateSitemap = async () => {
     try {
-      const baseUrl = window.location.origin;
-      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-      
-      const staticRoutes = ['/', '/products', '/about', '/contact', '/legal'];
-      staticRoutes.forEach(route => {
-        sitemap += `  <url>\n    <loc>${baseUrl}${route}</loc>\n    <changefreq>daily</changefreq>\n    <priority>${route === '/' ? '1.0' : '0.8'}</priority>\n  </url>\n`;
-      });
-
-      if (products && products.length > 0) {
-        products.forEach(product => {
-          sitemap += `  <url>\n    <loc>${baseUrl}/product/${product.id}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
-        });
-      }
-
-      sitemap += `</urlset>`;
-
-      const blob = new Blob([sitemap], { type: 'application/xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'sitemap.xml';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      updateSettings({ 
+      // In a real app, this would trigger a server-side generation or just update the timestamp
+      // since our server.ts handles it dynamically.
+      await updateSettings({ 
         sitemapGeneratedAt: Date.now(),
         sitemapStatus: 'valid'
       });
+      alert('Sitemap generation triggered. It is now live at /sitemap.xml');
     } catch (error) {
       console.error('Error generating sitemap:', error);
       updateSettings({ sitemapStatus: 'invalid' });
@@ -2158,23 +2135,13 @@ const Admin: React.FC = () => {
 
   const generateRobotsTxt = async () => {
     try {
-      const baseUrl = window.location.origin;
-      const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin\n\nSitemap: ${baseUrl}/sitemap.xml`;
-      
-      const blob = new Blob([robotsTxt], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'robots.txt';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      updateSettings({ 
+      // In a real app, this would trigger a server-side generation or just update the timestamp
+      // since our server.ts handles it dynamically.
+      await updateSettings({ 
         robotsGeneratedAt: Date.now(),
         robotsStatus: 'valid'
       });
+      alert('robots.txt generation triggered. It is now live at /robots.txt');
     } catch (error) {
       console.error('Error generating robots.txt:', error);
       updateSettings({ robotsStatus: 'invalid' });
@@ -2205,13 +2172,26 @@ const Admin: React.FC = () => {
           </div>
           <div className="flex flex-wrap gap-3">
             <div className="flex flex-col items-end gap-1">
-              <button
-                onClick={generateRobotsTxt}
-                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-all flex items-center gap-2"
-              >
-                <FileText className="w-5 h-5" />
-                Generate robots.txt
-              </button>
+              <div className="flex items-center gap-2">
+                {settings?.robotsGeneratedAt && (
+                  <a
+                    href="/robots.txt"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all border border-slate-700 group"
+                    title="View Live robots.txt"
+                  >
+                    <ExternalLink className="w-5 h-5 group-hover:text-white" />
+                  </a>
+                )}
+                <button
+                  onClick={generateRobotsTxt}
+                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-all border border-slate-700 flex items-center gap-2"
+                >
+                  <FileText className="w-5 h-5" />
+                  Generate robots.txt
+                </button>
+              </div>
               {settings?.robotsGeneratedAt && (
                 <div className="flex items-center gap-1.5 px-2">
                   <div className={`w-1.5 h-1.5 rounded-full ${settings.robotsStatus === 'valid' ? 'bg-emerald-500' : 'bg-red-500'}`} />
@@ -2222,13 +2202,26 @@ const Admin: React.FC = () => {
               )}
             </div>
             <div className="flex flex-col items-end gap-1">
-              <button
-                onClick={generateSitemap}
-                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
-              >
-                <Globe className="w-5 h-5" />
-                Generate sitemap.xml
-              </button>
+              <div className="flex items-center gap-2">
+                {settings?.sitemapGeneratedAt && (
+                  <a
+                    href="/sitemap.xml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all border border-slate-700 group"
+                    title="View Live sitemap.xml"
+                  >
+                    <ExternalLink className="w-5 h-5 group-hover:text-white" />
+                  </a>
+                )}
+                <button
+                  onClick={generateSitemap}
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                >
+                  <Globe className="w-5 h-5" />
+                  Generate sitemap.xml
+                </button>
+              </div>
               {settings?.sitemapGeneratedAt && (
                 <div className="flex items-center gap-1.5 px-2">
                   <div className={`w-1.5 h-1.5 rounded-full ${settings.sitemapStatus === 'valid' ? 'bg-emerald-500' : 'bg-red-500'}`} />
@@ -2503,6 +2496,26 @@ const Admin: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Google Tag Manager</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Enter your GTM Container ID (GTM-XXXXXXX).
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <input
+                      type="text"
+                      value={settings?.googleTagManagerId || ''}
+                      onChange={(e) => updateSettings({ googleTagManagerId: e.target.value })}
+                      placeholder="e.g., GTM-XXXXXXX"
+                      className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                        settings?.googleTagManagerId && !settings.googleTagManagerId.match(/^GTM-[A-Z0-9]{7,10}$/) ? 'border-red-500/50 focus:ring-red-500' : 'border-slate-800'
+                      }`}
+                    />
+                  </div>
+                </div>
+
                 <div className="w-full h-px bg-slate-800/50"></div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -2530,6 +2543,39 @@ const Admin: React.FC = () => {
                     <p className="text-[10px] text-slate-500 mt-2">
                       Auto-parses: &lt;meta name="google-site-verification" content="<span className="text-indigo-400">...</span>" /&gt;
                     </p>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-800/50"></div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <h3 className="text-sm font-bold text-white mb-1">Custom Scripts</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Inject custom HTML/JS into your site's head or footer.
+                    </p>
+                  </div>
+                  <div className="lg:col-span-2 space-y-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Header Scripts (Inside &lt;head&gt;)</label>
+                      <textarea
+                        value={settings?.customHeaderScripts || ''}
+                        onChange={(e) => updateSettings({ customHeaderScripts: e.target.value })}
+                        placeholder="<script>...</script>"
+                        rows={4}
+                        className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white font-mono text-xs focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Footer Scripts (Before &lt;/body&gt;)</label>
+                      <textarea
+                        value={settings?.customFooterScripts || ''}
+                        onChange={(e) => updateSettings({ customFooterScripts: e.target.value })}
+                        placeholder="<script>...</script>"
+                        rows={4}
+                        className="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-white font-mono text-xs focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3602,7 +3648,12 @@ const Admin: React.FC = () => {
              <AdminTip title="Department Structuring">Define your niches. Departments categorize your curations into logical shopping flows for the end user.</AdminTip>
              <div className="grid md:grid-cols-2 gap-8 text-left">
                 <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
-                <div className="space-y-6"><SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" /><div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" />
+                    <SingleImageUploader label="Department Icon" value={catData.icon || ''} onChange={v => setCatData({...catData, icon: v})} className="h-48 w-full object-contain bg-slate-900/50 rounded-2xl" />
+                  </div>
+                  <div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
              </div>
              <div className="flex flex-col md:flex-row gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
           </div>
@@ -3610,7 +3661,7 @@ const Admin: React.FC = () => {
           <>
             <AdminTip title="Collections Navigation">Each department acts as a portal. Use high-fashion imagery to attract attention to specific collections.</AdminTip>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-               <button onClick={() => { setCatData({ name: '', icon: 'Package', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
+               <button onClick={() => { setCatData({ name: '', icon: '', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
                {displayCategories.map(c => {
                   return (
                     <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">

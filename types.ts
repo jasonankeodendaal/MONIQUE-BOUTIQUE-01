@@ -281,22 +281,25 @@ export interface SiteSettings {
   termsTitle: string;
   termsContent: string;
 
-  // Integrations
+  // Integrations & Scripts
   emailJsServiceId?: string;
   emailJsTemplateId?: string;
   emailJsPublicKey?: string;
   googleAnalyticsId?: string;
+  googleTagManagerId?: string;
   facebookPixelId?: string;
   tiktokPixelId?: string;
   pinterestTagId?: string; // New
   amazonAssociateId?: string;
   webhookUrl?: string; // Zapier/Make
-
+  gscVerificationId?: string;
+  customHeaderScripts?: string;
+  customFooterScripts?: string;
+  
   // SEO Settings
   seoTitle?: string;
   seoDescription?: string;
   seoOgImage?: string;
-  gscVerificationId?: string;
 
   // Advanced SEO & Local
   enableSchemaMarkup?: boolean;
@@ -327,7 +330,7 @@ export interface SiteSettings {
   seoEnableCanonicalTags?: boolean;
   seoShowLastUpdated?: boolean;
   isMaintenanceMode?: boolean;
-
+  
   // Maintenance & Loading
   maintenanceTitle: string;
   maintenanceMessage: string;
