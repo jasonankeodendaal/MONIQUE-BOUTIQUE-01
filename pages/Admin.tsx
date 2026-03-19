@@ -3649,11 +3649,38 @@ const Admin: React.FC = () => {
              <div className="grid md:grid-cols-2 gap-8 text-left">
                 <div className="space-y-6"><h3 className="text-white font-bold text-xl mb-4">Department Details</h3><SettingField label="Department Name" value={catData.name || ''} onChange={v => setCatData({...catData, name: v})} /><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Icon</label><IconPicker selected={catData.icon || 'Package'} onSelect={icon => setCatData({...catData, icon})} /></div><SettingField label="Description" value={catData.description || ''} onChange={v => setCatData({...catData, description: v})} type="textarea" /></div>
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
                     <SingleImageUploader label="Cover Image" value={catData.image || ''} onChange={v => setCatData({...catData, image: v})} className="h-48 w-full object-cover rounded-2xl" />
-                    <SingleImageUploader label="Department Icon" value={catData.icon || ''} onChange={v => setCatData({...catData, icon: v})} className="h-48 w-full object-contain bg-slate-900/50 rounded-2xl" />
                   </div>
-                  <div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-800"><h4 className="text-white font-bold text-sm mb-4">Subcategories</h4><div className="flex gap-2 mb-4"><input type="text" placeholder="New Subcategory Name" value={tempSubCatName} onChange={e => setTempSubCatName(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" /><button onClick={() => editingId && handleAddSubCategory(editingId)} className="px-4 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"><Plus size={18}/></button></div><div className="flex wrap gap-2">{editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (<div key={s.id} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800"><span className="text-xs text-slate-300">{s.name}</span><button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500"><X size={12}/></button></div>))}</div></div></div>
+                  <div className="bg-slate-800/30 p-3 rounded-2xl border border-slate-800">
+                    <h4 className="text-white font-bold text-[10px] mb-2 uppercase tracking-wider opacity-50">Subcategories</h4>
+                    <div className="flex gap-2 mb-2">
+                      <input 
+                        type="text" 
+                        placeholder="New Subcategory" 
+                        value={tempSubCatName} 
+                        onChange={e => setTempSubCatName(e.target.value)} 
+                        className="flex-grow px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-[10px] outline-none focus:border-primary/50 transition-colors" 
+                      />
+                      <button 
+                        onClick={() => editingId && handleAddSubCategory(editingId)} 
+                        className="px-3 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"
+                      >
+                        <Plus size={14}/>
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                      {editingId && subCategories.filter(s => s.categoryId === editingId).map(s => (
+                        <div key={s.id} className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-900 rounded-lg border border-slate-800">
+                          <span className="text-[9px] text-slate-300">{s.name}</span>
+                          <button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500">
+                            <X size={8}/>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+             </div>
              </div>
              <div className="flex flex-col md:flex-row gap-4 pt-4 border-t border-slate-800"><button onClick={handleSaveCategory} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl">Save Dept</button><button onClick={() => setShowCategoryForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl">Cancel</button></div>
           </div>
