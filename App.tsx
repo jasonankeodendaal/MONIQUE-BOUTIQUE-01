@@ -22,21 +22,29 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const MaintenanceOverlay: React.FC = () => {
-  const { settings, user, loadingAuth } = useSettings();
+  const { settings, user, loadingAuth, admins } = useSettings();
   const location = useLocation();
+  
+  const isAdmin = user && admins.some(admin => admin.email === user.email);
   
   console.log('MaintenanceOverlay Check:', {
     isMaintenanceMode: settings.isMaintenanceMode,
     loadingAuth,
     hasUser: !!user,
+    isAdmin,
     pathname: location.pathname
   });
 
   if (!settings.isMaintenanceMode) return null;
-  if (loadingAuth || user || location.pathname.startsWith('/admin') || location.pathname === '/login') {
+  
+  // Hide overlay if:
+  // 1. We are still loading auth (to avoid flicker)
+  // 2. User is an admin
+  // 3. We are on the admin or login pages
+  if (loadingAuth || isAdmin || location.pathname.startsWith('/admin') || location.pathname === '/login') {
     console.log('MaintenanceOverlay Hidden due to:', {
       loadingAuth,
-      hasUser: !!user,
+      isAdmin,
       isAdminPath: location.pathname.startsWith('/admin'),
       isLoginPage: location.pathname === '/login'
     });
@@ -91,10 +99,12 @@ const MaintenanceOverlay: React.FC = () => {
 };
 
 const AdminPreviewBadge: React.FC = () => {
-  const { settings, user } = useSettings();
+  const { settings, user, admins } = useSettings();
   const location = useLocation();
   
-  if (!settings.isMaintenanceMode || !user || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  const isAdmin = user && admins.some(admin => admin.email === user.email);
+  
+  if (!settings.isMaintenanceMode || !isAdmin || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
   
   return (
     <div className="fixed bottom-8 right-8 z-[9998] flex flex-col items-end gap-3 animate-in slide-in-from-bottom-8 duration-700">
@@ -124,7 +134,7 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { settings, user, loadingAuth, isLocalMode } = useSettings();
+  const { settings, user, loadingAuth, isLocalMode, admins } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -134,7 +144,9 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
     </div>
   );
   if (isLocalMode) return <>{children}</>;
-  if (!user) return <Navigate to="/login" replace />;
+  
+  const isAdmin = user && admins.some(admin => admin.email === user.email);
+  if (!user || !isAdmin) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 

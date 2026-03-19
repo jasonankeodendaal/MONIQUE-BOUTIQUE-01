@@ -509,6 +509,18 @@ export const INITIAL_ADMINS: AdminUser[] = [
     phone: '',
     address: 'Online HQ',
     profileImage: ''
+  },
+  {
+    id: 'jason-admin',
+    name: 'Jason Admin',
+    email: 'ankebaeleejason@gmail.com',
+    role: 'admin',
+    permissions: ['*'],
+    password: 'password123',
+    createdAt: Date.now(),
+    phone: '',
+    address: 'Online HQ',
+    profileImage: ''
   }
 ];
 
