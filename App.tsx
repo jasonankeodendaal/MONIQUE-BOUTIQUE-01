@@ -571,7 +571,7 @@ const HomeRoute = () => {
 };
 
 const App: React.FC = () => {
-  const [settings, setSettings] = useState<SiteSettings>(() => getLocalState('site_settings', INITIAL_SETTINGS));
+  const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
   const [settingsId, setSettingsId] = useState<string>('global');
   const [products, setProducts] = useState<Product[]>(() => getLocalState('admin_products', INITIAL_PRODUCTS));
   const [categories, setCategories] = useState<Category[]>(() => getLocalState('admin_categories', INITIAL_CATEGORIES));
@@ -750,7 +750,7 @@ const App: React.FC = () => {
       if (isSupabaseConfigured) {
         const results = await Promise.allSettled([ fetchTableData('settings'), fetchTableData('products'), fetchTableData('categories'), fetchTableData('subcategories'), fetchTableData('hero_slides'), fetchTableData('enquiries'), fetchTableData('admin_users'), fetchTableData('product_stats') ]);
         const [s, p, c, sc, hs, enq, adm, st] = results;
-        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { const { id, ...rest } = s.value[0]; setSettingsId(id); setSettings(rest as SiteSettings); localStorage.setItem('site_settings', JSON.stringify(rest)); }
+        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { const { id, ...rest } = s.value[0]; setSettingsId(id); setSettings(rest as SiteSettings); }
         else if (s.status === 'fulfilled' && s.value && s.value.length === 0) { await upsertData('settings', { ...settings, id: 'global' }); setSettingsId('global'); }
         if (p.status === 'fulfilled' && p.value !== null) { setProducts(p.value); localStorage.setItem('admin_products', JSON.stringify(p.value)); }
         if (c.status === 'fulfilled' && c.value !== null) { setCategories(c.value); localStorage.setItem('admin_categories', JSON.stringify(c.value)); }
@@ -800,7 +800,6 @@ const App: React.FC = () => {
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving'); const updated = { ...settings, ...newSettings }; setSettings(updated);
-    localStorage.setItem('site_settings', JSON.stringify(updated));
     if (isSupabaseConfigured) { try { await upsertData('settings', { ...updated, id: settingsId }); addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); } catch (e) { addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed'); } }
     setTimeout(() => setSaveStatus('saved'), 500);
   };
