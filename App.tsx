@@ -22,34 +22,11 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const MaintenanceOverlay: React.FC = () => {
-  const { settings, user, loadingAuth, admins } = useSettings();
+  const { settings, user, loadingAuth } = useSettings();
   const location = useLocation();
   
-  const isAdmin = user && admins.some(admin => admin.email === user.email);
-  
-  console.log('MaintenanceOverlay Check:', {
-    isMaintenanceMode: settings.isMaintenanceMode,
-    loadingAuth,
-    hasUser: !!user,
-    isAdmin,
-    pathname: location.pathname
-  });
-
   if (!settings.isMaintenanceMode) return null;
-  
-  // Hide overlay if:
-  // 1. We are still loading auth (to avoid flicker)
-  // 2. User is an admin
-  // 3. We are on the admin or login pages
-  if (loadingAuth || isAdmin || location.pathname.startsWith('/admin') || location.pathname === '/login') {
-    console.log('MaintenanceOverlay Hidden due to:', {
-      loadingAuth,
-      isAdmin,
-      isAdminPath: location.pathname.startsWith('/admin'),
-      isLoginPage: location.pathname === '/login'
-    });
-    return null;
-  }
+  if (loadingAuth || user || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
   
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6 overflow-hidden">
@@ -99,12 +76,10 @@ const MaintenanceOverlay: React.FC = () => {
 };
 
 const AdminPreviewBadge: React.FC = () => {
-  const { settings, user, admins } = useSettings();
+  const { settings, user } = useSettings();
   const location = useLocation();
   
-  const isAdmin = user && admins.some(admin => admin.email === user.email);
-  
-  if (!settings.isMaintenanceMode || !isAdmin || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  if (!settings.isMaintenanceMode || !user || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
   
   return (
     <div className="fixed bottom-8 right-8 z-[9998] flex flex-col items-end gap-3 animate-in slide-in-from-bottom-8 duration-700">
@@ -134,7 +109,7 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { settings, user, loadingAuth, isLocalMode, admins } = useSettings();
+  const { settings, user, loadingAuth, isLocalMode } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -144,9 +119,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
     </div>
   );
   if (isLocalMode) return <>{children}</>;
-  
-  const isAdmin = user && admins.some(admin => admin.email === user.email);
-  if (!user || !isAdmin) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
@@ -754,19 +727,14 @@ const App: React.FC = () => {
     const setupAuth = async () => {
       try {
          const { data: { session }, error } = await supabase.auth.getSession();
-         console.log('Auth Session Check:', { hasSession: !!session, error });
          if (error && error.message.includes('Refresh Token')) await supabase.auth.signOut();
          setUser(session?.user ?? null);
          const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
-           console.log('Auth State Changed:', { event: _event, hasSession: !!session });
            setUser(session?.user ?? null); 
            setLoadingAuth(false); 
          });
          setLoadingAuth(false);
-      } catch (e) { 
-        console.error('Auth Setup Error:', e);
-        setLoadingAuth(false); 
-      }
+      } catch (e) { setLoadingAuth(false); }
     };
     setupAuth();
   }, []);
@@ -777,28 +745,13 @@ const App: React.FC = () => {
   };
 
   const refreshAllData = async () => {
-    console.log('Initiating full system refresh...');
     addSystemLog('SYNC', 'ALL', 'Initiating full system refresh', 0);
     try {
       if (isSupabaseConfigured) {
-        console.log('Fetching all tables from Supabase...');
         const results = await Promise.allSettled([ fetchTableData('settings'), fetchTableData('products'), fetchTableData('categories'), fetchTableData('subcategories'), fetchTableData('hero_slides'), fetchTableData('enquiries'), fetchTableData('admin_users'), fetchTableData('product_stats') ]);
         const [s, p, c, sc, hs, enq, adm, st] = results;
-        
-        console.log('Settings Fetch Result:', s);
-        
-        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { 
-          const { id, ...rest } = s.value[0]; 
-          console.log('Applying Settings:', rest);
-          setSettingsId(id); 
-          setSettings(rest as SiteSettings); 
-          localStorage.setItem('site_settings', JSON.stringify(rest)); 
-        }
-        else if (s.status === 'fulfilled' && s.value && s.value.length === 0) { 
-          console.log('No settings found, creating global default...');
-          await upsertData('settings', { ...settings, id: 'global' }); 
-          setSettingsId('global'); 
-        }
+        if (s.status === 'fulfilled' && s.value && s.value.length > 0) { const { id, ...rest } = s.value[0]; setSettingsId(id); setSettings(rest as SiteSettings); localStorage.setItem('site_settings', JSON.stringify(rest)); }
+        else if (s.status === 'fulfilled' && s.value && s.value.length === 0) { await upsertData('settings', { ...settings, id: 'global' }); setSettingsId('global'); }
         if (p.status === 'fulfilled' && p.value !== null) { setProducts(p.value); localStorage.setItem('admin_products', JSON.stringify(p.value)); }
         if (c.status === 'fulfilled' && c.value !== null) { setCategories(c.value); localStorage.setItem('admin_categories', JSON.stringify(c.value)); }
         if (sc.status === 'fulfilled' && sc.value !== null) { setSubCategories(sc.value); localStorage.setItem('admin_subcategories', JSON.stringify(sc.value)); }
