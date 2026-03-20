@@ -56,8 +56,8 @@ const MaintenanceOverlay: React.FC = () => {
       </div>
       
       {/* Decorative Curtains */}
-      <div className="absolute top-0 left-0 w-1/4 h-full bg-slate-900/50 border-r border-white/5 backdrop-blur-sm transform -skew-x-6 -translate-x-12 hidden md:block" />
-      <div className="absolute top-0 right-0 w-1/4 h-full bg-slate-900/50 border-l border-white/5 backdrop-blur-sm transform skew-x-6 translate-x-12 hidden md:block" />
+      <div className="absolute top-0 left-0 w-1/4 h-full bg-slate-900/50 border-r border-white/5 backdrop-blur-sm transform -skew-x-6 -translate-x-12" />
+      <div className="absolute top-0 right-0 w-1/4 h-full bg-slate-900/50 border-l border-white/5 backdrop-blur-sm transform skew-x-6 translate-x-12" />
       
       {/* Admin Access Link */}
       {!user && (

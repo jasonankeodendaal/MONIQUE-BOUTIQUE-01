@@ -2260,27 +2260,27 @@ const Admin: React.FC = () => {
                   <div className="lg:col-span-2">
                     <input
                       type="text"
-                      value={settings?.seoTitle || ''}
-                      onChange={(e) => updateSettings({ seoTitle: e.target.value })}
+                      value={tempSettings?.seoTitle || ''}
+                      onChange={(e) => setTempSettings({ ...tempSettings, seoTitle: e.target.value })}
                       placeholder="e.g., Findara - Premium Curated Products"
                       className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                        (settings?.seoTitle?.length || 0) > 60 || (settings?.seoTitle?.length || 0) < 40 ? 'border-amber-500/50 focus:ring-amber-500' : 'border-slate-800'
+                        (tempSettings?.seoTitle?.length || 0) > 60 || (tempSettings?.seoTitle?.length || 0) < 40 ? 'border-amber-500/50 focus:ring-amber-500' : 'border-slate-800'
                       }`}
                     />
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-[10px] font-medium flex items-center gap-1">
-                        {(settings?.seoTitle?.length || 0) < 40 ? (
+                        {(tempSettings?.seoTitle?.length || 0) < 40 ? (
                           <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Aim for 50-60 characters for best visibility.</span></>
-                        ) : (settings?.seoTitle?.length || 0) > 60 ? (
+                        ) : (tempSettings?.seoTitle?.length || 0) > 60 ? (
                           <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Google will truncate this title in search results.</span></>
                         ) : (
                           <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Optimal length. Great for search engines!</span></>
                         )}
                       </p>
                       <p className={`text-[10px] ${
-                        (settings?.seoTitle?.length || 0) > 60 || (settings?.seoTitle?.length || 0) < 40 ? 'text-amber-400 font-medium' : 'text-emerald-400'
+                        (tempSettings?.seoTitle?.length || 0) > 60 || (tempSettings?.seoTitle?.length || 0) < 40 ? 'text-amber-400 font-medium' : 'text-emerald-400'
                       }`}>
-                        {settings?.seoTitle?.length || 0} / 60 characters
+                        {tempSettings?.seoTitle?.length || 0} / 60 characters
                       </p>
                     </div>
                   </div>
@@ -2297,28 +2297,28 @@ const Admin: React.FC = () => {
                   </div>
                   <div className="lg:col-span-2">
                     <textarea
-                      value={settings?.seoDescription || ''}
-                      onChange={(e) => updateSettings({ seoDescription: e.target.value })}
+                      value={tempSettings?.seoDescription || ''}
+                      onChange={(e) => setTempSettings({ ...tempSettings, seoDescription: e.target.value })}
                       placeholder="A brief description of your site for search engines..."
                       rows={3}
                       className={`w-full bg-slate-950/50 border rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none ${
-                        (settings?.seoDescription?.length || 0) > 160 || (settings?.seoDescription?.length || 0) < 120 ? 'border-amber-500/50 focus:ring-amber-500' : 'border-slate-800'
+                        (tempSettings?.seoDescription?.length || 0) > 160 || (tempSettings?.seoDescription?.length || 0) < 120 ? 'border-amber-500/50 focus:ring-amber-500' : 'border-slate-800'
                       }`}
                     />
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-[10px] font-medium flex items-center gap-1">
-                        {(settings?.seoDescription?.length || 0) < 120 ? (
+                        {(tempSettings?.seoDescription?.length || 0) < 120 ? (
                           <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Compelling descriptions improve click-through rate.</span></>
-                        ) : (settings?.seoDescription?.length || 0) > 160 ? (
+                        ) : (tempSettings?.seoDescription?.length || 0) > 160 ? (
                           <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Keep the most important info at the start.</span></>
                         ) : (
                           <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Perfect length. This will look great on Google!</span></>
                         )}
                       </p>
                       <p className={`text-[10px] ${
-                        (settings?.seoDescription?.length || 0) > 160 || (settings?.seoDescription?.length || 0) < 120 ? 'text-amber-400 font-medium' : 'text-emerald-400'
+                        (tempSettings?.seoDescription?.length || 0) > 160 || (tempSettings?.seoDescription?.length || 0) < 120 ? 'text-amber-400 font-medium' : 'text-emerald-400'
                       }`}>
-                        {settings?.seoDescription?.length || 0} / 160 characters
+                        {tempSettings?.seoDescription?.length || 0} / 160 characters
                       </p>
                     </div>
                   </div>

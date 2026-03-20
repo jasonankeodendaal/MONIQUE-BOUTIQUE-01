@@ -116,7 +116,7 @@ async function startServer() {
       const client = getSupabase();
       let settings: any = null;
       if (client) {
-        const { data } = await client.from('site_settings').select('*').single();
+        const { data } = await client.from('settings').select('*').single();
         settings = data;
       }
       const baseUrl = process.env.APP_URL || 'https://findara.com';
@@ -198,7 +198,7 @@ async function startServer() {
         let settings: any = null;
         let product: any = null;
         if (client) {
-          const { data } = await client.from('site_settings').select('*').single();
+          const { data } = await client.from('settings').select('*').single();
           settings = data;
           
           // Check if it's a product page
@@ -242,7 +242,7 @@ async function startServer() {
         let settings: any = null;
         let product: any = null;
         if (client) {
-          const { data } = await client.from('site_settings').select('*').single();
+          const { data } = await client.from('settings').select('*').single();
           settings = data;
           
           // Check if it's a product page
