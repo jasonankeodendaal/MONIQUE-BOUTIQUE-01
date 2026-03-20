@@ -1332,3 +1332,31 @@ export const TRAINING_MODULES: TrainingModule[] = [
     steps: []
   }
 ];
+
+export const PILOT_SQL_SCRIPT = `-- PILOT TAB MASTER ARCHITECTURE SCRIPT
+CREATE TABLE IF NOT EXISTS pilot_projects (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  status TEXT,
+  "createdAt" BIGINT,
+  "updatedAt" BIGINT,
+  data JSONB
+);
+
+CREATE TABLE IF NOT EXISTS pilot_tasks (
+  id TEXT PRIMARY KEY,
+  "projectId" TEXT REFERENCES pilot_projects(id),
+  title TEXT,
+  description TEXT,
+  status TEXT,
+  "assignedTo" TEXT,
+  "createdAt" BIGINT
+);
+
+ALTER TABLE pilot_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pilot_tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public Read pilot_projects" ON pilot_projects FOR SELECT USING (true);
+CREATE POLICY "Public Read pilot_tasks" ON pilot_tasks FOR SELECT USING (true);
+CREATE POLICY "Enable all for anon pilot_projects" ON pilot_projects FOR ALL USING (true);
+CREATE POLICY "Enable all for anon pilot_tasks" ON pilot_tasks FOR ALL USING (true);`;

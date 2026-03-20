@@ -1462,7 +1462,7 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'pilot';
 
 const Admin: React.FC = () => {
   const { 
@@ -1611,7 +1611,8 @@ const Admin: React.FC = () => {
     { id: 'training', label: 'Training', icon: GraduationCap },
     { id: 'seo', label: 'SEO Settings', icon: Globe },
     { id: 'system', label: 'System', icon: Activity },
-    { id: 'guide', label: 'Pilot', icon: Rocket }
+    { id: 'pilot', label: 'Pilot', icon: Rocket },
+    { id: 'guide', label: 'Guide', icon: Info }
   ];
 
   const visibleTabs = useMemo(() => ALL_TABS.filter(t => hasPermission(t.id)), [isOwner, myAdminProfile]);
@@ -3892,118 +3893,26 @@ const Admin: React.FC = () => {
     );
   };
 
-  const renderTraining = () => (
+  const renderPilot = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-         <div className="space-y-2">
-            <h2 className="text-3xl font-serif text-white">Academy</h2>
-            <p className="text-slate-400 text-sm">Curation marketing mastery across {trainingModules.length} channels.</p>
-         </div>
-         <div className="flex items-center gap-6">
-            { isOwner && (
-               <div className="flex items-center gap-3 p-1 bg-slate-900 border border-slate-800 rounded-2xl">
-                  <button 
-                    onClick={() => setIsTrainingManagementMode(!isTrainingManagementMode)}
-                    className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${isTrainingManagementMode ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                  >
-                    {isTrainingManagementMode ? <SettingsIcon size={14}/> : <Eye size={14}/>}
-                    {isTrainingManagementMode ? 'Management Active' : 'Owner Control'}
-                  </button>
-               </div>
-            )}
-            {!isTrainingManagementMode && (
-              <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2">
-                <Video size={16}/> Mastering the Algorithm
-              </a>
-            )}
-            {isTrainingManagementMode && (
-               <button onClick={() => { setTrainingData({ title: '', platform: 'Instagram', description: '', strategies: [], actionItems: [], steps: [], icon: 'GraduationCap' }); setEditingId(null); setShowTrainingForm(true); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3">
-                  <Plus size={18} /> New Module
-               </button>
-            )}
-         </div>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-serif text-white">Pilot Projects</h2>
+          <p className="text-slate-400 text-sm">Manage experimental projects and their associated tasks.</p>
+        </div>
+        <button onClick={() => { /* Add logic to open new project modal */ }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3">
+          <Plus size={18} /> New Project
+        </button>
       </div>
 
-      {showTrainingForm ? (
-         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-12 animate-in slide-in-from-bottom-8">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-8">
-               <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-xl">
-                     <GraduationCap size={24}/>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Syllabus' : 'Curate New Training'}</h3>
-                    <p className="text-slate-500 text-xs mt-1 uppercase tracking-widest font-black">Module Engineering Console</p>
-                  </div>
-               </div>
-               <button onClick={() => setShowTrainingForm(false)} className="p-3 bg-slate-800 text-slate-500 rounded-full hover:text-white transition-colors"><X size={24}/></button>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-12 text-left">
-               <div className="space-y-8">
-                  <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4">I. Core Metadata</h4>
-                  <SettingField label="Module Title" value={trainingData.title || ''} onChange={v => setTrainingData({...trainingData, title: v})} />
-                  <div className="grid grid-cols-2 gap-6">
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Primary Platform</label>
-                        <select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm appearance-none cursor-pointer" value={trainingData.platform} onChange={e => setTrainingData({...trainingData, platform: e.target.value as any})}>
-                           {['Instagram', 'Pinterest', 'TikTok', 'WhatsApp', 'SEO', 'Facebook', 'YouTube', 'LinkedIn', 'Threads', 'Twitter', 'Snapchat', 'Email', 'General'].map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Module Icon</label>
-                        <IconPicker selected={trainingData.icon || 'GraduationCap'} onSelect={v => setTrainingData({...trainingData, icon: v})} />
-                     </div>
-                  </div>
-                  <SettingField label="High-Level Summary" value={trainingData.description || ''} onChange={v => setTrainingData({...trainingData, description: v})} type="textarea" />
-               </div>
-
-               <div className="space-y-8">
-                  <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4">II. Strategem & Actions</h4>
-                  <div className="bg-slate-800/20 p-6 rounded-3xl border border-slate-800/50 space-y-6">
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Add Strategies</label>
-                        <div className="flex gap-2">
-                           <input type="text" value={tempTrainingStrat} onChange={e => setTempTrainingStrat(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}), setTempTrainingStrat(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Optimized Reel Timings" />
-                           <button onClick={() => { setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}); setTempTrainingStrat(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
-                        </div>
-                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.strategies || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, strategies: trainingData.strategies?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
-                     </div>
-                     <div className="space-y-2 pt-6 border-t border-slate-800">
-                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mandatory Action Items</label>
-                        <div className="flex gap-2">
-                           <input type="text" value={tempTrainingAction} onChange={e => setTempTrainingAction(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}), setTempTrainingAction(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Schedule 30 Pins" />
-                           <button onClick={() => { setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}); setTempTrainingAction(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
-                        </div>
-                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.actionItems || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, actionItems: trainingData.actionItems?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-            <div className="pt-12 border-t border-slate-800 text-left">
-               <h4 className="text-white font-black text-xs uppercase tracking-[0.3em] flex items-center gap-2 border-l-2 border-primary pl-4 mb-8">III. Dynamic Step Builder</h4>
-               <div className="space-y-8">
-                  {(trainingData.steps || []).map((step, idx) => (
-                    <div key={idx} className="bg-slate-950 border border-slate-800 rounded-[2.5rem] p-8 md:p-10 relative group/step animate-in slide-in-from-left duration-300">
-                       <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary text-slate-900 flex items-center justify-center font-black shadow-xl z-10 border-4 border-slate-900">
-                          {idx + 1}
-                       </div>
-                       <div className="absolute top-6 right-6">
-                          <button onClick={() => {
-                             const newSteps = [...(trainingData.steps || [])];
-                             newSteps.splice(idx, 1);
-                             setTrainingData({...trainingData, steps: newSteps});
-                          }} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
-                       </div>
-                       
-                       <div className="grid lg:grid-cols-12 gap-10">
-                          <div className="lg:col-span-8 space-y-6">
-                             <SettingField label="Step Heading" value={step.title} onChange={v => {
-                                const newSteps = [...(trainingData.steps || [])];
-                                newSteps[idx] = {...newSteps[idx], title: v};
-                                setTrainingData({...trainingData, steps: newSteps});
-                             }} />
+      <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800">
+        <h3 className="text-white font-bold text-lg mb-4">Architecture Script</h3>
+        <pre className="bg-slate-950 p-6 rounded-xl text-slate-300 text-xs font-mono overflow-x-auto border border-slate-800">
+          {PILOT_SQL_SCRIPT}
+        </pre>
+      </div>
+    </div>
+  );
                              <SettingField label="Methodology Instruction" value={step.description} onChange={v => {
                                 const newSteps = [...(trainingData.steps || [])];
                                 newSteps[idx] = {...newSteps[idx], description: v};
@@ -4287,6 +4196,7 @@ const Admin: React.FC = () => {
         { (activeTab === 'training') && renderTraining() }
         { (activeTab === 'system') && renderSystem() }
         { (activeTab === 'guide') && renderGuide() }
+        { (activeTab === 'pilot') && renderPilot() }
         { (activeTab === 'seo') && renderSEO() }
       </main>
 
