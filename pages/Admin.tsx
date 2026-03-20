@@ -1466,7 +1466,7 @@ type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | '
 
 const Admin: React.FC = () => {
   const { 
-    settings, updateSettings, user, isLocalMode, saveStatus, setSaveStatus,
+    settings, updateSettings, user, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats,
     updateData, deleteData, refreshAllData, logout, connectionHealth, systemLogs, storageStats
   } = useSettings();
@@ -1523,7 +1523,7 @@ const Admin: React.FC = () => {
   const [tempTrainingAction, setTempTrainingAction] = useState('');
 
   const myAdminProfile = useMemo(() => admins.find(a => a.id === user?.id || a.email === user?.email), [admins, user]);
-  const isOwner = isLocalMode || (myAdminProfile?.role === 'owner') || (user?.email === 'admin@findara.com');
+  const isOwner = (myAdminProfile?.role === 'owner') || (user?.email === 'admin@findara.com');
   const userId = user?.id;
 
   const loadHistory = async () => {
@@ -4236,7 +4236,7 @@ const Admin: React.FC = () => {
       { (selectedAdProduct) && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} /> }
 
       <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
-        <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isLocalMode ? 'LOCAL MODE' : (isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR')}</div></div></div>
+        <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR'}</div></div></div>
         <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
             {visibleTabs.map(tab => {

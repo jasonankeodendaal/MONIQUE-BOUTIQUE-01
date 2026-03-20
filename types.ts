@@ -543,7 +543,6 @@ export interface SettingsContextType {
   // System State
   user: any;
   loadingAuth: boolean;
-  isLocalMode: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
   logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;

@@ -8,10 +8,101 @@ import { createClient } from '@supabase/supabase-js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Supabase client for server-side use
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Initialize Supabase client for server-side use lazily
+let supabase: ReturnType<typeof createClient> | null = null;
+
+function getSupabase() {
+  if (!supabase) {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+    if (supabaseUrl && supabaseKey) {
+      supabase = createClient(supabaseUrl, supabaseKey);
+    }
+  }
+  return supabase;
+}
+
+function generateSeoTags(settings: any, url: string, product?: any) {
+  if (!settings) {
+    return `
+    <title>Findara | Your Bridge to Global Trends</title>
+    <meta name="title" content="Findara | Your Bridge to Global Trends" />
+    <meta name="description" content="A curated gateway to Shein and global fashion trends. Discover my personal favorites and professional fashion picks." />
+    `;
+  }
+  
+  const title = product ? `${product.name} | ${settings.companyName || 'Findara'}` : (settings.seoTitle || settings.companyName || 'Findara');
+  const description = product ? (product.description || '').substring(0, 160) : (settings.seoDescription || settings.footerDescription || '');
+  const image = product ? product.imageUrl : (settings.seoOgImage || settings.companyLogoUrl || '');
+  const baseUrl = process.env.APP_URL || 'https://findara.com';
+  const canonicalUrl = `${baseUrl}${url}`;
+  
+  let tags = `
+    <title>${title}</title>
+    <meta name="title" content="${title}" />
+    <meta name="description" content="${description}" />
+    
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${canonicalUrl}" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:image" content="${image}" />
+    
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="${canonicalUrl}" />
+    <meta property="twitter:title" content="${title}" />
+    <meta property="twitter:description" content="${description}" />
+    <meta property="twitter:image" content="${image}" />
+  `;
+
+  if (settings.gscVerificationId) {
+    tags += `\n    <meta name="google-site-verification" content="${settings.gscVerificationId}" />`;
+  }
+
+  if (settings.seoEnableCanonicalTags) {
+    tags += `\n    <link rel="canonical" href="${canonicalUrl}" />`;
+  }
+
+  if (settings.enableSchemaMarkup) {
+    let schemaJson;
+    if (product) {
+      schemaJson = JSON.stringify({
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "image": product.imageUrl,
+        "description": product.description,
+        "sku": product.id,
+        "offers": {
+          "@type": "Offer",
+          "url": canonicalUrl,
+          "priceCurrency": "USD",
+          "price": product.price || "0.00",
+          "availability": "https://schema.org/InStock"
+        }
+      });
+    } else {
+      schemaJson = settings.customSchemaJson || JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": settings.schemaType || "LocalBusiness",
+        "name": settings.localBusinessName || settings.companyName,
+        "image": settings.companyLogoUrl,
+        "telephone": settings.localBusinessPhone || settings.contactPhone,
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": settings.localBusinessAddress || settings.address
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "description": settings.localBusinessOpeningHours || settings.contactHoursWeekdays
+        }
+      });
+    }
+    tags += `\n    <script type="application/ld+json">\n${schemaJson}\n    </script>`;
+  }
+
+  return tags;
+}
 
 async function startServer() {
   const app = express();
@@ -22,7 +113,12 @@ async function startServer() {
   // Dynamic robots.txt
   app.get('/robots.txt', async (req: Request, res: Response) => {
     try {
-      const { data: settings } = await supabase.from('site_settings').select('*').single();
+      const client = getSupabase();
+      let settings: any = null;
+      if (client) {
+        const { data } = await client.from('site_settings').select('*').single();
+        settings = data;
+      }
       const baseUrl = process.env.APP_URL || 'https://findara.com';
       
       let robotsTxt = 'User-agent: *\nAllow: /\n';
@@ -42,8 +138,15 @@ async function startServer() {
   // Dynamic sitemap.xml
   app.get('/sitemap.xml', async (req: Request, res: Response) => {
     try {
-      const { data: products } = await supabase.from('products').select('id, createdAt');
-      const { data: categories } = await supabase.from('categories').select('id');
+      const client = getSupabase();
+      let products: any[] | null = null;
+      let categories: any[] | null = null;
+      if (client) {
+        const { data: p } = await client.from('products').select('id, createdAt');
+        const { data: c } = await client.from('categories').select('id');
+        products = p;
+        categories = c;
+      }
       const baseUrl = process.env.APP_URL || 'https://findara.com';
       
       let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -91,17 +194,34 @@ async function startServer() {
         template = await vite.transformIndexHtml(url, template);
         
         // Fetch settings for script injection
-        const { data: settings } = await supabase.from('site_settings').select('*').single();
+        const client = getSupabase();
+        let settings: any = null;
+        let product: any = null;
+        if (client) {
+          const { data } = await client.from('site_settings').select('*').single();
+          settings = data;
+          
+          // Check if it's a product page
+          const productMatch = url.match(/^\/product\/([a-zA-Z0-9-]+)/);
+          if (productMatch && productMatch[1]) {
+            const { data: productData } = await client.from('products').select('*').eq('id', productMatch[1]).single();
+            if (productData) {
+              product = productData;
+            }
+          }
+        }
         if (settings) {
           const headerScripts = (settings.customHeaderScripts || '') + 
-            (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '') +
-            (settings.gscVerificationId ? `<meta name="google-site-verification" content="${settings.gscVerificationId}" />` : '');
+            (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '');
           
           const footerScripts = settings.customFooterScripts || '';
           
           template = template.replace('</head>', `${headerScripts}</head>`);
           template = template.replace('</body>', `${footerScripts}</body>`);
         }
+        
+        const seoTags = generateSeoTags(settings, url, product);
+        template = template.replace('<!-- SEO_TAGS -->', seoTags);
         
         res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
       } catch (e) {
@@ -118,17 +238,34 @@ async function startServer() {
         let template = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
         
         // Fetch settings for script injection
-        const { data: settings } = await supabase.from('site_settings').select('*').single();
+        const client = getSupabase();
+        let settings: any = null;
+        let product: any = null;
+        if (client) {
+          const { data } = await client.from('site_settings').select('*').single();
+          settings = data;
+          
+          // Check if it's a product page
+          const productMatch = req.originalUrl.match(/^\/product\/([a-zA-Z0-9-]+)/);
+          if (productMatch && productMatch[1]) {
+            const { data: productData } = await client.from('products').select('*').eq('id', productMatch[1]).single();
+            if (productData) {
+              product = productData;
+            }
+          }
+        }
         if (settings) {
           const headerScripts = (settings.customHeaderScripts || '') + 
-            (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '') +
-            (settings.gscVerificationId ? `<meta name="google-site-verification" content="${settings.gscVerificationId}" />` : '');
+            (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '');
           
           const footerScripts = settings.customFooterScripts || '';
           
           template = template.replace('</head>', `${headerScripts}</head>`);
           template = template.replace('</body>', `${footerScripts}</body>`);
         }
+        
+        const seoTags = generateSeoTags(settings, req.originalUrl, product);
+        template = template.replace('<!-- SEO_TAGS -->', seoTags);
         
         res.status(200).set({ 'Content-Type': 'text/html' }).send(template);
       } catch (e) {

@@ -109,7 +109,7 @@ export const useSettings = () => {
 };
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { settings, user, loadingAuth, isLocalMode } = useSettings();
+  const { settings, user, loadingAuth } = useSettings();
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -118,7 +118,6 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
       </div>
     </div>
   );
-  if (isLocalMode) return <>{children}</>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
@@ -465,17 +464,41 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
 
 const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const logoutRef = useRef(logout);
+  const lastWriteRef = useRef(0);
+
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
+
   const resetTimer = useCallback(() => {
+    const now = Date.now();
+    // Throttle to avoid excessive localStorage writes and timer resets
+    if (now - lastWriteRef.current < 1000) return;
+    
+    localStorage.setItem('lastActivity', now.toString());
+    lastWriteRef.current = now;
+
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => { 
-      console.warn("Security Watchdog: System inactivity timeout. Terminating session.");
-      logout(); 
-    }, timeoutMs);
-  }, [logout, timeoutMs]);
+    
+    const checkInactivity = () => {
+      const lastActivity = parseInt(localStorage.getItem('lastActivity') || '0', 10);
+      const currentTime = Date.now();
+      if (currentTime - lastActivity >= timeoutMs - 1000) {
+        console.warn("Security Watchdog: System inactivity timeout. Terminating session.");
+        logoutRef.current();
+      } else {
+        // Active in another tab, reset the timer for the remaining time
+        timerRef.current = setTimeout(checkInactivity, timeoutMs - (currentTime - lastActivity));
+      }
+    };
+
+    timerRef.current = setTimeout(checkInactivity, timeoutMs);
+  }, [timeoutMs]);
   
   useEffect(() => {
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
-    events.forEach(event => window.addEventListener(event, resetTimer));
+    events.forEach(event => window.addEventListener(event, resetTimer, { passive: true }));
     resetTimer();
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -773,31 +796,6 @@ const App: React.FC = () => {
     window.location.hash = '#/login';
   };
 
-  useEffect(() => {
-    if (!user || !window.location.pathname.startsWith('/admin')) return;
-
-    let timeoutId: NodeJS.Timeout;
-    const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutes
-
-    const resetTimer = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        addSystemLog('AUTH', 'SESSION', 'Auto-logout due to 30min inactivity', 0);
-        logout();
-      }, INACTIVITY_LIMIT);
-    };
-
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    events.forEach(event => document.addEventListener(event, resetTimer));
-
-    resetTimer();
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      events.forEach(event => document.removeEventListener(event, resetTimer));
-    };
-  }, [user, isSupabaseConfigured]);
-
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
     setSaveStatus('saving'); const updated = { ...settings, ...newSettings }; setSettings(updated);
     if (isSupabaseConfigured) { try { await upsertData('settings', { ...updated, id: settingsId }); addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); } catch (e) { addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed'); } }
@@ -881,7 +879,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, isLocalMode: !isSupabaseConfigured, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
           <title>{settings.seoTitle || settings.companyName}</title>
           <meta name="description" content={settings.seoDescription || settings.footerDescription} />

@@ -6,7 +6,7 @@ import { Mail, Lock, Info, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
-  const { isLocalMode, settings, user } = useSettings();
+  const { settings, user } = useSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,13 +36,6 @@ const Login: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    if (isLocalMode) {
-      setTimeout(() => {
-        handleSuccessfulAuth();
-      }, 1000);
-      return;
-    }
-
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -58,7 +51,6 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    if (isLocalMode) return;
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -171,22 +163,10 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          {isLocalMode && (
-             <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl flex gap-4 items-start">
-               <Info size={20} className="text-blue-500 flex-shrink-0 mt-1" />
-               <div>
-                 <h4 className="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">Local Mode Active</h4>
-                 <p className="text-slate-400 text-xs leading-relaxed">
-                   Enter any email/password to simulate access. Data is stored locally until you connect Supabase.
-                 </p>
-               </div>
-             </div>
-          )}
-
           <div className="space-y-6">
              <button 
               onClick={handleGoogleLogin}
-              disabled={loading || isLocalMode}
+              disabled={loading}
               className="w-full py-4 bg-white text-slate-900 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
                {loading ? <Loader2 size={18} className="animate-spin" /> : <Chrome size={18} />}
