@@ -229,7 +229,7 @@ BEGIN
     DROP POLICY IF EXISTS "Public Read settings" ON settings;
     DROP POLICY IF EXISTS "Public Read products" ON products;
     DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
-    DROP POLICY IF EXISTS "Public Read banner" ON categories;
+    DROP POLICY IF EXISTS "Public Read cat" ON categories;
     DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
     DROP POLICY IF EXISTS "Public Read training" ON training_modules;
     DROP POLICY IF EXISTS "Public Read stats" ON product_stats;

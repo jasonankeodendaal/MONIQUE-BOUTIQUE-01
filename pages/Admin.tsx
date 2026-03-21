@@ -1208,14 +1208,11 @@ const EliteReportModal: React.FC<{
     const targetProductNames = new Set(targetProducts.map(p => p.name));
 
     // 2. FILTER TRAFFIC LOGS BY CURATOR PRODUCTS & TIMEFRAME
-    // We filter logs where text includes the product name of one of the target curator's products
     const filterLogs = (logs: any[], start: number, end: number) => {
       return logs.filter(e => {
         if (e.timestamp < start || e.timestamp > end) return false;
-        if (curatorId === 'all') return true; // Show all if global
+        if (curatorId === 'all') return true; 
         
-        // Match specific product context in logs
-        // Product log format is usually "Product: [Name]"
         const logText = e.text || '';
         const isProductLog = logText.startsWith('Product: ');
         if (isProductLog) {
@@ -1229,7 +1226,6 @@ const EliteReportModal: React.FC<{
     const currentPeriodLogs = filterLogs(trafficEvents, periodStart, now);
     const prevPeriodLogs = filterLogs(trafficEvents, prevPeriodStart, periodStart);
 
-    // Calculate metrics from logs for accurate timeframe representation
     const totalViews = currentPeriodLogs.filter(l => l.type === 'view').length;
     const totalClicks = currentPeriodLogs.filter(l => l.type === 'click').length;
     const totalShares = currentPeriodLogs.filter(l => l.type === 'share').length;
@@ -1239,6 +1235,37 @@ const EliteReportModal: React.FC<{
     
     const ctr = (totalViews > 0) ? ((totalClicks / totalViews) * 100).toFixed(2) : '0.00';
     const projectedNextMonth = totalViews * (1 + (growthRate / 100));
+
+    // 3. TOP PERFORMING PRODUCTS
+    const topProducts = targetProducts.map(p => {
+      const pLogs = currentPeriodLogs.filter(l => l.text === `Product: ${p.name}`);
+      const views = pLogs.filter(l => l.type === 'view').length;
+      const clicks = pLogs.filter(l => l.type === 'click').length;
+      const ctr = views > 0 ? (clicks / views) * 100 : 0;
+      const categoryName = categories.find(c => c.id === p.categoryId)?.name || 'Uncategorized';
+      return { ...p, views, clicks, ctr, categoryName };
+    }).sort((a, b) => b.clicks - a.clicks).slice(0, 5);
+
+    // 4. CATEGORY BREAKDOWN
+    const catBreakdown = categories.map(cat => {
+      const catProducts = targetProducts.filter(p => p.categoryId === cat.id);
+      const catProductNames = new Set(catProducts.map(p => p.name));
+      const catLogs = currentPeriodLogs.filter(l => {
+        const logText = l.text || '';
+        if (logText.startsWith('Product: ')) {
+          return catProductNames.has(logText.replace('Product: ', '').trim());
+        }
+        return false;
+      });
+      const views = catLogs.filter(l => l.type === 'view').length;
+      return { name: cat.name, views, percentage: totalViews > 0 ? (views / totalViews) * 100 : 0 };
+    }).filter(c => c.views > 0).sort((a, b) => b.views - a.views);
+
+    // 5. ELITE PERFORMANCE SCORE (0-100)
+    const volScore = Math.min(100, (totalViews / 1000) * 100);
+    const growthScore = Math.min(100, Math.max(0, growthRate + 50)); 
+    const ctrScore = Math.min(100, (parseFloat(ctr) / 5) * 100); 
+    const performanceScore = Math.round((volScore * 0.3) + (growthScore * 0.3) + (ctrScore * 0.4));
 
     const staffPerformance = admins.map(admin => {
       const adminProducts = products.filter(p => p.createdBy === admin.id);
@@ -1262,7 +1289,8 @@ const EliteReportModal: React.FC<{
 
     return { 
       totalViews, totalClicks, totalShares, ctr, growthRate, projectedNextMonth, staffPerformance, 
-      curatorName, timeframeLabel: timeframe.toUpperCase()
+      curatorName, timeframeLabel: timeframe.toUpperCase(),
+      topProducts, catBreakdown, performanceScore
     };
   }, [trafficEvents, products, admins, curatorId, timeframeMs, timeframe]);
 
@@ -1327,7 +1355,20 @@ const EliteReportModal: React.FC<{
                     <h1 className="text-4xl font-serif font-black tracking-tighter uppercase">{settings.companyName}</h1>
                     <p className="text-slate-500 uppercase tracking-[0.4em] font-black text-[10px] mt-1">{settings.slogan}</p>
                  </div>
-                 <div className="text-right">
+                 <div className="text-right flex flex-col items-end">
+                    <div className="flex items-center gap-4 mb-4">
+                       <div className="text-right">
+                          <span className="text-[8px] font-black uppercase text-slate-400 block tracking-widest">Elite Score</span>
+                          <span className="text-3xl font-bold text-primary">{reportData.performanceScore}/100</span>
+                       </div>
+                       <div className="w-16 h-16 rounded-full border-4 border-slate-100 flex items-center justify-center relative">
+                          <svg className="w-full h-full -rotate-90">
+                             <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-100" />
+                             <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray={`${(reportData.performanceScore / 100) * 176} 176`} className="text-primary" />
+                          </svg>
+                          <Crown size={20} className="absolute text-primary" />
+                       </div>
+                    </div>
                     <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block">Period: {reportData.timeframeLabel}</span>
                     <h2 className="text-4xl font-serif italic text-slate-300">Elite Performance</h2>
                     <p className="text-slate-400 text-sm mt-2">FY {new Date().getFullYear()} • Contextual Snapshot</p>
@@ -1409,6 +1450,56 @@ const EliteReportModal: React.FC<{
                     </div>
                  </div>
               </div>
+
+               {/* Top Products & Category Breakdown */}
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20">
+                  <div>
+                     <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
+                        <Award size={20} className="text-primary"/> Top Performing Assets
+                     </h3>
+                     <div className="space-y-4">
+                        {reportData.topProducts.map((p, i) => (
+                           <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                              <div className="flex items-center gap-4">
+                                 <div className="w-10 h-10 bg-white rounded-lg border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400">
+                                    0{i+1}
+                                 </div>
+                                 <div>
+                                    <h4 className="font-bold text-sm truncate max-w-[180px]">{p.name}</h4>
+                                    <p className="text-[10px] text-slate-400 uppercase font-black">{p.categoryName}</p>
+                                 </div>
+                              </div>
+                              <div className="text-right">
+                                 <span className="text-sm font-bold block">{p.clicks} Clicks</span>
+                                 <span className="text-[9px] font-black text-primary uppercase tracking-widest">{p.ctr.toFixed(1)}% CTR</span>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+
+                  <div>
+                     <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
+                        <Layers size={20} className="text-primary"/> Category Distribution
+                     </h3>
+                     <div className="space-y-6">
+                        {reportData.catBreakdown.map((cat, i) => (
+                           <div key={i} className="space-y-2">
+                              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                                 <span className="text-slate-600">{cat.name}</span>
+                                 <span className="text-slate-400">{cat.percentage.toFixed(1)}%</span>
+                              </div>
+                              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                 <div 
+                                    className="h-full bg-slate-900 rounded-full transition-all duration-1000" 
+                                    style={{ width: `${cat.percentage}%` }}
+                                 ></div>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+               </div>
 
               {/* Staff / Curator Performance (Only if global) */}
               { curatorId === 'all' && (
