@@ -269,8 +269,6 @@ export interface SiteSettings {
 
   // Admin Login Configuration
   adminLoginHeroImage?: string;
-  adminLoginTitle?: string;
-  adminLoginSubtitle?: string;
   adminLoginAccentEnabled?: boolean;
 
   // Legal Content
