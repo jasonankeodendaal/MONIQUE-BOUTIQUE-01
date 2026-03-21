@@ -127,7 +127,7 @@ export const GUIDE_STEPS = [
       'Click "Run". Ensure all 12 tables are created in the "Table Editor".',
       'Verify that RLS (Row Level Security) is enabled for all tables.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v5.3 (Idempotent & Safe)
+    code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Idempotent & Safe)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. TABLES
@@ -208,7 +208,16 @@ CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, pl
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags TEXT[], "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 
--- 2. ENABLE RLS
+-- 2. INITIAL DATA
+INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
+VALUES ('global', 'Findara', 'Curating the Exceptional', '#E5C1CD')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO admin_users (id, name, email, role, permissions)
+VALUES ('admin-1', 'System Administrator', 'ankebaeleejason@gmail.com', 'owner', ARRAY['all'])
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. ENABLE RLS
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
@@ -222,10 +231,10 @@ ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
 
--- 3. DROP OLD POLICIES (PREVENT ERRORS)
+-- 4. POLICIES (Idempotent)
 DO $$ 
 BEGIN
-    -- DROP SELECT POLICIES
+    -- DROP ALL POLICIES FIRST
     DROP POLICY IF EXISTS "Public Read settings" ON settings;
     DROP POLICY IF EXISTS "Public Read products" ON products;
     DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
@@ -233,8 +242,6 @@ BEGIN
     DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
     DROP POLICY IF EXISTS "Public Read training" ON training_modules;
     DROP POLICY IF EXISTS "Public Read stats" ON product_stats;
-
-    -- DROP ALL PERMISSIONS POLICIES
     DROP POLICY IF EXISTS "Enable all for anon" ON settings;
     DROP POLICY IF EXISTS "Enable all for anon products" ON products;
     DROP POLICY IF EXISTS "Enable all for anon enquiries" ON enquiries;
@@ -249,7 +256,7 @@ BEGIN
     DROP POLICY IF EXISTS "Enable all for anon system_logs" ON system_logs;
 END $$;
 
--- 4. RECREATE POLICIES
+-- RECREATE POLICIES
 CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
 CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
 CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
@@ -270,7 +277,7 @@ CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
 CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (true);`,
-    codeLabel: 'Idempotent Master SQL Script v5.3'
+    codeLabel: 'Idempotent Master SQL Script v6.0'
   },
   {
     id: 'security-auth',
