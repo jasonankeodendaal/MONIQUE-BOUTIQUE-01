@@ -848,10 +848,14 @@ const App: React.FC = () => {
         await upsertData('settings', { ...updated, id: settingsId }); 
         addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); 
         setSaveStatus('saved');
-      } catch (e) { 
-        addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed'); 
+      } catch (e: any) { 
+        const isSchemaError = e.message?.includes('column') || e.message?.includes('schema cache');
+        addSystemLog('ERROR', 'settings', isSchemaError ? 'Schema mismatch - Run SQL in Pilot' : 'Cloud sync failed', 0, 'failed'); 
         setSaveStatus('error');
-        // Revert local state on error to avoid "local only" confusion
+        console.error('Settings Sync Error:', e.message);
+        if (isSchemaError) {
+          console.warn('HINT: You likely need to run the Master SQL Script from the Pilot tab in your Supabase SQL Editor.');
+        }
         refreshAllData();
       } 
     } else {

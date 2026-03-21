@@ -4661,17 +4661,37 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'login') && (
                   <>
-                    <SettingField label="Login Title" value={tempSettings.adminLoginTitle || ''} onChange={v => updateTempSettings({ adminLoginTitle: v })} />
-                    <SettingField label="Login Subtitle" value={tempSettings.adminLoginSubtitle || ''} onChange={v => updateTempSettings({ adminLoginSubtitle: v })} />
-                    <SingleImageUploader label="Login Hero Image" value={tempSettings.adminLoginHeroImage || ''} onChange={v => updateTempSettings({ adminLoginHeroImage: v })} />
-                    <div className="flex items-center gap-4 mt-6">
-                       <input 
-                          type="checkbox" 
-                          checked={tempSettings.adminLoginAccentEnabled || false} 
-                          onChange={e => updateTempSettings({ adminLoginAccentEnabled: e.target.checked })} 
-                          className="w-5 h-5 rounded border-slate-700 bg-slate-900"
-                       />
-                       <span className="text-white font-bold text-sm">Enable Primary Glow Effect</span>
+                    <div className="space-y-6">
+                      <h4 className="text-white font-bold flex items-center gap-2"><Lock size={18} className="text-primary"/> Hero Content</h4>
+                      <SettingField label="Hero Badge" value={tempSettings.loginHeroBadge || ''} onChange={v => updateTempSettings({ loginHeroBadge: v })} />
+                      <SettingField label="Login Title" value={tempSettings.loginHeroTitle || ''} onChange={v => updateTempSettings({ loginHeroTitle: v })} />
+                      <SettingField label="Login Description" value={tempSettings.loginHeroDescription || ''} onChange={v => updateTempSettings({ loginHeroDescription: v })} type="textarea" />
+                      <SingleImageUploader label="Login Hero Image" value={tempSettings.adminLoginHeroImage || ''} onChange={v => updateTempSettings({ adminLoginHeroImage: v })} />
+                      
+                      <div className="flex items-center gap-4 mt-6">
+                         <input 
+                            type="checkbox" 
+                            checked={tempSettings.adminLoginAccentEnabled || false} 
+                            onChange={e => updateTempSettings({ adminLoginAccentEnabled: e.target.checked })} 
+                            className="w-5 h-5 rounded border-slate-700 bg-slate-900"
+                         />
+                         <span className="text-white font-bold text-sm">Enable Primary Glow Effect</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Form Labels & Placeholders</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Email Label" value={tempSettings.loginEmailLabel || ''} onChange={v => updateTempSettings({ loginEmailLabel: v })} />
+                        <SettingField label="Email Placeholder" value={tempSettings.loginEmailPlaceholder || ''} onChange={v => updateTempSettings({ loginEmailPlaceholder: v })} />
+                        <SettingField label="Password Label" value={tempSettings.loginPasswordLabel || ''} onChange={v => updateTempSettings({ loginPasswordLabel: v })} />
+                        <SettingField label="Password Placeholder" value={tempSettings.loginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ loginPasswordPlaceholder: v })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Submit Button" value={tempSettings.loginSubmitLabel || ''} onChange={v => updateTempSettings({ loginSubmitLabel: v })} />
+                        <SettingField label="Google Button" value={tempSettings.loginGoogleLabel || ''} onChange={v => updateTempSettings({ loginGoogleLabel: v })} />
+                      </div>
+                      <SettingField label="Divider Text" value={tempSettings.loginDividerLabel || ''} onChange={v => updateTempSettings({ loginDividerLabel: v })} />
                     </div>
                   </>
                )}

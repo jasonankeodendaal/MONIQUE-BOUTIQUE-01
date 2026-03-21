@@ -32,13 +32,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          const scriptUrl = '/sw.js';
-          navigator.serviceWorker.register(scriptUrl)
-            .then(reg => console.log('SW active:', reg.scope))
-            .catch(err => {
-               navigator.serviceWorker.register('./sw.js')
-                 .catch(err2 => console.debug('Offline mode limited:', err2.message));
-            });
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW active'))
+            .catch(err => console.debug('Offline mode limited:', err.message));
         });
       }
     </script>
