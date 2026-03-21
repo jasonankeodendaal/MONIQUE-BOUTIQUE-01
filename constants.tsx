@@ -124,7 +124,7 @@ export const GUIDE_STEPS = [
     subSteps: [
       'Open the "SQL Editor" in your Supabase dashboard.',
       'Click "New Query" and paste the Master SQL Script provided below.',
-      'Click "Run". Ensure all 11 tables are created in the "Table Editor".',
+      'Click "Run". Ensure all 12 tables are created in the "Table Editor".',
       'Verify that RLS (Row Level Security) is enabled for all tables.'
     ],
     code: `-- MASTER ARCHITECTURE SCRIPT v5.3 (Idempotent & Safe)
@@ -206,6 +206,7 @@ CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TE
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags TEXT[], "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 
 -- 2. ENABLE RLS
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
@@ -219,6 +220,7 @@ ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
 
 -- 3. DROP OLD POLICIES (PREVENT ERRORS)
 DO $$ 
@@ -244,6 +246,7 @@ BEGIN
     DROP POLICY IF EXISTS "Enable all for anon sub" ON subcategories;
     DROP POLICY IF EXISTS "Enable all for anon history" ON product_history;
     DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
+    DROP POLICY IF EXISTS "Enable all for anon system_logs" ON system_logs;
 END $$;
 
 -- 4. RECREATE POLICIES
@@ -265,7 +268,8 @@ CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
 CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
-CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);`,
+CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
+CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (true);`,
     codeLabel: 'Idempotent Master SQL Script v5.3'
   },
   {

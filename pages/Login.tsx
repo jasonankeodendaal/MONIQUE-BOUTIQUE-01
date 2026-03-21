@@ -10,25 +10,18 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loginSuccess, setLoginSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Redirect to Admin if already authenticated
   useEffect(() => {
-    if (user && !loginSuccess) {
+    if (user) {
       navigate('/admin', { replace: true });
     }
-  }, [user, navigate, loginSuccess]);
+  }, [user, navigate]);
 
   const handleSuccessfulAuth = () => {
-    setLoginSuccess(true);
-    setLoading(false);
-    
-    // Aesthetic delay for the "Successful" message
-    setTimeout(() => {
-      navigate('/admin', { replace: true });
-    }, 1800);
+    navigate('/admin', { replace: true });
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -70,45 +63,6 @@ const Login: React.FC = () => {
       setLoading(false);
     }
   };
-
-  if (loginSuccess) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 text-white overflow-hidden">
-        <div className="max-w-md w-full px-6 flex flex-col items-center text-center animate-in fade-in zoom-in duration-700">
-           <div className="relative mb-12">
-              {/* Outer Golden Glow */}
-              <div className="absolute inset-0 bg-primary/30 rounded-full blur-[80px] animate-pulse"></div>
-              
-              {/* Success Ring */}
-              <div className="relative w-32 h-32 md:w-40 md:h-40 bg-white/5 backdrop-blur-xl border border-primary/40 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(var(--primary-rgb),0.3)] animate-soft-flicker">
-                 <CheckCircle2 size={70} className="text-primary" strokeWidth={1} />
-              </div>
-           </div>
-
-           <div className="space-y-4">
-              <span className="text-primary font-black uppercase text-[10px] tracking-[0.6em] animate-in slide-in-from-bottom-2 duration-500 delay-200 block">Identity Verified</span>
-              <h2 className="text-4xl md:text-6xl font-serif tracking-tight leading-none animate-in slide-in-from-bottom-4 duration-700 delay-300">
-                Login <br/> <span className="italic font-light text-primary">Successful</span>
-              </h2>
-              <p className="text-slate-500 text-sm md:text-base font-light animate-in fade-in duration-1000 delay-500">Establishing high-fidelity link to Maison Portal...</p>
-           </div>
-
-           <div className="mt-16 w-full max-w-[240px] space-y-4">
-              <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                 <div className="h-full bg-primary animate-[grow_1.8s_ease-in-out]"></div>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-[9px] font-bold text-slate-600 uppercase tracking-widest">
-                 <ShieldCheck size={12} className="text-green-500" />
-                 Secure Session Protocol Active
-              </div>
-           </div>
-        </div>
-        <style>{`
-          @keyframes grow { from { width: 0%; } to { width: 100%; } }
-        `}</style>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen w-full flex bg-slate-950">

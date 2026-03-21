@@ -2324,6 +2324,15 @@ const Admin: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="flex justify-end pt-4">
+                  <button 
+                    onClick={() => updateSettings({ seoTitle: tempSettings.seoTitle, seoDescription: tempSettings.seoDescription })}
+                    className="px-6 py-3 bg-primary text-slate-900 font-bold rounded-xl hover:brightness-110 transition-all text-sm"
+                  >
+                    Save Global Meta Tags
+                  </button>
+                </div>
+
                 <div className="w-full h-px bg-slate-800/50"></div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
