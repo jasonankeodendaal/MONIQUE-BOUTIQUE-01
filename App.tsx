@@ -752,9 +752,12 @@ const App: React.FC = () => {
          const { data: { session }, error } = await supabase.auth.getSession();
          if (error && error.message.includes('Refresh Token')) await supabase.auth.signOut();
          setUser(session?.user ?? null);
-         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
+         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => { 
            setUser(session?.user ?? null); 
            setLoadingAuth(false); 
+           if (event === 'SIGNED_IN') {
+             window.location.hash = '#/admin';
+           }
          });
          setLoadingAuth(false);
       } catch (e) { setLoadingAuth(false); }
@@ -783,6 +786,15 @@ const App: React.FC = () => {
         if (adm.status === 'fulfilled' && adm.value !== null) { setAdmins(adm.value); localStorage.setItem('admin_users', JSON.stringify(adm.value)); }
         if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
+      } else {
+        setSettings(getLocalState('site_settings', INITIAL_SETTINGS));
+        setProducts(getLocalState('admin_products', INITIAL_PRODUCTS));
+        setCategories(getLocalState('admin_categories', INITIAL_CATEGORIES));
+        setSubCategories(getLocalState('admin_subcategories', INITIAL_SUBCATEGORIES));
+        setHeroSlides(getLocalState('admin_hero', INITIAL_CAROUSEL));
+        setEnquiries(getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
+        setAdmins(getLocalState('admin_users', INITIAL_ADMINS));
+        setStats(getLocalState('admin_product_stats', []));
       }
       setSaveStatus('saved');
     } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
@@ -797,8 +809,18 @@ const App: React.FC = () => {
   };
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
-    setSaveStatus('saving'); const updated = { ...settings, ...newSettings }; setSettings(updated);
-    if (isSupabaseConfigured) { try { await upsertData('settings', { ...updated, id: settingsId }); addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); } catch (e) { addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed'); } }
+    setSaveStatus('saving'); 
+    const updated = { ...settings, ...newSettings }; 
+    setSettings(updated);
+    localStorage.setItem('site_settings', JSON.stringify(updated));
+    if (isSupabaseConfigured) { 
+      try { 
+        await upsertData('settings', { ...updated, id: settingsId }); 
+        addSystemLog('UPDATE', 'settings', 'Global settings updated', 0); 
+      } catch (e) { 
+        addSystemLog('ERROR', 'settings', 'Cloud sync failed', 0, 'failed'); 
+      } 
+    }
     setTimeout(() => setSaveStatus('saved'), 500);
   };
 
@@ -817,7 +839,7 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? data : i) : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
@@ -836,7 +858,7 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.filter((i: any) => i.id !== id);
     localStorage.setItem(key, JSON.stringify(updated));

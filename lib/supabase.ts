@@ -93,7 +93,24 @@ export async function upsertData(table: string, item: any) {
  * Move record from one table to another (Atomic move simulation)
  */
 export async function moveRecord(fromTable: string, toTable: string, item: any) {
-  if (!isSupabaseConfigured) return false;
+  if (!isSupabaseConfigured) {
+    try {
+      // Local storage fallback
+      const toKey = `admin_${toTable}`;
+      const toExisting = JSON.parse(localStorage.getItem(toKey) || '[]');
+      const toUpdated = toExisting.some((i: any) => i.id === item.id) ? toExisting.map((i: any) => i.id === item.id ? item : i) : [item, ...toExisting];
+      localStorage.setItem(toKey, JSON.stringify(toUpdated));
+
+      const fromKey = `admin_${fromTable}`;
+      const fromExisting = JSON.parse(localStorage.getItem(fromKey) || '[]');
+      const fromUpdated = fromExisting.filter((i: any) => i.id !== item.id);
+      localStorage.setItem(fromKey, JSON.stringify(fromUpdated));
+      return true;
+    } catch (err) {
+      console.error(`Local move error from ${fromTable} to ${toTable}:`, err);
+      return false;
+    }
+  }
   try {
     await upsertData(toTable, item);
     await deleteData(fromTable, item.id);

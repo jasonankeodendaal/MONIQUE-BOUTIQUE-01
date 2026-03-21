@@ -1762,7 +1762,17 @@ const Admin: React.FC = () => {
 
   const handleOpenEditor = (section: any) => { setTempSettings({...settings}); setActiveEditorSection(section); setEditorDrawerOpen(true); };
   const updateTempSettings = (newSettings: Partial<SiteSettings>) => setTempSettings(prev => ({ ...prev, ...newSettings }));
-  const exportEnquiries = () => { const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + enquiries.map(e => `${e.name},${e.email},${e.subject},"${e.message}",${new Date(e.createdAt).toLocaleDateString()}`).join("\n"); const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "enquiries_export.csv"); document.body.appendChild(link); link.click(); };
+  const exportEnquiries = () => { 
+    const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
+    const csvContent = "data:text/csv;charset=utf-8," + "Name,Email,Subject,Message,Date\n" + 
+      enquiries.map(e => `${escapeCsv(e.name)},${escapeCsv(e.email)},${escapeCsv(e.subject)},${escapeCsv(e.message)},${escapeCsv(new Date(e.createdAt).toLocaleDateString())}`).join("\n"); 
+    const encodedUri = encodeURI(csvContent); 
+    const link = document.createElement("a"); 
+    link.setAttribute("href", encodedUri); 
+    link.setAttribute("download", "enquiries_export.csv"); 
+    document.body.appendChild(link); 
+    link.click(); 
+  };
   const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
 
   const renderEnquiries = () => (
