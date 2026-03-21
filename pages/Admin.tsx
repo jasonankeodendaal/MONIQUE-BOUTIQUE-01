@@ -1559,7 +1559,7 @@ const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats,
-    updateData, deleteData, refreshAllData, logout, connectionHealth, systemLogs, storageStats
+    updateData, deleteData, refreshAllData, logout, connectionHealth, systemLogs, storageStats, trainingModules
   } = useSettings();
   
   const navigate = useNavigate();
@@ -1608,7 +1608,6 @@ const Admin: React.FC = () => {
   const [isTrainingManagementMode, setIsTrainingManagementMode] = useState(false);
   const [showTrainingForm, setShowTrainingForm] = useState(false);
   const [trainingData, setTrainingData] = useState<Partial<TrainingModule>>({ strategies: [], actionItems: [], steps: [] });
-  const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(INITIAL_TRAINING);
   const [isLoadingTraining, setIsLoadingTraining] = useState(false);
   const [tempTrainingStrat, setTempTrainingStrat] = useState('');
   const [tempTrainingAction, setTempTrainingAction] = useState('');
@@ -1629,30 +1628,11 @@ const Admin: React.FC = () => {
     }
   };
 
-  const loadTrainingModules = async () => {
-    if (!isSupabaseConfigured) return;
-    setIsLoadingTraining(true);
-    try {
-      const data = await fetchTableData('training_modules');
-      if (data) setTrainingModules(data as TrainingModule[]);
-    } catch (err) {
-      console.error("Failed to load training", err);
-    } finally {
-      setIsLoadingTraining(false);
-    }
-  };
-
   useEffect(() => {
     if (catalogView === 'history') {
       loadHistory();
     }
   }, [catalogView]);
-
-  useEffect(() => {
-    if (activeTab === 'training') {
-      loadTrainingModules();
-    }
-  }, [activeTab]);
 
   const displayProducts = useMemo(() => {
     const baseSet = (catalogView === 'active') ? products : historyProducts;
@@ -1791,7 +1771,6 @@ const Admin: React.FC = () => {
        if (ok) {
           setShowTrainingForm(false);
           setEditingId(null);
-          loadTrainingModules();
        }
      } catch (e) {
        setSaveStatus('error');
@@ -4210,7 +4189,7 @@ const Admin: React.FC = () => {
                         { isTrainingManagementMode && !isExpanded && (
                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover/module:opacity-100 transition-opacity">
                               <button onClick={(e) => { e.stopPropagation(); setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-primary hover:text-slate-900 transition-colors shadow-xl"><Edit2 size={14}/></button>
-                              <button onClick={(e) => { e.stopPropagation(); if(confirm("Purge this training module?")) deleteData('training_modules', module.id).then(loadTrainingModules); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-red-500 transition-colors shadow-xl"><Trash2 size={14}/></button>
+                              <button onClick={(e) => { e.stopPropagation(); if(confirm("Purge this training module?")) deleteData('training_modules', module.id); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-red-500 transition-colors shadow-xl"><Trash2 size={14}/></button>
                            </div>
                         )}
                      </div>
@@ -4255,7 +4234,7 @@ const Admin: React.FC = () => {
                               { isTrainingManagementMode && (
                                  <div className="flex gap-2">
                                     <button onClick={() => { setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-700"><Edit2 size={14}/> Edit Syllabus</button>
-                                    <button onClick={() => { if(confirm("Purge module?")) deleteData('training_modules', module.id).then(loadTrainingModules); }} className="px-6 py-3 bg-slate-800 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-slate-700"><Trash2 size={14}/> Delete</button>
+                                    <button onClick={() => { if(confirm("Purge module?")) deleteData('training_modules', module.id); }} className="px-6 py-3 bg-slate-800 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-slate-700"><Trash2 size={14}/> Delete</button>
                                  </div>
                               )}
                               <button onClick={() => setExpandedTraining(null)} className="ml-auto px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">Complete Session</button>

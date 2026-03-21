@@ -536,6 +536,7 @@ export interface SettingsContextType {
   enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
   admins: AdminUser[];
   stats: ProductStats[];
+  trainingModules: TrainingModule[];
   // Actions
   refreshAllData: () => Promise<void>;
   updateData: (table: string, data: any) => Promise<boolean>;
