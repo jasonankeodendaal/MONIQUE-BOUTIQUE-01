@@ -147,14 +147,14 @@ CREATE TABLE IF NOT EXISTS settings (
   "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT,
   "homeReadStoryBtn" TEXT, "homeAboutCuratorLabel" TEXT, "homeAboutNarrativeLabel" TEXT,
   "homeCategoryShopByLabel" TEXT, "homeCategoryPortfolioLabel" TEXT, "homeCategoryDiscoverLabel" TEXT,
-  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" TEXT[], "productsHeroImagesArray" TEXT[],
+  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" JSONB, "productsHeroImagesArray" JSONB,
   "productsSearchPlaceholder" TEXT, "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT,
   "aboutEstablishedYear" TEXT, "aboutEstablishedDate" BIGINT, "aboutFounderName" TEXT, "aboutLocation" TEXT,
   "aboutHistoryBadge" TEXT, "aboutHistoryTitle" TEXT, "aboutHistoryBody" TEXT, "aboutManifestoBadge" TEXT, "aboutManifestoTitle" TEXT,
   "aboutMissionTitle" TEXT, "aboutMissionBody" TEXT, "aboutMissionIcon" TEXT,
   "aboutCommunityTitle" TEXT, "aboutCommunityBody" TEXT, "aboutCommunityIcon" TEXT,
   "aboutIntegrityTitle" TEXT, "aboutIntegrityBody" TEXT, "aboutIntegrityIcon" TEXT,
-  "aboutSignatureImage" TEXT, "aboutGalleryImages" TEXT[], "aboutEstLabel" TEXT, "aboutVerifiedNarrativeLabel" TEXT,
+  "aboutSignatureImage" TEXT, "aboutGalleryImages" JSONB, "aboutEstLabel" TEXT, "aboutVerifiedNarrativeLabel" TEXT,
   "aboutCuratorsEditTitle" TEXT, "aboutCuratorsEditDesc" TEXT, "aboutExploreCollectionBtn" TEXT, "aboutPortfolioVerifiedLabel" TEXT,
   "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT,
   "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
@@ -196,16 +196,16 @@ CREATE TABLE IF NOT EXISTS settings (
   "reviewDefaultName" TEXT, "shareCopySuccessMessage" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags TEXT[], "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
-CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions TEXT[], "password" TEXT, "autoWipeExempt" BOOLEAN, "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
+CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions JSONB, "password" TEXT, "autoWipeExempt" BOOLEAN, "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
-CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies TEXT[], "actionItems" TEXT[], steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features TEXT[], specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags TEXT[], "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies JSONB, "actionItems" JSONB, steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 
 -- 2. INITIAL DATA
@@ -214,7 +214,7 @@ VALUES ('global', 'Findara', 'Curating the Exceptional', '#E5C1CD')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO admin_users (id, name, email, role, permissions)
-VALUES ('admin-1', 'System Administrator', 'ankebaeleejason@gmail.com', 'owner', ARRAY['all'])
+VALUES ('admin-1', 'System Administrator', 'ankebaeleejason@gmail.com', 'owner', '["all"]'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. ENABLE RLS
