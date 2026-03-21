@@ -581,29 +581,33 @@ const TrafficAreaChart: React.FC = () => {
   }, [rawData]);
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-      <div className="xl:col-span-2 relative min-h-[600px] bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
+    <div className="flex flex-col gap-12">
+      <div className="relative min-h-[850px] bg-slate-900 rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl backdrop-blur-xl group flex flex-col">
         <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, var(--primary-color) 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
         
-        <div className="relative z-10 p-8 md:p-10 pb-4 border-b border-white/5 flex flex-col md:flex-row justify-between items-start text-left gap-4">
+        <div className="relative z-10 p-10 md:p-14 pb-6 border-b border-white/5 flex flex-col md:flex-row justify-between items-start text-left gap-8">
            <div className="flex-grow">
-              <div className="flex items-center gap-3 mb-2">
-                 <div className="relative w-3 h-3">
+              <div className="flex items-center gap-4 mb-3">
+                 <div className="relative w-4 h-4">
                     <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                    <div className="relative w-3 h-3 bg-green-500 rounded-full"></div>
+                    <div className="relative w-4 h-4 bg-green-500 rounded-full"></div>
                  </div>
-                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-green-500">Live Traffic Feed</span>
+                 <span className="text-[11px] font-black uppercase tracking-[0.5em] text-green-500">Live Traffic Intelligence Feed</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter text-white">Precise <span className="text-primary">Location</span></h3>
+              <h3 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-white">Global <span className="text-primary">Traffic Intelligence</span></h3>
+              <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest font-bold">Real-time geographic distribution & interaction nodes</p>
            </div>
            
-           <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
-              <TrafficMap data={rawData} onClick={() => setIsMapEnlarged(true)} />
+           <div className="w-full md:w-80 h-56 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl group/map cursor-pointer relative" onClick={() => setIsMapEnlarged(true)}>
+              <TrafficMap data={rawData} />
+              <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover/map:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                 <div className="px-4 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Enlarge Intelligence Map</div>
+              </div>
            </div>
 
-           <div className="text-left md:text-right">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Hits</span>
-              <span className="text-3xl font-bold text-white font-mono">{totalTraffic.toLocaleString()}</span>
+           <div className="text-left md:text-right flex flex-col justify-center">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total Global Hits</span>
+              <span className="text-5xl font-bold text-white font-mono tracking-tighter">{totalTraffic.toLocaleString()}</span>
            </div>
         </div>
 
@@ -691,10 +695,10 @@ const TrafficAreaChart: React.FC = () => {
           </div>
         )}
 
-        <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-4 md:p-8">
+        <div className="relative z-10 flex-grow overflow-y-auto custom-scrollbar p-6 md:p-12">
           {geoStats.length > 0 ? (
-            <div className="grid gap-4">
-               <div className="hidden md:grid grid-cols-12 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500">
+            <div className="grid gap-6">
+               <div className="hidden md:grid grid-cols-12 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/5 mb-2">
                   <div className="col-span-1">#</div>
                   <div className="col-span-6 text-left">Location (Town/City)</div>
                   <div className="col-span-2 text-right">Hits</div>
@@ -703,30 +707,32 @@ const TrafficAreaChart: React.FC = () => {
                {geoStats.map((geo, idx) => {
                  const isLive = (Date.now() - geo.lastActive) < 300000;
                  return (
-                    <div key={idx} className="flex flex-col md:grid md:grid-cols-12 items-start md:items-center p-5 bg-slate-800/40 rounded-3xl border border-white/5 hover:bg-slate-800 transition-colors group/item gap-2 md:gap-0">
+                    <div key={idx} className="flex flex-col md:grid md:grid-cols-12 items-start md:items-center p-8 bg-slate-800/30 rounded-[2rem] border border-white/5 hover:bg-slate-800/60 transition-all group/item gap-4 md:gap-0 hover:scale-[1.01] hover:shadow-2xl">
                        <div className="col-span-1 hidden md:block">
-                          <span className="w-6 h-6 rounded-lg bg-slate-900 flex items-center justify-center text-xs font-bold text-slate-400 border border-slate-700">{idx + 1}</span>
+                          <span className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center text-sm font-bold text-slate-400 border border-slate-700 shadow-inner">{idx + 1}</span>
                        </div>
-                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-2 text-left w-full">
-                          <div className="font-bold text-white text-base flex items-center gap-2 truncate">
-                             <MapPin size={16} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
+                       <div className="col-span-8 md:col-span-6 pl-0 md:pl-4 text-left w-full">
+                          <div className="font-bold text-white text-xl flex items-center gap-3 truncate tracking-tight">
+                             <MapPin size={20} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
                              {geo.city}
                           </div>
-                          <div className="text-xs text-slate-500 font-medium mt-0.5 truncate">{geo.region}, {geo.country}</div>
+                          <div className="text-sm text-slate-500 font-medium mt-1 truncate uppercase tracking-widest">{geo.region}, {geo.country}</div>
                        </div>
                        <div className="col-span-2 text-right w-full md:w-auto flex justify-between md:block">
-                          <span className="md:hidden text-slate-500 text-xs font-bold uppercase">Hits:</span>
-                          <div className="text-white font-mono font-bold text-lg">{geo.count}</div>
+                          <span className="md:hidden text-slate-500 text-[10px] font-black uppercase tracking-widest">Total Hits:</span>
+                          <div className="text-white font-mono font-bold text-2xl">{geo.count}</div>
                        </div>
-                       <div className="col-span-4 md:col-span-3 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t border-white/5 md:border-0">
+                       <div className="col-span-4 md:col-span-3 flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-0">
                           {isLive ? (
-                             <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase tracking-widest border border-green-500/20">Online</span>
+                             <span className="px-4 py-1.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)]">Active Now</span>
                           ) : (
-                             <span className="text-[10px] text-slate-600 font-bold uppercase whitespace-nowrap">Last: {new Date(geo.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                             <span className="text-[11px] text-slate-600 font-bold uppercase tracking-wider whitespace-nowrap">Last Seen: {new Date(geo.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                           )}
-                          <div className="flex items-center gap-3 text-[10px] text-slate-500">
-                             <div className="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-slate-700">{getSourceIcon(geo.source)} <span className="uppercase">{geo.source}</span></div>
-                             {geo.device === 'Mobile' ? <Smartphone size={12} /> : <Monitor size={12} />}
+                          <div className="flex items-center gap-4 text-[11px] text-slate-500">
+                             <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 shadow-sm">{getSourceIcon(geo.source)} <span className="uppercase font-black tracking-tighter">{geo.source}</span></div>
+                             <div className="p-2 bg-slate-900 rounded-lg border border-slate-700">
+                                {geo.device === 'Mobile' ? <Smartphone size={14} /> : <Monitor size={14} />}
+                             </div>
                           </div>
                        </div>
                     </div>
@@ -734,41 +740,49 @@ const TrafficAreaChart: React.FC = () => {
                })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
-               <Globe size={48} className="text-slate-500 mb-4 animate-pulse" />
-               <h4 className="text-white font-bold uppercase tracking-widest">Awaiting Signal</h4>
-               <p className="text-slate-500 text-xs mt-2 max-w-xs">Data populates as visitors access your bridge page.</p>
+            <div className="flex flex-col items-center justify-center h-full text-center opacity-40 py-20">
+               <Globe size={80} className="text-slate-500 mb-6 animate-pulse" />
+               <h4 className="text-white font-black uppercase tracking-[0.3em] text-xl">Awaiting Global Signal</h4>
+               <p className="text-slate-500 text-sm mt-4 max-w-sm leading-relaxed">Data populates as visitors access your bridge page. High-precision nodes will appear here.</p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] border border-white/10 p-8 md:p-10 flex flex-col shadow-2xl text-left h-full">
-         <div className="mb-8">
-            <h3 className="text-white font-bold text-xl flex items-center gap-3"><Smartphone size={24} className="text-primary"/> Device Breakdown</h3>
-            <p className="text-slate-500 text-xs mt-1">Platform Distribution</p>
+      <div className="bg-slate-900 rounded-[3rem] border border-white/10 p-10 md:p-14 flex flex-col shadow-2xl text-left">
+         <div className="mb-12 flex justify-between items-end">
+            <div>
+               <h3 className="text-white font-black text-2xl md:text-3xl italic uppercase tracking-tighter flex items-center gap-4"><Smartphone size={32} className="text-primary"/> Device <span className="text-primary">Breakdown</span></h3>
+               <p className="text-slate-500 text-xs mt-2 uppercase tracking-[0.2em] font-bold">Platform Distribution & Hardware Intelligence</p>
+            </div>
+            <div className="text-right">
+               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Active Nodes</span>
+               <span className="text-3xl font-bold text-white font-mono">{totalTraffic}</span>
+            </div>
          </div>
-         <div className="space-y-6 flex-grow">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { label: 'Mobile', count: deviceStats.mobile, icon: Smartphone, color: 'text-primary', bar: 'bg-primary' },
-              { label: 'Desktop', count: deviceStats.desktop, icon: Monitor, color: 'text-blue-500', bar: 'bg-blue-500' },
-              { label: 'Tablet', count: deviceStats.tablet, icon: Tablet, color: 'text-purple-500', bar: 'bg-purple-500' }
+              { label: 'Mobile', count: deviceStats.mobile, icon: Smartphone, color: 'text-primary', bar: 'bg-primary', shadow: 'shadow-primary/20' },
+              { label: 'Desktop', count: deviceStats.desktop, icon: Monitor, color: 'text-blue-500', bar: 'bg-blue-500', shadow: 'shadow-blue-500/20' },
+              { label: 'Tablet', count: deviceStats.tablet, icon: Tablet, color: 'text-purple-500', bar: 'bg-purple-500', shadow: 'shadow-purple-500/20' }
             ].map((d, i) => {
               const IconComp = d.icon;
+              const share = (totalTraffic > 0) ? Math.round((d.count / totalTraffic) * 100) : 0;
               return (
-                <div key={i} className="bg-slate-800/50 p-6 rounded-3xl border border-slate-800 hover:border-slate-700 transition-colors">
-                   <div className="flex justify-between items-center mb-4">
-                      <div className="flex items-center gap-4">
-                         <div className={`p-3 bg-slate-800 rounded-2xl ${d.color}`}><IconComp size={20}/></div>
-                         <span className="text-white font-bold text-base">{d.label}</span>
+                <div key={i} className="bg-slate-800/30 p-8 rounded-[2.5rem] border border-slate-800 hover:border-slate-600 transition-all hover:scale-[1.02] group/device">
+                   <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-5">
+                         <div className={`p-4 bg-slate-900 rounded-2xl ${d.color} border border-white/5 shadow-xl group-hover/device:scale-110 transition-transform`}><IconComp size={24}/></div>
+                         <span className="text-white font-black uppercase tracking-widest text-sm">{d.label}</span>
                       </div>
-                      <span className="text-white font-mono font-bold text-lg">{d.count}</span>
+                      <span className="text-white font-mono font-bold text-2xl">{d.count}</span>
                    </div>
-                   <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden">
-                      <div className={`h-full ${d.bar} transition-all duration-1000`} style={{ width: `${ (totalTraffic > 0) ? (d.count / totalTraffic) * 100 : 0 }%` }}></div>
+                   <div className="w-full h-4 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                      <div className={`h-full ${d.bar} transition-all duration-1000 ease-out ${d.shadow} shadow-lg`} style={{ width: `${ share }%` }}></div>
                    </div>
-                   <div className="mt-3 text-right">
-                      <span className="text-[10px] text-slate-500 font-bold">{ (totalTraffic > 0) ? Math.round((d.count / totalTraffic) * 100) : 0 }% share</span>
+                   <div className="mt-4 flex justify-between items-center">
+                      <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Market Share</span>
+                      <span className={`text-sm font-bold ${d.color}`}>{ share }%</span>
                    </div>
                 </div>
               );
