@@ -4380,7 +4380,10 @@ const Admin: React.FC = () => {
               }`}
             >
               <AlertTriangle size={14} /> 
-              {settings.isMaintenanceMode ? 'Maintenance: ON' : 'Maintenance Mode'}
+              <span className="flex items-center gap-1.5">
+                {settings.isMaintenanceMode ? 'Maintenance: ON' : 'Maintenance Mode'}
+                <span className="px-1.5 py-0.5 bg-black/20 rounded text-[7px] font-black tracking-tighter opacity-70">GLOBAL</span>
+              </span>
             </button>
           </div>
         </div>
