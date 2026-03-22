@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,18 @@ function getSupabase() {
     }
   }
   return supabase;
+}
+
+let resendClient: Resend | null = null;
+
+function getResend() {
+  if (!resendClient) {
+    const key = process.env.RESEND_API_KEY;
+    if (key) {
+      resendClient = new Resend(key);
+    }
+  }
+  return resendClient;
 }
 
 function generateSeoTags(settings: any, url: string, product?: any) {
@@ -109,6 +122,48 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Contact API endpoint
+  app.post('/api/contact', async (req: Request, res: Response) => {
+    try {
+      const { name, email, whatsapp, subject, message } = req.body;
+      
+      const resend = getResend();
+      if (!resend) {
+        console.warn('RESEND_API_KEY is not set. Skipping email notification.');
+        return res.status(200).json({ success: true, message: 'Inquiry saved (email skipped)' });
+      }
+
+      const client = getSupabase();
+      let adminEmail = 'admin@findara.com'; // Default fallback
+      if (client) {
+        const { data } = await client.from('settings').select('contactEmail').single();
+        if (data && (data as any).contactEmail) {
+          adminEmail = (data as any).contactEmail;
+        }
+      }
+
+      await resend.emails.send({
+        from: 'Findara <onboarding@resend.dev>',
+        to: adminEmail,
+        subject: `New Inquiry: ${subject}`,
+        html: `
+          <h2>New Contact Inquiry</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>WhatsApp:</strong> ${whatsapp || 'N/A'}</p>
+          <p><strong>Subject:</strong> ${subject}</p>
+          <p><strong>Message:</strong></p>
+          <p>${message.replace(/\n/g, '<br>')}</p>
+        `,
+      });
+
+      res.status(200).json({ success: true, message: 'Email sent successfully' });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      res.status(500).json({ success: false, error: 'Failed to send email' });
+    }
+  });
 
   // Dynamic robots.txt
   app.get('/robots.txt', async (req: Request, res: Response) => {

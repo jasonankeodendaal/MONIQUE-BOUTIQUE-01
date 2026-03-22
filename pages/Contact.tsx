@@ -29,14 +29,28 @@ const Contact: React.FC = () => {
       status: 'unread'
     };
 
-    // Exclusively synchronize with Supabase backend
-    await updateData('enquiries', newEnquiry);
+    try {
+      // Exclusively synchronize with Supabase backend
+      await updateData('enquiries', newEnquiry);
 
-    setIsSubmitting(false);
-    setSubmitted(true);
-    setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
-    
-    setTimeout(() => setSubmitted(false), 8000);
+      // Send email notification via API
+      await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formState),
+      });
+
+      setSubmitted(true);
+      setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
+      setTimeout(() => setSubmitted(false), 8000);
+    } catch (error) {
+      console.error('Failed to submit inquiry:', error);
+      // You could add an error state here if needed
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const faqs = settings.contactFaqs || [];

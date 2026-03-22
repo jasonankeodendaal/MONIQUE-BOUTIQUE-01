@@ -155,6 +155,31 @@ export async function uploadMedia(file: File, bucket = 'media') {
   return publicUrl.publicUrl;
 }
 
+export async function deleteMedia(url: string, bucket = 'media') {
+  if (!isSupabaseConfigured) return true;
+
+  try {
+    // Extract file path from public URL
+    const urlParts = url.split('/');
+    const fileName = urlParts[urlParts.length - 1];
+    
+    if (!fileName) return false;
+
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([fileName]);
+
+    if (error) {
+      console.error('Error deleting media:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Error deleting media:', err);
+    return false;
+  }
+}
+
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
   if (!isSupabaseConfigured) {
     return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };

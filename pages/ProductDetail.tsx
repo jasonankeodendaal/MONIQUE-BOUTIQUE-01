@@ -377,9 +377,10 @@ const ProductDetail: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              <p className="text-lg text-slate-600 leading-relaxed font-light italic">
-                "{product.description}"
-              </p>
+              <div 
+                className="text-lg text-slate-600 leading-relaxed font-light italic [&>p]:mb-4 last:[&>p]:mb-0"
+                dangerouslySetInnerHTML={{ __html: product.description || '' }}
+              />
               
               {product.features && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

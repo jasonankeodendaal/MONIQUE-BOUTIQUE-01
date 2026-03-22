@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ShoppingBag, FileText, Video as VideoIcon, ChevronDown, ArrowUpDown, ArrowLeft, Layers, Tag, LayoutGrid, Check, Filter } from 'lucide-react';
+import Fuse from 'fuse.js';
 import { useSettings } from '../App';
 import { Product, SubCategory } from '../types';
 
@@ -15,12 +16,17 @@ const Products: React.FC = () => {
   const [selectedSub, setSelectedSub] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   
+  const [minPrice, setMinPrice] = useState<number | ''>('');
+  const [maxPrice, setMaxPrice] = useState<number | ''>('');
+  
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
   const catRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
   const subScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -77,6 +83,7 @@ const Products: React.FC = () => {
       const target = event.target as Node;
       if (catRef.current && !catRef.current.contains(target)) setIsCatOpen(false);
       if (sortRef.current && !sortRef.current.contains(target)) setIsSortOpen(false);
+      if (filterRef.current && !filterRef.current.contains(target)) setIsFilterOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -89,12 +96,23 @@ const Products: React.FC = () => {
 
   // Hierarchical Grouping Logic
   const groupedProducts = useMemo(() => {
-    let filtered = products.filter((p: Product) => {
-      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
-                           p.description.toLowerCase().includes(search.toLowerCase());
+    let filtered = products;
+
+    if (search.trim()) {
+      const fuse = new Fuse(filtered, {
+        keys: ['name', 'description', 'tags', 'features'],
+        threshold: 0.3,
+        ignoreLocation: true
+      });
+      filtered = fuse.search(search).map(result => result.item);
+    }
+
+    filtered = filtered.filter((p: Product) => {
       const matchesCat = selectedCat === 'all' || p.categoryId === selectedCat;
       const matchesSub = selectedSub === 'all' || p.subCategoryId === selectedSub;
-      return matchesSearch && matchesCat && matchesSub;
+      const matchesMinPrice = minPrice === '' || p.price >= minPrice;
+      const matchesMaxPrice = maxPrice === '' || p.price <= maxPrice;
+      return matchesCat && matchesSub && matchesMinPrice && matchesMaxPrice;
     });
 
     switch (sortBy) {
@@ -125,7 +143,7 @@ const Products: React.FC = () => {
     });
 
     return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
-  }, [search, selectedCat, selectedSub, sortBy, products, categories, subCategories]);
+  }, [search, selectedCat, selectedSub, sortBy, minPrice, maxPrice, products, categories, subCategories]);
 
   const renderProductMedia = (product: Product) => {
     const media = product.media || [];
@@ -281,6 +299,59 @@ const Products: React.FC = () => {
                           {cat.name}
                         </button>
                       ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative" ref={filterRef}>
+                <button 
+                  onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); setIsCatOpen(false); }}
+                  className={`flex items-center justify-center w-14 md:w-16 h-full rounded-2xl border transition-all shadow-lg ${
+                    isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'bg-primary text-slate-900 border-primary' : 'bg-white text-slate-400 border-slate-200'
+                  }`}
+                >
+                  <Filter size={20} className={isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'text-slate-900' : 'text-slate-400'} />
+                </button>
+                {isFilterOpen && (
+                  <div className="absolute top-full right-0 mt-3 w-64 bg-white border border-slate-100 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-5">
+                    <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-4">Price Range</h4>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Min (R)</label>
+                        <input 
+                          type="number" 
+                          value={minPrice} 
+                          onChange={e => setMinPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary transition-colors"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="text-slate-300 font-bold mt-4">-</div>
+                      <div className="flex-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Max (R)</label>
+                        <input 
+                          type="number" 
+                          value={maxPrice} 
+                          onChange={e => setMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary transition-colors"
+                          placeholder="Any"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => { setMinPrice(''); setMaxPrice(''); }}
+                        className="flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-colors"
+                      >
+                        Clear
+                      </button>
+                      <button 
+                        onClick={() => setIsFilterOpen(false)}
+                        className="flex-1 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-primary transition-colors"
+                      >
+                        Apply
+                      </button>
                     </div>
                   </div>
                 )}

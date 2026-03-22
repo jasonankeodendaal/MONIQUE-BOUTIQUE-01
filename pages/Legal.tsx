@@ -63,17 +63,10 @@ const Legal: React.FC = () => {
         </div>
 
         <div className="prose prose-slate max-w-none text-left">
-          <div className="text-slate-600 leading-relaxed font-light whitespace-pre-wrap text-sm md:text-base">
-            {(content || '').split('\n').map((line, i) => {
-              if (line.startsWith('###')) {
-                return <h3 key={i} className="text-xl md:text-2xl font-serif text-slate-900 mt-10 md:mt-12 mb-4 md:mb-6">{line.replace('###', '').trim()}</h3>;
-              }
-              if (line.startsWith('**')) {
-                return <strong key={i} className="block text-slate-900 font-bold mt-6 md:mt-8 mb-2 uppercase text-[10px] md:text-xs tracking-widest">{line.replace(/\*\*/g, '').trim()}</strong>;
-              }
-              return <p key={i} className="mb-4">{line}</p>;
-            })}
-          </div>
+          <div 
+            className="text-slate-600 leading-relaxed font-light text-sm md:text-base [&>h1]:text-3xl [&>h1]:font-serif [&>h1]:text-slate-900 [&>h1]:mt-10 [&>h1]:mb-6 [&>h2]:text-2xl [&>h2]:font-serif [&>h2]:text-slate-900 [&>h2]:mt-10 [&>h2]:mb-6 [&>h3]:text-xl [&>h3]:font-serif [&>h3]:text-slate-900 [&>h3]:mt-8 [&>h3]:mb-4 [&>p]:mb-4 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-4"
+            dangerouslySetInnerHTML={{ __html: content || '' }}
+          />
         </div>
         
         <div className="mt-16 md:mt-20 pt-10 border-t border-slate-100 text-center">

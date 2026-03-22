@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as d3 from 'd3';
 import { feature } from 'topojson-client';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { 
   Plus, Edit2, Trash2, 
   Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
@@ -20,7 +22,7 @@ import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
 import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule } from '../types';
 import { useSettings } from '../App';
-import { supabase, isSupabaseConfigured, uploadMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, uploadMedia, deleteMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 import { CustomIcons } from '../components/CustomIcons';
 import { IconRenderer } from '../components/IconRenderer';
@@ -65,11 +67,15 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   );
 };
 
-const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
+const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password' | 'richtext'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
   <div className="space-y-2 text-left w-full min-w-0">
     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
     {type === 'textarea' ? (
       <textarea rows={rows} className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all resize-none font-light text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+    ) : type === 'richtext' ? (
+      <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden text-white [&_.ql-toolbar]:border-none [&_.ql-toolbar]:bg-slate-900 [&_.ql-container]:border-none [&_.ql-editor]:min-h-[150px] [&_.ql-stroke]:stroke-slate-400 [&_.ql-fill]:fill-slate-400 [&_.ql-picker]:text-slate-400">
+        <ReactQuill theme="snow" value={value} onChange={onChange} placeholder={placeholder} />
+      </div>
     ) : (
       <input type={type} className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
     )}
@@ -1071,9 +1077,14 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+
   const processFiles = (incomingFiles: FileList | null) => {
     if (!incomingFiles) return;
     setUploading(true);
+    let processedCount = 0;
+    const newFiles: MediaFile[] = [];
+
     Array.from(incomingFiles).forEach(file => {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -1092,8 +1103,13 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
           size: file.size,
           altText: ''
         };
-        onFilesChange(multiple ? [...files, newMedia] : [newMedia]);
-        setUploading(false);
+        newFiles.push(newMedia);
+        processedCount++;
+        
+        if (processedCount === incomingFiles.length) {
+          onFilesChange(multiple ? [...files, ...newFiles] : [newFiles[0]]);
+          setUploading(false);
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -1101,6 +1117,44 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
 
   const handleAltTextChange = (id: string, altText: string) => {
     onFilesChange(files.map(f => f.id === id ? { ...f, altText } : f));
+  };
+
+  const handleDelete = async (f: MediaFile) => {
+    if (isSupabaseConfigured && f.url.includes('supabase.co')) {
+      try {
+        await deleteMedia(f.url, 'media');
+      } catch (err) {
+        console.error("Failed to delete from storage", err);
+      }
+    }
+    onFilesChange(files.filter(x => x.id !== f.id));
+  };
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) return;
+
+    const draggedIndex = files.findIndex(f => f.id === draggedId);
+    const targetIndex = files.findIndex(f => f.id === targetId);
+    
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    const newFiles = [...files];
+    const [draggedItem] = newFiles.splice(draggedIndex, 1);
+    newFiles.splice(targetIndex, 0, draggedItem);
+    
+    onFilesChange(newFiles);
+    setDraggedId(null);
   };
 
   return (
@@ -1123,15 +1177,23 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
       {files.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2">
           {files.map(f => (
-            <div key={f.id} className="flex flex-col gap-2">
-              <div className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
+            <div 
+              key={f.id} 
+              className={`flex flex-col gap-2 ${draggedId === f.id ? 'opacity-50' : ''}`}
+              draggable
+              onDragStart={(e) => handleDragStart(e, f.id)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, f.id)}
+              onDragEnd={() => setDraggedId(null)}
+            >
+              <div className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900 cursor-move">
                 {f.type.startsWith('video') ? (
                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
                 ) : (
-                   <img src={f.url} className="w-full h-full object-cover" alt={f.altText || "preview"} />
+                   <img src={f.url} className="w-full h-full object-cover pointer-events-none" alt={f.altText || "preview"} />
                 )}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                   <button onClick={() => onFilesChange(files.filter(x => x.id !== f.id))} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={16}/></button>
+                   <button onClick={() => handleDelete(f)} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={16}/></button>
                 </div>
               </div>
               <input 
@@ -3531,7 +3593,7 @@ const Admin: React.FC = () => {
                  </div>
                  <SettingField label="Affiliate Link" value={productData.affiliateLink || ''} onChange={v => setProductData({...productData, affiliateLink: v})} />
                </div>
-               <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="textarea" /></div>
+               <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="richtext" /></div>
             </div>
             <div className="grid md:grid-cols-3 gap-8 pt-8 border-t border-slate-800">
                 <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight..." value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
@@ -4714,17 +4776,17 @@ const Admin: React.FC = () => {
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Disclosure</h4>
                       <SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
-                      <SettingField label="Content (Markdown)" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="textarea" rows={8} />
+                      <SettingField label="Content" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="richtext" />
                     </div>
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                       <h4 className="text-white font-bold">Privacy Policy</h4>
                       <SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
-                      <SettingField label="Content (Markdown)" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="textarea" rows={8} />
+                      <SettingField label="Content" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="richtext" />
                     </div>
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                       <h4 className="text-white font-bold">Terms of Service</h4>
                       <SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
-                      <SettingField label="Content (Markdown)" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="textarea" rows={8} />
+                      <SettingField label="Content" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="richtext" />
                     </div>
                   </>
                )}

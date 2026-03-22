@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, Info, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-react';
+import { Mail, Lock, Info, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Login: React.FC = () => {
@@ -11,6 +11,8 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [view, setView] = useState<'login' | 'forgot-password'>('login');
   const navigate = useNavigate();
 
   // Redirect to Admin if already authenticated
@@ -28,6 +30,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -39,6 +42,25 @@ const Login: React.FC = () => {
       } else {
         setError(err.message);
       }
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin`,
+      });
+      if (error) throw error;
+      setSuccessMessage('Password reset instructions have been sent to your email.');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -106,9 +128,9 @@ const Login: React.FC = () => {
         <div className="w-full max-w-md space-y-12 relative z-10">
           <div>
             <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
-              <Lock size={24} className="text-primary"/> {settings.loginHeroTitle}
+              <Lock size={24} className="text-primary"/> {view === 'login' ? settings.loginHeroTitle : 'Reset Password'}
             </h2>
-            <p className="text-slate-500">{settings.loginHeroDescription}</p>
+            <p className="text-slate-500">{view === 'login' ? settings.loginHeroDescription : 'Enter your email to receive password reset instructions.'}</p>
           </div>
 
           {error && (
@@ -117,71 +139,133 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          <div className="space-y-6">
-             <button 
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full py-4 bg-white text-slate-900 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-            >
-               {loading ? <Loader2 size={18} className="animate-spin" /> : <Chrome size={18} />}
-               <span>{settings.loginGoogleLabel}</span>
-            </button>
-
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-slate-800"></div>
-              <span className="flex-shrink-0 mx-4 text-slate-600 text-xs font-bold uppercase tracking-widest">{settings.loginDividerLabel}</span>
-              <div className="flex-grow border-t border-slate-800"></div>
+          {successMessage && (
+            <div className="p-4 bg-green-500/10 border-l-4 border-green-500 text-green-400 text-sm animate-in slide-in-from-left flex items-center gap-2">
+              <CheckCircle2 size={16} />
+              {successMessage}
             </div>
+          )}
 
-            <form onSubmit={handleEmailLogin} className="space-y-6">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginEmailLabel}</label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
-                  <input 
-                    type="email" 
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder={settings.loginEmailPlaceholder}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginPasswordLabel}</label>
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
-                  <input 
-                    type="password" 
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder={settings.loginPasswordPlaceholder}
-                  />
-                </div>
-              </div>
-
-              <button 
-                type="submit" 
+          {view === 'login' ? (
+            <div className="space-y-6">
+               <button 
+                onClick={handleGoogleLogin}
                 disabled={loading}
-                className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full py-4 bg-white text-slate-900 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
-                {loading ? (
-                  <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
-                ) : (
-                  <>
-                    <span>{settings.loginSubmitLabel}</span>
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
+                 {loading ? <Loader2 size={18} className="animate-spin" /> : <Chrome size={18} />}
+                 <span>{settings.loginGoogleLabel}</span>
               </button>
-            </form>
-          </div>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-slate-800"></div>
+                <span className="flex-shrink-0 mx-4 text-slate-600 text-xs font-bold uppercase tracking-widest">{settings.loginDividerLabel}</span>
+                <div className="flex-grow border-t border-slate-800"></div>
+              </div>
+
+              <form onSubmit={handleEmailLogin} className="space-y-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginEmailLabel}</label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                    <input 
+                      type="email" 
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
+                      placeholder={settings.loginEmailPlaceholder}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center ml-1">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.loginPasswordLabel}</label>
+                    <button 
+                      type="button" 
+                      onClick={() => { setView('forgot-password'); setError(null); setSuccessMessage(null); }}
+                      className="text-[10px] text-primary hover:text-white transition-colors"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                    <input 
+                      type="password" 
+                      required
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
+                      placeholder={settings.loginPasswordPlaceholder}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                  {loading ? (
+                    <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
+                  ) : (
+                    <>
+                      <span>{settings.loginSubmitLabel}</span>
+                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginEmailLabel}</label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                    <input 
+                      type="email" 
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
+                      placeholder={settings.loginEmailPlaceholder}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                  {loading ? (
+                    <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
+                  ) : (
+                    <>
+                      <span>Send Reset Link</span>
+                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => { setView('login'); setError(null); setSuccessMessage(null); }}
+                  className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft size={16} />
+                  <span>Back to Login</span>
+                </button>
+              </form>
+            </div>
+          )}
           
           <div className="text-center">
             <p className="text-slate-600 text-[10px] uppercase tracking-widest">
