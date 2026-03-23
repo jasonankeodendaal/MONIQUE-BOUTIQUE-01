@@ -1992,8 +1992,12 @@ const Admin: React.FC = () => {
   };
 
   const handleSaveClient = async () => {
-    if (!clientData.id) return;
-    await updateData('clients', clientData);
+    const data = { ...clientData };
+    if (!data.id) {
+      data.id = `client-${Date.now()}`;
+      data.createdAt = Date.now();
+    }
+    await updateData('clients', data);
     setShowClientForm(false);
     setClientData({});
   };
@@ -2163,6 +2167,9 @@ const Admin: React.FC = () => {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Clients</h2><p className="text-slate-400 text-sm">View and manage registered clients.</p></div>
+         <div className="flex gap-3 w-full md:w-auto">
+            <button onClick={() => { setClientData({ name: '', email: '', phone: '', address: '', company: '', status: 'Active' }); setShowClientForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><Plus size={16}/> New Client</button>
+         </div>
       </div>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
          <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search name or email..." value={clientSearch} onChange={e => setClientSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
@@ -2172,7 +2179,7 @@ const Admin: React.FC = () => {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
-              <h3 className="text-xl font-serif text-white">Edit Client Details</h3>
+              <h3 className="text-xl font-serif text-white">{clientData.id ? 'Edit Client Details' : 'New Client Registration'}</h3>
               <button onClick={() => setShowClientForm(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
             </div>
             <div className="p-6 space-y-6">
@@ -2183,11 +2190,24 @@ const Admin: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Email Address</label>
-                  <input type="email" value={clientData.email || ''} disabled className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-500 outline-none cursor-not-allowed" />
+                  <input type="email" value={clientData.email || ''} onChange={e => setClientData({...clientData, email: e.target.value})} disabled={!!clientData.id} className={`w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:border-primary ${clientData.id ? 'text-slate-500 cursor-not-allowed' : 'text-white'}`} placeholder="client@example.com" />
                 </div>
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Phone Number</label>
                   <input type="tel" value={clientData.phone || ''} onChange={e => setClientData({...clientData, phone: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="+1 (555) 000-0000" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Company / Organization</label>
+                  <input type="text" value={(clientData as any).company || ''} onChange={e => setClientData({...clientData, company: e.target.value} as any)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="Acme Corp" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Status</label>
+                  <select value={(clientData as any).status || 'Active'} onChange={e => setClientData({...clientData, status: e.target.value} as any)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary appearance-none">
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="VIP">VIP</option>
+                    <option value="Blacklisted">Blacklisted</option>
+                  </select>
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Shipping Address</label>
@@ -2195,7 +2215,7 @@ const Admin: React.FC = () => {
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Internal Notes</label>
-                  <textarea value={clientData.notes || ''} onChange={e => setClientData({...clientData, notes: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary min-h-[80px]" placeholder="Private notes about this client..." />
+                  <textarea value={(clientData as any).notes || ''} onChange={e => setClientData({...clientData, notes: e.target.value} as any)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary min-h-[80px]" placeholder="Private notes about this client..." />
                 </div>
               </div>
             </div>

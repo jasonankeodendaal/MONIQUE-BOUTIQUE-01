@@ -98,10 +98,11 @@ export const GUIDE_STEPS = [
     description: 'Define your aesthetic territory. Before touching code, establish your bridge page\'s niche (e.g., Luxury Footwear, Tech Accessories).',
     illustrationId: 'rocket',
     subSteps: [
-      'Select a focus niche with high affiliate commission potential.',
-      'Decide on your brand voice (Minimalist, Avant-Garde, or High-Street).',
-      'Prepare 3 high-resolution hero images that represent your style.',
-      'Write your unique "Curator Story" for the About section.'
+      'Select a focus niche with high affiliate commission potential (e.g., Luxury Watches, Designer Handbags).',
+      'Decide on your brand voice (Minimalist, Avant-Garde, or High-Street) and document it in a brand guide.',
+      'Prepare 3 high-resolution hero images (1920x1080) that represent your style.',
+      'Write your unique "Curator Story" for the About section (min 200 words).',
+      'Define your primary and secondary brand colors (HEX codes).'
     ]
   },
   {
@@ -110,10 +111,11 @@ export const GUIDE_STEPS = [
     description: 'Establish your cloud database infrastructure. This allows your bridge page to sync data in real-time across all devices.',
     illustrationId: 'forge',
     subSteps: [
-      'Create a free account at Supabase.com.',
-      'Initialize a new project named "Findara Bridge".',
-      'Choose a strong database password (store it securely).',
-      'Navigate to "Settings" > "API" to find your project credentials.'
+      'Create a free account at Supabase.com using your GitHub or Google account.',
+      'Initialize a new project named "Findara Bridge" or your custom brand name.',
+      'Choose a strong database password (min 16 characters, store it in a password manager).',
+      'Select a data center region closest to your primary audience (e.g., Cape Town for SA).',
+      'Navigate to "Settings" > "API" to find your project credentials (URL and Anon Key).'
     ]
   },
   {
@@ -208,7 +210,7 @@ CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, pl
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
-CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT);
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT);
 
 -- 2. INITIAL DATA
 INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
@@ -545,6 +547,20 @@ CREATE TRIGGER on_auth_user_created
       'Input the items, total amount, and initial status (e.g., "Processing").',
       'As the order moves through the merchant cycle, update the status to "Shipped" or "Delivered".',
       'Provide the "Tracking Number" to allow the client to monitor their delivery from their account.'
+    ]
+  },
+  {
+    id: 'client-automation',
+    title: '23. Client Automation (Signups)',
+    description: 'Configure automated welcome emails and signup confirmations to build immediate trust with new members.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'In EmailJS, create a new template named "Client Welcome Protocol".',
+      'Subject: "Welcome to the Maison, {{name}}".',
+      'Content: Include a personalized welcome message and a link to their new /account dashboard.',
+      'Go to Supabase > Authentication > Hooks (or use a custom Edge Function) to trigger this email on signup.',
+      'Alternatively, use the "Enquiry" system to manually send a welcome kit to new clients found in the Clients tab.',
+      'Ensure the "EmailJS Public Key" is correctly set in Maison Portal > System > Integrations.'
     ]
   }
 ];

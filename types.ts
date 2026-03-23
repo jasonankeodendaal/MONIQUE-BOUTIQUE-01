@@ -537,6 +537,8 @@ export interface AppUser {
   phone?: string;
   address?: string;
   notes?: string;
+  company?: string;
+  status?: string;
 }
 
 export interface OrderItem {
