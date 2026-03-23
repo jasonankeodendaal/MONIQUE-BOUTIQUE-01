@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
 
 const rawUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
 const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
@@ -138,13 +139,32 @@ export async function deleteData(table: string, id: string) {
 export async function uploadMedia(file: File, bucket = 'media') {
   if (!isSupabaseConfigured) return URL.createObjectURL(file);
 
+  let fileToUpload = file;
+
+  // Auto-compress if it's an image
+  if (file.type.startsWith('image/')) {
+    try {
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+      // Create a new File object to preserve the original name and type if needed, 
+      // though imageCompression returns a Blob/File that is usually sufficient.
+      fileToUpload = new File([compressedFile], file.name, { type: compressedFile.type });
+    } catch (error) {
+      console.error('Image compression failed, uploading original:', error);
+    }
+  }
+
   const fileExt = file.name.split('.').pop();
   const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
   const filePath = `${fileName}`;
 
   const { data, error } = await supabase.storage
     .from(bucket)
-    .upload(filePath, file);
+    .upload(filePath, fileToUpload);
 
   if (error) throw error;
 
