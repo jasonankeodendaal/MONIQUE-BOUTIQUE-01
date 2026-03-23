@@ -16,8 +16,8 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Hide header entirely on admin pages
-  if (location.pathname.startsWith('/admin')) {
+  // Hide header entirely on admin and login pages
+  if (location.pathname.startsWith('/admin') || location.pathname === '/login') {
     return null;
   }
 

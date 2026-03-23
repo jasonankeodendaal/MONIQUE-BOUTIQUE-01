@@ -774,8 +774,15 @@ const App: React.FC = () => {
          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => { 
            setUser(session?.user ?? null); 
            setLoadingAuth(false); 
-           if (event === 'SIGNED_IN') {
-             window.location.hash = '#/admin';
+           if (event === 'SIGNED_IN' && session?.user) {
+             const userRole = session.user.user_metadata?.role;
+             const isAdmin = userRole === 'admin' || admins.some(a => a.email === session.user.email);
+             
+             if (isAdmin) {
+               window.location.hash = '#/admin';
+             } else {
+               window.location.hash = '#/account';
+             }
            }
          });
          setLoadingAuth(false);

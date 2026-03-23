@@ -290,6 +290,13 @@ CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Set default role to 'client' in metadata if not present
+  IF NEW.raw_user_meta_data IS NULL THEN
+    NEW.raw_user_meta_data := jsonb_build_object('role', 'client');
+  ELSIF NEW.raw_user_meta_data->>'role' IS NULL THEN
+    NEW.raw_user_meta_data := NEW.raw_user_meta_data || jsonb_build_object('role', 'client');
+  END IF;
+
   INSERT INTO public.clients (id, email, name, "createdAt")
   VALUES (
     new.id, 

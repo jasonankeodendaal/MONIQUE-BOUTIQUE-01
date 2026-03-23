@@ -184,6 +184,13 @@ const Login: React.FC = () => {
           </div>
 
           <div className="w-full max-w-md space-y-12 relative z-10">
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest group"
+          >
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+            <span>Back to Home</span>
+          </button>
           <div>
             <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
               <Lock size={24} className="text-primary"/> {view === 'login' ? settings.loginHeroTitle : view === 'signup' ? 'Create Account' : 'Reset Password'}

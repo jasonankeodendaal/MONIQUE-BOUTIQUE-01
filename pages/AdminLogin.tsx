@@ -120,6 +120,13 @@ const AdminLogin: React.FC = () => {
         {/* Right Side: Form */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative bg-slate-950/50">
           <div className="w-full max-w-md space-y-12 relative z-10">
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest group"
+          >
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+            <span>Back to Site</span>
+          </button>
           <div className="text-center md:text-left">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 mx-auto md:mx-0 border border-primary/20">
               <Shield size={32} />
