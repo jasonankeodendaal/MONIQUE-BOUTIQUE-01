@@ -123,6 +123,12 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Logging middleware
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+  });
+
   // Contact API endpoint
   app.post('/api/contact', async (req: Request, res: Response) => {
     try {
@@ -169,7 +175,7 @@ async function startServer() {
   // These endpoints use the service_role key to manage users in Supabase Auth
 
   // Create or Update User (Admin/Client)
-  app.post('/api/admin/manage-user', async (req: Request, res: Response) => {
+  app.post(['/api/admin/manage-user', '/api/admin/manage-user/'], async (req: Request, res: Response) => {
     try {
       const { email, password, role, fullName, id, action } = req.body;
       const client = getSupabase();
@@ -226,7 +232,7 @@ async function startServer() {
   });
 
   // Delete User
-  app.post('/api/admin/delete-user', async (req: Request, res: Response) => {
+  app.post(['/api/admin/delete-user', '/api/admin/delete-user/'], async (req: Request, res: Response) => {
     try {
       const { id, role } = req.body;
       const client = getSupabase();
