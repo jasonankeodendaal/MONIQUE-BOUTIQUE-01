@@ -4640,50 +4640,86 @@ const Admin: React.FC = () => {
   );
 
   const renderGuide = () => (
-     <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
-        <div className="flex justify-end">
-           <button 
-             onClick={() => window.print()}
-             className="flex items-center gap-2 px-6 py-3 bg-primary text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-primary/20"
-           >
-             <Printer size={16} />
-             Download PDF
-           </button>
+     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-7xl mx-auto text-left w-full px-4 md:px-0">
+        {/* Minimal Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-24 md:mb-40 pt-12">
+           <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 text-primary text-[10px] font-black uppercase tracking-[0.4em]">
+                 <Zap size={14}/> Launch Protocol
+              </div>
+              <h2 className="text-5xl md:text-9xl font-serif text-white leading-[0.8] tracking-tighter">
+                 Architecture <br/>
+                 <span className="text-primary italic font-light">Blueprint</span>
+              </h2>
+           </div>
+           <div className="flex flex-col gap-6 md:items-end">
+              <p className="text-slate-500 text-sm md:text-lg max-w-md md:text-right leading-relaxed font-light">
+                 A sequential roadmap for transitioning from local prototype to a fully-synced global luxury bridge page.
+              </p>
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-2 px-8 py-4 bg-white text-slate-950 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-2xl"
+              >
+                <Printer size={16} />
+                Generate PDF Report
+              </button>
+           </div>
         </div>
-        <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
-            <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
-            <div className="max-w-3xl relative z-10 text-left">
-                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-6 md:mb-8 border border-primary/30"><Zap size={14}/> Launch Protocol</div>
-                <h2 className="text-3xl sm:text-4xl md:text-7xl font-serif text-white mb-4 md:mb-6 leading-none break-words">Architecture <span className="text-primary italic font-light lowercase">Blueprint</span></h2>
-                <p className="text-slate-400 text-sm md:text-xl font-light leading-relaxed max-w-full">Complete the following milestones to transition from local prototype to a fully-synced global luxury bridge page.</p>
-            </div>
-        </div>
-        <div className="grid gap-16 md:gap-32 text-left">
+
+        {/* Side-by-Side Steps */}
+        <div className="space-y-32 md:space-y-64">
             {GUIDE_STEPS.map((step, idx) => (
-                <div key={step.id} className="relative flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-20">
-                    <div className="md:col-span-1 flex flex-row md:flex-col items-center gap-4 md:gap-0">
-                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-[1rem] md:rounded-[2rem] bg-slate-900 border-2 border-slate-800 flex items-center justify-center text-primary font-black text-xl md:text-2xl shadow-2xl sticky md:top-32 static shrink-0">{idx + 1}</div>
-                        <div className="md:hidden text-lg font-bold text-white">Step {idx + 1}</div>
-                        <div className="hidden md:block flex-grow w-0.5 bg-gradient-to-b from-slate-800 to-transparent my-4" />
-                    </div>
-                    <div className="md:col-span-7 space-y-6 md:space-y-10 min-w-0 text-left">
-                        <div className="space-y-4 text-left">
-                            <h3 className="text-2xl md:text-4xl font-bold text-white tracking-tight break-words">{step.title}</h3>
-                            <p className="text-slate-400 text-sm md:text-lg leading-relaxed">{step.description}</p>
-                        </div>
-                        { (step.subSteps) && (
-                            <div className="grid gap-4 text-left">
-                                {step.subSteps.map((sub, i) => (
-                                    <div key={i} className="flex items-start gap-4 p-4 md:p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50 hover:border-primary/30 transition-all group">
-                                        <CheckCircle size={20} className="text-primary mt-1 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                                        <span className="text-slate-300 text-sm md:text-base leading-relaxed break-words w-full">{sub}</span>
-                                    </div>
-                                ))}
+                <div key={step.id} className="group">
+                    <div className="grid md:grid-cols-12 gap-12 md:gap-24 items-start">
+                        {/* Left Side: Number & Title */}
+                        <div className="md:col-span-5 space-y-8 md:sticky md:top-40">
+                            <div className="flex items-baseline gap-4">
+                               <span className="text-6xl md:text-8xl font-serif text-primary/20 group-hover:text-primary/40 transition-colors duration-500">
+                                  {String(idx + 1).padStart(2, '0')}
+                               </span>
+                               <h3 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+                                  {step.title.split('. ')[1] || step.title}
+                               </h3>
                             </div>
-                        )}
-                        { (step.code) && (<CodeBlock code={step.code} label={step.codeLabel} />)}
+                            <p className="text-slate-400 text-lg md:text-xl leading-relaxed font-light">
+                               {step.description}
+                            </p>
+                            <div className="hidden md:block">
+                               <GuideIllustration id={step.illustrationId} />
+                            </div>
+                        </div>
+
+                        {/* Right Side: Substeps & Code */}
+                        <div className="md:col-span-7 space-y-12">
+                            { (step.subSteps) && (
+                                <div className="space-y-8">
+                                    {step.subSteps.map((sub, i) => (
+                                        <div key={i} className="flex items-start gap-6 group/item">
+                                            <div className="w-6 h-6 rounded-full border border-primary/30 flex items-center justify-center shrink-0 mt-1 group-hover/item:border-primary group-hover/item:bg-primary/10 transition-all">
+                                               <div className="w-1.5 h-1.5 rounded-full bg-primary scale-0 group-hover/item:scale-100 transition-transform" />
+                                            </div>
+                                            <span className="text-slate-300 text-base md:text-lg leading-relaxed font-light">
+                                               {sub}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            <div className="md:hidden mt-12">
+                               <GuideIllustration id={step.illustrationId} />
+                            </div>
+
+                            { (step.code) && (
+                               <div className="pt-8">
+                                  <CodeBlock code={step.code} label={step.codeLabel} />
+                               </div>
+                            )}
+                        </div>
                     </div>
-                    <div className="md:col-span-4 md:sticky md:top-32 h-fit min-w-0 mt-8 md:mt-0"><GuideIllustration id={step.illustrationId} /></div>
+                    {idx < GUIDE_STEPS.length - 1 && (
+                       <div className="mt-32 md:mt-64 h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent opacity-50" />
+                    )}
                 </div>
             ))}
         </div>
