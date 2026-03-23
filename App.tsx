@@ -10,6 +10,7 @@ import Contact from './pages/Contact';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
+import AdminLogin from './pages/AdminLogin';
 import Login from './pages/Login';
 import Account from './pages/Account';
 import Legal from './pages/Legal';
@@ -27,7 +28,7 @@ const MaintenanceOverlay: React.FC = () => {
   const location = useLocation();
   
   if (!settings.isMaintenanceMode) return null;
-  if (loadingAuth || user || location.pathname.startsWith('/admin') || location.pathname === '/login') return null;
+  if (loadingAuth || user || location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/admin/login') return null;
   
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6 overflow-hidden">
@@ -111,6 +112,8 @@ export const useSettings = () => {
 
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { settings, user, loadingAuth } = useSettings();
+  const location = useLocation();
+  
   if (loadingAuth) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -119,7 +122,19 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
       </div>
     </div>
   );
-  if (!user) return <Navigate to="/login" replace />;
+  
+  if (!user) {
+    if (location.pathname.startsWith('/admin')) {
+      return <Navigate to="/admin/login" replace />;
+    }
+    return <Navigate to="/login" replace />;
+  }
+  
+  // If user is logged in but not an admin, and trying to access admin
+  if (location.pathname.startsWith('/admin') && user.user_metadata?.role === 'client') {
+    return <Navigate to="/account" replace />;
+  }
+  
   return <>{children}</>;
 };
 
@@ -1016,6 +1031,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<HomeRoute />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/account" element={<Account />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />

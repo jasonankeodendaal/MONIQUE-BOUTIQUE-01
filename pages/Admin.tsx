@@ -1938,8 +1938,18 @@ const Admin: React.FC = () => {
 
   const handleSaveOrder = async () => {
     if (!orderData.clientId || !orderData.items?.length) return;
+    
+    let nextOrderNumber = orderData.orderNumber;
+    if (!nextOrderNumber) {
+      // Generate sequential order number starting from 0001
+      const lastOrder = [...orders].sort((a, b) => (parseInt(b.orderNumber) || 0) - (parseInt(a.orderNumber) || 0))[0];
+      const lastNum = lastOrder ? parseInt(lastOrder.orderNumber) : 0;
+      nextOrderNumber = (lastNum + 1).toString().padStart(4, '0');
+    }
+
     const newOrder: Order = {
       id: orderData.id || crypto.randomUUID(),
+      orderNumber: nextOrderNumber,
       clientId: orderData.clientId,
       status: orderData.status as any,
       items: orderData.items,
@@ -2064,45 +2074,60 @@ const Admin: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4">
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">No orders found.</div>
-        ) : (
-          filteredOrders.map(order => {
-            const client = clients.find(c => c.id === order.clientId);
-            return (
-              <div key={order.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group hover:border-slate-700 transition-colors">
-                <div className="flex-grow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-primary font-mono text-xs font-bold">#{order.id.substring(0, 8)}</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500' : order.status === 'Shipped' ? 'bg-indigo-500/10 text-indigo-500' : order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{order.status}</span>
-                    <span className="text-slate-500 text-xs">{new Date(order.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Client</p>
-                      <p className="text-white font-medium text-sm">{client?.name || 'Unknown Client'}</p>
-                      <p className="text-slate-400 text-xs">{client?.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Details</p>
-                      <p className="text-slate-300 text-sm">{order.items.length} items</p>
-                      <p className="text-white font-medium text-sm">${order.totalAmount.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Shipping</p>
-                      <p className="text-slate-300 text-xs truncate">{order.trackingNumber ? `Tracking: ${order.trackingNumber}` : 'No tracking'}</p>
-                      <p className="text-slate-400 text-xs truncate">{order.shippingAddress || 'No address provided'}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity w-full md:w-auto justify-end border-t md:border-t-0 border-slate-800 pt-4 md:pt-0">
-                  <button onClick={() => { setOrderData(order); setShowOrderForm(true); }} className="p-3 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"><Edit2 size={18}/></button>
-                  <button onClick={() => deleteData('orders', order.id)} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"><Trash2 size={18}/></button>
-                </div>
+      <div className="grid grid-cols-1 gap-8">
+        {['Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(status => {
+          const statusOrders = filteredOrders.filter(o => o.status === status);
+          if (statusOrders.length === 0 && orderFilter !== 'all') return null;
+          if (statusOrders.length === 0 && orderFilter === 'all') return null;
+
+          return (
+            <div key={status} className="space-y-4">
+              <div className="flex items-center gap-3 border-b border-slate-800 pb-2">
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">{status}</h3>
+                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded text-[10px] font-bold">{statusOrders.length}</span>
               </div>
-            );
-          })
+              <div className="grid grid-cols-1 gap-4">
+                {statusOrders.map(order => {
+                  const client = clients.find(c => c.id === order.clientId);
+                  return (
+                    <div key={order.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group hover:border-slate-700 transition-colors">
+                      <div className="flex-grow">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-primary font-mono text-xs font-bold">#{order.orderNumber || order.id.substring(0, 8)}</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500' : order.status === 'Shipped' ? 'bg-indigo-500/10 text-indigo-500' : order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{order.status}</span>
+                          <span className="text-slate-500 text-xs">{new Date(order.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Client</p>
+                            <p className="text-white font-medium text-sm">{client?.name || 'Unknown Client'}</p>
+                            <p className="text-slate-400 text-xs">{client?.email}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Details</p>
+                            <p className="text-slate-300 text-sm">{order.items.length} items</p>
+                            <p className="text-white font-medium text-sm">${order.totalAmount.toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Shipping</p>
+                            <p className="text-slate-300 text-xs truncate">{order.trackingNumber ? `Tracking: ${order.trackingNumber}` : 'No tracking'}</p>
+                            <p className="text-slate-400 text-xs truncate">{order.shippingAddress || 'No address provided'}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity w-full md:w-auto justify-end border-t md:border-t-0 border-slate-800 pt-4 md:pt-0">
+                        <button onClick={() => { setOrderData(order); setShowOrderForm(true); }} className="p-3 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"><Edit2 size={18}/></button>
+                        <button onClick={() => deleteData('orders', order.id)} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"><Trash2 size={18}/></button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+        {filteredOrders.length === 0 && (
+          <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">No orders found.</div>
         )}
       </div>
     </div>

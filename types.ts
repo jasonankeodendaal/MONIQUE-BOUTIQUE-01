@@ -549,6 +549,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  orderNumber: string;
   clientId: string;
   items: OrderItem[];
   totalAmount: number;

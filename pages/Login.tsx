@@ -29,12 +29,13 @@ const Login: React.FC = () => {
     }
   }, [location.search]);
 
-  // Redirect to Admin if already authenticated
+  // Redirect to Account if already authenticated
   useEffect(() => {
     if (user) {
       if (user.user_metadata?.role === 'client') {
         navigate('/account', { replace: true });
       } else {
+        // Admins can also see their account or be redirected to admin
         navigate('/admin', { replace: true });
       }
     }
@@ -159,7 +160,7 @@ const Login: React.FC = () => {
         <div className="absolute bottom-0 left-0 p-16 w-full">
            <div className="mb-6">
              <span className="inline-block px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                {settings.loginHeroBadge}
+                Exclusive Access
              </span>
              <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
                 {settings.companyName}
@@ -170,7 +171,7 @@ const Login: React.FC = () => {
            </div>
            <div className="h-px w-24 bg-primary/50 mb-6"></div>
            <p className="text-slate-400 max-w-md font-light leading-relaxed">
-             Access the central nervous system of your fashion empire. Manage collections, track affiliate performance, and curate the aesthetic.
+             Join our community of fashion enthusiasts. Track your orders, manage your preferences, and stay updated with our latest collections.
            </p>
         </div>
       </div>

@@ -6,6 +6,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
+        "order_number": { "type": "string" },
         "client_id": { "type": "string" },
         "status": { "type": "string" },
         "items": { "type": "array" },
@@ -16,13 +17,63 @@
         "created_at": { "type": "string" },
         "updated_at": { "type": "string" }
       },
-      "required": ["id", "client_id", "status", "items", "total_amount", "created_at", "updated_at"]
+      "required": ["id", "order_number", "client_id", "status", "items", "total_amount", "created_at", "updated_at"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A catalog item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "sku": { "type": "string" },
+        "price": { "type": "number" },
+        "description": { "type": "string" },
+        "category_id": { "type": "string" },
+        "subcategory_id": { "type": "string" },
+        "media": { "type": "array" },
+        "tags": { "type": "array" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "image": { "type": "string" }
+      }
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Site configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "key": { "type": "string" },
+        "value": { "type": "object" }
+      }
     }
   },
   "supabase": {
     "orders": {
       "schema": { "$ref": "#/entities/Order" },
       "description": "Client orders"
+    },
+    "products": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Product catalog"
+    },
+    "categories": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Product categories"
+    },
+    "settings": {
+      "schema": { "$ref": "#/entities/Setting" },
+      "description": "Site settings"
     }
   }
 }

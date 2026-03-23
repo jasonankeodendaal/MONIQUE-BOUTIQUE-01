@@ -207,6 +207,8 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views I
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies JSONB, "actionItems" JSONB, steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
+CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT);
 
 -- 2. INITIAL DATA
 INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
@@ -230,6 +232,8 @@ ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 
 -- 4. POLICIES (Idempotent)
 DO $$ 
@@ -254,6 +258,8 @@ BEGIN
     DROP POLICY IF EXISTS "Enable all for anon history" ON product_history;
     DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
     DROP POLICY IF EXISTS "Enable all for anon system_logs" ON system_logs;
+    DROP POLICY IF EXISTS "Enable all for anon orders" ON orders;
+    DROP POLICY IF EXISTS "Enable all for anon clients" ON clients;
 END $$;
 
 -- RECREATE POLICIES
@@ -276,7 +282,9 @@ CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
-CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (true);`,
+CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (true);
+CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true);
+CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);`,
     codeLabel: 'Idempotent Master SQL Script v6.0'
   },
   {
