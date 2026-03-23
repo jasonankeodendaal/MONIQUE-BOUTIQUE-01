@@ -4,7 +4,6 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,18 +20,6 @@ function getSupabase() {
     }
   }
   return supabase;
-}
-
-let resendClient: Resend | null = null;
-
-function getResend() {
-  if (!resendClient) {
-    const key = process.env.RESEND_API_KEY;
-    if (key) {
-      resendClient = new Resend(key);
-    }
-  }
-  return resendClient;
 }
 
 function generateSeoTags(settings: any, url: string, product?: any) {
@@ -128,299 +115,169 @@ app.use((req, res, next) => {
   next();
 });
 
-// ... (API routes)
-  app.post('/api/contact', async (req: Request, res: Response) => {
-    try {
-      const { name, email, whatsapp, subject, message } = req.body;
-      
-      const resend = getResend();
-      if (!resend) {
-        console.warn('RESEND_API_KEY is not set. Skipping email notification.');
-        return res.status(200).json({ success: true, message: 'Inquiry saved (email skipped)' });
-      }
-
-      const client = getSupabase();
-      let adminEmail = 'admin@findara.com'; // Default fallback
-      if (client) {
-        const { data } = await client.from('settings').select('contactEmail').single();
-        if (data && (data as any).contactEmail) {
-          adminEmail = (data as any).contactEmail;
-        }
-      }
-
-      await resend.emails.send({
-        from: 'Findara <onboarding@resend.dev>',
-        to: adminEmail,
-        subject: `New Inquiry: ${subject}`,
-        html: `
-          <h2>New Contact Inquiry</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>WhatsApp:</strong> ${whatsapp || 'N/A'}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, '<br>')}</p>
-        `,
-      });
-
-      res.status(200).json({ success: true, message: 'Email sent successfully' });
-    } catch (error) {
-      console.error('Error sending email:', error);
-      res.status(500).json({ success: false, error: 'Failed to send email' });
+// Dynamic robots.txt
+app.get('/robots.txt', async (req: Request, res: Response) => {
+  try {
+    const client = getSupabase();
+    let settings: any = null;
+    if (client) {
+      const { data } = await client.from('settings').select('*').single();
+      settings = data;
     }
-  });
-
-  // Admin Management API Endpoints
-  // These endpoints use the service_role key to manage users in Supabase Auth
-
-  // Create or Update User (Admin/Client)
-  app.post(['/api/admin/manage-user', '/api/admin/manage-user/'], async (req: Request, res: Response) => {
-    try {
-      const { email, password, role, fullName, id, action } = req.body;
-      const client = getSupabase();
-      
-      if (!client) {
-        return res.status(500).json({ success: false, error: 'Supabase client not initialized' });
-      }
-
-      if (action === 'create') {
-        // 1. Create user in Supabase Auth
-        const { data: authData, error: authError } = await client.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-          user_metadata: { role, full_name: fullName }
-        });
-
-        if (authError) throw authError;
-
-        // 2. The trigger on_auth_user_created handles the database entry for clients
-        // For admins, we might need to ensure they are in the admin_users table if not handled by trigger
-        if (role !== 'client') {
-          const { error: dbError } = await (client.from('admin_users') as any).upsert({
-            id: authData.user.id,
-            email,
-            name: fullName,
-            role: role,
-            permissions: role === 'owner' ? ['all'] : ['view'],
-            createdAt: Date.now()
-          });
-          if (dbError) throw dbError;
-        }
-
-        return res.status(200).json({ success: true, user: authData.user });
-      } else if (action === 'update') {
-        if (!id) return res.status(400).json({ success: false, error: 'User ID required for update' });
-
-        const updateData: any = {
-          user_metadata: { full_name: fullName, role }
-        };
-        if (password) updateData.password = password;
-
-        const { data: authData, error: authError } = await client.auth.admin.updateUserById(id, updateData);
-        if (authError) throw authError;
-
-        return res.status(200).json({ success: true, user: authData.user });
-      }
-
-      res.status(400).json({ success: false, error: 'Invalid action' });
-    } catch (error: any) {
-      console.error('Admin user management error:', error);
-      res.status(500).json({ success: false, error: error.message });
+    const baseUrl = process.env.APP_URL || 'https://findara.com';
+    
+    let robotsTxt = 'User-agent: *\nAllow: /\n';
+    robotsTxt += `Sitemap: ${baseUrl}/sitemap.xml\n`;
+    
+    if (settings?.isMaintenanceMode) {
+      robotsTxt = 'User-agent: *\nDisallow: /\n';
     }
-  });
+    
+    res.type('text/plain');
+    res.send(robotsTxt);
+  } catch (error) {
+    res.status(500).send('Error generating robots.txt');
+  }
+});
 
-  // Delete User
-  app.post(['/api/admin/delete-user', '/api/admin/delete-user/'], async (req: Request, res: Response) => {
-    try {
-      const { id, role } = req.body;
-      const client = getSupabase();
-      
-      if (!client) {
-        return res.status(500).json({ success: false, error: 'Supabase client not initialized' });
-      }
-
-      // 1. Delete from Supabase Auth
-      const { error: authError } = await client.auth.admin.deleteUser(id);
-      if (authError) throw authError;
-
-      // 2. Delete from database tables
-      if (role === 'client') {
-        await client.from('clients').delete().eq('id', id);
-      } else {
-        await client.from('admin_users').delete().eq('id', id);
-      }
-
-      res.status(200).json({ success: true });
-    } catch (error: any) {
-      console.error('Admin user deletion error:', error);
-      res.status(500).json({ success: false, error: error.message });
+// Dynamic sitemap.xml
+app.get('/sitemap.xml', async (req: Request, res: Response) => {
+  try {
+    const client = getSupabase();
+    let products: any[] | null = null;
+    let categories: any[] | null = null;
+    if (client) {
+      const { data: p } = await client.from('products').select('id, createdAt');
+      const { data: c } = await client.from('categories').select('id');
+      products = p;
+      categories = c;
     }
-  });
+    const baseUrl = process.env.APP_URL || 'https://findara.com';
+    
+    let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+    
+    // Static pages
+    const staticPages = ['', '/products', '/about', '/contact', '/legal/disclosure', '/legal/privacy', '/legal/terms'];
+    staticPages.forEach(page => {
+      sitemap += `  <url>\n    <loc>${baseUrl}${page}</loc>\n    <changefreq>daily</changefreq>\n    <priority>${page === '' ? '1.0' : '0.8'}</priority>\n  </url>\n`;
+    });
+    
+    // Products
+    products?.forEach(product => {
+      sitemap += `  <url>\n    <loc>${baseUrl}/product/${product.id}</loc>\n    <lastmod>${new Date(product.createdAt).toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+    });
 
-  // Dynamic robots.txt
-  app.get('/robots.txt', async (req: Request, res: Response) => {
+    // Categories
+    categories?.forEach(category => {
+      sitemap += `  <url>\n    <loc>${baseUrl}/products?category=${category.id}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+    });
+    
+    sitemap += '</urlset>';
+    
+    res.type('application/xml');
+    res.send(sitemap);
+  } catch (error) {
+    res.status(500).send('Error generating sitemap.xml');
+  }
+});
+
+// Vite middleware setup
+if (process.env.NODE_ENV !== 'production') {
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'spa',
+  });
+  
+  app.use(vite.middlewares);
+  
+  // Inject scripts in dev
+  app.use('*', async (req: Request, res: Response, next: NextFunction) => {
+    const url = req.originalUrl;
     try {
+      let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
+      template = await vite.transformIndexHtml(url, template);
+      
+      // Fetch settings for script injection
       const client = getSupabase();
       let settings: any = null;
+      let product: any = null;
       if (client) {
         const { data } = await client.from('settings').select('*').single();
         settings = data;
+        
+        // Check if it's a product page
+        const productMatch = url.match(/^\/product\/([a-zA-Z0-9-]+)/);
+        if (productMatch && productMatch[1]) {
+          const { data: productData } = await client.from('products').select('*').eq('id', productMatch[1]).single();
+          if (productData) {
+            product = productData;
+          }
+        }
       }
-      const baseUrl = process.env.APP_URL || 'https://findara.com';
-      
-      let robotsTxt = 'User-agent: *\nAllow: /\n';
-      robotsTxt += `Sitemap: ${baseUrl}/sitemap.xml\n`;
-      
-      if (settings?.isMaintenanceMode) {
-        robotsTxt = 'User-agent: *\nDisallow: /\n';
+      if (settings) {
+        const headerScripts = (settings.customHeaderScripts || '') + 
+          (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '');
+        
+        const footerScripts = settings.customFooterScripts || '';
+        
+        template = template.replace('</head>', `${headerScripts}</head>`);
+        template = template.replace('</body>', `${footerScripts}</body>`);
       }
       
-      res.type('text/plain');
-      res.send(robotsTxt);
-    } catch (error) {
-      res.status(500).send('Error generating robots.txt');
+      const seoTags = generateSeoTags(settings, url, product);
+      template = template.replace('<!-- SEO_TAGS -->', seoTags);
+      
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+    } catch (e) {
+      vite.ssrFixStacktrace(e as Error);
+      next(e);
     }
   });
-
-  // Dynamic sitemap.xml
-  app.get('/sitemap.xml', async (req: Request, res: Response) => {
+} else {
+  const distPath = path.join(process.cwd(), 'dist');
+  app.use(express.static(distPath, { index: false }));
+  
+  app.get('*', async (req: Request, res: Response) => {
     try {
+      let template = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
+      
+      // Fetch settings for script injection
       const client = getSupabase();
-      let products: any[] | null = null;
-      let categories: any[] | null = null;
+      let settings: any = null;
+      let product: any = null;
       if (client) {
-        const { data: p } = await client.from('products').select('id, createdAt');
-        const { data: c } = await client.from('categories').select('id');
-        products = p;
-        categories = c;
+        const { data } = await client.from('settings').select('*').single();
+        settings = data;
+        
+        // Check if it's a product page
+        const productMatch = req.originalUrl.match(/^\/product\/([a-zA-Z0-9-]+)/);
+        if (productMatch && productMatch[1]) {
+          const { data: productData } = await client.from('products').select('*').eq('id', productMatch[1]).single();
+          if (productData) {
+            product = productData;
+          }
+        }
       }
-      const baseUrl = process.env.APP_URL || 'https://findara.com';
+      if (settings) {
+        const headerScripts = (settings.customHeaderScripts || '') + 
+          (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '');
+        
+        const footerScripts = settings.customFooterScripts || '';
+        
+        template = template.replace('</head>', `${headerScripts}</head>`);
+        template = template.replace('</body>', `${footerScripts}</body>`);
+      }
       
-      let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
-      sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+      const seoTags = generateSeoTags(settings, req.originalUrl, product);
+      template = template.replace('<!-- SEO_TAGS -->', seoTags);
       
-      // Static pages
-      const staticPages = ['', '/products', '/about', '/contact', '/legal/disclosure', '/legal/privacy', '/legal/terms'];
-      staticPages.forEach(page => {
-        sitemap += `  <url>\n    <loc>${baseUrl}${page}</loc>\n    <changefreq>daily</changefreq>\n    <priority>${page === '' ? '1.0' : '0.8'}</priority>\n  </url>\n`;
-      });
-      
-      // Products
-      products?.forEach(product => {
-        sitemap += `  <url>\n    <loc>${baseUrl}/product/${product.id}</loc>\n    <lastmod>${new Date(product.createdAt).toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
-      });
-
-      // Categories
-      categories?.forEach(category => {
-        sitemap += `  <url>\n    <loc>${baseUrl}/products?category=${category.id}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
-      });
-      
-      sitemap += '</urlset>';
-      
-      res.type('application/xml');
-      res.send(sitemap);
-    } catch (error) {
-      res.status(500).send('Error generating sitemap.xml');
+      res.status(200).set({ 'Content-Type': 'text/html' }).send(template);
+    } catch (e) {
+      res.status(500).send('Error loading template');
     }
   });
-
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    
-    app.use(vite.middlewares);
-    
-    // Inject scripts in dev
-    app.use('*', async (req: Request, res: Response, next: NextFunction) => {
-      const url = req.originalUrl;
-      try {
-        let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
-        template = await vite.transformIndexHtml(url, template);
-        
-        // Fetch settings for script injection
-        const client = getSupabase();
-        let settings: any = null;
-        let product: any = null;
-        if (client) {
-          const { data } = await client.from('settings').select('*').single();
-          settings = data;
-          
-          // Check if it's a product page
-          const productMatch = url.match(/^\/product\/([a-zA-Z0-9-]+)/);
-          if (productMatch && productMatch[1]) {
-            const { data: productData } = await client.from('products').select('*').eq('id', productMatch[1]).single();
-            if (productData) {
-              product = productData;
-            }
-          }
-        }
-        if (settings) {
-          const headerScripts = (settings.customHeaderScripts || '') + 
-            (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '');
-          
-          const footerScripts = settings.customFooterScripts || '';
-          
-          template = template.replace('</head>', `${headerScripts}</head>`);
-          template = template.replace('</body>', `${footerScripts}</body>`);
-        }
-        
-        const seoTags = generateSeoTags(settings, url, product);
-        template = template.replace('<!-- SEO_TAGS -->', seoTags);
-        
-        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
-      } catch (e) {
-        vite.ssrFixStacktrace(e as Error);
-        next(e);
-      }
-    });
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath, { index: false }));
-    
-    app.get('*', async (req: Request, res: Response) => {
-      try {
-        let template = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
-        
-        // Fetch settings for script injection
-        const client = getSupabase();
-        let settings: any = null;
-        let product: any = null;
-        if (client) {
-          const { data } = await client.from('settings').select('*').single();
-          settings = data;
-          
-          // Check if it's a product page
-          const productMatch = req.originalUrl.match(/^\/product\/([a-zA-Z0-9-]+)/);
-          if (productMatch && productMatch[1]) {
-            const { data: productData } = await client.from('products').select('*').eq('id', productMatch[1]).single();
-            if (productData) {
-              product = productData;
-            }
-          }
-        }
-        if (settings) {
-          const headerScripts = (settings.customHeaderScripts || '') + 
-            (settings.googleAnalyticsId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${settings.googleAnalyticsId}');</script>` : '');
-          
-          const footerScripts = settings.customFooterScripts || '';
-          
-          template = template.replace('</head>', `${headerScripts}</head>`);
-          template = template.replace('</body>', `${footerScripts}</body>`);
-        }
-        
-        const seoTags = generateSeoTags(settings, req.originalUrl, product);
-        template = template.replace('<!-- SEO_TAGS -->', seoTags);
-        
-        res.status(200).set({ 'Content-Type': 'text/html' }).send(template);
-      } catch (e) {
-        res.status(500).send('Error loading template');
-      }
-    });
-  }
+}
 
 export default app;
 
