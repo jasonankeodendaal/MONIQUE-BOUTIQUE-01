@@ -117,19 +117,18 @@ function generateSeoTags(settings: any, url: string, product?: any) {
   return tags;
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+const PORT = 3000;
 
-  app.use(express.json());
+app.use(express.json());
 
-  // Logging middleware
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
-    next();
-  });
+// Logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
-  // Contact API endpoint
+// ... (API routes)
   app.post('/api/contact', async (req: Request, res: Response) => {
     try {
       const { name, email, whatsapp, subject, message } = req.body;
@@ -423,9 +422,10 @@ async function startServer() {
     });
   }
 
+export default app;
+
+if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
-
-startServer();
