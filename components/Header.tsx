@@ -36,10 +36,10 @@ const Header: React.FC = () => {
   const isDarkSection = !shouldBeSolid && isHomePage;
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+    <header className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 ease-in-out rounded-2xl ${
       shouldBeSolid 
-        ? 'bg-white/95 backdrop-blur-xl border-b border-slate-200/50 py-3 shadow-sm' 
-        : 'bg-transparent py-5 md:py-8'
+        ? 'bg-white/70 backdrop-blur-2xl border border-white/30 py-2 shadow-lg' 
+        : 'bg-white/10 backdrop-blur-md border border-white/10 py-3'
     }`}>
       <nav className="max-w-7xl mx-auto px-5 sm:px-8">
         <div className="flex justify-between items-center">

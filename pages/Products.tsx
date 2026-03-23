@@ -185,6 +185,11 @@ const Products: React.FC = () => {
           -webkit-overflow-scrolling: touch;
           scrollbar-width: thin;
           scrollbar-color: var(--primary-color) transparent;
+          background: rgba(255, 255, 255, 0.4);
+          backdrop-filter: blur(10px);
+          border-radius: 2rem;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
         .subcat-row-container::-webkit-scrollbar {
           height: 3px;

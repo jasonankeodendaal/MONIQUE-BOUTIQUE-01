@@ -4927,8 +4927,8 @@ const Admin: React.FC = () => {
             {isNavOpen && (
               <>
                 <div className="fixed inset-0 z-[80]" onClick={() => setIsNavOpen(false)} />
-                <div className="absolute top-full left-0 mt-4 w-full md:w-64 bg-slate-900 border border-slate-800 rounded-[2rem] shadow-2xl z-[90] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
-                  <div className="p-3 grid gap-1 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div className="absolute top-full left-0 mt-2 w-full md:w-72 bg-white/80 backdrop-blur-2xl border border-slate-100 rounded-3xl shadow-2xl z-[90] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="p-2 grid gap-1 max-h-[60vh] overflow-y-auto custom-scrollbar">
                     {visibleTabs.map(tab => {
                       const TabIcon = tab.icon;
                       const isActive = activeTab === tab.id;
@@ -4936,12 +4936,12 @@ const Admin: React.FC = () => {
                         <button 
                           key={tab.id} 
                           onClick={() => { setActiveTab(tab.id); setIsNavOpen(false); }} 
-                          className={`flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-left group ${isActive ? 'bg-primary text-slate-900' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                          className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all text-left group ${isActive ? 'bg-primary text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
                         >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-slate-900/10' : 'bg-slate-800 group-hover:bg-slate-700'}`}>
-                            <TabIcon size={16} />
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-slate-900/5' : 'bg-slate-100 group-hover:bg-slate-200'}`}>
+                            <TabIcon size={18} />
                           </div>
-                          <span className="text-xs font-bold uppercase tracking-widest">{tab.label}</span>
+                          <span className="text-[11px] font-bold uppercase tracking-widest">{tab.label}</span>
                           {isActive && <Check size={14} className="ml-auto" />}
                         </button>
                       );
