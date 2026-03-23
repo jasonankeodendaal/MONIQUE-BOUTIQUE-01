@@ -1070,8 +1070,33 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
 };
 
 const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> = ({ code, language = 'bash', label }) => {
-  const [copied, setCopied] = useState(false); const copyToClipboard = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-  return (<div className="relative group mb-6 text-left max-w-full overflow-hidden w-full min-w-0">{label && <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2"><Terminal size={12}/>{label}</div>}<div className="absolute top-8 right-4 z-10"><button onClick={copyToClipboard} className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5">{copied ? <Check size={14} /> : <Copy size={14} />}</button></div><pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-full"><code>{code}</code></pre></div>);
+  const [copied, setCopied] = useState(false); 
+  const copyToClipboard = () => { 
+    navigator.clipboard.writeText(code); 
+    setCopied(true); 
+    setTimeout(() => setCopied(false), 2000); 
+  };
+  
+  return (
+    <div className="relative group mb-6 text-left w-full min-w-0 print:mb-0">
+      {label && (
+        <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2 print:text-black">
+          <Terminal size={12}/>{label}
+        </div>
+      )}
+      <div className="absolute top-8 right-4 z-10 print:hidden">
+        <button 
+          onClick={copyToClipboard} 
+          className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5"
+        >
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+        </button>
+      </div>
+      <pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full print:bg-white print:text-black print:border-slate-200 print:overflow-visible print:whitespace-pre-wrap print:break-words">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
 };
 
 const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaFile[]) => void; multiple?: boolean; label?: string; accept?: string; }> = ({ files, onFilesChange, multiple = true, label = "media", accept = "image/*,video/*" }) => {
@@ -4668,38 +4693,38 @@ const Admin: React.FC = () => {
         </div>
 
         {/* Side-by-Side Steps */}
-        <div className="space-y-32 md:space-y-64">
+        <div className="space-y-32 md:space-y-64 print:space-y-12">
             {GUIDE_STEPS.map((step, idx) => (
-                <div key={step.id} className="group">
+                <div key={step.id} className="group print-break-inside-avoid">
                     <div className="grid md:grid-cols-12 gap-12 md:gap-24 items-start">
                         {/* Left Side: Number & Title */}
-                        <div className="md:col-span-5 space-y-8 md:sticky md:top-40">
+                        <div className="md:col-span-5 space-y-8 md:sticky md:top-40 print:static print:col-span-12 print:mb-4">
                             <div className="flex items-baseline gap-4">
-                               <span className="text-6xl md:text-8xl font-serif text-primary/20 group-hover:text-primary/40 transition-colors duration-500">
+                               <span className="text-6xl md:text-8xl font-serif text-primary/20 group-hover:text-primary/40 transition-colors duration-500 print:text-slate-300 print:text-4xl">
                                   {String(idx + 1).padStart(2, '0')}
                                </span>
-                               <h3 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+                               <h3 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight print:text-black print:text-2xl">
                                   {step.title.split('. ')[1] || step.title}
                                </h3>
                             </div>
-                            <p className="text-slate-400 text-lg md:text-xl leading-relaxed font-light">
+                            <p className="text-slate-400 text-lg md:text-xl leading-relaxed font-light print:text-slate-600 print:text-sm">
                                {step.description}
                             </p>
-                            <div className="hidden md:block">
+                            <div className="hidden md:block print:hidden">
                                <GuideIllustration id={step.illustrationId} />
                             </div>
                         </div>
 
                         {/* Right Side: Substeps & Code */}
-                        <div className="md:col-span-7 space-y-12">
+                        <div className="md:col-span-7 space-y-12 print:col-span-12 print:space-y-4">
                             { (step.subSteps) && (
-                                <div className="space-y-8">
+                                <div className="space-y-8 print:space-y-2">
                                     {step.subSteps.map((sub, i) => (
-                                        <div key={i} className="flex items-start gap-6 group/item">
-                                            <div className="w-6 h-6 rounded-full border border-primary/30 flex items-center justify-center shrink-0 mt-1 group-hover/item:border-primary group-hover/item:bg-primary/10 transition-all">
-                                               <div className="w-1.5 h-1.5 rounded-full bg-primary scale-0 group-hover/item:scale-100 transition-transform" />
+                                        <div key={i} className="flex items-start gap-6 group/item print:gap-3">
+                                            <div className="w-6 h-6 rounded-full border border-primary/30 flex items-center justify-center shrink-0 mt-1 group-hover/item:border-primary group-hover/item:bg-primary/10 transition-all print:w-4 print:h-4 print:border-slate-300">
+                                               <div className="w-1.5 h-1.5 rounded-full bg-primary scale-0 group-hover/item:scale-100 transition-transform print:scale-100 print:bg-slate-400" />
                                             </div>
-                                            <span className="text-slate-300 text-base md:text-lg leading-relaxed font-light">
+                                            <span className="text-slate-300 text-base md:text-lg leading-relaxed font-light print:text-black print:text-sm">
                                                {sub}
                                             </span>
                                         </div>
@@ -4707,19 +4732,19 @@ const Admin: React.FC = () => {
                                 </div>
                             )}
                             
-                            <div className="md:hidden mt-12">
+                            <div className="md:hidden mt-12 print:hidden">
                                <GuideIllustration id={step.illustrationId} />
                             </div>
 
                             { (step.code) && (
-                               <div className="pt-8">
+                               <div className="pt-8 print:pt-2">
                                   <CodeBlock code={step.code} label={step.codeLabel} />
                                </div>
                             )}
                         </div>
                     </div>
                     {idx < GUIDE_STEPS.length - 1 && (
-                       <div className="mt-32 md:mt-64 h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent opacity-50" />
+                       <div className="mt-32 md:mt-64 h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent opacity-50 print:hidden" />
                     )}
                 </div>
             ))}
@@ -4755,8 +4780,18 @@ const Admin: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden">
-      <style>{` @keyframes grow { from { height: 0; } to { height: 100%; } } @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } `}</style>
+    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden print:bg-white print:pt-0 print:pb-0">
+      <style>{` 
+        @keyframes grow { from { height: 0; } to { height: 100%; } } 
+        @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } 
+        @media print {
+          body { background: white !important; color: black !important; }
+          .no-print { display: none !important; }
+          .print-break-inside-avoid { break-inside: avoid; }
+          .print-m-0 { margin: 0 !important; }
+          .print-p-0 { padding: 0 !important; }
+        }
+      `}</style>
       <SaveIndicator status={saveStatus} />
       { (selectedAdProduct) && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} /> }
 
