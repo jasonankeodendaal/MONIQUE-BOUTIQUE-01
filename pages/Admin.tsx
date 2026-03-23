@@ -4,7 +4,7 @@ import { feature } from 'topojson-client';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { 
-  Plus, Edit2, Trash2, 
+  Plus, Edit2, Trash2, Menu,
   Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
   Monitor, Smartphone, User, ShieldCheck,
   LayoutGrid, Globe, Mail, Phone, Palette, MessageCircle, MapPin, 
@@ -1641,6 +1641,7 @@ const Admin: React.FC = () => {
   
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>('enquiries');
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
   const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | 'login' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
@@ -4762,13 +4763,47 @@ const Admin: React.FC = () => {
       <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
         <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR'}</div></div></div>
         <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 w-full xl:w-auto">
-            {visibleTabs.map(tab => {
-              const TabIcon = tab.icon;
-              return (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-grow md:flex-grow-0 px-3 md:px-4 py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col md:flex-row items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800'}`}><TabIcon size={14} className="md:w-3 md:h-3" />{tab.label}</button>
-              );
-            })}
+          <div className="relative">
+            <button 
+              onClick={() => setIsNavOpen(!isNavOpen)}
+              className="flex items-center gap-3 px-6 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white hover:bg-slate-800 transition-all shadow-xl group w-full md:w-64"
+            >
+              <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-900 transition-colors">
+                <Menu size={18} />
+              </div>
+              <div className="flex flex-col items-start flex-1">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active View</span>
+                <span className="text-sm font-bold uppercase tracking-widest">{visibleTabs.find(t => t.id === activeTab)?.label}</span>
+              </div>
+              <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isNavOpen && (
+              <>
+                <div className="fixed inset-0 z-[80]" onClick={() => setIsNavOpen(false)} />
+                <div className="absolute top-full left-0 mt-4 w-full md:w-64 bg-slate-900 border border-slate-800 rounded-[2rem] shadow-2xl z-[90] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="p-3 grid gap-1 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    {visibleTabs.map(tab => {
+                      const TabIcon = tab.icon;
+                      const isActive = activeTab === tab.id;
+                      return (
+                        <button 
+                          key={tab.id} 
+                          onClick={() => { setActiveTab(tab.id); setIsNavOpen(false); }} 
+                          className={`flex items-center gap-4 px-5 py-4 rounded-xl transition-all text-left group ${isActive ? 'bg-primary text-slate-900' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                        >
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-slate-900/10' : 'bg-slate-800 group-hover:bg-slate-700'}`}>
+                            <TabIcon size={16} />
+                          </div>
+                          <span className="text-xs font-bold uppercase tracking-widest">{tab.label}</span>
+                          {isActive && <Check size={14} className="ml-auto" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <div className="flex flex-col gap-2 w-full md:w-fit">
             <div className="flex gap-2">
