@@ -284,7 +284,28 @@ CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (tr
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
 CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (true);
 CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true);
-CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);`,
+CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);
+
+-- 5. AUTH SYNC TRIGGER
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.clients (id, email, name, "createdAt")
+  VALUES (
+    new.id, 
+    new.email, 
+    COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    EXTRACT(EPOCH FROM now()) * 1000
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`,
     codeLabel: 'Idempotent Master SQL Script v6.0'
   },
   {
@@ -491,6 +512,32 @@ CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);`,
       'Monthly: Trigger a "Curation Cycle" to move stale items to History.',
       'Quarterly: Backup your catalog data to JSON via System settings.',
       'Scaling: Add "Maison Staff" members as your traffic grows.'
+    ]
+  },
+  {
+    id: 'client-ecosystem',
+    title: '21. Client Ecosystem & Accounts',
+    description: 'Enable the luxury membership experience for your visitors, allowing them to track orders and manage their profiles.',
+    illustrationId: 'rocket',
+    subSteps: [
+      'Navigate to "Auth" > "Providers" and ensure Google & Email are active.',
+      'The Master SQL Script (Step 3) includes an "Auth Sync Trigger" that automatically creates client profiles.',
+      'Clients can sign up via the "Concierge" or "Portal" login screens.',
+      'Verified clients gain access to their private order history and tracking at /account.',
+      'Test the flow by creating a test account and verifying it appears in the "Clients" tab.'
+    ]
+  },
+  {
+    id: 'order-fulfillment',
+    title: '22. Order Management & Fulfillment',
+    description: 'Master the workflow of converting enquiries into tracked luxury orders.',
+    illustrationId: 'forge',
+    subSteps: [
+      'When a client purchase is confirmed, navigate to the "Orders" tab in the Maison Portal.',
+      'Click "Create Order" and link it to the Client ID (synced automatically from Auth).',
+      'Input the items, total amount, and initial status (e.g., "Processing").',
+      'As the order moves through the merchant cycle, update the status to "Shipped" or "Delivered".',
+      'Provide the "Tracking Number" to allow the client to monitor their delivery from their account.'
     ]
   }
 ];

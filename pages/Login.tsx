@@ -144,45 +144,46 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-slate-950">
-      
-      {/* Left Side: Visual / Brand */}
-      <div className="hidden md:block md:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-slate-900">
-          <img 
-            src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000"} 
-            alt="Editorial Fashion" 
-            className="w-full h-full object-cover opacity-60"
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+    <div className="min-h-[calc(100vh-80px)] w-full flex items-center justify-center bg-slate-950 p-4 lg:p-8 xl:p-12 overflow-hidden">
+      <div className="w-full h-full lg:h-auto lg:max-w-5xl flex bg-slate-900 lg:rounded-[3rem] lg:shadow-2xl overflow-hidden border border-transparent lg:border-slate-800">
         
-        <div className="absolute bottom-0 left-0 p-16 w-full">
-           <div className="mb-6">
-             <span className="inline-block px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                Exclusive Access
-             </span>
-             <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
-                {settings.companyName}
-             </h1>
-             <p className="text-xl text-primary font-serif italic mt-2">
-                {settings.slogan}
+        {/* Left Side: Visual / Brand */}
+        <div className="hidden md:block md:w-1/2 relative overflow-hidden">
+          <div className="absolute inset-0 bg-slate-900">
+            <img 
+              src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000"} 
+              alt="Editorial Fashion" 
+              className="w-full h-full object-cover opacity-60"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+          
+          <div className="absolute bottom-0 left-0 p-16 w-full">
+             <div className="mb-6">
+               <span className="inline-block px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white font-black uppercase text-[10px] tracking-[0.3em] mb-4">
+                  Exclusive Access
+               </span>
+               <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
+                  {settings.companyName}
+               </h1>
+               <p className="text-xl text-primary font-serif italic mt-2">
+                  {settings.slogan}
+               </p>
+             </div>
+             <div className="h-px w-24 bg-primary/50 mb-6"></div>
+             <p className="text-slate-400 max-w-md font-light leading-relaxed">
+               Join our community of fashion enthusiasts. Track your orders, manage your preferences, and stay updated with our latest collections.
              </p>
-           </div>
-           <div className="h-px w-24 bg-primary/50 mb-6"></div>
-           <p className="text-slate-400 max-w-md font-light leading-relaxed">
-             Join our community of fashion enthusiasts. Track your orders, manage your preferences, and stay updated with our latest collections.
-           </p>
-        </div>
-      </div>
-
-      {/* Right Side: Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative">
-        <div className="absolute inset-0 md:hidden overflow-hidden z-0">
-           <div className="absolute top-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-primary/10 rounded-full blur-[100px]"></div>
+          </div>
         </div>
 
-        <div className="w-full max-w-md space-y-12 relative z-10">
+        {/* Right Side: Form */}
+        <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative bg-slate-950/50">
+          <div className="absolute inset-0 md:hidden overflow-hidden z-0">
+             <div className="absolute top-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-primary/10 rounded-full blur-[100px]"></div>
+          </div>
+
+          <div className="w-full max-w-md space-y-12 relative z-10">
           <div>
             <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
               <Lock size={24} className="text-primary"/> {view === 'login' ? settings.loginHeroTitle : view === 'signup' ? 'Create Account' : 'Reset Password'}
@@ -364,6 +365,7 @@ const Login: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

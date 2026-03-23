@@ -84,41 +84,42 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-slate-950">
-      
-      {/* Left Side: Visual / Brand */}
-      <div className="hidden md:block md:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-slate-900">
-          <img 
-            src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000" 
-            alt="Admin Portal" 
-            className="w-full h-full object-cover opacity-40"
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
+    <div className="min-h-[calc(100vh-80px)] w-full flex items-center justify-center bg-slate-950 p-4 lg:p-8 xl:p-12 overflow-hidden">
+      <div className="w-full h-full lg:h-auto lg:max-w-5xl flex bg-slate-900 lg:rounded-[3rem] lg:shadow-2xl overflow-hidden border border-transparent lg:border-slate-800">
         
-        <div className="absolute bottom-0 left-0 p-16 w-full">
-           <div className="mb-6">
-             <span className="inline-block px-3 py-1 rounded-full border border-primary/20 bg-primary/10 backdrop-blur-md text-primary font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                Command Center
-             </span>
-             <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
-                Maison <span className="text-primary italic font-light">Portal</span>
-             </h1>
-             <p className="text-xl text-slate-400 font-serif italic mt-2">
-                Administrative Control Panel
+        {/* Left Side: Visual / Brand */}
+        <div className="hidden md:block md:w-1/2 relative overflow-hidden">
+          <div className="absolute inset-0 bg-slate-900">
+            <img 
+              src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000" 
+              alt="Admin Portal" 
+              className="w-full h-full object-cover opacity-40"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
+          
+          <div className="absolute bottom-0 left-0 p-16 w-full">
+             <div className="mb-6">
+               <span className="inline-block px-3 py-1 rounded-full border border-primary/20 bg-primary/10 backdrop-blur-md text-primary font-black uppercase text-[10px] tracking-[0.3em] mb-4">
+                  Command Center
+               </span>
+               <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
+                  Maison <span className="text-primary italic font-light">Portal</span>
+               </h1>
+               <p className="text-xl text-slate-400 font-serif italic mt-2">
+                  Administrative Control Panel
+               </p>
+             </div>
+             <div className="h-px w-24 bg-primary/50 mb-6"></div>
+             <p className="text-slate-500 max-w-md font-light leading-relaxed">
+               Secure access to the global luxury bridge infrastructure. Manage inventory, process orders, and oversee system operations.
              </p>
-           </div>
-           <div className="h-px w-24 bg-primary/50 mb-6"></div>
-           <p className="text-slate-500 max-w-md font-light leading-relaxed">
-             Secure access to the global luxury bridge infrastructure. Manage inventory, process orders, and oversee system operations.
-           </p>
+          </div>
         </div>
-      </div>
 
-      {/* Right Side: Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative">
-        <div className="w-full max-w-md space-y-12 relative z-10">
+        {/* Right Side: Form */}
+        <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative bg-slate-950/50">
+          <div className="w-full max-w-md space-y-12 relative z-10">
           <div className="text-center md:text-left">
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 mx-auto md:mx-0 border border-primary/20">
               <Shield size={32} />
@@ -247,6 +248,7 @@ const AdminLogin: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 
