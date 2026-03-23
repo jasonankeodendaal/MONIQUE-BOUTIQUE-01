@@ -98,13 +98,12 @@ export const GUIDE_STEPS = [
     description: 'Define your aesthetic territory. Before touching code, establish your bridge page\'s niche (e.g., Luxury Footwear, Tech Accessories).',
     illustrationId: 'rocket',
     subSteps: [
-      'Define your niche and target audience (e.g., "Luxury Minimalist Footwear for Urban Professionals").',
-      'Conduct a competitor audit to identify gaps in their curation strategy.',
-      'Choose a brand name that evokes exclusivity and trust.',
-      'Select a primary and secondary color palette (HEX codes) that reflects your aesthetic.',
-      'Choose typography that balances readability with luxury (e.g., Serif for headings, Sans-Serif for body).',
-      'Prepare 3 high-resolution hero images (1920x1080) that tell a visual story.',
-      'Write a compelling "Curator\'s Manifesto" (min 200 words) for the About section.'
+      '1. NICHE: Go to Pinterest or Instagram and search for "Luxury [Your Interest]". Identify a niche with high-ticket items (e.g., "Minimalist Home Decor").',
+      '2. BRAND NAME: Use a tool like Namelix to generate a name that sounds established. Check if the .com is available.',
+      '3. COLOR PALETTE: Visit Coolors.co. Generate a palette. Copy the HEX codes (e.g., #000000, #FFFFFF, #D4AF37) for your Primary and Secondary colors.',
+      '4. TYPOGRAPHY: In the Maison Portal "Canvas" tab, test different font pairings. Use a Serif font for headings to evoke a "Magazine" feel.',
+      '5. IMAGERY: Download 3 high-res images from Unsplash or Pexels. Search for "Editorial [Niche]" to find the right aesthetic.',
+      '6. MANIFESTO: Open a doc and write why you curate these items. Focus on quality over quantity. This will be your "About" text.'
     ]
   },
   {
@@ -113,13 +112,12 @@ export const GUIDE_STEPS = [
     description: 'Establish your cloud database infrastructure. This allows your bridge page to sync data in real-time across all devices.',
     illustrationId: 'forge',
     subSteps: [
-      'Sign up at Supabase.com and create an organization for your brand.',
-      'Initialize a new project named "Maison Portal [Brand Name]".',
-      'Set a complex database password and store it securely in a vault.',
-      'Choose the data center region closest to your primary market for low latency.',
-      'Configure the project timezone to match your primary business location.',
-      'Enable Multi-Factor Authentication (MFA) on your Supabase account for security.',
-      'Locate your Project URL and "anon" public API key in Settings > API.'
+      '1. SIGN UP: Go to https://supabase.com. Click "Start your project" and sign in with GitHub for the easiest setup.',
+      '2. NEW PROJECT: Click "New Project". Name it "Maison Portal".',
+      '3. PASSWORD: Click "Generate a password". COPY THIS IMMEDIATELY and save it in a safe place (you will need it for Step 6).',
+      '4. REGION: In the "Region" dropdown, select the city closest to you (e.g., "Cape Town" or "London") for the fastest speed.',
+      '5. PLAN: Select the "Free" tier. Click "Create new project". Wait 2 minutes for the database to provision.',
+      '6. CREDENTIALS: Once ready, go to "Project Settings" (gear icon) > "API". You will see your "Project URL" and "anon public" key here.'
     ]
   },
   {
@@ -128,13 +126,12 @@ export const GUIDE_STEPS = [
     description: 'Inject the master data schema into your database. This creates the tables for products, analytics, and settings.',
     illustrationId: 'rocket',
     subSteps: [
-      'Open the SQL Editor in your Supabase dashboard.',
-      'Create a new query and paste the Master SQL Script provided below.',
-      'Click "Run" and verify that all 12 tables appear in the Table Editor.',
-      'Check the "settings" table to ensure the initial "global" record was created.',
-      'Verify that the "admin_users" table contains your initial owner record.',
-      'Ensure that Row Level Security (RLS) is active on all tables to protect data.',
-      'Review the "handle_new_user" trigger to understand how client profiles are synced.'
+      '1. SQL EDITOR: In your Supabase sidebar, click the "SQL Editor" icon (looks like ">_").',
+      '2. NEW QUERY: Click "+ New query" at the top. Name it "Master Setup".',
+      '3. PASTE SCRIPT: Scroll down in this Pilot guide, copy the entire "Master SQL Script" block, and paste it into the Supabase editor.',
+      '4. RUN: Click the "Run" button at the bottom right. You should see "Success. No rows returned."',
+      '5. VERIFY: Click the "Table Editor" icon (grid icon) in the sidebar. You should now see tables like "products", "settings", and "clients".',
+      '6. INITIAL RECORD: Click the "settings" table. Ensure there is one row with the ID "global". If not, re-run the script.'
     ],
     code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Idempotent & Safe)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -330,13 +327,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Configure how your team accesses the Maison Portal. This secures your collections from unauthorized changes.',
     illustrationId: 'forge',
     subSteps: [
-      'Navigate to Authentication > Providers in Supabase.',
-      'Enable "Email" as the primary authentication method.',
-      'Enable "Google" OAuth for a seamless client login experience (requires Google Cloud setup).',
-      'Disable "Confirm Email" for instant onboarding during the development phase.',
-      'Set your production domain in "Site URL" to ensure correct redirects.',
-      'Add "http://localhost:3000" to "Additional Redirect URLs" for local testing.',
-      'Customize the "Welcome" and "Reset Password" email templates in Auth Settings.'
+      '1. AUTH PROVIDERS: In Supabase, click "Authentication" (user icon) > "Providers".',
+      '2. EMAIL: Ensure "Email" is toggled ON. Under "Confirm email", toggle it OFF for now (this allows you to test signups instantly).',
+      '3. GOOGLE (Optional): If you want "Login with Google", you must set up a Google Cloud project and paste the Client ID here.',
+      '4. REDIRECT URLS: Go to "URL Configuration". Under "Site URL", paste your live Vercel link (from Step 10).',
+      '5. LOCAL TESTING: Under "Additional Redirect URLs", add "http://localhost:3000" so you can test login while developing.',
+      '6. SAVE: Click "Save" at the bottom of the page.'
     ]
   },
   {
@@ -345,13 +341,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Prepare high-speed CDN hosting for your product imagery and cinematic videos.',
     illustrationId: 'rocket',
     subSteps: [
-      'Go to Storage in Supabase and create a new bucket named "media".',
-      'Toggle the bucket to "Public" to allow visitors to view product images.',
-      'Create folders within the bucket (e.g., "products", "hero", "about") for organization.',
-      'Set up a Storage Policy allowing "SELECT" access for all users.',
-      'Set up a Storage Policy allowing "INSERT/UPDATE/DELETE" only for authenticated admins.',
-      'Test the vault by uploading a sample image and copying its public URL.',
-      'Ensure file size limits are set (e.g., 5MB per image) to maintain performance.'
+      '1. STORAGE: In Supabase, click "Storage" (box icon) in the sidebar.',
+      '2. NEW BUCKET: Click "+ New bucket". Name it exactly "media" (lowercase).',
+      '3. PUBLIC TOGGLE: Ensure the "Public bucket" toggle is ON. This is critical so images load on your website.',
+      '4. POLICIES: Click "Policies" in the sidebar. Under the "media" bucket, click "New Policy" > "For full customization".',
+      '5. SELECT POLICY: Name it "Public Read". Select "SELECT" only. Under "Target roles", select "anon". Enter "true" in the expression box.',
+      '6. UPLOAD POLICY: Create another policy for "INSERT". Select "authenticated" role. This allows you to upload from the Admin panel.'
     ]
   },
   {
@@ -360,13 +355,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Link your local development engine to your cloud project using environment variables.',
     illustrationId: 'forge',
     subSteps: [
-      'Locate the ".env.example" file in your project root for reference.',
-      'Create a new file named ".env" (ensure it is listed in ".gitignore").',
-      'Add "VITE_SUPABASE_URL" and "VITE_SUPABASE_ANON_KEY" to the file.',
-      'Ensure there are no spaces around the "=" sign in your variables.',
-      'Restart your local development server ("npm run dev") to load the keys.',
-      'Verify the connection by checking if the Admin dashboard loads your settings.',
-      'Never commit your ".env" file to public repositories to prevent data leaks.'
+      '1. LOCATE FILE: In your code editor (e.g., VS Code), find the file named ".env.example".',
+      '2. DUPLICATE: Right-click it and select "Duplicate" or "Copy/Paste". Rename the new file to exactly ".env".',
+      '3. SUPABASE URL: Go to Supabase > Settings > API. Copy the "Project URL". Paste it after "VITE_SUPABASE_URL=".',
+      '4. ANON KEY: Copy the "anon public" key. Paste it after "VITE_SUPABASE_ANON_KEY=".',
+      '5. SAVE: Save the file. Ensure there are no quotes or spaces around the values.',
+      '6. RESTART: In your terminal, stop the server (Ctrl+C) and run "npm run dev" again. The "System Status" in your Admin footer should now be green.'
     ],
     code: 'VITE_SUPABASE_URL=https://xxxx.supabase.co\nVITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     codeLabel: '.env Credentials'
@@ -377,13 +371,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Secure your codebase and enable automated production deployments.',
     illustrationId: 'rocket',
     subSteps: [
-      'Initialize git in your project folder using "git init".',
-      'Create a ".gitignore" file to exclude "node_modules" and ".env".',
-      'Create a new Private Repository on GitHub for your brand\'s code.',
-      'Stage all files with "git add ." and commit with "git commit -m \'Initial Launch\'".',
-      'Link your local repo to GitHub using "git remote add origin [URL]".',
-      'Push your code to the "main" branch with "git push -u origin main".',
-      'Enable "Branch Protection" on GitHub to prevent accidental deletions.'
+      '1. GITHUB LOGIN: Go to https://github.com and sign in. Click the "+" icon > "New repository".',
+      '2. REPO SETUP: Name it "maison-portal". Set it to "Private". Click "Create repository".',
+      '3. TERMINAL: In your project folder, run "git init". Then run "git add .".',
+      '4. COMMIT: Run "git commit -m \'Initial Launch\'". This saves a snapshot of your code.',
+      '5. REMOTE: Copy the "git remote add origin..." line from GitHub and paste it into your terminal.',
+      '6. PUSH: Run "git push -u origin main". Your code is now safely stored in the cloud.'
     ]
   },
   {
@@ -392,13 +385,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Setup the automated communication bridge for client enquiries.',
     illustrationId: 'forge',
     subSteps: [
-      'Create a free account at EmailJS.com.',
-      'Connect your professional email service (e.g., Google Workspace, Outlook).',
-      'Note your "Service ID" from the Email Services tab.',
-      'Find your "Public Key" in the Account section.',
-      'Whitelist your production domain in the "Security" settings of EmailJS.',
-      'Test the connection by sending a test email from the EmailJS dashboard.',
-      'Monitor your monthly email limits (200/month on the free plan).'
+      '1. SIGN UP: Go to https://www.emailjs.com and create a free account.',
+      '2. ADD SERVICE: Click "Email Services" > "Add New Service". Select "Gmail" and connect your account.',
+      '3. SERVICE ID: Copy the "Service ID" (e.g., "service_xxxx"). You will need this for Step 11.',
+      '4. PUBLIC KEY: Click "Account" in the sidebar. Copy your "Public Key".',
+      '5. WHITELIST: In "Account" > "Security", add your Vercel domain (from Step 10) to the "Allowed Domains" list.',
+      '6. TEST: Click "Test Service" to ensure EmailJS can send emails through your Gmail account.'
     ]
   },
   {
@@ -407,13 +399,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Design the luxury reply template your clients receive when you answer an enquiry.',
     illustrationId: 'rocket',
     subSteps: [
-      'In EmailJS, create a "New Template" for enquiry responses.',
-      'Use the "Code Editor" mode to paste the Elegant HTML Template.',
-      'Map the following variables: {{to_name}}, {{message}}, {{subject}}, {{company_name}}.',
-      'Add your brand logo URL to the template for a professional look.',
-      'Set the "From Name" to your brand name and "Reply To" to your support email.',
-      'Send a test email to yourself to verify the layout and links.',
-      'Save the "Template ID" for use in the Maison Portal Integrations.'
+      '1. CREATE TEMPLATE: In EmailJS, click "Email Templates" > "Create New Template".',
+      '2. DESIGN: Use the editor to design your reply. Use {{to_name}} for the client name and {{message}} for your reply.',
+      '3. LOGO: Click the "Image" icon and paste your logo URL (from Supabase Storage) to brand the email.',
+      '4. SETTINGS: In the "Settings" tab of the template, set the "From Name" to your Brand Name.',
+      '5. TEMPLATE ID: Click "Save". Copy the "Template ID" (e.g., "template_xxxx").',
+      '6. AUTO-REPLY: (Optional) Create a second template for "Auto-Confirmation" to tell clients you received their message.'
     ]
   },
   {
@@ -422,13 +413,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Deploy your bridge page to the global web for high-performance viewing.',
     illustrationId: 'forge',
     subSteps: [
-      'Sign into Vercel.com and click "Add New Project".',
-      'Select your GitHub repository from the list.',
-      'Ensure the "Framework Preset" is set to "Vite".',
-      'Set the "Build Command" to "npm run build" and "Output Directory" to "dist".',
-      'Click "Deploy" and wait for the build process to complete.',
-      'Visit your new ".vercel.app" URL to verify the site is live.',
-      'Check the "Deployment Logs" if you encounter any build errors.'
+      '1. VERCEL LOGIN: Go to https://vercel.com. Sign in with your GitHub account.',
+      '2. IMPORT: Click "Add New" > "Project". Find your "maison-portal" repo and click "Import".',
+      '3. FRAMEWORK: Vercel should auto-detect "Vite". If not, select it from the dropdown.',
+      '4. BUILD SETTINGS: Ensure "Build Command" is "npm run build" and "Output Directory" is "dist".',
+      '5. DEPLOY: Click "Deploy". The build will fail initially because we haven\'t added keys yet—this is normal.',
+      '6. DASHBOARD: Once the build finishes (even if it fails), click "Go to Dashboard".'
     ]
   },
   {
@@ -437,13 +427,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Securely transfer your private API keys to the production environment.',
     illustrationId: 'rocket',
     subSteps: [
-      'In Vercel, navigate to Settings > Environment Variables.',
-      'Add "VITE_SUPABASE_URL" and "VITE_SUPABASE_ANON_KEY".',
-      'Add your EmailJS keys: "VITE_EMAILJS_SERVICE_ID", "VITE_EMAILJS_PUBLIC_KEY".',
-      'Trigger a "Redeploy" from the Vercel dashboard to apply the secrets.',
-      'Verify that the "System Status" indicator in your Admin footer is green.',
-      'Test the contact form on your live site to ensure emails are sending.',
-      'Use the "Bulk Import" feature in Vercel if you have many variables.'
+      '1. SETTINGS: In your Vercel project, click "Settings" > "Environment Variables".',
+      '2. SUPABASE: Add "VITE_SUPABASE_URL" and "VITE_SUPABASE_ANON_KEY" with values from Step 2.',
+      '3. EMAILJS: Add "VITE_EMAILJS_SERVICE_ID", "VITE_EMAILJS_TEMPLATE_ID", and "VITE_EMAILJS_PUBLIC_KEY".',
+      '4. REDEPLOY: Go to the "Deployments" tab. Click the three dots on your latest build and select "Redeploy".',
+      '5. VERIFY: Once finished, click the "Visit" button. Your site should now load your products and settings.',
+      '6. CONSOLE: If the site is blank, right-click > Inspect > Console to see if any API keys are missing.'
     ]
   },
   {
@@ -452,13 +441,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Finalize your brand identity with a custom .com or .luxury domain.',
     illustrationId: 'forge',
     subSteps: [
-      'Purchase your brand\'s domain (e.g., www.maison-brand.com).',
-      'In Vercel, go to Settings > Domains and add your custom domain.',
-      'Follow Vercel\'s instructions to update your DNS records at your registrar.',
-      'Set the "A" record to Vercel\'s IP and the "CNAME" record for "www".',
-      'Wait for SSL certificate generation and DNS propagation (up to 24 hours).',
-      'Use a tool like "DNSChecker.org" to monitor global propagation.',
-      'Set up a professional email (e.g., hello@yourbrand.com) using MX records.'
+      '1. BUY DOMAIN: Purchase a domain from Namecheap, GoDaddy, or Google Domains.',
+      '2. VERCEL DOMAINS: In Vercel Settings > Domains, type your domain (e.g., yourbrand.com) and click "Add".',
+      '3. DNS A RECORD: In your domain registrar, add an "A" record. Host: "@", Value: "76.76.21.21".',
+      '4. DNS CNAME: Add a "CNAME" record. Host: "www", Value: "cname.vercel-dns.com".',
+      '5. PROPAGATION: Wait 10 minutes. Check "DNSChecker.org" to see if the records are live.',
+      '6. SSL: Vercel will automatically show a "Valid" status with a green lock icon once DNS is connected.'
     ]
   },
   {
@@ -467,13 +455,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Install Google Analytics to monitor visitor origins and engagement duration.',
     illustrationId: 'rocket',
     subSteps: [
-      'Create a Google Analytics 4 property for your website.',
-      'Set up a "Web Data Stream" and copy the "Measurement ID" (G-XXXXXXXXXX).',
-      'Paste the ID into Maison Portal > Canvas > Integrations.',
-      'Enable "Enhanced Measurement" in GA4 to track scrolls and outbound clicks.',
-      'Use the "DebugView" in GA4 to verify events are firing in real-time.',
-      'Create a "Custom Dimension" for tracking specific product categories.',
-      'Set up "Conversion Events" for affiliate link clicks and enquiries.'
+      '1. CREATE PROPERTY: Go to https://analytics.google.com. Create a new "GA4" property.',
+      '2. DATA STREAM: Click "Data Streams" > "Web". Enter your domain. Copy the "Measurement ID" (G-XXXXXX).',
+      '3. INTEGRATE: In your Admin > Settings > Integrations, paste the Measurement ID.',
+      '4. REAL-TIME: Visit your live site. In GA4, click "Real-time" to see yourself as a visitor.',
+      '5. EVENTS: GA4 will automatically track clicks. You can see these in the "Events" tab after 24 hours.',
+      '6. CONVERSIONS: Mark "Contact" or "Affiliate Click" as a conversion in GA4 settings.'
     ]
   },
   {
@@ -482,13 +469,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Enable retargeting and conversion tracking for Instagram and Facebook ads.',
     illustrationId: 'forge',
     subSteps: [
-      'Open Meta Events Manager and create a new "Web Data Source".',
-      'Select "Manual Setup" and copy your numeric "Pixel ID".',
-      'Paste the ID into the Integrations tab of your Maison Portal.',
-      'Use the "Meta Pixel Helper" browser extension to verify installation.',
-      'Set up "Standard Events" (e.g., ViewContent, Lead) using the Event Setup Tool.',
-      '(Advanced) Configure the Conversions API (CAPI) for more accurate tracking.',
-      'Verify your domain in Meta Business Suite to enable Aggregated Event Measurement.'
+      '1. EVENTS MANAGER: Go to Facebook Business Suite > Events Manager.',
+      '2. NEW PIXEL: Click "Connect Data Sources" > "Web". Name it and click "Create".',
+      '3. PIXEL ID: Copy the numeric "Pixel ID" from the settings tab.',
+      '4. INTEGRATE: Paste the Pixel ID into your Admin > Settings > Integrations.',
+      '5. HELPER: Install the "Meta Pixel Helper" Chrome extension. Visit your site to see if it turns green.',
+      '6. TEST EVENTS: Use the "Test Events" tool in Meta to verify that "ViewContent" fires when you click a product.'
     ]
   },
   {
@@ -497,13 +483,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Monitor high-traffic trends and referral performance from TikTok.',
     illustrationId: 'rocket',
     subSteps: [
-      'In TikTok Ads Manager, go to Assets > Events > Web Events.',
-      'Create a "TikTok Pixel" and choose "Manual Setup".',
-      'Copy the "Pixel ID" and apply it to your Maison Portal.',
-      'Install the "TikTok Pixel Helper" to test your events.',
-      'Define "Complete Payment" or "Contact" events based on your goals.',
-      'Set up "Attribution Windows" to match your typical customer journey.',
-      'Monitor the "Event Quality Score" in TikTok Ads Manager.'
+      '1. ADS MANAGER: Go to TikTok Ads Manager > Assets > Events.',
+      '2. CREATE PIXEL: Click "Manage" under Web Events. Click "Set Up Web Events".',
+      '3. MANUAL: Select "TikTok Pixel" > "Manual Setup". Copy the "Pixel ID".',
+      '4. INTEGRATE: Paste the ID into your Admin > Settings > Integrations.',
+      '5. HELPER: Install "TikTok Pixel Helper" to verify the pixel is active on your live site.',
+      '6. OPTIMIZE: Use the "Event Builder" in TikTok to track button clicks for your affiliate links.'
     ]
   },
   {
@@ -512,13 +497,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Capture aesthetic-driven shoppers from the Pinterest ecosystem.',
     illustrationId: 'forge',
     subSteps: [
-      'Navigate to Pinterest Business Hub > Ads > Conversions.',
-      'Create a "Pinterest Tag" and copy the "Unique Tag ID".',
-      'Synchronize the ID via Maison Portal > Canvas > Integrations.',
-      'Use the "Pinterest Tag Helper" to verify the tag is active.',
-      'Set up tracking for "Add to Cart" or "Checkout" (if applicable).',
-      'Claim your website on Pinterest to unlock advanced analytics.',
-      'Create "Audience Lists" based on visitors who viewed specific niches.'
+      '1. BUSINESS HUB: Go to Pinterest Business > Ads > Conversions.',
+      '2. TAG ID: Click "Install Tag". Copy the "Unique Tag ID".',
+      '3. INTEGRATE: Paste the Tag ID into your Admin > Settings > Integrations.',
+      '4. HELPER: Install the "Pinterest Tag Helper" extension to verify the tag is firing.',
+      '5. CLAIM SITE: In Pinterest Settings > Claim, enter your domain and add the meta tag to your site.',
+      '6. RICH PINS: Once claimed, your pins will automatically show price and availability.'
     ]
   },
   {
@@ -527,13 +511,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Calibrate your site\'s visual identity to match your unique curation style.',
     illustrationId: 'rocket',
     subSteps: [
-      'Open Maison Portal > Canvas > Identity to begin visual tuning.',
-      'Upload your high-res logo and a 32x32px favicon for the browser tab.',
-      'Set your "Primary Color" to match your brand\'s signature hue.',
-      'Update your "SEO Title" and "Meta Description" for the home page.',
-      'Upload a "Social Sharing Image" (1200x630) for link previews.',
-      'Customize your navigation labels to fit your brand\'s voice.',
-      'Review the site on mobile, tablet, and desktop to ensure responsiveness.'
+      '1. CANVAS TAB: In the Admin sidebar, click "Canvas" (palette icon).',
+      '2. IDENTITY: Upload your Logo, Favicon, and a "Hero Image" for the homepage.',
+      '3. COLORS: Set your "Primary Color" (e.g., #000000) and "Accent Color" (e.g., #D4AF37).',
+      '4. TYPOGRAPHY: Select your Heading and Body fonts. Use "Playfair Display" for a luxury feel.',
+      '5. SEO: Enter your "Site Title" and "Meta Description". This is what Google shows in search results.',
+      '6. PREVIEW: Click "View Site" at the top right to see your new identity in action.'
     ]
   },
   {
@@ -542,13 +525,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Populate your bridge page with high-commission, personally curated items.',
     illustrationId: 'forge',
     subSteps: [
-      'Create logical "Departments" (e.g., Men, Women, Lifestyle) in the Items tab.',
-      'Add products with high-quality images and SEO-optimized titles.',
-      'Write "Why We Love It" highlights that provide genuine value to shoppers.',
-      'Ensure every affiliate link is correctly formatted with your tracking ID.',
-      'Use the "Ad Generator" to create consistent social media assets.',
-      'Set "Was Price" to show savings and increase conversion urgency.',
-      'Regularly audit your links to ensure they are still active and profitable.'
+      '1. CATEGORIES: In Admin > Products, click "Categories". Add your main niches (e.g., "Watches", "Decor").',
+      '2. ADD ITEM: Click "Add Product". Enter the name, price, and a "Why We Love It" description.',
+      '3. AFFILIATE LINK: Paste your Amazon or Brand affiliate link. This is how you get paid.',
+      '4. IMAGES: Upload 3-5 high-res images. Use the "Gallery" feature to show different angles.',
+      '5. FEATURED: Toggle "Featured" ON for your best items to show them on the homepage.',
+      '6. AUDIT: Click "View on Site" for each product to ensure the images and links work perfectly.'
     ]
   },
   {
@@ -557,13 +539,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Utilize the training modules to master the algorithms of social platforms.',
     illustrationId: 'rocket',
     subSteps: [
-      'Study the "Instagram Aesthetic" module to master visual storytelling.',
-      'Implement the "Pinterest Viral Pins" strategy for long-term traffic.',
-      'Use the "TikTok Trend Jacking" guide to capture viral moments.',
-      'Review "SEO for Luxury" to optimize your product descriptions.',
-      'Create a "Content Calendar" to maintain a consistent posting schedule.',
-      'Engage with your community by responding to comments and enquiries.',
-      'Track your growth metrics weekly to identify high-performing platforms.'
+      '1. ACADEMY TAB: Click "Academy" in the Admin sidebar.',
+      '2. MODULES: Read the "Instagram Strategy" and "Pinterest Viral" guides.',
+      '3. CONTENT PLAN: Use the "Content Calendar" template to plan 30 days of posts.',
+      '4. AD GENERATOR: Use the built-in tool to create aesthetic ads for your products.',
+      '5. HASHTAGS: Copy the curated hashtag lists for your niche to increase reach.',
+      '6. ENGAGEMENT: Follow the "Community Growth" guide to find and engage with your target audience.'
     ]
   },
   {
@@ -572,13 +553,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Establish a rhythm for catalog refreshes and analytical auditing.',
     illustrationId: 'forge',
     subSteps: [
-      'Perform a weekly audit of your "Elite Performance Report" in the dashboard.',
-      'Update your "Curator\'s Picks" monthly to keep the catalog fresh.',
-      'Backup your entire catalog to a JSON file via System > Maintenance.',
-      'Monitor your Supabase storage usage to avoid hitting free-tier limits.',
-      'Compress all images before uploading to maintain fast load times.',
-      'Add "Maison Staff" members with specific permissions as you scale.',
-      'Collect user feedback via the contact form to improve the experience.'
+      '1. ANALYTICS: Check your "Elite Performance" report weekly to see which products are trending.',
+      '2. LINK CHECK: Use a "Broken Link Checker" extension to ensure all affiliate links are still active.',
+      '3. REFRESH: Add 5 new products every week to keep your audience coming back.',
+      '4. BACKUP: Go to Admin > System and click "Export Catalog" to save your data as a JSON file.',
+      '5. OPTIMIZE: If the site feels slow, use "TinyPNG" to compress your images before uploading.',
+      '6. FEEDBACK: Read your "Enquiries" to see what items your clients are asking for.'
     ]
   },
   {
@@ -587,13 +567,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Enable the luxury membership experience for your visitors, allowing them to track orders and manage their profiles.',
     illustrationId: 'rocket',
     subSteps: [
-      'Verify that the "Auth Sync Trigger" is correctly creating client profiles.',
-      'Test the client signup flow using a personal email address.',
-      'Customize the "Client Portal" welcome message in the Identity tab.',
-      'Encourage signups by offering "Early Access" or "Exclusive Curation".',
-      'Use the "Clients" tab to manage status (e.g., VIP, Blacklisted).',
-      'Monitor "Last Active" timestamps to identify your most engaged users.',
-      'Ensure all client data is handled according to your Privacy Policy.'
+      '1. CLIENTS TAB: Click "Clients" in the Admin sidebar.',
+      '2. SIGNUP TEST: Go to your live site and sign up as a new user. Verify you appear in the Admin list.',
+      '3. PROFILES: Click a client to see their "Wishlist" and "Order History".',
+      '4. VIP STATUS: Manually change a client\'s status to "VIP" to give them special access.',
+      '5. ENQUIRIES: When a client sends a message, it will appear in the "Enquiries" tab linked to their profile.',
+      '6. EXPORT: Use the "Export Clients" button to download your email list for marketing.'
     ]
   },
   {
@@ -602,13 +581,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Master the workflow of converting enquiries into tracked luxury orders.',
     illustrationId: 'forge',
     subSteps: [
-      'Create a new order whenever a client confirms a purchase via enquiry.',
-      'Link the order to the correct Client ID for tracking in their portal.',
-      'Update order statuses (Pending -> Processing -> Shipped) in real-time.',
-      'Add tracking numbers as soon as they are provided by the merchant.',
-      'Use the "Internal Notes" field to track specific client requests.',
-      'Send a "Shipping Confirmation" email manually or via automation.',
-      'Archive completed orders to keep your active dashboard clean.'
+      '1. ENQUIRY: When a client asks about a product, click "Create Order" from the Enquiry screen.',
+      '2. ORDER DETAILS: Select the product, quantity, and set the status to "Pending".',
+      '3. TRACKING: Once the affiliate purchase is confirmed, update the order with a "Tracking Number".',
+      '4. CLIENT VIEW: The client can now see their order status in their own "Member Portal".',
+      '5. COMPLETION: Mark the order as "Delivered" once the item arrives.',
+      '6. REVENUE: The "Analytics" tab will automatically update your "Estimated Revenue" based on these orders.'
     ]
   },
   {
@@ -617,13 +595,12 @@ CREATE TRIGGER on_auth_user_created
     description: 'Configure automated welcome emails and signup confirmations to build immediate trust with new members.',
     illustrationId: 'rocket',
     subSteps: [
-      'Create a "Welcome Protocol" template in EmailJS for new signups.',
-      'Include a "Getting Started" guide or a link to your latest curation.',
-      'Set up a Supabase Edge Function (or hook) to trigger the welcome email.',
-      'Personalize the email with the client\'s name using {{name}}.',
-      'Test the automation by signing up as a new user on your site.',
-      'Monitor the "Email Logs" in EmailJS to ensure successful delivery.',
-      'Periodically update your welcome message to reflect seasonal trends.'
+      '1. WELCOME TEMPLATE: In EmailJS, create a "Welcome Protocol" template for new signups.',
+      '2. CONTENT: Include a "Getting Started" guide or a link to your latest curation.',
+      '3. AUTOMATION: Set up a Supabase Edge Function (or hook) to trigger the welcome email.',
+      '4. PERSONALIZATION: Use the client\'s name in the email using the {{name}} variable.',
+      '5. TEST: Sign up as a new user on your site and verify you receive the welcome email.',
+      '6. MONITOR: Check the "Email Logs" in EmailJS to ensure all new members are being reached.'
     ]
   }
 ];
