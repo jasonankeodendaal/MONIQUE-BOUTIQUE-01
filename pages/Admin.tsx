@@ -4641,6 +4641,15 @@ const Admin: React.FC = () => {
 
   const renderGuide = () => (
      <div className="space-y-12 md:space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-32 max-w-7xl mx-auto text-left w-full overflow-hidden">
+        <div className="flex justify-end">
+           <button 
+             onClick={() => window.print()}
+             className="flex items-center gap-2 px-6 py-3 bg-primary text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-primary/20"
+           >
+             <Printer size={16} />
+             Download PDF
+           </button>
+        </div>
         <div className="bg-gradient-to-br from-primary/30 to-slate-950 p-8 md:p-24 rounded-[2rem] md:rounded-[4rem] border border-primary/20 relative overflow-hidden shadow-2xl">
             <Rocket className="absolute -bottom-20 -right-20 text-primary/10 w-48 h-48 md:w-96 md:h-96 rotate-12" />
             <div className="max-w-3xl relative z-10 text-left">
