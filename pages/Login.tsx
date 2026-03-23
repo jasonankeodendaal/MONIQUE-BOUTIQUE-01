@@ -97,7 +97,11 @@ const Login: React.FC = () => {
       setSuccessMessage('Account created successfully! You can now log in.');
       setView('login');
     } catch (err: any) {
-      setError(err.message);
+      if (err.message.includes('already registered') || err.message.includes('User already exists') || err.message.includes('already exists')) {
+        setError('This email is already registered with a different account type. Please use a different email address.');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -231,6 +235,7 @@ const Login: React.FC = () => {
               <form onSubmit={view === 'login' ? handleEmailLogin : handleEmailSignup} className="space-y-6">
                 {view === 'signup' && (
                   <div className="space-y-1">
+                    <p className="text-[10px] text-slate-500 mb-2">Note: If you are an administrator, please use a different email address.</p>
                     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
                     <div className="relative group">
                       <input 
