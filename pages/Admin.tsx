@@ -1871,7 +1871,66 @@ const Admin: React.FC = () => {
   };
   const handleSaveCategory = async () => { const newCat = { ...catData, id: editingId || Date.now().toString(), createdBy: catData.createdBy || user?.id }; const ok = await updateData('categories', newCat); if (ok) { setShowCategoryForm(false); setEditingId(null); } };
   const handleSaveHero = async () => { const newSlide = { ...heroData, id: editingId || Date.now().toString(), createdBy: heroData.createdBy || user?.id }; const ok = await updateData('hero_slides', newSlide); if (ok) { setShowHeroForm(false); setEditingId(null); } };
-  const handleSaveAdmin = async () => { if (!adminData.email) return; setCreatingAdmin(true); try { const newAdmin = { ...adminData, id: editingId || Date.now().toString(), createdAt: adminData.createdAt || Date.now() }; const ok = await updateData('admin_users', newAdmin); if (ok) { setShowAdminForm(false); setEditingId(null); } } catch (err: any) { alert(`Error saving member: ${err.message}`); } finally { setCreatingAdmin(false); } };
+  const handleSaveAdmin = async () => {
+    if (!adminData.email) return;
+    setCreatingAdmin(true);
+    try {
+      const action = editingId ? 'update' : 'create';
+      const response = await fetch('/api/admin/manage-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          id: editingId,
+          email: adminData.email,
+          password: adminData.password,
+          role: adminData.role || 'admin',
+          fullName: adminData.name
+        })
+      });
+
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error);
+
+      // Also update the database record for metadata
+      const newAdmin = { 
+        ...adminData, 
+        id: result.user?.id || editingId || Date.now().toString(), 
+        createdAt: adminData.createdAt || Date.now() 
+      };
+      // Remove password before saving to public database table
+      const { password, ...dbAdmin } = newAdmin as any;
+      
+      const ok = await updateData('admin_users', dbAdmin);
+      if (ok) {
+        setShowAdminForm(false);
+        setEditingId(null);
+        setAdminData({});
+        refreshAllData();
+      }
+    } catch (err: any) {
+      alert(`Error saving member: ${err.message}`);
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: string, role: string) => {
+    if (!window.confirm(`Are you sure you want to delete this ${role}? This will permanently remove their login access and data.`)) return;
+    try {
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, role })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error);
+      
+      refreshAllData();
+    } catch (err: any) {
+      alert(`Error deleting user: ${err.message}`);
+    }
+  };
 
   const handleSaveTraining = async () => {
      setSaveStatus('saving');
@@ -1992,14 +2051,40 @@ const Admin: React.FC = () => {
   };
 
   const handleSaveClient = async () => {
-    const data = { ...clientData };
-    if (!data.id) {
-      data.id = `client-${Date.now()}`;
-      data.createdAt = Date.now();
+    if (!clientData.email) return;
+    try {
+      const action = clientData.id ? 'update' : 'create';
+      const response = await fetch('/api/admin/manage-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          id: clientData.id,
+          email: clientData.email,
+          password: clientData.password,
+          role: 'client',
+          fullName: clientData.name
+        })
+      });
+
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error);
+
+      const data = { 
+        ...clientData,
+        id: result.user?.id || clientData.id || `client-${Date.now()}`,
+        createdAt: clientData.createdAt || Date.now()
+      };
+      // Remove password before saving to public database table
+      const { password, ...dbClient } = data as any;
+
+      await updateData('clients', dbClient);
+      setShowClientForm(false);
+      setClientData({});
+      refreshAllData();
+    } catch (err: any) {
+      alert(`Error saving client: ${err.message}`);
     }
-    await updateData('clients', data);
-    setShowClientForm(false);
-    setClientData({});
   };
 
   const renderOrders = () => (
@@ -2193,6 +2278,10 @@ const Admin: React.FC = () => {
                   <input type="email" value={clientData.email || ''} onChange={e => setClientData({...clientData, email: e.target.value})} disabled={!!clientData.id} className={`w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:border-primary ${clientData.id ? 'text-slate-500 cursor-not-allowed' : 'text-white'}`} placeholder="client@example.com" />
                 </div>
                 <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Password</label>
+                  <input type="password" value={clientData.password || ''} onChange={e => setClientData({...clientData, password: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="••••••••" />
+                </div>
+                <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Phone Number</label>
                   <input type="tel" value={clientData.phone || ''} onChange={e => setClientData({...clientData, phone: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="+1 (555) 000-0000" />
                 </div>
@@ -2238,8 +2327,9 @@ const Admin: React.FC = () => {
             
             return (
               <div key={client.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 group hover:border-slate-700 transition-colors relative overflow-hidden flex flex-col h-full">
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                   <button onClick={() => { setClientData(client); setShowClientForm(true); }} className="p-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16}/></button>
+                  <button onClick={() => handleDeleteUser(client.id, 'client')} className="p-2 bg-slate-800 text-slate-300 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={16}/></button>
                 </div>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center text-primary font-serif text-2xl shadow-inner">
@@ -4290,6 +4380,7 @@ const Admin: React.FC = () => {
 
                     <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-12">Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
+                    <SettingField label="Password" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" />
                     <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed">Manage passkeys via the Supabase cloud dashboard.</p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
                  </div>
                  <div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: (e.target.value === 'owner') ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>

@@ -3,7 +3,7 @@
   "short_name": "Findara",
   "description": "Personal Luxury Wardrobe and Affiliate Bridge",
   "id": ".",
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#FDFCFB",

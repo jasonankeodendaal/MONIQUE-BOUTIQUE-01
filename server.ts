@@ -165,6 +165,94 @@ async function startServer() {
     }
   });
 
+  // Admin Management API Endpoints
+  // These endpoints use the service_role key to manage users in Supabase Auth
+
+  // Create or Update User (Admin/Client)
+  app.post('/api/admin/manage-user', async (req: Request, res: Response) => {
+    try {
+      const { email, password, role, fullName, id, action } = req.body;
+      const client = getSupabase();
+      
+      if (!client) {
+        return res.status(500).json({ success: false, error: 'Supabase client not initialized' });
+      }
+
+      if (action === 'create') {
+        // 1. Create user in Supabase Auth
+        const { data: authData, error: authError } = await client.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { role, full_name: fullName }
+        });
+
+        if (authError) throw authError;
+
+        // 2. The trigger on_auth_user_created handles the database entry for clients
+        // For admins, we might need to ensure they are in the admin_users table if not handled by trigger
+        if (role !== 'client') {
+          const { error: dbError } = await (client.from('admin_users') as any).upsert({
+            id: authData.user.id,
+            email,
+            name: fullName,
+            role: role,
+            permissions: role === 'owner' ? ['all'] : ['view'],
+            createdAt: Date.now()
+          });
+          if (dbError) throw dbError;
+        }
+
+        return res.status(200).json({ success: true, user: authData.user });
+      } else if (action === 'update') {
+        if (!id) return res.status(400).json({ success: false, error: 'User ID required for update' });
+
+        const updateData: any = {
+          user_metadata: { full_name: fullName, role }
+        };
+        if (password) updateData.password = password;
+
+        const { data: authData, error: authError } = await client.auth.admin.updateUserById(id, updateData);
+        if (authError) throw authError;
+
+        return res.status(200).json({ success: true, user: authData.user });
+      }
+
+      res.status(400).json({ success: false, error: 'Invalid action' });
+    } catch (error: any) {
+      console.error('Admin user management error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Delete User
+  app.post('/api/admin/delete-user', async (req: Request, res: Response) => {
+    try {
+      const { id, role } = req.body;
+      const client = getSupabase();
+      
+      if (!client) {
+        return res.status(500).json({ success: false, error: 'Supabase client not initialized' });
+      }
+
+      // 1. Delete from Supabase Auth
+      const { error: authError } = await client.auth.admin.deleteUser(id);
+      if (authError) throw authError;
+
+      // 2. Delete from database tables
+      if (role === 'client') {
+        await client.from('clients').delete().eq('id', id);
+      } else {
+        await client.from('admin_users').delete().eq('id', id);
+      }
+
+      res.status(200).json({ success: true });
+    } catch (error: any) {
+      console.error('Admin user deletion error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // Dynamic robots.txt
   app.get('/robots.txt', async (req: Request, res: Response) => {
     try {
