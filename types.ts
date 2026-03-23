@@ -536,6 +536,7 @@ export interface AppUser {
   profileImage?: string;
   phone?: string;
   address?: string;
+  notes?: string;
 }
 
 export interface OrderItem {
@@ -552,6 +553,9 @@ export interface Order {
   items: OrderItem[];
   totalAmount: number;
   status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled';
+  shippingAddress?: string;
+  trackingNumber?: string;
+  notes?: string;
   createdAt: number;
   updatedAt?: number;
 }

@@ -124,27 +124,44 @@ const Account: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="p-6">
-                      <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Items</h4>
-                      <div className="space-y-4">
-                        {order.items.map((item, index) => (
-                          <div key={index} className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
-                              <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                <Package size={20} />
-                              </div>
-                            </div>
-                            <div className="flex-grow">
-                              <p className="text-sm font-medium text-slate-900">{item.name}</p>
-                              <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-slate-900">${(item.price * item.quantity).toFixed(2)}</p>
-                            </div>
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                          <div>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shipping Information</h4>
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{order.shippingAddress || 'No shipping address provided.'}</p>
                           </div>
-                        ))}
+                          <div>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Tracking Number</h4>
+                            {order.trackingNumber ? (
+                              <p className="text-sm font-mono font-medium text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg inline-block">{order.trackingNumber}</p>
+                            ) : (
+                              <p className="text-sm text-slate-500 italic">Not available yet</p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="border-t border-slate-100 pt-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Items</h4>
+                          <div className="space-y-4">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="flex items-center gap-4">
+                                <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
+                                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                    <Package size={20} />
+                                  </div>
+                                </div>
+                                <div className="flex-grow">
+                                  <p className="text-sm font-medium text-slate-900">{item.name}</p>
+                                  <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm font-medium text-slate-900">${(item.price * item.quantity).toFixed(2)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
                   </div>
                 ))}
               </div>

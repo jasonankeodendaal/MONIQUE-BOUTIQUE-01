@@ -10,6 +10,9 @@
         "status": { "type": "string" },
         "items": { "type": "array" },
         "total_amount": { "type": "number" },
+        "shipping_address": { "type": "string" },
+        "tracking_number": { "type": "string" },
+        "notes": { "type": "string" },
         "created_at": { "type": "string" },
         "updated_at": { "type": "string" }
       },
