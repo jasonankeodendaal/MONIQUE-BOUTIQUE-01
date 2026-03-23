@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { name, email, whatsapp, subject, message } = req.body;
     
-    let adminEmail = 'admin@findara.com'; // Default fallback
+    let adminEmail = process.env.ADMIN_EMAIL || 'admin@findara.com'; // Default fallback
     const { data } = await supabase.from('settings').select('contactEmail').single();
     if (data && (data as any).contactEmail) {
       adminEmail = (data as any).contactEmail;
@@ -39,7 +39,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.status(200).json({ success: true, message: 'Email sent successfully' });
   } catch (error: any) {
-    console.error('Error sending email:', error);
+    console.error('Error sending email:', {
+      email: req.body.email,
+      subject: req.body.subject,
+      error: error.message
+    });
     res.status(500).json({ success: false, error: 'Failed to send email' });
   }
 }

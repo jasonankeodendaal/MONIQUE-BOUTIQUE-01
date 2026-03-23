@@ -129,7 +129,7 @@ const Login: React.FC = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/`, 
@@ -140,7 +140,9 @@ const Login: React.FC = () => {
         },
       });
       if (error) throw error;
-      // Note: OAuth redirects immediately, success is handled on the return route
+      if (!data.url) {
+        throw new Error('Failed to initiate Google login. Please check your popup settings.');
+      }
     } catch (err: any) {
       setError(err.message);
       setLoading(false);

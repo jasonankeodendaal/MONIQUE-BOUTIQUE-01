@@ -1902,12 +1902,12 @@ const Admin: React.FC = () => {
       const { password, ...dbAdmin } = newAdmin as any;
       
       const ok = await updateData('admin_users', dbAdmin);
-      if (ok) {
-        setShowAdminForm(false);
-        setEditingId(null);
-        setAdminData({});
-        refreshAllData();
-      }
+      if (!ok) throw new Error('Failed to update admin database record');
+      
+      setShowAdminForm(false);
+      setEditingId(null);
+      setAdminData({});
+      refreshAllData();
     } catch (err: any) {
       alert(`Error saving member: ${err.message}`);
     } finally {

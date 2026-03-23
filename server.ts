@@ -10,6 +10,21 @@ const __dirname = path.dirname(__filename);
 
 // Initialize Supabase client for server-side use lazily
 let supabase: ReturnType<typeof createClient> | null = null;
+let settingsCache: { data: any; timestamp: number } | null = null;
+const SETTINGS_CACHE_TTL = 60 * 1000; // 1 minute
+
+async function getSettings() {
+  if (settingsCache && (Date.now() - settingsCache.timestamp < SETTINGS_CACHE_TTL)) {
+    return settingsCache.data;
+  }
+  
+  const client = getSupabase();
+  if (!client) return null;
+  
+  const { data } = await client.from('settings').select('*').single();
+  settingsCache = { data, timestamp: Date.now() };
+  return data;
+}
 
 function getSupabase() {
   if (!supabase) {
@@ -118,12 +133,7 @@ app.use((req, res, next) => {
 // Dynamic robots.txt
 app.get('/robots.txt', async (req: Request, res: Response) => {
   try {
-    const client = getSupabase();
-    let settings: any = null;
-    if (client) {
-      const { data } = await client.from('settings').select('*').single();
-      settings = data;
-    }
+    const settings = await getSettings();
     const baseUrl = process.env.APP_URL || 'https://findara.com';
     
     let robotsTxt = 'User-agent: *\nAllow: /\n';
@@ -199,13 +209,11 @@ if (process.env.NODE_ENV !== 'production') {
       template = await vite.transformIndexHtml(url, template);
       
       // Fetch settings for script injection
-      const client = getSupabase();
-      let settings: any = null;
+      const settings = await getSettings();
       let product: any = null;
-      if (client) {
-        const { data } = await client.from('settings').select('*').single();
-        settings = data;
-        
+      const client = getSupabase();
+      
+      if (settings && client) {
         // Check if it's a product page
         const productMatch = url.match(/^\/product\/([a-zA-Z0-9-]+)/);
         if (productMatch && productMatch[1]) {
@@ -243,13 +251,11 @@ if (process.env.NODE_ENV !== 'production') {
       let template = fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8');
       
       // Fetch settings for script injection
-      const client = getSupabase();
-      let settings: any = null;
+      const settings = await getSettings();
       let product: any = null;
-      if (client) {
-        const { data } = await client.from('settings').select('*').single();
-        settings = data;
-        
+      const client = getSupabase();
+      
+      if (settings && client) {
         // Check if it's a product page
         const productMatch = req.originalUrl.match(/^\/product\/([a-zA-Z0-9-]+)/);
         if (productMatch && productMatch[1]) {

@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (authError) throw authError;
 
       if (role !== 'client') {
-        const { error: dbError } = await (supabase.from('admin_users') as any).upsert({
+        const { error: dbError } = await supabase.from('admin_users').upsert({
           id: authData.user.id,
           email,
           name: fullName,
@@ -57,7 +57,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(400).json({ success: false, error: 'Invalid action' });
   } catch (error: any) {
-    console.error('Admin user management error:', error);
+    console.error('Admin user management error:', {
+      action: req.body.action,
+      email: req.body.email,
+      error: error.message
+    });
     return res.status(500).json({ success: false, error: error.message || 'Unknown error' });
   }
 }
