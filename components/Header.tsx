@@ -5,7 +5,7 @@ import { Menu, X, ShoppingBag } from 'lucide-react';
 import { useSettings } from '../App';
 
 const Header: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings, user } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -98,6 +98,39 @@ const Header: React.FC = () => {
               >
                 <ShoppingBag size={22} />
               </Link>
+              {user ? (
+                <Link
+                  to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
+                  className={`px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
+                    !isDarkSection 
+                      ? 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white' 
+                      : 'border-white text-white hover:bg-white hover:text-slate-900'
+                  }`}
+                >
+                  {user.user_metadata?.role === 'admin' ? 'Dashboard' : 'My Account'}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/login?view=login"
+                    className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-primary ${
+                      !isDarkSection ? 'text-slate-900' : 'text-white'
+                    }`}
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/login?view=signup"
+                    className={`px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
+                      !isDarkSection 
+                        ? 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white' 
+                        : 'border-white text-white hover:bg-white hover:text-slate-900'
+                    }`}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -131,6 +164,34 @@ const Header: React.FC = () => {
                 {link.name}
               </Link>
             ))}
+            <div className="pt-8 border-t border-slate-100 flex flex-col space-y-4">
+              {user ? (
+                <Link
+                  to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
+                  onClick={() => setIsOpen(false)}
+                  className="text-xl font-serif font-bold text-slate-900"
+                >
+                  {user.user_metadata?.role === 'admin' ? 'Dashboard' : 'My Account'}
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/login?view=login"
+                    onClick={() => setIsOpen(false)}
+                    className="text-xl font-serif font-bold text-slate-900"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/login?view=signup"
+                    onClick={() => setIsOpen(false)}
+                    className="text-xl font-serif font-bold text-primary"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </nav>

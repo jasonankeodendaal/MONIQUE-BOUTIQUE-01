@@ -523,6 +523,39 @@ export interface StorageStats {
   mediaCount: number;
 }
 
+export interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'owner' | 'admin' | 'client';
+  permissions?: string[];
+  password?: string;
+  autoWipeExempt?: boolean;
+  createdAt: number;
+  lastActive?: number;
+  profileImage?: string;
+  phone?: string;
+  address?: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  name: string;
+  sku: string;
+  price: number;
+  quantity: number;
+}
+
+export interface Order {
+  id: string;
+  clientId: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled';
+  createdAt: number;
+  updatedAt?: number;
+}
+
 export interface SettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
@@ -533,6 +566,8 @@ export interface SettingsContextType {
   heroSlides: CarouselSlide[];
   enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
   admins: AdminUser[];
+  clients: AppUser[];
+  orders: Order[];
   stats: ProductStats[];
   trainingModules: TrainingModule[];
   // Actions

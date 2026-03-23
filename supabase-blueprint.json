@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "A client order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "status": { "type": "string" },
+        "items": { "type": "array" },
+        "total_amount": { "type": "number" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" }
+      },
+      "required": ["id", "client_id", "status", "items", "total_amount", "created_at", "updated_at"]
+    }
+  },
+  "supabase": {
+    "orders": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Client orders"
+    }
+  }
+}

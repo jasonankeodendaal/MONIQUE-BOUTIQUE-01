@@ -11,8 +11,9 @@ import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import Account from './pages/Account';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, TRAINING_MODULES as INITIAL_TRAINING } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, moveRecord } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -602,6 +603,8 @@ const App: React.FC = () => {
   const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(() => getLocalState('admin_hero', INITIAL_CAROUSEL));
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
   const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
+  const [clients, setClients] = useState<AppUser[]>(() => getLocalState('admin_clients', []));
+  const [orders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
   const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(() => getLocalState('admin_training_modules', INITIAL_TRAINING));
   const [user, setUser] = useState<User | null>(null);
@@ -788,9 +791,11 @@ const App: React.FC = () => {
           fetchTableData('admin_users'), 
           fetchTableData('product_stats'),
           fetchTableData('training_modules'),
-          fetchTableData('system_logs')
+          fetchTableData('system_logs'),
+          fetchTableData('clients'),
+          fetchTableData('orders')
         ]);
-        const [s, p, c, sc, hs, enq, adm, st, tm, sl] = results;
+        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord] = results;
         if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
           // Prefer 'global' ID if it exists, otherwise take the first one
           const globalSettings = s.value.find((item: any) => item.id === 'global');
@@ -812,6 +817,8 @@ const App: React.FC = () => {
         if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
         if (tm.status === 'fulfilled' && tm.value !== null) { setTrainingModules(tm.value); localStorage.setItem('admin_training_modules', JSON.stringify(tm.value)); }
         if (sl.status === 'fulfilled' && sl.value !== null) { setSystemLogs(sl.value); }
+        if (cli.status === 'fulfilled' && cli.value !== null) { setClients(cli.value); localStorage.setItem('admin_clients', JSON.stringify(cli.value)); }
+        if (ord.status === 'fulfilled' && ord.value !== null) { setOrders(ord.value); localStorage.setItem('admin_orders', JSON.stringify(ord.value)); }
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
       } else {
         setSettings(getLocalState('site_settings', INITIAL_SETTINGS));
@@ -823,6 +830,8 @@ const App: React.FC = () => {
         setAdmins(getLocalState('admin_users', INITIAL_ADMINS));
         setStats(getLocalState('admin_product_stats', []));
         setTrainingModules(getLocalState('admin_training_modules', INITIAL_TRAINING));
+        setClients(getLocalState('admin_clients', []));
+        setOrders(getLocalState('admin_orders', []));
       }
       setSaveStatus('saved');
     } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
@@ -879,6 +888,8 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
         case 'training_modules': setTrainingModules(updateLocalState(trainingModules)); break;
+        case 'clients': setClients(updateLocalState(clients)); break;
+        case 'orders': setOrders(updateLocalState(orders)); break;
     }
     const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
@@ -899,6 +910,8 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
         case 'training_modules': setTrainingModules(deleteLocalState(trainingModules)); break;
+        case 'clients': setClients(deleteLocalState(clients)); break;
+        case 'orders': setOrders(deleteLocalState(orders)); break;
     }
     const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
@@ -943,7 +956,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, trainingModules, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
           <title>{settings.seoTitle || settings.companyName}</title>
           <meta name="description" content={settings.seoDescription || settings.footerDescription} />
@@ -1003,6 +1016,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<HomeRoute />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/account" element={<Account />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/products" element={<Products />} />

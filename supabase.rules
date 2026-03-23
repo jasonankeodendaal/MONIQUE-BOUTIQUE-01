@@ -1,0 +1,28 @@
+-- Enable RLS on orders table
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+-- Admins can do everything
+CREATE POLICY "Admins can do everything on orders"
+ON orders
+FOR ALL
+TO authenticated
+USING (
+  (auth.jwt() ->> 'role') = 'admin' OR 
+  (auth.jwt() ->> 'role') = 'owner'
+)
+WITH CHECK (
+  (auth.jwt() ->> 'role') = 'admin' OR 
+  (auth.jwt() ->> 'role') = 'owner'
+);
+
+-- Clients can only read their own orders
+CREATE POLICY "Clients can read own orders"
+ON orders
+FOR SELECT
+TO authenticated
+USING (
+  client_id = auth.uid()
+);
+
+-- Clients cannot insert, update, or delete orders
+-- (Implicitly denied since there are no policies allowing it for clients)

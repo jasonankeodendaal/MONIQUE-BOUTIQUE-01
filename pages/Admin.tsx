@@ -16,11 +16,11 @@ import {
   CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer,
   BarChart, Activity as ActivityIcon, Wifi, Facebook, Linkedin,
   Lightbulb, Tablet, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, HardDrive, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
-  PlayCircle, Briefcase, Crown, FileText
+  PlayCircle, Briefcase, Crown, FileText, Package
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule, Order, OrderItem, AppUser } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, deleteMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
@@ -1629,12 +1629,13 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients';
 
 const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats,
+    orders, clients,
     updateData, deleteData, refreshAllData, logout, connectionHealth, systemLogs, storageStats, trainingModules
   } = useSettings();
   
@@ -1666,6 +1667,12 @@ const Admin: React.FC = () => {
   const [tempSpec, setTempSpec] = useState({ key: '', value: '' });
   const [enquirySearch, setEnquirySearch] = useState('');
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderFilter, setOrderFilter] = useState<'all' | 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled'>('all');
+  const [clientSearch, setClientSearch] = useState('');
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderData, setOrderData] = useState<Partial<Order>>({ items: [], status: 'Pending', totalAmount: 0 });
+  const [tempOrderItem, setTempOrderItem] = useState<Partial<OrderItem>>({ quantity: 1, price: 0 });
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
   const [curatorFilter, setCuratorFilter] = useState<string>('all'); 
@@ -1734,6 +1741,8 @@ const Admin: React.FC = () => {
     
     switch (tabId) {
       case 'enquiries': return perms.includes('sales.view');
+      case 'orders': return perms.includes('sales.view');
+      case 'clients': return perms.includes('sales.view');
       case 'analytics': return perms.includes('analytics.view');
       case 'catalog': return perms.includes('catalog.products.view');
       case 'hero': return perms.includes('content.hero');
@@ -1749,6 +1758,8 @@ const Admin: React.FC = () => {
 
   const ALL_TABS: { id: TabId; label: string; icon: any }[] = [
     { id: 'enquiries', label: 'Inbox', icon: Inbox },
+    { id: 'orders', label: 'Orders', icon: Package },
+    { id: 'clients', label: 'Clients', icon: Users },
     { id: 'analytics', label: 'Insights', icon: BarChart3 },
     { id: 'catalog', label: 'Items', icon: ShoppingBag },
     { id: 'hero', label: 'Visuals', icon: LayoutPanelTop },
@@ -1919,7 +1930,157 @@ const Admin: React.FC = () => {
     document.body.appendChild(link); 
     link.click(); 
   };
-  const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.subject.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
+  const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.message.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
+  const filteredOrders = orders.filter(o => { const matchesSearch = o.id.toLowerCase().includes(orderSearch.toLowerCase()) || (clients.find(c => c.id === o.clientId)?.name || '').toLowerCase().includes(orderSearch.toLowerCase()); const matchesStatus = orderFilter === 'all' || o.status === orderFilter; return matchesSearch && matchesStatus; });
+  const filteredClients = clients.filter(c => c.name?.toLowerCase().includes(clientSearch.toLowerCase()) || c.email.toLowerCase().includes(clientSearch.toLowerCase()));
+
+  const handleSaveOrder = async () => {
+    if (!orderData.clientId || !orderData.items?.length) return;
+    const newOrder: Order = {
+      id: orderData.id || crypto.randomUUID(),
+      clientId: orderData.clientId,
+      status: orderData.status as any,
+      items: orderData.items,
+      totalAmount: orderData.items.reduce((sum: number, item: OrderItem) => sum + (item.price * item.quantity), 0),
+      createdAt: orderData.createdAt || Date.now(),
+      updatedAt: Date.now()
+    };
+    await updateData('orders', newOrder);
+    setShowOrderForm(false);
+    setOrderData({ items: [], status: 'Pending', totalAmount: 0 });
+  };
+
+  const renderOrders = () => (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Orders</h2><p className="text-slate-400 text-sm">Manage client orders.</p></div>
+         <div className="flex gap-3 w-full md:w-auto">
+            <button onClick={() => { setOrderData({ items: [], status: 'Pending', totalAmount: 0 }); setShowOrderForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><Plus size={16}/> New Order</button>
+         </div>
+      </div>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search order ID or client name..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
+         <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(filter => (<button key={filter} onClick={() => setOrderFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${orderFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
+      </div>
+      
+      {showOrderForm && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
+              <h3 className="text-xl font-serif text-white">{orderData.id ? 'Edit Order' : 'New Order'}</h3>
+              <button onClick={() => setShowOrderForm(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Client</label>
+                  <select value={orderData.clientId || ''} onChange={e => setOrderData({...orderData, clientId: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary">
+                    <option value="">Select a client...</option>
+                    {clients.map(c => <option key={c.id} value={c.id}>{c.name || c.email}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Status</label>
+                  <select value={orderData.status || 'Pending'} onChange={e => setOrderData({...orderData, status: e.target.value as any})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary">
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+                
+                <div className="pt-4 border-t border-slate-800">
+                  <h4 className="text-sm font-bold text-white mb-4">Order Items</h4>
+                  <div className="space-y-4 mb-4">
+                    {orderData.items?.map((item: OrderItem, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <div>
+                          <p className="text-sm text-white">{item.name}</p>
+                          <p className="text-xs text-slate-500">{item.quantity} x ${item.price.toFixed(2)}</p>
+                        </div>
+                        <button onClick={() => setOrderData({...orderData, items: orderData.items?.filter((_: any, i: number) => i !== idx)})} className="text-red-500 hover:text-red-400"><Trash2 size={16}/></button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-end gap-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <div className="flex-grow space-y-2">
+                      <input type="text" placeholder="Product Name" value={tempOrderItem.name || ''} onChange={e => setTempOrderItem({...tempOrderItem, name: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm" />
+                      <div className="flex gap-2">
+                        <input type="number" placeholder="Qty" value={tempOrderItem.quantity || 1} onChange={e => setTempOrderItem({...tempOrderItem, quantity: parseInt(e.target.value) || 1})} className="w-20 px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm" />
+                        <input type="number" placeholder="Price" value={tempOrderItem.price || 0} onChange={e => setTempOrderItem({...tempOrderItem, price: parseFloat(e.target.value) || 0})} className="flex-grow px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm" />
+                      </div>
+                    </div>
+                    <button onClick={() => {
+                      if (tempOrderItem.name && tempOrderItem.price !== undefined) {
+                        setOrderData({...orderData, items: [...(orderData.items || []), { ...tempOrderItem, productId: crypto.randomUUID(), sku: 'MANUAL' } as OrderItem]});
+                        setTempOrderItem({ quantity: 1, price: 0 });
+                      }
+                    }} className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 h-[88px] flex items-center justify-center"><Plus size={20}/></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-800 flex justify-end gap-3 sticky bottom-0 bg-slate-900">
+              <button onClick={() => setShowOrderForm(false)} className="px-6 py-3 text-slate-400 hover:text-white font-bold text-xs uppercase tracking-widest">Cancel</button>
+              <button onClick={handleSaveOrder} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors">Save Order</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4">
+        {filteredOrders.map(order => (
+          <div key={order.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-primary font-mono text-xs">{order.id.substring(0, 8)}</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500' : order.status === 'Shipped' ? 'bg-indigo-500/10 text-indigo-500' : order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{order.status}</span>
+              </div>
+              <p className="text-white font-medium">{clients.find(c => c.id === order.clientId)?.name || 'Unknown Client'}</p>
+              <p className="text-slate-500 text-sm mt-1">{order.items.length} items • ${order.totalAmount.toFixed(2)}</p>
+            </div>
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button onClick={() => { setOrderData(order); setShowOrderForm(true); }} className="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg"><Edit2 size={16}/></button>
+              <button onClick={() => deleteData('orders', order.id)} className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg"><Trash2 size={16}/></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderClients = () => (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Clients</h2><p className="text-slate-400 text-sm">View registered clients.</p></div>
+      </div>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search name or email..." value={clientSearch} onChange={e => setClientSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredClients.map(client => (
+          <div key={client.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-primary font-serif text-xl">
+                {client.name?.charAt(0) || client.email.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h3 className="text-white font-medium">{client.name || 'No Name'}</h3>
+                <p className="text-slate-500 text-sm">{client.email}</p>
+              </div>
+            </div>
+            <div className="pt-4 border-t border-slate-800 flex justify-between items-center">
+              <span className="text-xs text-slate-500">Joined {new Date(client.createdAt).toLocaleDateString()}</span>
+              <span className="text-xs font-bold text-primary">{orders.filter(o => o.clientId === client.id).length} Orders</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const renderEnquiries = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
@@ -4446,6 +4607,8 @@ const Admin: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
         { (activeTab === 'enquiries') && renderEnquiries() }
+        { (activeTab === 'orders') && renderOrders() }
+        { (activeTab === 'clients') && renderClients() }
         { (activeTab === 'analytics') && renderAnalytics() }
         { (activeTab === 'catalog') && renderCatalog() }
         { (activeTab === 'hero') && renderHero() }

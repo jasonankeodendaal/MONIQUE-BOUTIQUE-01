@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, Info, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
 import { useSettings } from '../App';
@@ -12,18 +12,40 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [view, setView] = useState<'login' | 'forgot-password'>('login');
+  const [view, setView] = useState<'login' | 'signup' | 'forgot-password'>('login');
+  const [name, setName] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const viewParam = params.get('view');
+    if (viewParam === 'signup') {
+      setView('signup');
+    } else if (viewParam === 'forgot-password') {
+      setView('forgot-password');
+    } else {
+      setView('login');
+    }
+  }, [location.search]);
 
   // Redirect to Admin if already authenticated
   useEffect(() => {
     if (user) {
-      navigate('/admin', { replace: true });
+      if (user.user_metadata?.role === 'client') {
+        navigate('/account', { replace: true });
+      } else {
+        navigate('/admin', { replace: true });
+      }
     }
   }, [user, navigate]);
 
-  const handleSuccessfulAuth = () => {
-    navigate('/admin', { replace: true });
+  const handleSuccessfulAuth = async (authUser: any) => {
+    if (authUser?.user_metadata?.role === 'client') {
+      navigate('/account', { replace: true });
+    } else {
+      navigate('/admin', { replace: true });
+    }
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -33,15 +55,49 @@ const Login: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      handleSuccessfulAuth();
+      handleSuccessfulAuth(data.user);
     } catch (err: any) {
       if (err.message === 'Invalid login credentials') {
         setError('Incorrect email or password. Please verify your credentials.');
       } else {
         setError(err.message);
       }
+      setLoading(false);
+    }
+  };
+
+  const handleEmailSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: {
+            full_name: name,
+            role: 'client'
+          }
+        }
+      });
+      if (error) throw error;
+      
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        setError('An account with this email already exists.');
+        setLoading(false);
+        return;
+      }
+
+      setSuccessMessage('Account created successfully! You can now log in.');
+      setView('login');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -128,9 +184,9 @@ const Login: React.FC = () => {
         <div className="w-full max-w-md space-y-12 relative z-10">
           <div>
             <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
-              <Lock size={24} className="text-primary"/> {view === 'login' ? settings.loginHeroTitle : 'Reset Password'}
+              <Lock size={24} className="text-primary"/> {view === 'login' ? settings.loginHeroTitle : view === 'signup' ? 'Create Account' : 'Reset Password'}
             </h2>
-            <p className="text-slate-500">{view === 'login' ? settings.loginHeroDescription : 'Enter your email to receive password reset instructions.'}</p>
+            <p className="text-slate-500">{view === 'login' ? settings.loginHeroDescription : view === 'signup' ? 'Sign up to track your orders and history.' : 'Enter your email to receive password reset instructions.'}</p>
           </div>
 
           {error && (
@@ -146,7 +202,7 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          {view === 'login' ? (
+          {view === 'login' || view === 'signup' ? (
             <div className="space-y-6">
                <button 
                 onClick={handleGoogleLogin}
@@ -163,7 +219,22 @@ const Login: React.FC = () => {
                 <div className="flex-grow border-t border-slate-800"></div>
               </div>
 
-              <form onSubmit={handleEmailLogin} className="space-y-6">
+              <form onSubmit={view === 'login' ? handleEmailLogin : handleEmailSignup} className="space-y-6">
+                {view === 'signup' && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
+                    <div className="relative group">
+                      <input 
+                        type="text" 
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginEmailLabel}</label>
                   <div className="relative group">
@@ -183,20 +254,22 @@ const Login: React.FC = () => {
                 <div className="space-y-1">
                   <div className="flex justify-between items-center ml-1">
                     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.loginPasswordLabel}</label>
-                    <button 
-                      type="button" 
-                      onClick={() => { setView('forgot-password'); setError(null); setSuccessMessage(null); }}
-                      className="text-[10px] text-primary hover:text-white transition-colors"
-                    >
-                      Forgot Password?
-                    </button>
+                    {view === 'login' && (
+                      <button 
+                        type="button" 
+                        onClick={() => { navigate('/login?view=forgot-password', { replace: true }); setError(null); setSuccessMessage(null); }}
+                        className="text-[10px] text-primary hover:text-white transition-colors"
+                      >
+                        Forgot Password?
+                      </button>
+                    )}
                   </div>
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
                       type="password" 
                       required
-                      autoComplete="current-password"
+                      autoComplete={view === 'login' ? "current-password" : "new-password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
@@ -208,18 +281,33 @@ const Login: React.FC = () => {
                 <button 
                   type="submit" 
                   disabled={loading}
-                  className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="w-full py-4 bg-primary text-slate-900 font-black uppercase tracking-[0.3em] text-[10px] rounded-xl hover:bg-white transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4"
                 >
                   {loading ? (
-                    <span className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin"></span>
+                    <Loader2 size={16} className="animate-spin" />
                   ) : (
                     <>
-                      <span>{settings.loginSubmitLabel}</span>
-                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                      <span>{view === 'login' ? settings.loginSubmitLabel : 'Create Account'}</span>
+                      <ArrowRight size={16} />
                     </>
                   )}
                 </button>
               </form>
+              
+              <div className="text-center mt-6">
+                <button 
+                  type="button"
+                  onClick={() => { 
+                    const newView = view === 'login' ? 'signup' : 'login';
+                    navigate(`/login?view=${newView}`, { replace: true });
+                    setError(null); 
+                    setSuccessMessage(null); 
+                  }}
+                  className="text-xs text-slate-400 hover:text-white transition-colors"
+                >
+                  {view === 'login' ? "Don't have an account? Sign up" : "Already have an account? Log in"}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
@@ -257,7 +345,7 @@ const Login: React.FC = () => {
 
                 <button 
                   type="button" 
-                  onClick={() => { setView('login'); setError(null); setSuccessMessage(null); }}
+                  onClick={() => { navigate('/login?view=login', { replace: true }); setError(null); setSuccessMessage(null); }}
                   className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-2"
                 >
                   <ArrowLeft size={16} />

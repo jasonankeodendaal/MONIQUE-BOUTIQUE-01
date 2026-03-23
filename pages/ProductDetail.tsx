@@ -360,7 +360,7 @@ const ProductDetail: React.FC = () => {
             <div className="space-y-4 pt-10 border-t border-slate-50">
                <div className="flex gap-4">
                   <a 
-                    href={product.affiliateLink} 
+                    href={`https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi Findara, I am interested in ${product.name} - ${product.sku}`)}`}
                     target="_blank" 
                     rel="noopener noreferrer"
                     onClick={() => logEvent('click', `Product: ${product.name}`)}
