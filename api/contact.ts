@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { name, email, whatsapp, subject, message } = req.body;
     
-    let adminEmail = process.env.ADMIN_EMAIL || 'admin@findara.com'; // Default fallback
+    let adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'; // Default fallback
     const { data } = await supabase.from('settings').select('contactEmail').single();
     if (data && (data as any).contactEmail) {
       adminEmail = (data as any).contactEmail;

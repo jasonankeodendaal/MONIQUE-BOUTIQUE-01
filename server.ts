@@ -150,9 +150,17 @@ app.get('/robots.txt', async (req: Request, res: Response) => {
   }
 });
 
+let sitemapCache: { data: string; timestamp: number } | null = null;
+const SITEMAP_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 // Dynamic sitemap.xml
 app.get('/sitemap.xml', async (req: Request, res: Response) => {
   try {
+    if (sitemapCache && (Date.now() - sitemapCache.timestamp < SITEMAP_CACHE_TTL)) {
+      res.type('application/xml');
+      return res.send(sitemapCache.data);
+    }
+
     const client = getSupabase();
     let products: any[] | null = null;
     let categories: any[] | null = null;
@@ -162,7 +170,7 @@ app.get('/sitemap.xml', async (req: Request, res: Response) => {
       products = p;
       categories = c;
     }
-    const baseUrl = process.env.APP_URL || 'https://findara.com';
+    const baseUrl = process.env.APP_URL || '';
     
     let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
     sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -185,6 +193,8 @@ app.get('/sitemap.xml', async (req: Request, res: Response) => {
     
     sitemap += '</urlset>';
     
+    sitemapCache = { data: sitemap, timestamp: Date.now() };
+
     res.type('application/xml');
     res.send(sitemap);
   } catch (error) {

@@ -4,19 +4,17 @@ import { feature } from 'topojson-client';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { 
-  Plus, Edit2, Trash2, Menu,
-  Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
-  Monitor, Smartphone, User, ShieldCheck,
-  LayoutGrid, Globe, Mail, Phone, Palette, MessageCircle, MapPin, 
-  Share2, Tag, ArrowRight, Video, Image, ShoppingBag,
-  LayoutPanelTop, Inbox, CheckCircle, Percent, LogOut,
-  Rocket, Terminal, Copy, Check, Database, Server, AlertTriangle, ExternalLink, RefreshCcw, Flame, Trash,
-  Megaphone, Sparkles, Loader2, Users, Key, Lock, Download, FileJson, Link as LinkIcon, Reply, AlertOctagon,
-  Eye, CreditCard, Shield, Award, HelpCircle, Instagram, Twitter, Layers, FileCode, Search,
-  CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer,
-  BarChart, Activity as ActivityIcon, Wifi, Facebook, Linkedin,
-  Lightbulb, Tablet, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, HardDrive, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
-  PlayCircle, Briefcase, Crown, FileText, Package
+  Plus, Edit2, Trash2, Menu, Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
+  Monitor, Smartphone, ShieldCheck, LayoutGrid, Globe, Mail, Phone, MapPin, Share2, Tag,
+  ArrowRight, Video, Image, ShoppingBag, CheckCircle, Percent, LogOut, Rocket, Terminal,
+  Copy, Check, Database, Server, AlertTriangle, ExternalLink, Flame, Trash, Megaphone,
+  Sparkles, Loader2, Users, Key, Lock, Download, Reply, AlertOctagon, Eye, Shield, Award,
+  HelpCircle, Layers, FileCode, Search, CheckSquare, Square, Target, Clock, Filter,
+  FileSpreadsheet, BarChart3, TrendingUp, Activity, Zap, BarChart, Wifi, Lightbulb,
+  CheckCircle2, GraduationCap, HardDrive, FilePieChart, TrendingDown, Presentation, Printer,
+  History, RotateCcw, PlayCircle, Briefcase, Crown, FileText,
+  Facebook, Instagram, Pin, MessageCircle, SearchCode, Twitter, Linkedin, Tablet,
+  MousePointerClick, ZapIcon, Inbox, Package, LayoutPanelTop, Palette, Timer, Star, User, Link as LinkIcon
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
@@ -96,9 +94,7 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
         const url = await uploadMedia(file, 'media');
         if (url) onChange(url);
       } else {
-        const reader = new FileReader();
-        reader.onload = (ev) => onChange(ev.target?.result as string);
-        reader.readAsDataURL(file);
+        throw new Error("Supabase storage is not configured. Cannot upload media.");
       }
     } catch (err) {
       console.error("Upload failed", err);

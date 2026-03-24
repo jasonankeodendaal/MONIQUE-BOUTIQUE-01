@@ -28,7 +28,7 @@ const MaintenanceOverlay: React.FC = () => {
   const location = useLocation();
   
   if (!settings.isMaintenanceMode) return null;
-  if (loadingAuth || user || location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/admin/login') return null;
+  if (loadingAuth || user || location.pathname === '/login' || location.pathname === '/admin/login') return null;
   
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6 overflow-hidden">
@@ -609,6 +609,42 @@ const HomeRoute = () => {
   return <Home />;
 };
 
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white p-6">
+          <div className="max-w-md text-center">
+            <h1 className="text-3xl font-bold mb-4 text-red-500">Something went wrong</h1>
+            <p className="text-slate-400 mb-6">{this.state.error?.message || "An unexpected error occurred."}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-6 py-2 bg-primary text-slate-900 rounded-lg font-bold hover:opacity-90 transition-opacity"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
   const [settingsId, setSettingsId] = useState<string>('global');
@@ -1035,20 +1071,22 @@ const App: React.FC = () => {
           <PlexusBackground />
           <Header />
           <main className="flex-grow z-10 w-full max-w-full overflow-x-hidden">
-            <Routes>
-              <Route path="/" element={<HomeRoute />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/disclosure" element={<Legal />} />
-              <Route path="/privacy" element={<Legal />} />
-              <Route path="/terms" element={<Legal />} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<HomeRoute />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/disclosure" element={<Legal />} />
+                <Route path="/privacy" element={<Legal />} />
+                <Route path="/terms" element={<Legal />} />
+              </Routes>
+            </ErrorBoundary>
           </main>
           <Footer />
         </div>

@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, 
 
 -- 2. INITIAL DATA & SEO DEFAULTS
 INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
-VALUES ('global', 'Findara', 'Curating the Exceptional', '#E5C1CD')
+VALUES ('global', 'My Store', 'Curated Collection', '#E5C1CD')
 ON CONFLICT (id) DO NOTHING;
 
 -- Add SEO columns to the settings table if they don't exist
@@ -264,11 +264,11 @@ ADD COLUMN IF NOT EXISTS "emailJsTemplateId" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsPublicKey" TEXT;
 
 UPDATE settings SET
-  "seoTitle" = COALESCE("seoTitle", 'Findara'),
-  "seoDescription" = COALESCE("seoDescription", 'Findara is my personal curation platform, dedicated to discovering and showcasing the most Fashion, Tech and Home accessories from across the continent.'),
-  "seoOgImage" = COALESCE("seoOgImage", 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png'),
-  "googleAnalyticsId" = COALESCE("googleAnalyticsId", 'G-PP15D984GN'),
-  "gscVerificationId" = COALESCE("gscVerificationId", 'sTIigqcooUP2WH9dBXRln_odKfNTrOveiyo4mSjXn0A'),
+  "seoTitle" = COALESCE("seoTitle", 'My Store'),
+  "seoDescription" = COALESCE("seoDescription", 'My personal curation platform, dedicated to discovering and showcasing the most Fashion, Tech and Home accessories from across the continent.'),
+  "seoOgImage" = COALESCE("seoOgImage", ''),
+  "googleAnalyticsId" = COALESCE("googleAnalyticsId", ''),
+  "gscVerificationId" = COALESCE("gscVerificationId", ''),
   "seoAutoCleanUrls" = COALESCE("seoAutoCleanUrls", true),
   "seoEnableLazyLoading" = COALESCE("seoEnableLazyLoading", true),
   "seoRequireAltText" = COALESCE("seoRequireAltText", true),
@@ -277,7 +277,7 @@ UPDATE settings SET
   "seoEnableCanonicalTags" = COALESCE("seoEnableCanonicalTags", true),
   "seoShowLastUpdated" = COALESCE("seoShowLastUpdated", true),
   "enableSchemaMarkup" = COALESCE("enableSchemaMarkup", false),
-  "localBusinessName" = COALESCE("localBusinessName", 'Findara Luxury'),
+  "localBusinessName" = COALESCE("localBusinessName", 'My Store'),
   "localBusinessCategory" = COALESCE("localBusinessCategory", 'Retail Store'),
   "localBusinessAddress" = COALESCE("localBusinessAddress", '123 Fashion Ave, New York, NY 10001'),
   "localBusinessCountry" = COALESCE("localBusinessCountry", 'United States'),
@@ -781,10 +781,10 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: "Findara",
-  slogan: 'Curating the Exceptional',
-  companyLogo: 'F',
-  companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
+  companyName: "My Store",
+  slogan: 'Curated Collection',
+  companyLogo: 'M',
+  companyLogoUrl: '',
   primaryColor: '#E5C1CD',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
@@ -827,7 +827,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   // Home Page Content
   homeHeroBadge: 'Curator Exclusive',
   homeAboutTitle: 'The Curator\'s Journey.',
-  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into Findara. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.',
+  homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into this curated collection. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.',
   homeAboutImage: 'https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=1200',
   homeAboutCta: 'Explore My Story',
   homeCategorySectionTitle: 'Curated Departments',
@@ -873,12 +873,12 @@ export const INITIAL_SETTINGS: SiteSettings = {
   aboutMainImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=1200',
   
   aboutEstablishedYear: '2024',
-  aboutFounderName: 'Findara Curator',
+  aboutFounderName: 'Store Curator',
   aboutLocation: 'Cape Town, Online',
 
   aboutHistoryBadge: 'The Bridge System',
   aboutHistoryTitle: 'The Bridge System',
-  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a platform. Findara isn\'t just about affiliate links; it\'s about the story behind every garment. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nThis bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator.',
+  aboutHistoryBody: 'I’ve always been the person friends asked for style advice. In 2024, I decided to turn that passion into a platform. This store isn\'t just about affiliate links; it\'s about the story behind every garment. I spend hours scrolling through thousands of items to find the "hidden gems" so you don\'t have to.\n\nThis bridge system allows me to share my unique perspective on global trends while ensuring you get the best value directly from the source. Every click supports my journey in bringing high-fashion aesthetics to the everyday curator.',
   aboutManifestoBadge: 'The Curation Manifesto',
   aboutManifestoTitle: 'The Curation Manifesto',
   
@@ -935,13 +935,13 @@ export const INITIAL_SETTINGS: SiteSettings = {
 
 #### 1. Introduction & Transparency Commitment
 
-Findara (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
+My Store (hereinafter referred to as "the Site", "we", "us", or "our") is fully committed to transparency, honesty, and compliance with the Federal Trade Commission (FTC) guidelines regarding the use of endorsements and testimonials in advertising. We believe it is critical for you, our visitor, to understand the relationship between us and the product manufacturers or service providers referenced on this Site.
 
 This Disclosure Statement is intended to inform you that we participate in various affiliate marketing programs. These programs are designed to provide a means for sites to earn advertising fees by advertising and linking to third-party merchant websites.
 
 #### 2. The Nature of Affiliate Marketing (Bridge Page Notice)
 
-**IMPORTANT:** Findara functions exclusively as a **Bridge Page** or "curation portfolio." 
+**IMPORTANT:** My Store functions exclusively as a **Bridge Page** or "curation portfolio." 
 
 *   **We Are Not a Retailer:** We do not manufacture, stock, warehouse, package, or ship any products.
 *   **No Transactional Relationship:** We do not process payments, handle credit card information, or manage order fulfillment.
@@ -957,7 +957,7 @@ When you click on our affiliate links and make a qualifying purchase, we may rec
 
 #### 4. Affiliate Program Participation
 
-Findara is a participant in several affiliate advertising programs, including but not limited to:
+My Store is a participant in several affiliate advertising programs, including but not limited to:
 
 *   **SHEIN Affiliate Program:** We curate and link to fashion items sold on Shein.com.
 *   **Amazon Services LLC Associates Program:** An affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, we earn from qualifying purchases.
@@ -994,7 +994,7 @@ Address: Mokopane, Limpopo, 0601`,
 
 #### 1. Introduction
 
-Findara ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
+My Store ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
 
 This policy applies to the **Bridge Page System** and curation portfolio operated by the Site.
 
@@ -1099,7 +1099,7 @@ Address: Mokopane, Limpopo, 0601`,
 
 #### 1. Acceptance of Terms
 
-By accessing and using the website Findara (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
+By accessing and using the website My Store (the "Site"), you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this Site's particular services, you shall be subject to any posted guidelines or rules applicable to such services. All such guidelines or rules are hereby incorporated by reference into the Terms of Service.
 
 #### 2. Description of Service (The "Bridge Page" Model)
 
@@ -1190,7 +1190,7 @@ Address: Mokopane, Limpopo, 0601`,
   enableSchemaMarkup: true,
   schemaType: 'LocalBusiness',
   customSchemaJson: '',
-  seoTitle: 'Findara | Curating the Exceptional',
+  seoTitle: 'My Store | Curated Collection',
   seoDescription: 'The premier bridge page system marketing various affiliate programs. Your curated gateway to global fashion trends.',
   seoOgImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1200',
   seoEnableCanonicalTags: true,
@@ -1204,7 +1204,7 @@ Address: Mokopane, Limpopo, 0601`,
   sitemapGeneratedAt: 0,
   robotsStatus: 'pending',
   sitemapStatus: 'pending',
-  localBusinessName: 'Findara',
+  localBusinessName: 'My Store',
   localBusinessAddress: 'Mokopane, Limpopo, 0601',
   localBusinessPhone: '+27 76 836 0325',
   localBusinessOpeningHours: 'Mo-Fr 09:00-18:00',
