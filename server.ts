@@ -40,16 +40,16 @@ function getSupabase() {
 function generateSeoTags(settings: any, url: string, product?: any) {
   if (!settings) {
     return `
-    <title>Store</title>
-    <meta name="title" content="Store" />
-    <meta name="description" content="" />
+    <title>Findara | Your Bridge to Global Trends</title>
+    <meta name="title" content="Findara | Your Bridge to Global Trends" />
+    <meta name="description" content="A curated gateway to Shein and global fashion trends. Discover my personal favorites and professional fashion picks." />
     `;
   }
   
-  const title = product ? `${product.name} | ${settings.companyName || 'Store'}` : (settings.seoTitle || settings.companyName || 'Store');
+  const title = product ? `${product.name} | ${settings.companyName || 'Findara'}` : (settings.seoTitle || settings.companyName || 'Findara');
   const description = product ? (product.description || '').substring(0, 160) : (settings.seoDescription || settings.footerDescription || '');
   const image = product ? product.imageUrl : (settings.seoOgImage || settings.companyLogoUrl || '');
-  const baseUrl = process.env.APP_URL || '';
+  const baseUrl = process.env.APP_URL || 'https://findara.com';
   const canonicalUrl = `${baseUrl}${url}`;
   
   let tags = `
@@ -134,12 +134,10 @@ app.use((req, res, next) => {
 app.get('/robots.txt', async (req: Request, res: Response) => {
   try {
     const settings = await getSettings();
-    const baseUrl = process.env.APP_URL || '';
+    const baseUrl = process.env.APP_URL || 'https://findara.com';
     
     let robotsTxt = 'User-agent: *\nAllow: /\n';
-    if (baseUrl) {
-      robotsTxt += `Sitemap: ${baseUrl}/sitemap.xml\n`;
-    }
+    robotsTxt += `Sitemap: ${baseUrl}/sitemap.xml\n`;
     
     if (settings?.isMaintenanceMode) {
       robotsTxt = 'User-agent: *\nDisallow: /\n';
@@ -153,16 +151,8 @@ app.get('/robots.txt', async (req: Request, res: Response) => {
 });
 
 // Dynamic sitemap.xml
-let sitemapCache: { data: string; timestamp: number } | null = null;
-const SITEMAP_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-
 app.get('/sitemap.xml', async (req: Request, res: Response) => {
   try {
-    if (sitemapCache && (Date.now() - sitemapCache.timestamp < SITEMAP_CACHE_TTL)) {
-      res.type('application/xml');
-      return res.send(sitemapCache.data);
-    }
-
     const client = getSupabase();
     let products: any[] | null = null;
     let categories: any[] | null = null;
@@ -172,7 +162,7 @@ app.get('/sitemap.xml', async (req: Request, res: Response) => {
       products = p;
       categories = c;
     }
-    const baseUrl = process.env.APP_URL || '';
+    const baseUrl = process.env.APP_URL || 'https://findara.com';
     
     let sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n';
     sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -195,8 +185,6 @@ app.get('/sitemap.xml', async (req: Request, res: Response) => {
     
     sitemap += '</urlset>';
     
-    sitemapCache = { data: sitemap, timestamp: Date.now() };
-
     res.type('application/xml');
     res.send(sitemap);
   } catch (error) {

@@ -3,12 +3,20 @@ import * as d3 from 'd3';
 import { feature } from 'topojson-client';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-
 import { 
-  Facebook, Instagram, Pin, MessageCircle, SearchCode, Twitter, Linkedin, Globe, 
-  Smartphone, Monitor, Tablet, Eye, MousePointerClick, ZapIcon, Share2, Inbox, 
-  Package, Users, BarChart3, ShoppingBag, LayoutPanelTop, Layout, Palette, 
-  GraduationCap, Activity, Rocket, Timer, Star, MapPin, User, Mail, Shield, Link as LinkIcon, Lock
+  Plus, Edit2, Trash2, Menu,
+  Settings as SettingsIcon, Layout, Info, Upload, X, ChevronDown,
+  Monitor, Smartphone, User, ShieldCheck,
+  LayoutGrid, Globe, Mail, Phone, Palette, MessageCircle, MapPin, 
+  Share2, Tag, ArrowRight, Video, Image, ShoppingBag,
+  LayoutPanelTop, Inbox, CheckCircle, Percent, LogOut,
+  Rocket, Terminal, Copy, Check, Database, Server, AlertTriangle, ExternalLink, RefreshCcw, Flame, Trash,
+  Megaphone, Sparkles, Loader2, Users, Key, Lock, Download, FileJson, Link as LinkIcon, Reply, AlertOctagon,
+  Eye, CreditCard, Shield, Award, HelpCircle, Instagram, Twitter, Layers, FileCode, Search,
+  CheckSquare, Square, Target, Clock, Filter, FileSpreadsheet, BarChart3, TrendingUp, MousePointer2, Star, Activity, Zap, Timer,
+  BarChart, Activity as ActivityIcon, Wifi, Facebook, Linkedin,
+  Lightbulb, Tablet, CheckCircle2, SearchCode, GraduationCap, Pin, MousePointerClick, HardDrive, FilePieChart, TrendingDown, ZapIcon, Presentation, Printer, History, RotateCcw,
+  PlayCircle, Briefcase, Crown, FileText, Package
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
@@ -22,7 +30,7 @@ import { IconRenderer } from '../components/IconRenderer';
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-yellow-500/5 border border-yellow-500/20 p-5 md:p-6 rounded-3xl mb-8 flex gap-4 md:gap-5 items-start text-left animate-in fade-in slide-in-from-top-2">
     <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-600 flex-shrink-0">
-      <LucideIcons.Lightbulb size={18} className="md:w-5 md:h-5" />
+      <Lightbulb size={18} className="md:w-5 md:h-5" />
     </div>
     <div className="space-y-1 min-w-0 flex-1">
       <h4 className="text-[10px] font-black text-yellow-600 uppercase tracking-widest">{title}</h4>
@@ -49,7 +57,7 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   return (
     <div className={`fixed bottom-24 right-6 z-[100] ${status === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-6 border border-white/20`}>
       <div className="p-2 bg-white/20 rounded-full">
-        {status === 'error' ? <LucideIcons.AlertOctagon size={24} /> : <LucideIcons.CheckCircle2 size={24} />}
+        {status === 'error' ? <AlertOctagon size={24} /> : <CheckCircle2 size={24} />}
       </div>
       <div>
          <h4 className="font-bold text-sm uppercase tracking-widest">{status === 'error' ? 'Connection Error' : 'System Synced'}</h4>
@@ -88,7 +96,9 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
         const url = await uploadMedia(file, 'media');
         if (url) onChange(url);
       } else {
-        alert("Upload failed. Supabase storage is not configured.");
+        const reader = new FileReader();
+        reader.onload = (ev) => onChange(ev.target?.result as string);
+        reader.readAsDataURL(file);
       }
     } catch (err) {
       console.error("Upload failed", err);
@@ -109,7 +119,7 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
        >
           {uploading ? (
             <div className="w-full h-full flex flex-col items-center justify-center text-primary bg-slate-900 z-10 p-2 text-center">
-               <LucideIcons.Loader2 size={24} className="animate-spin mb-2" />
+               <Loader2 size={24} className="animate-spin mb-2" />
                <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden">
                  <div className="bg-primary h-full animate-[grow_2s_infinite]"></div>
                </div>
@@ -123,13 +133,13 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
               )}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white text-xs font-bold">
-                   <LucideIcons.Edit2 size={16}/>
+                   <Edit2 size={16}/>
                 </div>
               </div>
             </>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-               <LucideIcons.Image size={24} className="mb-2 opacity-50" />
+               <Image size={24} className="mb-2 opacity-50" />
                <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span>
             </div>
           )}
@@ -163,8 +173,14 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
           const url = await uploadMedia(file, 'media');
           if (url) newUrls.push(url);
         } else {
-           alert("Upload failed. Supabase storage is not configured.");
-           break;
+           const reader = new FileReader();
+           await new Promise<void>((resolve) => {
+             reader.onload = (e) => {
+               if (e.target?.result) newUrls.push(e.target.result as string);
+               resolve();
+             };
+             reader.readAsDataURL(file);
+           });
         }
       }
       onChange([...images, ...newUrls]);
@@ -189,9 +205,9 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
         {/* Upload Button */}
         <div onClick={() => !uploading && fileInputRef.current?.click()} className="aspect-square border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group">
           {uploading ? (
-             <LucideIcons.Loader2 size={24} className="animate-spin text-primary" />
+             <Loader2 size={24} className="animate-spin text-primary" />
           ) : (
-             <LucideIcons.Plus className="text-slate-400 group-hover:text-white" size={24} />
+             <Plus className="text-slate-400 group-hover:text-white" size={24} />
           )}
           <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
         </div>
@@ -199,7 +215,7 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
         {images.map((url, idx) => (
             <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900">
               <img src={url} className="w-full h-full object-cover" alt="preview" />
-              <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><LucideIcons.X size={12}/></button>
+              <button onClick={() => removeImage(idx)} className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button>
             </div>
         ))}
       </div>
@@ -232,7 +248,7 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
       <div className="flex justify-between items-center mb-4">
         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Social Profiles</label>
         <button onClick={handleAdd} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1">
-          <LucideIcons.Plus size={12}/> Add
+          <Plus size={12}/> Add
         </button>
       </div>
       
@@ -268,7 +284,7 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
              </div>
 
              <button onClick={() => handleRemove(link.id)} className="p-2 bg-slate-800 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-colors">
-               <LucideIcons.Trash2 size={16} />
+               <Trash2 size={16} />
              </button>
           </div>
         ))}
@@ -306,7 +322,7 @@ const FaqsManager: React.FC<{ faqs: ContactFaq[]; onChange: (faqs: ContactFaq[])
       <div className="flex justify-between items-center mb-4">
         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Frequently Asked Questions</label>
         <button onClick={handleAdd} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1">
-          <LucideIcons.Plus size={12}/> Add FAQ
+          <Plus size={12}/> Add FAQ
         </button>
       </div>
       
@@ -315,7 +331,7 @@ const FaqsManager: React.FC<{ faqs: ContactFaq[]; onChange: (faqs: ContactFaq[])
           <div key={idx} className="bg-slate-900 p-6 rounded-[1.5rem] border border-slate-800 flex flex-col gap-4 relative animate-in fade-in slide-in-from-top-2">
              <div className="absolute top-4 right-4">
                 <button onClick={() => handleRemove(idx)} className="p-2 bg-slate-800 rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-500 transition-colors">
-                  <LucideIcons.Trash2 size={16} />
+                  <Trash2 size={16} />
                 </button>
              </div>
              <div className="space-y-4 pr-10">
@@ -344,7 +360,7 @@ const FaqsManager: React.FC<{ faqs: ContactFaq[]; onChange: (faqs: ContactFaq[])
         ))}
         {faqs.length === 0 && (
           <div className="text-center p-12 border border-dashed border-slate-800 rounded-[2rem] text-slate-500 text-xs">
-             <LucideIcons.HelpCircle size={32} className="mx-auto mb-3 opacity-20"/>
+             <HelpCircle size={32} className="mx-auto mb-3 opacity-20"/>
              No FAQs added. Use FAQs to reduce common support enquiries.
           </div>
         )}
@@ -614,7 +630,7 @@ const TrafficAreaChart: React.FC = () => {
                   onClick={() => setIsMapEnlarged(false)}
                   className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all border border-white/10"
                 >
-                  <LucideIcons.X size={24} />
+                  <X size={24} />
                 </button>
               </div>
               
@@ -703,7 +719,7 @@ const TrafficAreaChart: React.FC = () => {
                        </div>
                        <div className="col-span-8 md:col-span-6 pl-0 md:pl-4 text-left w-full">
                           <div className="font-bold text-white text-xl flex items-center gap-3 truncate tracking-tight">
-                             <LucideIcons.MapPin size={20} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
+                             <MapPin size={20} className="text-primary opacity-50 group-hover/item:opacity-100 transition-opacity flex-shrink-0"/>
                              {geo.city}
                           </div>
                           <div className="text-sm text-slate-500 font-medium mt-1 truncate uppercase tracking-widest">{geo.region}, {geo.country}</div>
@@ -721,7 +737,7 @@ const TrafficAreaChart: React.FC = () => {
                           <div className="flex items-center gap-4 text-[11px] text-slate-500">
                              <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 shadow-sm">{getSourceIcon(geo.source)} <span className="uppercase font-black tracking-tighter">{geo.source}</span></div>
                              <div className="p-2 bg-slate-900 rounded-lg border border-slate-700">
-                                {geo.device === 'Mobile' ? <LucideIcons.Smartphone size={14} /> : <LucideIcons.Monitor size={14} />}
+                                {geo.device === 'Mobile' ? <Smartphone size={14} /> : <Monitor size={14} />}
                              </div>
                           </div>
                        </div>
@@ -731,7 +747,7 @@ const TrafficAreaChart: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center opacity-40 py-20">
-               <LucideIcons.Globe size={80} className="text-slate-500 mb-6 animate-pulse" />
+               <Globe size={80} className="text-slate-500 mb-6 animate-pulse" />
                <h4 className="text-white font-black uppercase tracking-[0.3em] text-xl">Awaiting Global Signal</h4>
                <p className="text-slate-500 text-sm mt-4 max-w-sm leading-relaxed">Data populates as visitors access your bridge page. High-precision nodes will appear here.</p>
             </div>
@@ -742,7 +758,7 @@ const TrafficAreaChart: React.FC = () => {
       <div className="bg-slate-900 rounded-[3rem] border border-white/10 p-10 md:p-14 flex flex-col shadow-2xl text-left">
          <div className="mb-12 flex justify-between items-end">
             <div>
-               <h3 className="text-white font-black text-2xl md:text-3xl italic uppercase tracking-tighter flex items-center gap-4"><LucideIcons.Smartphone size={32} className="text-primary"/> Device <span className="text-primary">Breakdown</span></h3>
+               <h3 className="text-white font-black text-2xl md:text-3xl italic uppercase tracking-tighter flex items-center gap-4"><Smartphone size={32} className="text-primary"/> Device <span className="text-primary">Breakdown</span></h3>
                <p className="text-slate-500 text-xs mt-2 uppercase tracking-[0.2em] font-bold">Platform Distribution & Hardware Intelligence</p>
             </div>
             <div className="text-right">
@@ -786,9 +802,9 @@ const TrafficAreaChart: React.FC = () => {
 const GuideIllustration: React.FC<{ id?: string }> = ({ id }) => {
   switch (id) {
     case 'forge':
-      return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden min-w-0"><div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)]" /><div className="relative z-10 flex flex-col items-center"><div className="flex gap-4 mb-8"><div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-2xl rotate-[-12deg]"><LucideIcons.FileCode size={32} /></div><div className="w-16 h-16 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-2xl rotate-[12deg]"><LucideIcons.Terminal size={32} /></div></div><div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary w-2/3 animate-[shimmer_2s_infinite]" /></div></div></div>);
+      return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden min-w-0"><div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--primary-color),transparent_70%)]" /><div className="relative z-10 flex flex-col items-center"><div className="flex gap-4 mb-8"><div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-2xl rotate-[-12deg]"><FileCode size={32} /></div><div className="w-16 h-16 bg-primary text-slate-900 rounded-2xl flex items-center justify-center shadow-2xl rotate-[12deg]"><Terminal size={32} /></div></div><div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-primary w-2/3 animate-[shimmer_2s_infinite]" /></div></div></div>);
     default:
-      return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center min-w-0"><LucideIcons.Rocket className="text-slate-800 w-24 h-24" /></div>);
+      return (<div className="relative w-full aspect-square bg-slate-950 rounded-3xl border border-slate-800 flex items-center justify-center min-w-0"><Rocket className="text-slate-800 w-24 h-24" /></div>);
   }
 };
 
@@ -797,7 +813,7 @@ const PermissionSelector: React.FC<{ permissions: string[]; onChange: (perms: st
   const togglePermission = (id: string) => { if (permissions.includes(id)) { onChange(permissions.filter(p => p !== id)); } else { onChange([...permissions, id]); } };
   const toggleGroup = (node: PermissionNode) => { const childIds = node.children?.map(c => c.id) || []; const allSelected = childIds.every(id => permissions.includes(id)); if (allSelected) { onChange(permissions.filter(p => !childIds.includes(p))); } else { const newPerms = [...permissions]; childIds.forEach(id => { if (!newPerms.includes(id)) newPerms.push(id); }); onChange(newPerms); } };
   return (
-    <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <LucideIcons.CheckSquare size={16} className="text-primary flex-shrink-0" /> : <LucideIcons.Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div>
+    <div className="space-y-6">{PERMISSION_TREE.map(group => { const childIds = group.children?.map(c => c.id) || []; const isAllSelected = childIds.every(id => permissions.includes(id)); return (<div key={group.id} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-left"><div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3"><div className="flex flex-col"><span className="text-white font-bold text-sm">{group.label}</span><span className="text-slate-500 text-[10px]">{group.description}</span></div><button onClick={() => toggleGroup(group)} className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-colors">{isAllSelected ? 'Deselect All' : 'Select All'}</button></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{group.children?.map(perm => { const isSelected = permissions.includes(perm.id); return (<button key={perm.id} onClick={() => togglePermission(perm.id)} className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isSelected ? 'bg-primary/10 border-primary text-white' : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-600'}`}>{isSelected ? <CheckSquare size={16} className="text-primary flex-shrink-0" /> : <Square size={16} className="flex-shrink-0" />}<span className="text-xs font-medium">{perm.label}</span></button>); })}</div></div>); })}</div>
   );
 };
 
@@ -827,7 +843,7 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
           <IconRenderer icon={selected} size={18} />
           <span className="text-xs font-bold truncate max-w-[150px]">{selected.startsWith('http') ? 'Custom Image' : selected}</span>
         </div>
-        <LucideIcons.ChevronDown size={14} />
+        <ChevronDown size={14} />
       </button>
 
       {isOpen && (
@@ -836,12 +852,12 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
             <div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800">
               <div>
                 <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                  <LucideIcons.LayoutGrid size={18} className="text-primary"/> Icon Library
+                  <LayoutGrid size={18} className="text-primary"/> Icon Library
                 </h3>
                 <p className="text-slate-400 text-xs mt-1">Select from {filtered.length} curated icons or upload your own</p>
               </div>
               <button onClick={() => setIsOpen(false)} className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-white transition-colors">
-                <LucideIcons.X size={20}/>
+                <X size={20}/>
               </button>
             </div>
 
@@ -864,7 +880,7 @@ const IconPicker: React.FC<{ selected: string; onSelect: (icon: string) => void 
               <>
                 <div className="p-4 bg-slate-900 border-b border-slate-800">
                   <div className="relative">
-                    <LucideIcons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                     <input 
                       className="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-sm outline-none text-white focus:border-primary transition-all" 
                       placeholder="Search icons..." 
@@ -991,8 +1007,8 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
     <div className="fixed inset-0 z-[100] flex flex-col md:flex-row bg-slate-950 animate-in fade-in duration-300">
       <div className="w-full md:w-1/2 bg-black/40 border-r border-slate-800 flex flex-col h-full relative">
         <div className="p-8 flex justify-between items-center border-b border-slate-800">
-          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><LucideIcons.Sparkles size={14} className="text-primary" /> Content Preview</span>
-          <button onClick={onClose} className="md:hidden p-2 text-slate-500"><LucideIcons.X size={24} /></button>
+          <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2"><Sparkles size={14} className="text-primary" /> Content Preview</span>
+          <button onClick={onClose} className="md:hidden p-2 text-slate-500"><X size={24} /></button>
         </div>
         <div className="flex-grow flex items-center justify-center p-8 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
           <div className="w-[320px] bg-white rounded-[2.5rem] shadow-2xl border-[8px] border-slate-900 overflow-hidden relative">
@@ -1014,7 +1030,7 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
         </div>
       </div>
       <div className="w-full md:w-1/2 bg-slate-950 flex flex-col h-full relative p-8 md:p-12 overflow-y-auto text-left">
-        <button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><LucideIcons.X size={24} /></button>
+        <button onClick={onClose} className="hidden md:block absolute top-10 right-10 p-4 bg-slate-900 border border-slate-800 rounded-full text-slate-400 hover:text-white"><X size={24} /></button>
         <div className="max-w-xl mx-auto space-y-8 w-full">
           <div>
             <h3 className="text-3xl font-serif text-white mb-2">Social <span className="text-primary italic">Manager</span></h3>
@@ -1040,10 +1056,10 @@ const AdGeneratorModal: React.FC<{ product: Product; onClose: () => void }> = ({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <button onClick={handleCopy} className="col-span-2 py-4 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:text-white flex items-center justify-center gap-2 border border-dashed border-slate-600">
-              {copied ? <LucideIcons.Check size={16}/> : <LucideIcons.Copy size={16}/>} 1. Copy Caption First
+              {copied ? <Check size={16}/> : <Copy size={16}/>} 1. Copy Caption First
             </button>
             <button onClick={handleShareBundle} className="col-span-2 py-4 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:brightness-110 flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
-              <LucideIcons.Share2 size={16}/> 2. Share Bundle (Img + Text)
+              <Share2 size={16}/> 2. Share Bundle (Img + Text)
             </button>
             <div className="col-span-2 text-center text-slate-600 text-[9px] uppercase font-bold tracking-widest mt-2">Note: Many apps discard captions when sharing files. Copy text first.</div>
           </div>
@@ -1065,7 +1081,7 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
     <div className="relative group mb-6 text-left w-full min-w-0 print:mb-0">
       {label && (
         <div className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-2 flex items-center gap-2 print:text-black">
-          <LucideIcons.Terminal size={12}/>{label}
+          <Terminal size={12}/>{label}
         </div>
       )}
       <div className="absolute top-8 right-4 z-10 print:hidden">
@@ -1073,7 +1089,7 @@ const CodeBlock: React.FC<{ code: string; language?: string; label?: string }> =
           onClick={copyToClipboard} 
           className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white/50 hover:text-white transition-all backdrop-blur-md border border-white/5"
         >
-          {copied ? <LucideIcons.Check size={14} /> : <LucideIcons.Copy size={14} />}
+          {copied ? <Check size={14} /> : <Copy size={14} />}
         </button>
       </div>
       <pre className="p-6 bg-black rounded-2xl text-[10px] md:text-xs font-mono text-slate-400 overflow-x-auto border border-slate-800 leading-relaxed custom-scrollbar shadow-inner w-full max-w-full print:bg-white print:text-black print:border-slate-200 print:overflow-visible print:whitespace-pre-wrap print:break-words">
@@ -1171,13 +1187,13 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
       <div onClick={() => !uploading && fileInputRef.current?.click()} className="border-2 border-dashed border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-slate-900/30 group min-h-[100px]">
         {uploading ? (
            <div className="flex flex-col items-center">
-             <LucideIcons.Loader2 size={24} className="animate-spin text-primary mb-2" />
+             <Loader2 size={24} className="animate-spin text-primary mb-2" />
              <div className="w-24 bg-slate-700 h-1 rounded-full overflow-hidden"><div className="bg-primary h-full animate-[grow_2s_infinite]"></div></div>
              <span className="text-[9px] mt-2 uppercase font-black text-slate-500">Processing...</span>
            </div>
         ) : (
            <>
-            <LucideIcons.Upload className="text-slate-400 group-hover:text-white mb-2" size={20} />
+            <Upload className="text-slate-400 group-hover:text-white mb-2" size={20} />
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Add {label}</p>
            </>
         )}
@@ -1197,12 +1213,12 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
             >
               <div className="aspect-square rounded-xl overflow-hidden relative group border border-slate-800 bg-slate-900 cursor-move">
                 {f.type.startsWith('video') ? (
-                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><LucideIcons.Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
+                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-500"><Video size={20}/><span className="text-[8px] mt-1 uppercase font-bold">Video</span></div>
                 ) : (
                    <img src={f.url} className="w-full h-full object-cover pointer-events-none" alt={f.altText || "preview"} />
                 )}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                   <button onClick={() => handleDelete(f)} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><LucideIcons.Trash2 size={16}/></button>
+                   <button onClick={() => handleDelete(f)} className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"><Trash2 size={16}/></button>
                 </div>
               </div>
               <input 
@@ -1223,12 +1239,12 @@ const FileUploader: React.FC<{ files: MediaFile[]; onFilesChange: (files: MediaF
 const IntegrationGuide: React.FC = () => (
   <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 mb-8 text-left">
      <h4 className="text-primary font-bold text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
-       <LucideIcons.Lightbulb size={16}/> Integration Setup Guide
+       <Lightbulb size={16}/> Integration Setup Guide
      </h4>
      <div className="space-y-4 text-xs text-slate-400">
         <details className="group">
           <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
-            <LucideIcons.BarChart size={14} /> Google Analytics 4
+            <BarChart size={14} /> Google Analytics 4
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
             <p>1. Go to <a href="https://analytics.google.com" target="_blank" className="text-white underline">Google Analytics</a>.</p>
@@ -1238,7 +1254,7 @@ const IntegrationGuide: React.FC = () => (
         </details>
         <details className="group">
            <summary className="cursor-pointer font-bold text-white mb-2 list-none flex items-center gap-2 group-open:text-primary transition-colors">
-            <LucideIcons.Target size={14} /> Meta / TikTok Pixels
+            <Target size={14} /> Meta / TikTok Pixels
           </summary>
           <div className="pl-6 space-y-2 border-l border-slate-700 ml-1.5 py-2">
             <p><strong>Meta (Facebook):</strong> Go to Events Manager {'>'} Data Sources. Create a Web Pixel. Copy the numeric <strong>Dataset ID</strong>.</p>
@@ -1389,7 +1405,7 @@ const EliteReportModal: React.FC<{
         <div className="flex flex-col items-center gap-6">
            <div className="relative">
               <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-              <LucideIcons.FilePieChart size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" />
+              <FilePieChart size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" />
            </div>
            <div className="text-center">
               <h3 className="text-xl font-bold text-white uppercase tracking-widest mb-1">Synthesizing Elite Analytics</h3>
@@ -1401,7 +1417,7 @@ const EliteReportModal: React.FC<{
            {/* Header Controls */}
            <div className="p-6 bg-slate-900 flex flex-col md:flex-row justify-between items-center text-white flex-shrink-0 print:hidden gap-4">
               <div className="flex items-center gap-3">
-                 <LucideIcons.ShieldCheck className="text-primary" size={24} />
+                 <ShieldCheck className="text-primary" size={24} />
                  <div>
                     <h3 className="font-bold text-sm uppercase tracking-widest">Executive Curation Report</h3>
                     <p className="text-[10px] text-slate-400">Target: {reportData.curatorName} • Cycle: {reportData.timeframeLabel}</p>
@@ -1425,8 +1441,8 @@ const EliteReportModal: React.FC<{
                  <div className="h-8 w-px bg-white/10 hidden md:block"></div>
 
                  <div className="flex gap-3">
-                    <button onClick={handlePrint} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><LucideIcons.Printer size={16}/> Print</button>
-                    <button onClick={onClose} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><LucideIcons.X size={20}/></button>
+                    <button onClick={handlePrint} className="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest"><Printer size={16}/> Print</button>
+                    <button onClick={onClose} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><X size={20}/></button>
                  </div>
               </div>
            </div>
@@ -1451,7 +1467,7 @@ const EliteReportModal: React.FC<{
                              <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-100" />
                              <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray={`${(reportData.performanceScore / 100) * 176} 176`} className="text-primary" />
                           </svg>
-                          <LucideIcons.Crown size={20} className="absolute text-primary" />
+                          <Crown size={20} className="absolute text-primary" />
                        </div>
                     </div>
                     <span className="px-4 py-2 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 mb-4 inline-block">Period: {reportData.timeframeLabel}</span>
@@ -1483,7 +1499,7 @@ const EliteReportModal: React.FC<{
               <div className="grid grid-cols-12 gap-16 mb-20">
                  <div className="col-span-12 lg:col-span-7">
                     <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
-                       <LucideIcons.BarChart3 size={20} className="text-primary"/> Engagement Intensity ({reportData.timeframeLabel})
+                       <BarChart3 size={20} className="text-primary"/> Engagement Intensity ({reportData.timeframeLabel})
                     </h3>
                     <div className="h-64 w-full flex items-end gap-3 px-4 border-b border-l border-slate-200 pb-2">
                        {[40, 65, 30, 85, 45, 95, 70, 55, 80, 60, 40, 75].map((h, i) => (
@@ -1503,14 +1519,14 @@ const EliteReportModal: React.FC<{
 
                  {/* Predictive Analytics */}
                  <div className="col-span-12 lg:col-span-5 bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden">
-                    <LucideIcons.Presentation className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5 rotate-12" />
+                    <Presentation className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5 rotate-12" />
                     <h3 className="text-lg font-bold uppercase tracking-widest mb-8 text-primary">Forward Guidance</h3>
                     <div className="space-y-8">
                        <div className="flex justify-between items-center pb-6 border-b border-white/10">
                           <div>
                              <span className="text-[10px] text-slate-400 uppercase font-black block mb-1">Growth Trajectory</span>
                              <div className="flex items-center gap-2">
-                                { (reportData.growthRate >= 0) ? <LucideIcons.TrendingUp size={24} className="text-green-500"/> : <LucideIcons.TrendingDown size={24} className="text-red-500"/> }
+                                { (reportData.growthRate >= 0) ? <TrendingUp size={24} className="text-green-500"/> : <TrendingDown size={24} className="text-red-500"/> }
                                 <span className="text-3xl font-bold">{ Math.abs(reportData.growthRate).toFixed(1) }%</span>
                              </div>
                           </div>
@@ -1540,7 +1556,7 @@ const EliteReportModal: React.FC<{
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20">
                   <div>
                      <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
-                        <LucideIcons.Award size={20} className="text-primary"/> Top Performing Assets
+                        <Award size={20} className="text-primary"/> Top Performing Assets
                      </h3>
                      <div className="space-y-4">
                         {reportData.topProducts.map((p, i) => (
@@ -1565,7 +1581,7 @@ const EliteReportModal: React.FC<{
 
                   <div>
                      <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
-                        <LucideIcons.Layers size={20} className="text-primary"/> Category Distribution
+                        <Layers size={20} className="text-primary"/> Category Distribution
                      </h3>
                      <div className="space-y-6">
                         {reportData.catBreakdown.map((cat, i) => (
@@ -1590,7 +1606,7 @@ const EliteReportModal: React.FC<{
               { curatorId === 'all' && (
                  <div className="mb-20">
                     <h3 className="text-xl font-bold uppercase tracking-widest mb-10 flex items-center gap-3">
-                       <LucideIcons.Users size={20} className="text-primary"/> Relative Performance Matrix
+                       <Users size={20} className="text-primary"/> Relative Performance Matrix
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        {reportData.staffPerformance.map((staff, idx) => (
@@ -2076,11 +2092,11 @@ const Admin: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Orders</h2><p className="text-slate-400 text-sm">Manage client orders.</p></div>
          <div className="flex gap-3 w-full md:w-auto">
-            <button onClick={() => { setOrderData({ items: [], status: 'Pending', totalAmount: 0 }); setShowOrderForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><LucideIcons.Plus size={16}/> New Order</button>
+            <button onClick={() => { setOrderData({ items: [], status: 'Pending', totalAmount: 0 }); setShowOrderForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><Plus size={16}/> New Order</button>
          </div>
       </div>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-         <div className="relative flex-grow"><LucideIcons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search order ID or client name..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
+         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search order ID or client name..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(filter => (<button key={filter} onClick={() => setOrderFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${orderFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
       </div>
       
@@ -2089,7 +2105,7 @@ const Admin: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
               <h3 className="text-xl font-serif text-white">{orderData.id ? 'Edit Order' : 'New Order'}</h3>
-              <button onClick={() => setShowOrderForm(false)} className="text-slate-500 hover:text-white"><LucideIcons.X size={24} /></button>
+              <button onClick={() => setShowOrderForm(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
             </div>
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2133,7 +2149,7 @@ const Admin: React.FC = () => {
                         <p className="text-sm font-medium text-white">{item.name}</p>
                         <p className="text-xs text-slate-500 mt-1">{item.quantity} x ${item.price.toFixed(2)} = ${(item.quantity * item.price).toFixed(2)}</p>
                       </div>
-                      <button onClick={() => setOrderData({...orderData, items: orderData.items?.filter((_: any, i: number) => i !== idx)})} className="text-red-500 hover:text-red-400 p-2"><LucideIcons.Trash2 size={16}/></button>
+                      <button onClick={() => setOrderData({...orderData, items: orderData.items?.filter((_: any, i: number) => i !== idx)})} className="text-red-500 hover:text-red-400 p-2"><Trash2 size={16}/></button>
                     </div>
                   ))}
                   {(!orderData.items || orderData.items.length === 0) && (
@@ -2156,7 +2172,7 @@ const Admin: React.FC = () => {
                       setOrderData({...orderData, items: [...(orderData.items || []), { ...tempOrderItem, productId: crypto.randomUUID(), sku: 'MANUAL' } as OrderItem]});
                       setTempOrderItem({ quantity: 1, price: 0 });
                     }
-                  }} className="w-full md:w-auto px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 h-[88px] flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest"><LucideIcons.Plus size={16}/> Add Item</button>
+                  }} className="w-full md:w-auto px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 h-[88px] flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest"><Plus size={16}/> Add Item</button>
                 </div>
               </div>
             </div>
@@ -2215,8 +2231,8 @@ const Admin: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity w-full md:w-auto justify-end border-t md:border-t-0 border-slate-800 pt-4 md:pt-0">
-                        <button onClick={() => { setOrderData(order); setShowOrderForm(true); }} className="p-3 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"><LucideIcons.Edit2 size={18}/></button>
-                        <button onClick={() => deleteData('orders', order.id)} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"><LucideIcons.Trash2 size={18}/></button>
+                        <button onClick={() => { setOrderData(order); setShowOrderForm(true); }} className="p-3 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"><Edit2 size={18}/></button>
+                        <button onClick={() => deleteData('orders', order.id)} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"><Trash2 size={18}/></button>
                       </div>
                     </div>
                   );
@@ -2237,11 +2253,11 @@ const Admin: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Clients</h2><p className="text-slate-400 text-sm">View and manage registered clients.</p></div>
          <div className="flex gap-3 w-full md:w-auto">
-            <button onClick={() => { setClientData({ name: '', email: '', phone: '', address: '', company: '', status: 'Active' }); setShowClientForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><LucideIcons.Plus size={16}/> New Client</button>
+            <button onClick={() => { setClientData({ name: '', email: '', phone: '', address: '', company: '', status: 'Active' }); setShowClientForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><Plus size={16}/> New Client</button>
          </div>
       </div>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-         <div className="relative flex-grow"><LucideIcons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search name or email..." value={clientSearch} onChange={e => setClientSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
+         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search name or email..." value={clientSearch} onChange={e => setClientSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
       </div>
       
       {showClientForm && (
@@ -2249,7 +2265,7 @@ const Admin: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
               <h3 className="text-xl font-serif text-white">{clientData.id ? 'Edit Client Details' : 'New Client Registration'}</h3>
-              <button onClick={() => setShowClientForm(false)} className="text-slate-500 hover:text-white"><LucideIcons.X size={24} /></button>
+              <button onClick={() => setShowClientForm(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
             </div>
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2312,8 +2328,8 @@ const Admin: React.FC = () => {
             return (
               <div key={client.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 group hover:border-slate-700 transition-colors relative overflow-hidden flex flex-col h-full">
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                  <button onClick={() => { setClientData(client); setShowClientForm(true); }} className="p-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><LucideIcons.Edit2 size={16}/></button>
-                  <button onClick={() => handleDeleteUser(client.id, 'client')} className="p-2 bg-slate-800 text-slate-300 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><LucideIcons.Trash2 size={16}/></button>
+                  <button onClick={() => { setClientData(client); setShowClientForm(true); }} className="p-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16}/></button>
+                  <button onClick={() => handleDeleteUser(client.id, 'client')} className="p-2 bg-slate-800 text-slate-300 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={16}/></button>
                 </div>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center text-primary font-serif text-2xl shadow-inner">
@@ -2360,12 +2376,12 @@ const Admin: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Inbox</h2><p className="text-slate-400 text-sm">Manage incoming client communications.</p></div>
          <div className="flex gap-3 w-full md:w-auto">
-            <button onClick={exportEnquiries} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><LucideIcons.FileSpreadsheet size={16}/> Export CSV</button>
+            <button onClick={exportEnquiries} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><FileSpreadsheet size={16}/> Export CSV</button>
          </div>
       </div>
       <AdminTip title="Communication Hub">This is your central command for client interactions. All inquiries from your contact form are routed here. Use the reply button to open your device's email client, or archive messages to keep your inbox clean.</AdminTip>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
-         <div className="relative flex-grow"><LucideIcons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
+         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
          <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'unread', 'read'].map(filter => (<button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
       </div>
       { (filteredEnquiries.length === 0) ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] md:rounded-[3rem] border border-dashed border-slate-800 text-slate-500">No enquiries found.</div> : 
@@ -2382,10 +2398,10 @@ const Admin: React.FC = () => {
                 className="flex-1 md:flex-none p-4 bg-primary/20 text-primary rounded-2xl hover:bg-primary hover:text-slate-900 transition-colors" 
                 title="Reply via Email Client"
               >
-                <LucideIcons.Reply size={20}/>
+                <Reply size={20}/>
               </button>
-              <button onClick={() => toggleEnquiryStatus(e)} className={`flex-1 md:flex-none p-4 rounded-2xl transition-colors ${ (e.status === 'read') ? 'bg-slate-800 text-slate-500' : 'bg-green-500/20 text-green-500' }`} title={ (e.status === 'read') ? 'Mark Unread' : 'Mark Read' }><LucideIcons.CheckCircle size={20}/></button>
-              <button onClick={() => deleteData('enquiries', e.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-500 rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-colors" title="Delete"><LucideIcons.Trash2 size={20}/></button>
+              <button onClick={() => toggleEnquiryStatus(e)} className={`flex-1 md:flex-none p-4 rounded-2xl transition-colors ${ (e.status === 'read') ? 'bg-slate-800 text-slate-500' : 'bg-green-500/20 text-green-500' }`} title={ (e.status === 'read') ? 'Mark Unread' : 'Mark Read' }><CheckCircle size={20}/></button>
+              <button onClick={() => deleteData('enquiries', e.id)} className="flex-1 md:flex-none p-4 bg-slate-800 text-slate-500 rounded-2xl hover:bg-red-500/20 hover:text-red-500 transition-colors" title="Delete"><Trash2 size={20}/></button>
             </div>
           </div>
         ))
@@ -2488,7 +2504,7 @@ const Admin: React.FC = () => {
                       <option value="all">Entire Maison (All)</option>
                       {admins.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                    </select>
-                   <LucideIcons.ChevronDown className="absolute right-4 bottom-3 text-slate-500 pointer-events-none" size={14} />
+                   <ChevronDown className="absolute right-4 bottom-3 text-slate-500 pointer-events-none" size={14} />
                 </div>
               )}
               
@@ -2496,7 +2512,7 @@ const Admin: React.FC = () => {
                 onClick={() => setShowEliteReport(true)}
                 className="px-8 py-4 bg-primary text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-primary/20 flex items-center gap-3 animate-pulse group"
               >
-                <LucideIcons.FilePieChart size={18} className="group-hover:rotate-12 transition-transform" />
+                <FilePieChart size={18} className="group-hover:rotate-12 transition-transform" />
                 Generate Elite Performance Report
               </button>
               <div className="flex gap-12 text-right">
@@ -2513,8 +2529,8 @@ const Admin: React.FC = () => {
         </div>
 
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-800 shadow-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><LucideIcons.Activity size={120} className="text-primary"/></div>
-            <h3 className="text-white font-bold text-xl mb-12 flex items-center gap-3"><LucideIcons.Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Activity size={120} className="text-primary"/></div>
+            <h3 className="text-white font-bold text-xl mb-12 flex items-center gap-3"><Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
             <div className="flex items-end gap-1 h-64 w-full border-b border-slate-800 pb-2">
                {hourlyDistribution.map((count, i) => (
                  <div key={i} className="flex-1 group/bar relative h-full flex flex-col justify-end">
@@ -2563,7 +2579,7 @@ const Admin: React.FC = () => {
         <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-10 shadow-xl">
           <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
             <h3 className="text-white font-bold text-xl flex items-center gap-3">
-              <LucideIcons.TrendingUp size={24} className="text-primary"/> Top Performing Products ({ (curatorFilter === 'all') ? 'Maison wide' : admins.find(a => a.id === curatorFilter)?.name })
+              <TrendingUp size={24} className="text-primary"/> Top Performing Products ({ (curatorFilter === 'all') ? 'Maison wide' : admins.find(a => a.id === curatorFilter)?.name })
             </h3>
             <button onClick={() => {
                const csv = "Rank,Product,Category,Views,Clicks,CTR,Shares\n" +
@@ -2572,7 +2588,7 @@ const Admin: React.FC = () => {
                const url = window.URL.createObjectURL(blob);
                const a = document.createElement('a'); a.href = url; a.download = 'top_products.csv'; a.click();
             }} className="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest flex items-center gap-2">
-               <LucideIcons.Download size={14}/> Export Data
+               <Download size={14}/> Export Data
             </button>
           </div>
           <div className="overflow-x-auto">
@@ -2625,7 +2641,7 @@ const Admin: React.FC = () => {
 
         <div className="space-y-8">
            <h3 className="text-white font-bold text-2xl flex items-center gap-3 px-2 border-b border-white/5 pb-4">
-              <LucideIcons.Layers size={24} className="text-primary"/> Department Performance
+              <Layers size={24} className="text-primary"/> Department Performance
            </h3>
            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
              {categoryPerformance.map((cat, i) => {
@@ -2668,7 +2684,7 @@ const Admin: React.FC = () => {
         </div>
 
         <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-800 shadow-xl mt-8">
-             <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><LucideIcons.Globe size={24} className="text-primary"/> Traffic Sources (Live & Historical)</h3>
+             <h3 className="text-white font-bold mb-12 flex items-center gap-3 text-xl"><Globe size={24} className="text-primary"/> Traffic Sources (Live & Historical)</h3>
              <div className="space-y-8">
                  {sortedSources.map((s, i) => {
                     const SIcon = s.icon;
@@ -2745,9 +2761,9 @@ const Admin: React.FC = () => {
     if (!products || products.length === 0) return [];
     // Simple logic: suggest linking to top categories or recent products
     const suggestions = [
-      { text: 'Link to your best-selling categories from the homepage.', icon: <LucideIcons.Layers className="w-4 h-4" /> },
-      { text: 'Add "Related Products" to product pages to improve crawl depth.', icon: <LucideIcons.ShoppingBag className="w-4 h-4" /> },
-      { text: 'Ensure your About page links back to your main Products gallery.', icon: <LucideIcons.ArrowRight className="w-4 h-4" /> }
+      { text: 'Link to your best-selling categories from the homepage.', icon: <Layers className="w-4 h-4" /> },
+      { text: 'Add "Related Products" to product pages to improve crawl depth.', icon: <ShoppingBag className="w-4 h-4" /> },
+      { text: 'Ensure your About page links back to your main Products gallery.', icon: <ArrowRight className="w-4 h-4" /> }
     ];
     return suggestions;
   }, [products]);
@@ -2771,14 +2787,14 @@ const Admin: React.FC = () => {
                     className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all border border-slate-700 group"
                     title="View Live robots.txt"
                   >
-                    <LucideIcons.ExternalLink className="w-5 h-5 group-hover:text-white" />
+                    <ExternalLink className="w-5 h-5 group-hover:text-white" />
                   </a>
                 )}
                 <button
                   onClick={generateRobotsTxt}
                   className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-medium transition-all border border-slate-700 flex items-center gap-2"
                 >
-                  <LucideIcons.FileText className="w-5 h-5" />
+                  <FileText className="w-5 h-5" />
                   Generate robots.txt
                 </button>
               </div>
@@ -2801,14 +2817,14 @@ const Admin: React.FC = () => {
                     className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all border border-slate-700 group"
                     title="View Live sitemap.xml"
                   >
-                    <LucideIcons.ExternalLink className="w-5 h-5 group-hover:text-white" />
+                    <ExternalLink className="w-5 h-5 group-hover:text-white" />
                   </a>
                 )}
                 <button
                   onClick={generateSitemap}
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
                 >
-                  <LucideIcons.Globe className="w-5 h-5" />
+                  <Globe className="w-5 h-5" />
                   Generate sitemap.xml
                 </button>
               </div>
@@ -2830,7 +2846,7 @@ const Admin: React.FC = () => {
               <div className="space-y-8">
                 <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 mb-6">
                   <div className="flex items-start gap-3">
-                    <LucideIcons.Info className="w-5 h-5 text-indigo-400 mt-0.5" />
+                    <Info className="w-5 h-5 text-indigo-400 mt-0.5" />
                     <div>
                       <h4 className="text-sm font-medium text-indigo-300 mb-1">Why SEO Matters</h4>
                       <p className="text-xs text-indigo-200/70 leading-relaxed">
@@ -2860,11 +2876,11 @@ const Admin: React.FC = () => {
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-[10px] font-medium flex items-center gap-1">
                         {(tempSettings?.seoTitle?.length || 0) < 40 ? (
-                          <><LucideIcons.Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Aim for 50-60 characters for best visibility.</span></>
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Aim for 50-60 characters for best visibility.</span></>
                         ) : (tempSettings?.seoTitle?.length || 0) > 60 ? (
-                          <><LucideIcons.Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Google will truncate this title in search results.</span></>
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Google will truncate this title in search results.</span></>
                         ) : (
-                          <><LucideIcons.CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Optimal length. Great for search engines!</span></>
+                          <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Optimal length. Great for search engines!</span></>
                         )}
                       </p>
                       <p className={`text-[10px] ${
@@ -2898,11 +2914,11 @@ const Admin: React.FC = () => {
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-[10px] font-medium flex items-center gap-1">
                         {(tempSettings?.seoDescription?.length || 0) < 120 ? (
-                          <><LucideIcons.Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Compelling descriptions improve click-through rate.</span></>
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too short. Compelling descriptions improve click-through rate.</span></>
                         ) : (tempSettings?.seoDescription?.length || 0) > 160 ? (
-                          <><LucideIcons.Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Keep the most important info at the start.</span></>
+                          <><Info className="w-3 h-3 text-amber-400" /> <span className="text-amber-400/80">Too long. Keep the most important info at the start.</span></>
                         ) : (
-                          <><LucideIcons.CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Perfect length. This will look great on Google!</span></>
+                          <><CheckCircle2 className="w-3 h-3 text-emerald-400" /> <span className="text-emerald-400/80">Perfect length. This will look great on Google!</span></>
                         )}
                       </p>
                       <p className={`text-[10px] ${
@@ -2935,7 +2951,7 @@ const Admin: React.FC = () => {
                   <div className="lg:col-span-2">
                     <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
                       <h4 className="text-xs font-bold text-amber-400 mb-2 flex items-center gap-2">
-                        <LucideIcons.Lightbulb className="w-4 h-4" /> SEO Best Practice
+                        <Lightbulb className="w-4 h-4" /> SEO Best Practice
                       </h4>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
                         Google ignores the "meta keywords" tag. Instead, ensure your target keywords appear in:
@@ -2964,13 +2980,13 @@ const Admin: React.FC = () => {
                         onClick={() => setPreviewMode('desktop')}
                         className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-2 ${previewMode === 'desktop' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
                       >
-                        <LucideIcons.Monitor className="w-3 h-3" /> Desktop
+                        <Monitor className="w-3 h-3" /> Desktop
                       </button>
                       <button
                         onClick={() => setPreviewMode('mobile')}
                         className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-2 ${previewMode === 'mobile' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
                       >
-                        <LucideIcons.Smartphone className="w-3 h-3" /> Mobile
+                        <Smartphone className="w-3 h-3" /> Mobile
                       </button>
                     </div>
                   </div>
@@ -2981,7 +2997,7 @@ const Admin: React.FC = () => {
                           {settings?.seoOgImage ? (
                             <img src={settings.seoOgImage} alt="Favicon" className="w-full h-full object-cover" />
                           ) : (
-                            <LucideIcons.Globe className="w-4 h-4 text-slate-400" />
+                            <Globe className="w-4 h-4 text-slate-400" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -3046,14 +3062,14 @@ const Admin: React.FC = () => {
                     )}
                     <div className="mt-4 p-4 bg-[#1a1a1b] border border-slate-800 rounded-xl">
                       <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
-                        <LucideIcons.Share2 className="w-3 h-3" /> Social Media Preview Example
+                        <Share2 className="w-3 h-3" /> Social Media Preview Example
                       </p>
                       <div className="border border-[#343536] rounded-lg overflow-hidden bg-[#1a1a1b] max-w-sm mx-auto shadow-2xl">
                         {settings?.seoOgImage ? (
                           <img src={settings.seoOgImage} className="w-full aspect-[1.91/1] object-cover" alt="Social Preview" />
                         ) : (
                           <div className="w-full aspect-[1.91/1] bg-slate-800 flex items-center justify-center text-slate-600">
-                            <LucideIcons.Globe className="w-8 h-8" />
+                            <Globe className="w-8 h-8" />
                           </div>
                         )}
                         <div className="p-3 border-t border-[#343536]">
@@ -3223,7 +3239,7 @@ const Admin: React.FC = () => {
                                 <option value="WebSite">WebSite</option>
                                 <option value="Store">Store</option>
                               </select>
-                              <LucideIcons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>
                           </div>
                         </div>
@@ -3585,14 +3601,14 @@ const Admin: React.FC = () => {
             {/* Performance & Mobile Insights */}
             <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 md:p-8 shadow-xl mt-8">
               <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-2">
-                <LucideIcons.Zap className="w-5 h-5 text-amber-400" />
+                <Zap className="w-5 h-5 text-amber-400" />
                 Performance & Mobile Insights
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                      <LucideIcons.Smartphone className="w-5 h-5" />
+                      <Smartphone className="w-5 h-5" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white">Mobile Responsiveness</h4>
@@ -3604,10 +3620,10 @@ const Admin: React.FC = () => {
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-[10px] text-slate-300">
-                      <LucideIcons.CheckCircle2 className="w-3 h-3 text-emerald-500" /> Tap targets are at least 44x44px
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Tap targets are at least 44x44px
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-slate-300">
-                      <LucideIcons.CheckCircle2 className="w-3 h-3 text-emerald-500" /> Viewport meta tag is configured
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Viewport meta tag is configured
                     </div>
                   </div>
                 </div>
@@ -3615,7 +3631,7 @@ const Admin: React.FC = () => {
                 <div className="bg-slate-950/50 border border-slate-800 rounded-xl p-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                      <LucideIcons.Zap className="w-5 h-5" />
+                      <Zap className="w-5 h-5" />
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white">Core Web Vitals</h4>
@@ -3627,10 +3643,10 @@ const Admin: React.FC = () => {
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-[10px] text-slate-300">
-                      <LucideIcons.CheckCircle2 className="w-3 h-3 text-emerald-500" /> Lazy loading enabled
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Lazy loading enabled
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-slate-300">
-                      <LucideIcons.CheckCircle2 className="w-3 h-3 text-emerald-500" /> Modern image formats (WebP) supported
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Modern image formats (WebP) supported
                     </div>
                   </div>
                 </div>
@@ -3638,15 +3654,15 @@ const Admin: React.FC = () => {
 
               <div className="mt-6 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-xl">
                 <h4 className="text-xs font-bold text-indigo-400 mb-2 flex items-center gap-2">
-                  <LucideIcons.Lightbulb className="w-4 h-4" /> Actionable Recommendations
+                  <Lightbulb className="w-4 h-4" /> Actionable Recommendations
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex items-start gap-2 text-[11px] text-slate-300">
-                    <LucideIcons.ArrowRight className="w-3 h-3 text-indigo-400 mt-0.5" />
+                    <ArrowRight className="w-3 h-3 text-indigo-400 mt-0.5" />
                     <span>Compress large OG images to under 500KB for faster sharing.</span>
                   </div>
                   <div className="flex items-start gap-2 text-[11px] text-slate-300">
-                    <LucideIcons.ArrowRight className="w-3 h-3 text-indigo-400 mt-0.5" />
+                    <ArrowRight className="w-3 h-3 text-indigo-400 mt-0.5" />
                     <span>Ensure all product images have descriptive ALT text.</span>
                   </div>
                 </div>
@@ -3658,7 +3674,7 @@ const Admin: React.FC = () => {
           <div className="xl:col-span-1 space-y-6">
             <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-6 shadow-xl sticky top-8">
               <h3 className="text-lg font-serif text-white mb-4 flex items-center gap-2">
-                <LucideIcons.CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                 SEO Best Practices
               </h3>
               <p className="text-xs text-slate-400 mb-6">
@@ -3690,7 +3706,7 @@ const Admin: React.FC = () => {
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start gap-3 group">
                     <div className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border flex items-center justify-center ${item.done ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'border-slate-700 text-transparent group-hover:border-slate-500'}`}>
-                      {item.done && <LucideIcons.Check size={10} strokeWidth={3} />}
+                      {item.done && <Check size={10} strokeWidth={3} />}
                     </div>
                     <div>
                       <h4 className={`text-sm font-medium ${item.done ? 'text-slate-300' : 'text-slate-400'}`}>{item.title}</h4>
@@ -3733,7 +3749,7 @@ const Admin: React.FC = () => {
             <div className="bg-slate-900 rounded-[2rem] border border-slate-800 p-8 flex flex-col justify-between shadow-xl">
                  <div className="flex justify-between items-start mb-6">
                     <div>
-                        <h3 className="text-white font-bold text-lg flex items-center gap-2"><LucideIcons.Wifi size={20} className="text-primary"/> Network Heartbeat</h3>
+                        <h3 className="text-white font-bold text-lg flex items-center gap-2"><Wifi size={20} className="text-primary"/> Network Heartbeat</h3>
                         <p className="text-slate-500 text-xs mt-1">{connectionHealth?.message || 'Connecting...'}</p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ (connectionHealth?.status === 'online') ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20' }`}>
@@ -3763,7 +3779,7 @@ const Admin: React.FC = () => {
             <div className="bg-slate-900 rounded-[2rem] border border-slate-800 p-8 flex flex-col justify-between shadow-xl">
                  <div className="flex justify-between items-start mb-6">
                     <div>
-                        <h3 className="text-white font-bold text-lg flex items-center gap-2"><LucideIcons.Server size={20} className="text-primary"/> Database Status</h3>
+                        <h3 className="text-white font-bold text-lg flex items-center gap-2"><Server size={20} className="text-primary"/> Database Status</h3>
                         <p className="text-slate-500 text-xs mt-1">{isSupabaseConfigured ? 'Connected to Cloud' : 'Local Storage Mode'}</p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ isSupabaseConfigured ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' }`}>
@@ -3784,13 +3800,13 @@ const Admin: React.FC = () => {
         </div>
 
         <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-12 shadow-2xl">
-            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><LucideIcons.HardDrive size={24} className="text-blue-500"/> Storage Anatomy</h3>
+            <h3 className="text-white font-bold text-xl mb-8 flex items-center gap-3"><HardDrive size={24} className="text-blue-500"/> Storage Anatomy</h3>
             
             <div className="space-y-8">
                 <div>
                     <div className="flex justify-between items-end mb-2">
                         <div className="flex items-center gap-2">
-                            <LucideIcons.Database size={16} className="text-slate-400"/>
+                            <Database size={16} className="text-slate-400"/>
                             <span className="text-sm font-bold text-slate-200">Text Data (JSON)</span>
                         </div>
                         <span className="text-sm font-mono font-bold text-primary">{formatBytes(storageStats.dbSize)}</span>
@@ -3804,7 +3820,7 @@ const Admin: React.FC = () => {
                 <div>
                     <div className="flex justify-between items-end mb-2">
                         <div className="flex items-center gap-2">
-                            <LucideIcons.Image size={16} className="text-slate-400"/>
+                            <Image size={16} className="text-slate-400"/>
                             <span className="text-sm font-bold text-slate-200">Media Assets ({storageStats.mediaCount} files)</span>
                         </div>
                         <span className="text-sm font-mono font-bold text-blue-400">{formatBytes(storageStats.mediaSize)}</span>
@@ -3820,7 +3836,7 @@ const Admin: React.FC = () => {
 
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left font-mono">
            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-white font-bold text-xl flex items-center gap-3"><LucideIcons.Terminal size={24} className="text-green-500"/> Sync Ledger</h3>
+              <h3 className="text-white font-bold text-xl flex items-center gap-3"><Terminal size={24} className="text-green-500"/> Sync Ledger</h3>
               <div className="flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span className="text-[10px] font-black uppercase text-green-500 tracking-widest">Live Feed</span></div>
            </div>
            
@@ -3869,7 +3885,7 @@ const Admin: React.FC = () => {
         <div className="bg-[#0f172a] border border-slate-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden text-left">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold text-xl flex items-center gap-3">
-                 <LucideIcons.AlertTriangle size={24} className="text-red-500"/>
+                 <AlertTriangle size={24} className="text-red-500"/>
                  Global Exception Trace
               </h3>
               <div className="flex gap-2">
@@ -3883,7 +3899,7 @@ const Admin: React.FC = () => {
            </div>
            <div className="bg-black rounded-xl border border-slate-800 p-4 h-64 overflow-y-auto custom-scrollbar font-mono text-xs relative">
               <div className="absolute top-0 right-0 p-2 opacity-50 pointer-events-none">
-                 <LucideIcons.Activity size={120} className="text-slate-800"/>
+                 <Activity size={120} className="text-slate-800"/>
               </div>
               { (errorLogs.length > 0) ? (
                  errorLogs.map((err, i) => (
@@ -3902,7 +3918,7 @@ const Admin: React.FC = () => {
                  ))
               ) : (
                  <div className="h-full flex flex-col items-center justify-center text-slate-600 opacity-50">
-                    <LucideIcons.ShieldCheck size={32} className="mb-2 text-green-500/50"/>
+                    <ShieldCheck size={32} className="mb-2 text-green-500/50"/>
                     <span className="text-green-500/50 font-bold uppercase tracking-widest">System Nominal</span>
                     <span className="text-[10px] mt-1">No active exceptions detected in the execution runtime.</span>
                  </div>
@@ -3912,20 +3928,20 @@ const Admin: React.FC = () => {
 
         <div className="grid md:grid-cols-3 gap-6 text-left">
            <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4">
-              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><LucideIcons.Download size={18} className="text-primary"/> Catalog Export</h3>
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Download size={18} className="text-primary"/> Catalog Export</h3>
               <p className="text-slate-500 text-xs leading-relaxed">Save a complete snapshot of all products, settings, and analytical data to JSON.</p>
               <button onClick={handleBackup} className="px-6 py-4 bg-slate-800 text-white rounded-xl text-xs uppercase font-black hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-2 border border-slate-700">Download Data</button>
            </div>
            
            <div className="bg-slate-900 p-8 rounded-[2rem] border border-slate-800 text-left space-y-4 relative group overflow-hidden">
-              <LucideIcons.History className="absolute -right-4 -bottom-4 w-24 h-24 text-primary/5 -rotate-12 transition-transform group-hover:scale-110" />
-              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><LucideIcons.Clock size={18} className="text-primary"/> Monthly Archive</h3>
+              <History className="absolute -right-4 -bottom-4 w-24 h-24 text-primary/5 -rotate-12 transition-transform group-hover:scale-110" />
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Clock size={18} className="text-primary"/> Monthly Archive</h3>
               <p className="text-slate-500 text-xs leading-relaxed">Manually trigger the curation cycle. Moves all non-owner items to the history vault for catalog refreshment.</p>
               <button onClick={() => setShowPurgeModal(true)} className="px-6 py-4 bg-primary text-slate-900 rounded-xl text-xs uppercase font-black hover:bg-white transition-all w-full flex items-center justify-center gap-2 shadow-lg shadow-primary/10">Trigger Cycle</button>
            </div>
 
            <div className="bg-red-950/10 p-8 rounded-[2rem] border border-red-500/20 text-left space-y-4">
-              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><LucideIcons.Flame size={18} className="text-red-500"/> System Purge</h3>
+              <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2"><Flame size={18} className="text-red-500"/> System Purge</h3>
               <p className="text-slate-500 text-xs leading-relaxed">Immediately factory reset all local storage data. Supabase cloud data is preserved unless manually wiped.</p>
               <button onClick={handleFactoryReset} className="px-6 py-4 bg-red-600 text-white rounded-xl text-xs uppercase font-black hover:bg-red-500 transition-colors w-full flex items-center justify-center gap-2">Execute Purge</button>
            </div>
@@ -3937,7 +3953,7 @@ const Admin: React.FC = () => {
              <div className="bg-slate-900 border border-slate-800 w-full max-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
                 <div className="p-8 text-center border-b border-slate-800">
                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 text-primary border border-primary/20">
-                      <LucideIcons.Flame size={40} className="animate-pulse" />
+                      <Flame size={40} className="animate-pulse" />
                    </div>
                    <h3 className="text-2xl font-serif text-white mb-2">Execute Archive Cycle?</h3>
                    <p className="text-slate-400 text-sm leading-relaxed">This will immediately move all curator-submitted items to the history vault. This action is recorded in the Maison Ledger.</p>
@@ -3968,7 +3984,7 @@ const Admin: React.FC = () => {
                                : 'bg-slate-800 text-slate-600 cursor-not-allowed'
                             }`}
                          >
-                            {isPurging ? <LucideIcons.Loader2 size={16} className="animate-spin" /> : <LucideIcons.ShieldCheck size={16} />}
+                            {isPurging ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
                             Execute
                          </button>
                       </div>
@@ -4015,7 +4031,7 @@ const Admin: React.FC = () => {
       <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         {showProductForm ? (
           <div className="bg-slate-900 p-6 md:p-12 rounded-[2.5rem] border border-slate-800 space-y-8">
-            <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><LucideIcons.X size={24}/></button></div>
+            <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-6"><h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Masterpiece' : 'New Collection Item'}</h3><button onClick={() => setShowProductForm(false)} className="text-slate-500 hover:text-white transition-colors"><X size={24}/></button></div>
             <AdminTip title="Inventory Deployment">Optimize your listing with detailed specifications and high-res media. The 'Highlights' section powers the shoppable bridge features.</AdminTip>
             <div className="grid md:grid-cols-2 gap-8">
                <div className="space-y-6">
@@ -4030,14 +4046,14 @@ const Admin: React.FC = () => {
                <div className="space-y-6"><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Department</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={productData.categoryId} onChange={e => setProductData({...productData, categoryId: e.target.value, subCategoryId: ''})}><option value="">Select Department</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Sub-Category</label><select className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none disabled:opacity-50" value={productData.subCategoryId} onChange={e => setProductData({...productData, subCategoryId: e.target.value})} disabled={!productData.categoryId}><option value="">Select Sub-Category</option>{subCategories.filter(s => s.categoryId === productData.categoryId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div><SettingField label="Description" value={productData.description || ''} onChange={v => setProductData({...productData, description: v})} type="richtext" /></div>
             </div>
             <div className="grid md:grid-cols-3 gap-8 pt-8 border-t border-slate-800">
-                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><LucideIcons.Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight..." value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><LucideIcons.Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><LucideIcons.Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><LucideIcons.X size={14}/></button></div>))}</div></div></div>
+                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Sparkles size={18} className="text-primary"/> Highlights</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Add highlight..." value={tempFeature} onChange={e => setTempFeature(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddFeature()} /><button onClick={handleAddFeature} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.features || []).map((feat, idx) => (<div key={idx} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 flex items-center gap-2"><Check size={14} className="text-primary"/> {feat}</span><button onClick={() => handleRemoveFeature(idx)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
                 
-                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><LucideIcons.Tag size={18} className="text-primary"/> Discovery Tags</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Type and hit Enter..." value={tempTag} onChange={e => setTempTag(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddTag()} /><button onClick={handleAddTag} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><LucideIcons.Plus size={20}/></button></div><div className="flex flex-wrap gap-2">{(productData.tags || []).map((tag, idx) => (<div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/30 animate-in zoom-in duration-300"><span className="text-[10px] font-black uppercase tracking-widest text-primary">{tag}</span><button onClick={() => handleRemoveTag(tag)} className="text-primary/60 hover:text-primary transition-colors"><LucideIcons.X size={10}/></button></div>))}</div>{(productData.tags || []).length === 0 && <p className="text-[10px] text-slate-600 italic uppercase tracking-widest text-center py-2">No discovery tags added</p>}</div></div>
+                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Tag size={18} className="text-primary"/> Discovery Tags</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Type and hit Enter..." value={tempTag} onChange={e => setTempTag(e.target.value)} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddTag()} /><button onClick={handleAddTag} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="flex flex-wrap gap-2">{(productData.tags || []).map((tag, idx) => (<div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/30 animate-in zoom-in duration-300"><span className="text-[10px] font-black uppercase tracking-widest text-primary">{tag}</span><button onClick={() => handleRemoveTag(tag)} className="text-primary/60 hover:text-primary transition-colors"><X size={10}/></button></div>))}</div>{(productData.tags || []).length === 0 && <p className="text-[10px] text-slate-600 italic uppercase tracking-widest text-center py-2">No discovery tags added</p>}</div></div>
 
-                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><LucideIcons.Layout size={18} className="text-primary"/> Specifications</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Key" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="w-1/3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" /><input type="text" placeholder="Value" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddSpec()} /><button onClick={handleAddSpec} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><LucideIcons.Plus size={20}/></button></div><div className="space-y-2">{Object.entries(productData.specifications || {}).map(([key, value]) => (<div key={key} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="flex flex-col"><span className="text-[10px] font-black uppercase text-slate-500">{key}</span><span className="text-sm text-slate-300">{value}</span></div><button onClick={() => handleRemoveSpec(key)} className="text-slate-500 hover:text-red-500"><LucideIcons.X size={14}/></button></div>))}</div></div></div>
+                <div className="space-y-6"><h4 className="text-white font-bold flex items-center gap-2"><Layout size={18} className="text-primary"/> Specifications</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex gap-2"><input type="text" placeholder="Key" value={tempSpec.key} onChange={e => setTempSpec({...tempSpec, key: e.target.value})} className="w-1/3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" /><input type="text" placeholder="Value" value={tempSpec.value} onChange={e => setTempSpec({...tempSpec, value: e.target.value})} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none focus:border-primary" onKeyDown={e => e.key === 'Enter' && handleAddSpec()} /><button onClick={handleAddSpec} className="p-3 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{Object.entries(productData.specifications || {}).map(([key, value]) => (<div key={key} className="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800"><div className="flex flex-col"><span className="text-[10px] font-black uppercase text-slate-500">{key}</span><span className="text-sm text-slate-300">{value}</span></div><button onClick={() => handleRemoveSpec(key)} className="text-slate-500 hover:text-red-500"><X size={14}/></button></div>))}</div></div></div>
             </div>
-            <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><LucideIcons.Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
-            <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><LucideIcons.Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex flex-col md:flex-row gap-4 md:items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-full md:w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-full md:w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><LucideIcons.Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><LucideIcons.Trash2 size={16}/></button></div></div>))}</div></div></div>
+            <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-4 flex items-center gap-2"><Image size={18} className="text-primary"/> Media Gallery</h4><FileUploader files={productData.media || []} onFilesChange={f => setProductData({...productData, media: f})} /></div>
+            <div className="pt-8 border-t border-slate-800 text-left"><h4 className="text-white font-bold mb-6 flex items-center gap-2"><Percent size={18} className="text-primary"/> Discount Rules</h4><div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-800 space-y-4"><div className="flex flex-col md:flex-row gap-4 md:items-end"><div className="flex-1"><SettingField label="Description" value={tempDiscountRule.description || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, description: v})} /></div><div className="w-full md:w-32"><SettingField label="Value" value={tempDiscountRule.value?.toString() || ''} onChange={v => setTempDiscountRule({...tempDiscountRule, value: Number(v)})} type="number" /></div><div className="w-full md:w-32 space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</label><select className="w-full px-4 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none text-sm" value={tempDiscountRule.type} onChange={e => setTempDiscountRule({...tempDiscountRule, type: e.target.value as any})}><option value="percentage">Percent (%)</option><option value="fixed">Fixed (R)</option></select></div><button onClick={handleAddDiscountRule} className="p-4 bg-primary text-slate-900 rounded-xl hover:bg-white transition-colors"><Plus size={20}/></button></div><div className="space-y-2">{(productData.discountRules || []).map(rule => (<div key={rule.id} className="flex items-center justify-between p-4 bg-slate-900 rounded-xl border border-slate-800"><span className="text-sm text-slate-300 font-medium">{rule.description}</span><div className="flex items-center gap-4"><span className="text-xs font-bold text-primary">{rule.type === 'percentage' ? `-${rule.value}%` : `-R${rule.value}`}</span><button onClick={() => handleRemoveDiscountRule(rule.id)} className="text-slate-500 hover:text-red-500"><Trash2 size={16}/></button></div></div>))}</div></div></div>
             <div className="flex flex-col md:flex-row gap-4 pt-8"><button onClick={handleSaveProduct} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Save Product</button><button onClick={() => setShowProductForm(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Cancel</button></div>
           </div>
         ) : (
@@ -4053,13 +4069,13 @@ const Admin: React.FC = () => {
                     onClick={() => setCatalogView('active')}
                     className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${ (catalogView === 'active') ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                    >
-                     <LucideIcons.ShoppingBag size={14}/> Active
+                     <ShoppingBag size={14}/> Active
                    </button>
                    <button 
                     onClick={() => setCatalogView('history')}
                     className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${ (catalogView === 'history') ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                    >
-                     <LucideIcons.History size={14}/> History
+                     <History size={14}/> History
                    </button>
                 </div>
 
@@ -4073,12 +4089,12 @@ const Admin: React.FC = () => {
                         <option value="all">Display All Curators</option>
                         {admins.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
-                    <LucideIcons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={14} />
                   </div>
                 )}
                 { (catalogView === 'active') && (
                   <button onClick={() => { setProductData({}); setShowProductForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3 w-full md:w-auto justify-center">
-                      <LucideIcons.Plus size={18} /> Add Product
+                      <Plus size={18} /> Add Product
                   </button>
                 )}
               </div>
@@ -4092,7 +4108,7 @@ const Admin: React.FC = () => {
 
             <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-[100px] z-30 bg-slate-950 py-2">
                <div className="relative flex-grow">
-                 <LucideIcons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                  <input 
                   type="text" 
                   placeholder={`Search ${catalogView} collections...`} 
@@ -4102,7 +4118,7 @@ const Admin: React.FC = () => {
                  />
                </div>
                <div className="relative min-w-[200px]">
-                 <LucideIcons.Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                 <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                  <select 
                   value={productCatFilter} 
                   onChange={e => setProductCatFilter(e.target.value)} 
@@ -4111,7 +4127,7 @@ const Admin: React.FC = () => {
                    <option value="all">All Departments</option>
                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                  </select>
-                 <LucideIcons.ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
+                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
                </div>
             </div>
 
@@ -4137,7 +4153,7 @@ const Admin: React.FC = () => {
             <div className="space-y-12">
               { loadingHistory ? (
                 <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">
-                  <LucideIcons.Loader2 className="animate-spin mx-auto mb-4" size={32} />
+                  <Loader2 className="animate-spin mx-auto mb-4" size={32} />
                   <p className="font-bold uppercase text-[10px] tracking-widest">Retrieving Archives...</p>
                 </div>
               ) : (filteredGroups.length === 0) ? (
@@ -4166,7 +4182,7 @@ const Admin: React.FC = () => {
                               {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
                               { (catalogView === 'history') && (
                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                   <LucideIcons.History size={16} className="text-white/50" />
+                                   <History size={16} className="text-white/50" />
                                 </div>
                               )}
                             </div>
@@ -4191,14 +4207,14 @@ const Admin: React.FC = () => {
                           <div className="flex gap-2 w-full md:w-auto flex-shrink-0">
                             { (catalogView === 'active') ? (
                               <>
-                                <button onClick={() => setSelectedAdProduct(p as Product)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><LucideIcons.Megaphone size={18}/></button>
-                                <button onClick={() => { setProductData(p as Product); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><LucideIcons.Edit2 size={18}/></button>
-                                <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><LucideIcons.Trash2 size={18}/></button>
+                                <button onClick={() => setSelectedAdProduct(p as Product)} className="flex-1 md:flex-none p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-slate-900 transition-colors" title="Social Share"><Megaphone size={18}/></button>
+                                <button onClick={() => { setProductData(p as Product); setEditingId(p.id); setShowProductForm(true); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition-colors"><Edit2 size={18}/></button>
+                                <button onClick={() => deleteData('products', p.id)} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
                               </>
                             ) : (
                               <>
-                                <button onClick={() => { /* Potential Restore Action */ }} className="flex-1 md:flex-none p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors" title="Restore to Active"><LucideIcons.RotateCcw size={18}/></button>
-                                <button onClick={() => { if(confirm("Permanently delete this archive?")) deleteData('product_history', p.id).then(() => loadHistory()); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><LucideIcons.Trash size={18}/></button>
+                                <button onClick={() => { /* Potential Restore Action */ }} className="flex-1 md:flex-none p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-colors" title="Restore to Active"><RotateCcw size={18}/></button>
+                                <button onClick={() => { if(confirm("Permanently delete this archive?")) deleteData('product_history', p.id).then(() => loadHistory()); }} className="flex-1 md:flex-none p-3 bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><Trash size={18}/></button>
                               </>
                             )}
                           </div>
@@ -4228,11 +4244,11 @@ const Admin: React.FC = () => {
            </div> 
         ) : ( 
            <div className="grid md:grid-cols-2 gap-6">
-              <button onClick={() => { setHeroData({ title: '', subtitle: '', cta: 'Explore', image: '', type: 'image' }); setShowHeroForm(true); setEditingId(null); }} className="w-full p-8 border-2 border-dashed border-slate-800 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-primary min-h-[250px]"><LucideIcons.Plus size={48} /><span className="font-black uppercase tracking-widest text-xs">New Hero Slide</span></button>
+              <button onClick={() => { setHeroData({ title: '', subtitle: '', cta: 'Explore', image: '', type: 'image' }); setShowHeroForm(true); setEditingId(null); }} className="w-full p-8 border-2 border-dashed border-slate-800 rounded-[2rem] md:rounded-[3rem] flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-primary min-h-[250px]"><Plus size={48} /><span className="font-black uppercase tracking-widest text-xs">New Hero Slide</span></button>
               {displayHeroSlides.map(s => (
                  <div key={s.id} className="relative aspect-video rounded-[2rem] md:rounded-[3rem] overflow-hidden group border border-slate-800">
                     {s.type === 'video' ? <video src={s.image} className="w-full h-full object-cover" muted /> : <img src={s.image} className="w-full h-full object-cover" />}
-                    <div className="absolute inset-0 bg-black/60 p-6 md:p-10 flex flex-col justify-end text-left"><h4 className="text-white text-xl font-serif">{s.title}</h4><div className="flex gap-2 mt-4"><button onClick={() => { setHeroData(s); setEditingId(s.id); setShowHeroForm(true); }} className="p-3 bg-white/10 text-white rounded-xl hover:bg-white/20"><LucideIcons.Edit2 size={16}/></button><button onClick={() => deleteData('hero_slides', s.id)} className="p-3 bg-white/10 text-white rounded-xl hover:bg-red-500"><LucideIcons.Trash2 size={16}/></button></div></div>
+                    <div className="absolute inset-0 bg-black/60 p-6 md:p-10 flex flex-col justify-end text-left"><h4 className="text-white text-xl font-serif">{s.title}</h4><div className="flex gap-2 mt-4"><button onClick={() => { setHeroData(s); setEditingId(s.id); setShowHeroForm(true); }} className="p-3 bg-white/10 text-white rounded-xl hover:bg-white/20"><Edit2 size={16}/></button><button onClick={() => deleteData('hero_slides', s.id)} className="p-3 bg-white/10 text-white rounded-xl hover:bg-red-500"><Trash2 size={16}/></button></div></div>
                  </div>
               ))}
            </div> 
@@ -4265,7 +4281,7 @@ const Admin: React.FC = () => {
                         onClick={() => editingId && handleAddSubCategory(editingId)} 
                         className="px-3 bg-slate-700 text-white rounded-xl hover:bg-primary hover:text-slate-900 transition-colors"
                       >
-                        <LucideIcons.Plus size={14}/>
+                        <Plus size={14}/>
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
@@ -4273,7 +4289,7 @@ const Admin: React.FC = () => {
                         <div key={s.id} className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-900 rounded-lg border border-slate-800">
                           <span className="text-[9px] text-slate-300">{s.name}</span>
                           <button onClick={() => handleDeleteSubCategory(s.id)} className="text-slate-500 hover:text-red-500">
-                            <LucideIcons.X size={8}/>
+                            <X size={8}/>
                           </button>
                         </div>
                       ))}
@@ -4287,12 +4303,12 @@ const Admin: React.FC = () => {
           <>
             <AdminTip title="Collections Navigation">Each department acts as a portal. Use high-fashion imagery to attract attention to specific collections.</AdminTip>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-               <button onClick={() => { setCatData({ name: '', icon: '', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><LucideIcons.Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
+               <button onClick={() => { setCatData({ name: '', icon: '', description: '', image: '' }); setShowCategoryForm(true); setEditingId(null); }} className="w-full h-40 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-primary"><Plus size={32} /><span className="font-black text-[10px] uppercase tracking-widest">New Dept</span></button>
                {displayCategories.map(c => {
                   return (
                     <div key={c.id} className="bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-800 flex flex-col relative group">
                        <div className="h-32 overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover opacity-50" /><div className="absolute inset-0 flex items-center px-8 gap-4"><div className="w-12 h-12 bg-slate-800 text-primary rounded-xl flex items-center justify-center shadow-xl flex-shrink-0"><IconRenderer icon={c.icon} size={20} /></div><h4 className="font-bold text-white text-lg truncate">{c.name}</h4></div></div>
-                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><LucideIcons.Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><LucideIcons.Trash2 size={14}/></button></div>
+                       <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setCatData(c); setEditingId(c.id); setShowCategoryForm(true); }} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md"><Edit2 size={14}/></button><button onClick={() => deleteData('categories', c.id)} className="p-2 bg-black/50 text-white rounded-lg backdrop-blur-md hover:bg-red-500"><Trash2 size={14}/></button></div>
                     </div>
                   );
                })}
@@ -4313,18 +4329,18 @@ const Admin: React.FC = () => {
               <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Governance</span></h2>
               <div className="flex gap-4 mt-4">
                  <div className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-3">
-                    <LucideIcons.Crown size={14} className="text-primary" />
+                    <Crown size={14} className="text-primary" />
                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{principals.length} Principals</span>
                  </div>
                  <div className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-3">
-                    <LucideIcons.Briefcase size={14} className="text-blue-400" />
+                    <Briefcase size={14} className="text-blue-400" />
                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{curators.length} Curators</span>
                  </div>
               </div>
            </div>
            { isOwner && (
               <button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-8 py-4 bg-primary text-slate-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-primary/20 flex items-center gap-3">
-                 <LucideIcons.Plus size={18}/> Recruit Member
+                 <Plus size={18}/> Recruit Member
               </button>
            )}
         </div>
@@ -4332,7 +4348,7 @@ const Admin: React.FC = () => {
         {showAdminForm ? (
            <div className="bg-slate-900 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] border border-slate-800 space-y-12 text-left">
               <div className="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl flex items-start gap-4">
-                 <div className="p-2 bg-blue-500/20 rounded-full text-blue-400"><LucideIcons.Info size={20}/></div>
+                 <div className="p-2 bg-blue-500/20 rounded-full text-blue-400"><Info size={20}/></div>
                  <div><h4 className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">Identity Sync</h4><p className="text-slate-400 text-xs leading-relaxed">Ensure the email matches the Supabase Auth identity exactly.</p></div>
               </div>
               <div className="grid md:grid-cols-2 gap-12">
@@ -4347,7 +4363,7 @@ const Admin: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="text-white font-bold text-sm flex items-center gap-2">
-                              <LucideIcons.History size={16} className="text-primary"/> Monthly Archive Exemption
+                              <History size={16} className="text-primary"/> Monthly Archive Exemption
                             </h4>
                             <p className="text-slate-500 text-[10px] leading-relaxed mt-1 uppercase tracking-widest font-black">Owner Exclusive Control</p>
                           </div>
@@ -4365,11 +4381,11 @@ const Admin: React.FC = () => {
                     <h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4 pt-12">Credentials</h3>
                     <SettingField label="Email Identity" value={adminData.email || ''} onChange={v => setAdminData({...adminData, email: v})} />
                     <SettingField label="Password" value={adminData.password || ''} onChange={v => setAdminData({...adminData, password: v})} type="password" />
-                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><LucideIcons.Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed">Manage passkeys via the Supabase cloud dashboard.</p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><LucideIcons.ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
+                    <div className="mt-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl"><div className="flex items-start gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary mt-1"><Key size={16} /></div><div className="space-y-3"><h4 className="text-primary font-bold text-xs uppercase tracking-widest">Authentication</h4><p className="text-slate-400 text-xs leading-relaxed">Manage passkeys via the Supabase cloud dashboard.</p><a href="https://supabase.com/dashboard/project/_/auth/users" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-slate-700"><ExternalLink size={14} /> Open Cloud Auth</a></div></div></div>
                  </div>
                  <div className="space-y-6 text-left"><h3 className="text-white font-bold text-xl border-b border-slate-800 pb-4">Privileges</h3><div className="space-y-2"><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Role</label><select className="w-full px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" value={adminData.role} onChange={e => setAdminData({...adminData, role: e.target.value as any, permissions: (e.target.value === 'owner') ? ['*'] : []})}><option value="admin">Administrator</option><option value="owner">System Owner</option></select></div><label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-6 block">Access Rights</label><PermissionSelector permissions={adminData.permissions || []} onChange={p => setAdminData({...adminData, permissions: p})} role={adminData.role || 'admin'} /></div>
               </div>
-              <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <LucideIcons.Loader2 size={16} className="animate-spin"/> : <LucideIcons.ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
+              <div className="flex flex-col md:flex-row justify-end gap-4 pt-8 border-t border-slate-800"><button onClick={() => setShowAdminForm(false)} className="px-8 py-4 text-slate-400 font-bold uppercase text-xs tracking-widest">Cancel</button><button onClick={handleSaveAdmin} disabled={creatingAdmin} className="px-12 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2">{creatingAdmin ? <Loader2 size={16} className="animate-spin"/> : <ShieldCheck size={18}/>}{editingId ? 'Save' : 'Invite'}</button></div>
            </div>
         ) : (
            <div className="space-y-16">
@@ -4385,7 +4401,7 @@ const Admin: React.FC = () => {
                       return (
                         <div key={a.id} className={`bg-slate-900 p-8 rounded-[2.5rem] md:rounded-[3rem] border transition-all relative group overflow-hidden ${isCurrentUser ? 'border-primary shadow-[0_0_40px_rgba(var(--primary-rgb),0.15)]' : 'border-white/5 hover:border-primary/40'}`}>
                            {/* BG Decorative Crown */}
-                           <LucideIcons.Crown size={120} className="absolute -right-8 -bottom-8 opacity-[0.02] text-primary group-hover:opacity-[0.05] transition-opacity" />
+                           <Crown size={120} className="absolute -right-8 -bottom-8 opacity-[0.02] text-primary group-hover:opacity-[0.05] transition-opacity" />
                            
                            <div className="flex flex-col md:flex-row items-center gap-8 relative z-10 text-center md:text-left">
                               <div className="relative">
@@ -4393,7 +4409,7 @@ const Admin: React.FC = () => {
                                     {a.profileImage ? <img src={a.profileImage} className="w-full h-full object-cover rounded-[2rem]"/> : a.name?.charAt(0)}
                                  </div>
                                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-slate-900 shadow-xl border-4 border-slate-900">
-                                    <LucideIcons.Crown size={18} />
+                                    <Crown size={18} />
                                  </div>
                               </div>
                               <div className="flex-grow space-y-4 min-w-0">
@@ -4405,23 +4421,23 @@ const Admin: React.FC = () => {
                                     <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em] mt-1 italic">Maison Principal</p>
                                  </div>
                                  <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 text-slate-400 text-sm">
-                                    <span className="flex items-center gap-2"><LucideIcons.Mail size={14} className="text-primary opacity-50"/> {a.email}</span>
-                                    {a.phone && <span className="flex items-center gap-2"><LucideIcons.Phone size={14} className="text-primary opacity-50"/> {a.phone}</span>}
+                                    <span className="flex items-center gap-2"><Mail size={14} className="text-primary opacity-50"/> {a.email}</span>
+                                    {a.phone && <span className="flex items-center gap-2"><Phone size={14} className="text-primary opacity-50"/> {a.phone}</span>}
                                  </div>
                                  <div className="flex flex-wrap justify-center md:justify-start gap-4">
                                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
-                                       <LucideIcons.Shield size={12} className="text-primary" /> Root Access Active
+                                       <Shield size={12} className="text-primary" /> Root Access Active
                                     </span>
                                     { a.autoWipeExempt && (
                                        <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                                          <LucideIcons.RotateCcw size={12} /> Permanent Curation
+                                          <RotateCcw size={12} /> Permanent Curation
                                        </span>
                                     )}
                                  </div>
                               </div>
                               <div className="flex flex-row md:flex-col gap-3">
-                                 <button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/10 group-hover:border-primary/20"><LucideIcons.Edit2 size={20}/></button>
-                                 <button onClick={() => deleteData('admin_users', a.id)} className="p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all border border-white/5" disabled={isCurrentUser}><LucideIcons.Trash2 size={20}/></button>
+                                 <button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/10 group-hover:border-primary/20"><Edit2 size={20}/></button>
+                                 <button onClick={() => deleteData('admin_users', a.id)} className="p-4 bg-slate-800 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all border border-white/5" disabled={isCurrentUser}><Trash2 size={20}/></button>
                               </div>
                            </div>
                         </div>
@@ -4438,7 +4454,7 @@ const Admin: React.FC = () => {
                 </div>
                 {curators.length === 0 ? (
                   <div className="py-20 bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-800 flex flex-col items-center justify-center text-center">
-                     <LucideIcons.Users size={48} className="text-slate-800 mb-4" />
+                     <Users size={48} className="text-slate-800 mb-4" />
                      <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest mb-6">No curators on duty</p>
                      <button onClick={() => { setAdminData({ role: 'admin', permissions: [] }); setShowAdminForm(true); setEditingId(null); }} className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all">Begin Recruitment</button>
                   </div>
@@ -4461,8 +4477,8 @@ const Admin: React.FC = () => {
                                       <span className="px-3 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700 text-[8px] font-black uppercase tracking-widest">CURATOR STAFF</span>
                                    </div>
                                    <div className="flex wrap justify-center md:justify-start gap-x-6 gap-y-1 text-slate-500 text-sm">
-                                      <span className="flex items-center gap-2"><LucideIcons.Mail size={12} className="text-primary opacity-40"/> {a.email}</span>
-                                      {a.phone && <span className="flex items-center gap-2"><LucideIcons.Phone size={12} className="text-primary opacity-40"/> {a.phone}</span>}
+                                      <span className="flex items-center gap-2"><Mail size={12} className="text-primary opacity-40"/> {a.email}</span>
+                                      {a.phone && <span className="flex items-center gap-2"><Phone size={12} className="text-primary opacity-40"/> {a.phone}</span>}
                                    </div>
                                    <div className="pt-2 flex flex-wrap justify-center md:justify-start gap-4">
                                       <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">JURISDICTION:</span>
@@ -4476,8 +4492,8 @@ const Admin: React.FC = () => {
                                    </div>
                                 </div>
                                 <div className="flex gap-2 w-full md:w-auto shrink-0">
-                                   <button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800/50 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><LucideIcons.Edit2 size={18}/></button>
-                                   <button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800/50 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><LucideIcons.Trash2 size={18}/></button>
+                                   <button onClick={() => { setAdminData(a); setEditingId(a.id); setShowAdminForm(true); }} className="flex-1 md:flex-none p-4 bg-slate-800/50 text-slate-400 rounded-2xl hover:bg-slate-700 hover:text-white transition-all"><Edit2 size={18}/></button>
+                                   <button onClick={() => deleteData('admin_users', a.id)} className="flex-1 md:flex-none p-4 bg-slate-800/50 text-slate-400 hover:bg-red-500/20 hover:text-red-500 rounded-2xl transition-all" disabled={isCurrentUser}><Trash2 size={18}/></button>
                                 </div>
                              </div>
                           </div>
@@ -4506,19 +4522,19 @@ const Admin: React.FC = () => {
                     onClick={() => setIsTrainingManagementMode(!isTrainingManagementMode)}
                     className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${isTrainingManagementMode ? 'bg-primary text-slate-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
                   >
-                    {isTrainingManagementMode ? <LucideIcons.SettingsIcon size={14}/> : <LucideIcons.Eye size={14}/>}
+                    {isTrainingManagementMode ? <SettingsIcon size={14}/> : <Eye size={14}/>}
                     {isTrainingManagementMode ? 'Management Active' : 'Owner Control'}
                   </button>
                </div>
             )}
             {!isTrainingManagementMode && (
               <a href="https://www.youtube.com/results?search_query=fashion+affiliate+marketing+strategy" target="_blank" rel="noreferrer" className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors flex items-center gap-2">
-                <LucideIcons.Video size={16}/> Mastering the Algorithm
+                <Video size={16}/> Mastering the Algorithm
               </a>
             )}
             {isTrainingManagementMode && (
                <button onClick={() => { setTrainingData({ title: '', platform: 'Instagram', description: '', strategies: [], actionItems: [], steps: [], icon: 'GraduationCap' }); setEditingId(null); setShowTrainingForm(true); }} className="px-8 py-4 bg-primary text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-3">
-                  <LucideIcons.Plus size={18} /> New Module
+                  <Plus size={18} /> New Module
                </button>
             )}
          </div>
@@ -4529,14 +4545,14 @@ const Admin: React.FC = () => {
             <div className="flex justify-between items-center border-b border-slate-800 pb-8">
                <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-xl">
-                     <LucideIcons.GraduationCap size={24}/>
+                     <GraduationCap size={24}/>
                   </div>
                   <div>
                     <h3 className="text-2xl font-serif text-white">{editingId ? 'Edit Syllabus' : 'Curate New Training'}</h3>
                     <p className="text-slate-500 text-xs mt-1 uppercase tracking-widest font-black">Module Engineering Console</p>
                   </div>
                </div>
-               <button onClick={() => setShowTrainingForm(false)} className="p-3 bg-slate-800 text-slate-500 rounded-full hover:text-white transition-colors"><LucideIcons.X size={24}/></button>
+               <button onClick={() => setShowTrainingForm(false)} className="p-3 bg-slate-800 text-slate-500 rounded-full hover:text-white transition-colors"><X size={24}/></button>
             </div>
 
             <div className="grid md:grid-cols-2 gap-12 text-left">
@@ -4565,17 +4581,17 @@ const Admin: React.FC = () => {
                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Add Strategies</label>
                         <div className="flex gap-2">
                            <input type="text" value={tempTrainingStrat} onChange={e => setTempTrainingStrat(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}), setTempTrainingStrat(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Optimized Reel Timings" />
-                           <button onClick={() => { setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}); setTempTrainingStrat(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><LucideIcons.Plus size={20}/></button>
+                           <button onClick={() => { setTrainingData({...trainingData, strategies: [...(trainingData.strategies || []), tempTrainingStrat]}); setTempTrainingStrat(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
                         </div>
-                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.strategies || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, strategies: trainingData.strategies?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><LucideIcons.X size={12}/></button></div>))}</div>
+                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.strategies || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, strategies: trainingData.strategies?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
                      </div>
                      <div className="space-y-2 pt-6 border-t border-slate-800">
                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Mandatory Action Items</label>
                         <div className="flex gap-2">
                            <input type="text" value={tempTrainingAction} onChange={e => setTempTrainingAction(e.target.value)} onKeyDown={e => (e.key === 'Enter') && (setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}), setTempTrainingAction(''))} className="flex-grow px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm outline-none" placeholder="e.g. Schedule 30 Pins" />
-                           <button onClick={() => { setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}); setTempTrainingAction(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><LucideIcons.Plus size={20}/></button>
+                           <button onClick={() => { setTrainingData({...trainingData, actionItems: [...(trainingData.actionItems || []), tempTrainingAction]}); setTempTrainingAction(''); }} className="p-3 bg-primary text-slate-900 rounded-xl"><Plus size={20}/></button>
                         </div>
-                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.actionItems || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, actionItems: trainingData.actionItems?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><LucideIcons.X size={12}/></button></div>))}</div>
+                        <div className="flex flex-wrap gap-2 pt-4">{(trainingData.actionItems || []).map((s, i) => (<div key={i} className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-xs text-slate-300 border border-slate-700">{s} <button onClick={() => setTrainingData({...trainingData, actionItems: trainingData.actionItems?.filter((_, idx) => idx !== i)})} className="hover:text-red-500"><X size={12}/></button></div>))}</div>
                      </div>
                   </div>
                </div>
@@ -4594,7 +4610,7 @@ const Admin: React.FC = () => {
                              const newSteps = [...(trainingData.steps || [])];
                              newSteps.splice(idx, 1);
                              setTrainingData({...trainingData, steps: newSteps});
-                          }} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><LucideIcons.Trash2 size={18}/></button>
+                          }} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18}/></button>
                        </div>
                        
                        <div className="grid lg:grid-cols-12 gap-10">
@@ -4622,7 +4638,7 @@ const Admin: React.FC = () => {
                                       }}
                                       className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${ (step.type === 'image') ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                                    >
-                                      <LucideIcons.Image size={10}/> Static
+                                      <Image size={10}/> Static
                                    </button>
                                    <button 
                                       onClick={() => {
@@ -4632,7 +4648,7 @@ const Admin: React.FC = () => {
                                       }}
                                       className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${ (step.type === 'video') ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300' }`}
                                    >
-                                      <LucideIcons.PlayCircle size={10}/> Dynamic
+                                      <PlayCircle size={10}/> Dynamic
                                    </button>
                                 </div>
                              </div>
@@ -4656,7 +4672,7 @@ const Admin: React.FC = () => {
                     onClick={() => setTrainingData({...trainingData, steps: [...(trainingData.steps || []), { title: '', description: '', type: 'image' }]})}
                     className="w-full py-12 border-2 border-dashed border-slate-800 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 text-slate-600 hover:text-primary hover:border-primary/50 transition-all group"
                   >
-                     <LucideIcons.Plus className="group-hover:scale-125 transition-transform" size={48}/>
+                     <Plus className="group-hover:scale-125 transition-transform" size={48}/>
                      <span className="font-black uppercase text-xs tracking-widest">Append Deployment Step</span>
                   </button>
                </div>
@@ -4671,7 +4687,7 @@ const Admin: React.FC = () => {
          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             { isLoadingTraining ? (
                <div className="col-span-full py-20 bg-slate-900/50 rounded-[3rem] border border-dashed border-slate-800 flex flex-col items-center">
-                  <LucideIcons.Loader2 className="animate-spin text-primary mb-4" size={48} />
+                  <Loader2 className="animate-spin text-primary mb-4" size={48} />
                   <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest">Retrieving Syllabus...</p>
                </div>
             ) : (trainingModules.length === 0) ? (
@@ -4689,18 +4705,18 @@ const Admin: React.FC = () => {
                               <div className="flex-grow min-w-0">
                                  <div className="flex justify-between items-start">
                                     <h3 className="text-lg md:text-xl font-bold text-white mb-2 line-clamp-2">{module.title}</h3>
-                                    {!isExpanded && <LucideIcons.ChevronDown size={20} className="text-slate-500 mt-1" />}
+                                    {!isExpanded && <ChevronDown size={20} className="text-slate-500 mt-1" />}
                                  </div>
                                  <p className="text-slate-500 text-xs md:text-sm line-clamp-2">{module.description}</p>
-                                 {!isExpanded && (<div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">View Training <LucideIcons.ArrowRight size={12}/></div>)}
+                                 {!isExpanded && (<div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition-opacity">View Training <ArrowRight size={12}/></div>)}
                               </div>
                            </div>
                         </button>
                         
                         { isTrainingManagementMode && !isExpanded && (
                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover/module:opacity-100 transition-opacity">
-                              <button onClick={(e) => { e.stopPropagation(); setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-primary hover:text-slate-900 transition-colors shadow-xl"><LucideIcons.Edit2 size={14}/></button>
-                              <button onClick={(e) => { e.stopPropagation(); if(confirm("Purge this training module?")) deleteData('training_modules', module.id); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-red-500 transition-colors shadow-xl"><LucideIcons.Trash2 size={14}/></button>
+                              <button onClick={(e) => { e.stopPropagation(); setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-primary hover:text-slate-900 transition-colors shadow-xl"><Edit2 size={14}/></button>
+                              <button onClick={(e) => { e.stopPropagation(); if(confirm("Purge this training module?")) deleteData('training_modules', module.id); }} className="p-2 bg-slate-800 text-white rounded-lg border border-slate-700 hover:bg-red-500 transition-colors shadow-xl"><Trash2 size={14}/></button>
                            </div>
                         )}
                      </div>
@@ -4710,11 +4726,11 @@ const Admin: React.FC = () => {
                            <div className="w-full h-px bg-slate-800 mb-8"></div>
                            <div className="grid md:grid-cols-2 gap-10">
                               <div className="space-y-6">
-                                 <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary"><LucideIcons.Target size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4></div>
+                                 <div className="flex items-center gap-3"><div className="p-2 bg-primary/10 rounded-lg text-primary"><Target size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Growth Blueprint</h4></div>
                                  <ul className="space-y-4">{module.strategies.map((strat, idx) => (<li key={idx} className="flex items-start gap-3 text-slate-300 text-sm p-4 bg-slate-800/40 rounded-2xl border border-slate-800"><div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0"></div><span className="leading-relaxed">{strat}</span></li>))}</ul>
                               </div>
                               <div className="space-y-6">
-                                 <div className="flex items-center gap-3"><div className="p-2 bg-green-500/10 rounded-lg text-green-500"><LucideIcons.Rocket size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4></div>
+                                 <div className="flex items-center gap-3"><div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Rocket size={18}/></div><h4 className="text-sm font-bold text-white uppercase tracking-widest">Immediate Deployment</h4></div>
                                  <div className="bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden">{module.actionItems.map((item, idx) => (<div key={idx} className="flex items-start gap-3 p-4 border-b border-slate-800 last:border-0 hover:bg-white/5 transition-colors group/item cursor-pointer"><div className="w-5 h-5 rounded-full border-2 border-slate-600 group-hover/item:border-green-500 group-hover/item:bg-green-500/20 transition-colors mt-0.5 shrink-0"></div><span className="text-slate-400 text-sm group-hover/item:text-slate-200 transition-colors">{item}</span></div>))}</div>
                               </div>
                            </div>
@@ -4744,8 +4760,8 @@ const Admin: React.FC = () => {
                            <div className="mt-10 pt-6 border-t border-slate-800 flex justify-between items-center">
                               { isTrainingManagementMode && (
                                  <div className="flex gap-2">
-                                    <button onClick={() => { setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-700"><LucideIcons.Edit2 size={14}/> Edit Syllabus</button>
-                                    <button onClick={() => { if(confirm("Purge module?")) deleteData('training_modules', module.id); }} className="px-6 py-3 bg-slate-800 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-slate-700"><LucideIcons.Trash2 size={14}/> Delete</button>
+                                    <button onClick={() => { setTrainingData(module); setEditingId(module.id); setShowTrainingForm(true); }} className="px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-700"><Edit2 size={14}/> Edit Syllabus</button>
+                                    <button onClick={() => { if(confirm("Purge module?")) deleteData('training_modules', module.id); }} className="px-6 py-3 bg-slate-800 text-red-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all border border-slate-700"><Trash2 size={14}/> Delete</button>
                                  </div>
                               )}
                               <button onClick={() => setExpandedTraining(null)} className="ml-auto px-6 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-colors">Complete Session</button>
@@ -4766,7 +4782,7 @@ const Admin: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-24 md:mb-40 pt-12">
            <div className="space-y-4">
               <div className="inline-flex items-center gap-2 text-primary text-[10px] font-black uppercase tracking-[0.4em]">
-                 <LucideIcons.Zap size={14}/> Launch Protocol
+                 <Zap size={14}/> Launch Protocol
               </div>
               <h2 className="text-5xl md:text-9xl font-serif text-white leading-[0.8] tracking-tighter">
                  Architecture <br/>
@@ -4781,7 +4797,7 @@ const Admin: React.FC = () => {
                 onClick={() => window.print()}
                 className="flex items-center gap-2 px-8 py-4 bg-white text-slate-950 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-2xl"
               >
-                <LucideIcons.Printer size={16} />
+                <Printer size={16} />
                 Generate PDF Report
               </button>
            </div>
@@ -4865,7 +4881,7 @@ const Admin: React.FC = () => {
             const SIcon = s.icon;
             return ( 
               <button key={s.id} onClick={() => handleOpenEditor(s.id)} className="bg-slate-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] text-left border border-slate-800 hover:border-primary/50 hover:bg-slate-800 transition-all group h-full flex flex-col justify-between">
-                 <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><SIcon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <LucideIcons.ArrowRight size={12}/></div>
+                 <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:bg-primary group-hover:text-slate-900 transition-colors shadow-lg"><SIcon size={24}/></div><div><h3 className="text-white font-bold text-xl mb-1">{s.label}</h3><p className="text-slate-500 text-xs">{s.desc}</p></div><div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest edit-hover transition-opacity">Edit Section <ArrowRight size={12}/></div>
               </button> 
             );
           })}
@@ -4899,13 +4915,13 @@ const Admin: React.FC = () => {
               className="flex items-center gap-3 px-6 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white hover:bg-slate-800 transition-all shadow-xl group w-full md:w-64"
             >
               <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-900 transition-colors">
-                <LucideIcons.Menu size={18} />
+                <Menu size={18} />
               </div>
               <div className="flex flex-col items-start flex-1">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active View</span>
                 <span className="text-sm font-bold uppercase tracking-widest">{visibleTabs.find(t => t.id === activeTab)?.label}</span>
               </div>
-              <LucideIcons.ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isNavOpen && (
@@ -4926,7 +4942,7 @@ const Admin: React.FC = () => {
                             <TabIcon size={18} />
                           </div>
                           <span className="text-[11px] font-bold uppercase tracking-widest">{tab.label}</span>
-                          {isActive && <LucideIcons.Check size={14} className="ml-auto" />}
+                          {isActive && <Check size={14} className="ml-auto" />}
                         </button>
                       );
                     })}
@@ -4941,13 +4957,13 @@ const Admin: React.FC = () => {
                 to="/" 
                 className="flex flex-1 px-6 py-3 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-primary hover:text-slate-900 transition-all justify-center"
               >
-                <LucideIcons.Eye size={14} /> View Website
+                <Eye size={14} /> View Website
               </Link>
               <button 
                 onClick={handleLogout} 
                 className="flex px-6 py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest items-center gap-2 hover:bg-red-500 hover:text-white transition-all justify-center"
               >
-                <LucideIcons.LogOut size={14} /> Exit
+                <LogOut size={14} /> Exit
               </button>
             </div>
             <button 
@@ -4958,7 +4974,7 @@ const Admin: React.FC = () => {
                   : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-yellow-500/50 hover:text-yellow-500'
               }`}
             >
-              <LucideIcons.AlertTriangle size={14} /> 
+              <AlertTriangle size={14} /> 
               <span className="flex items-center gap-1.5">
                 {settings.isMaintenanceMode ? 'Maintenance: ON' : 'Maintenance Mode'}
                 <span className="px-1.5 py-0.5 bg-black/20 rounded text-[7px] font-black tracking-tighter opacity-70">GLOBAL</span>
@@ -5002,7 +5018,7 @@ const Admin: React.FC = () => {
                   </h3>
                   <p className="text-slate-500 text-sm">Real-time configuration.</p>
                 </div>
-                <button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800"><LucideIcons.X size={24} /></button>
+                <button onClick={() => setEditorDrawerOpen(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-800"><X size={24} /></button>
              </div>
              <div className="space-y-8 text-left">
                { (activeEditorSection === 'brand') && (
@@ -5023,7 +5039,7 @@ const Admin: React.FC = () => {
                     </div>
 
                     <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold flex items-center gap-2"><LucideIcons.Layout size={18} className="text-primary"/> Structural Overrides</h4>
+                      <h4 className="text-white font-bold flex items-center gap-2"><Layout size={18} className="text-primary"/> Structural Overrides</h4>
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Departments Layout</label>
@@ -5120,7 +5136,7 @@ const Admin: React.FC = () => {
                     <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
                     
                     <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold flex items-center gap-2"><LucideIcons.Layers size={18} className="text-primary"/> Discovery Layout</h4>
+                      <h4 className="text-white font-bold flex items-center gap-2"><Layers size={18} className="text-primary"/> Discovery Layout</h4>
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Subcategory Navigation Style</label>
@@ -5264,7 +5280,7 @@ const Admin: React.FC = () => {
                { (activeEditorSection === 'login') && (
                   <>
                     <div className="space-y-6">
-                      <h4 className="text-white font-bold flex items-center gap-2"><LucideIcons.Lock size={18} className="text-primary"/> Hero Content</h4>
+                      <h4 className="text-white font-bold flex items-center gap-2"><Lock size={18} className="text-primary"/> Hero Content</h4>
                       <SettingField label="Hero Badge" value={tempSettings.loginHeroBadge || ''} onChange={v => updateTempSettings({ loginHeroBadge: v })} />
                       <SettingField label="Login Title" value={tempSettings.loginHeroTitle || ''} onChange={v => updateTempSettings({ loginHeroTitle: v })} />
                       <SettingField label="Login Description" value={tempSettings.loginHeroDescription || ''} onChange={v => updateTempSettings({ loginHeroDescription: v })} type="textarea" />

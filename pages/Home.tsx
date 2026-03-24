@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
+import CategoryGrid from '../components/CategoryGrid';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { LayoutGrid, ShieldCheck, Globe, ArrowRight } from 'lucide-react';
@@ -93,6 +94,10 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <div className="bg-copper-wash">
+        <CategoryGrid items={featuredCategories} />
+      </div>
 
       {/* Trust & Methodology Section */}
       <section className="py-12 md:py-40 bg-copper-wash relative overflow-hidden border-t border-slate-100/20">
