@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, 
 
 -- 2. INITIAL DATA & SEO DEFAULTS
 INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
-VALUES ('global', 'Findara', 'Curating the Exceptional', '#E5C1CD')
+VALUES ('global', 'Store', 'Curating the Exceptional', '#E5C1CD')
 ON CONFLICT (id) DO NOTHING;
 
 -- Add SEO columns to the settings table if they don't exist
@@ -264,11 +264,11 @@ ADD COLUMN IF NOT EXISTS "emailJsTemplateId" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsPublicKey" TEXT;
 
 UPDATE settings SET
-  "seoTitle" = COALESCE("seoTitle", 'Findara'),
-  "seoDescription" = COALESCE("seoDescription", 'Findara is my personal curation platform, dedicated to discovering and showcasing the most Fashion, Tech and Home accessories from across the continent.'),
-  "seoOgImage" = COALESCE("seoOgImage", 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png'),
-  "googleAnalyticsId" = COALESCE("googleAnalyticsId", 'G-PP15D984GN'),
-  "gscVerificationId" = COALESCE("gscVerificationId", 'sTIigqcooUP2WH9dBXRln_odKfNTrOveiyo4mSjXn0A'),
+  "seoTitle" = COALESCE("seoTitle", 'Store'),
+  "seoDescription" = COALESCE("seoDescription", 'A curated gateway to global fashion trends. Discover my personal favorites and professional fashion picks.'),
+  "seoOgImage" = COALESCE("seoOgImage", ''),
+  "googleAnalyticsId" = COALESCE("googleAnalyticsId", ''),
+  "gscVerificationId" = COALESCE("gscVerificationId", ''),
   "seoAutoCleanUrls" = COALESCE("seoAutoCleanUrls", true),
   "seoEnableLazyLoading" = COALESCE("seoEnableLazyLoading", true),
   "seoRequireAltText" = COALESCE("seoRequireAltText", true),
@@ -277,11 +277,11 @@ UPDATE settings SET
   "seoEnableCanonicalTags" = COALESCE("seoEnableCanonicalTags", true),
   "seoShowLastUpdated" = COALESCE("seoShowLastUpdated", true),
   "enableSchemaMarkup" = COALESCE("enableSchemaMarkup", false),
-  "localBusinessName" = COALESCE("localBusinessName", 'Findara Luxury'),
+  "localBusinessName" = COALESCE("localBusinessName", 'Store'),
   "localBusinessCategory" = COALESCE("localBusinessCategory", 'Retail Store'),
   "localBusinessAddress" = COALESCE("localBusinessAddress", '123 Fashion Ave, New York, NY 10001'),
   "localBusinessCountry" = COALESCE("localBusinessCountry", 'United States'),
-  "localBusinessWebsite" = COALESCE("localBusinessWebsite", 'https://findara.com'),
+  "localBusinessWebsite" = COALESCE("localBusinessWebsite", 'https://example.com'),
   "localBusinessPhone" = COALESCE("localBusinessPhone", '+1 234 567 8900'),
   "localBusinessOpeningHours" = COALESCE("localBusinessOpeningHours", 'Mo-Fr 09:00-18:00'),
   "localBusinessLat" = COALESCE("localBusinessLat", 40.7128),
@@ -289,7 +289,7 @@ UPDATE settings SET
 WHERE id = 'global';
 
 INSERT INTO admin_users (id, name, email, role, permissions)
-VALUES ('admin-1', 'System Administrator', 'ankebaeleejason@gmail.com', 'owner', '["all"]'::jsonb)
+VALUES ('admin-1', 'System Administrator', 'admin@example.com', 'owner', '["all"]'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. ENABLE RLS
@@ -781,10 +781,10 @@ export const INITIAL_ENQUIRIES: Enquiry[] = [
 ];
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: "Findara",
+  companyName: "Store",
   slogan: 'Curating the Exceptional',
-  companyLogo: 'F',
-  companyLogoUrl: 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png',
+  companyLogo: 'S',
+  companyLogoUrl: '',
   primaryColor: '#E5C1CD',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
@@ -794,10 +794,10 @@ export const INITIAL_SETTINGS: SiteSettings = {
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
 
-  contactEmail: 'contact@findara.com',
-  contactPhone: '+27 76 836 0325',
-  whatsappNumber: '27768360325',
-  address: 'Mokopane, Limpopo, 0601',
+  contactEmail: 'contact@example.com',
+  contactPhone: '+1 234 567 8900',
+  whatsappNumber: '12345678900',
+  address: '123 Fashion Ave, New York, NY 10001',
   socialLinks: [
     { id: '1', name: 'Instagram', url: 'https://instagram.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/174/174855.png' },
     { id: '2', name: 'TikTok', url: 'https://tiktok.com/', iconUrl: 'https://cdn-icons-png.flaticon.com/512/3046/3046121.png' }

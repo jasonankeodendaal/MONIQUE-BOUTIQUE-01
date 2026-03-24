@@ -1,7 +1,7 @@
 
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, Component, ErrorInfo, ReactNode } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
-import { X, RefreshCcw, ArrowRight, Construction, Lock } from 'lucide-react';
+import { X, RefreshCcw, ArrowRight, Construction, Lock, AlertTriangle } from 'lucide-react';
 import Header from './components/Header';
 import PlexusBackground from './components/PlexusBackground';
 import Home from './pages/Home';
@@ -21,6 +21,47 @@ import { User } from '@supabase/supabase-js';
 
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 
+class ErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+            <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle size={32} />
+            </div>
+            <h1 className="text-2xl font-serif text-white mb-4">Something went wrong</h1>
+            <p className="text-slate-400 text-sm mb-8 font-light leading-relaxed">
+              We encountered an unexpected error while rendering this page.
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full py-4 bg-primary text-slate-900 rounded-xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-transform"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 const MaintenanceOverlay: React.FC = () => {
@@ -28,7 +69,7 @@ const MaintenanceOverlay: React.FC = () => {
   const location = useLocation();
   
   if (!settings.isMaintenanceMode) return null;
-  if (loadingAuth || user || location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/admin/login') return null;
+  if (loadingAuth || user || location.pathname === '/login' || location.pathname === '/admin/login') return null;
   
   return (
     <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6 overflow-hidden">
@@ -1035,20 +1076,22 @@ const App: React.FC = () => {
           <PlexusBackground />
           <Header />
           <main className="flex-grow z-10 w-full max-w-full overflow-x-hidden">
-            <Routes>
-              <Route path="/" element={<HomeRoute />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/disclosure" element={<Legal />} />
-              <Route path="/privacy" element={<Legal />} />
-              <Route path="/terms" element={<Legal />} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<HomeRoute />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/account" element={<Account />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/disclosure" element={<Legal />} />
+                <Route path="/privacy" element={<Legal />} />
+                <Route path="/terms" element={<Legal />} />
+              </Routes>
+            </ErrorBoundary>
           </main>
           <Footer />
         </div>
