@@ -1423,6 +1423,10 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['Premium Calf Leather', 'Gold-plated hardware', 'Versatile chain strap'],
     specifications: { 'Material': 'Calf Leather', 'Style': 'Crossbody' },
     media: [{ id: 'm1', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800', name: 'Handbag', type: 'image/jpeg', size: 0 }],
+    reviews: [
+      { id: 'r1', userName: 'Sophia L.', rating: 5, comment: 'Absolutely stunning quality. The leather feels so premium and the gold hardware is the perfect touch.', createdAt: Date.now() - 86400000 * 2 },
+      { id: 'r2', userName: 'Marcus T.', rating: 4, comment: 'Great bag, very versatile. Only wish the chain was a bit longer, but overall very happy.', createdAt: Date.now() - 86400000 * 5 }
+    ],
     tags: [],
     createdAt: Date.now()
   },
@@ -1438,6 +1442,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['4-inch heel', 'Suede finish', 'Ergonomic sole'],
     specifications: { 'Heel Height': '10cm', 'Material': 'Suede' },
     media: [{ id: 'm2', url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=800', name: 'Shoes', type: 'image/jpeg', size: 0 }],
+    reviews: [
+      { id: 'r3', userName: 'Elena G.', rating: 5, comment: 'These heels are surprisingly comfortable for the height. I wore them all night at a gala!', createdAt: Date.now() - 86400000 * 10 }
+    ],
     tags: [],
     createdAt: Date.now()
   },
@@ -1454,6 +1461,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['OLED Display', 'Health Monitoring', '7-day Battery'],
     specifications: { 'Case': 'Titanium', 'Water Resistance': '50m' },
     media: [{ id: 'm3', url: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=800', name: 'Smartwatch', type: 'image/jpeg', size: 0 }],
+    reviews: [
+      { id: 'r4', userName: 'David K.', rating: 5, comment: 'The OLED display is crisp and the battery life actually lasts a full week. Best tech purchase this year.', createdAt: Date.now() - 86400000 * 1 }
+    ],
     tags: [],
     createdAt: Date.now()
   },
@@ -1485,6 +1495,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['Retro Aesthetic', 'Stainless steel body', 'Auto shut-off'],
     specifications: { 'Capacity': '1.7L', 'Style': '50s Retro' },
     media: [{ id: 'm5', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800', name: 'Smeg Kettle', type: 'image/jpeg', size: 0 }],
+    reviews: [
+      { id: 'r5', userName: 'Olivia W.', rating: 4, comment: 'Looks amazing in my kitchen. It boils quickly, though it is a bit louder than my previous one.', createdAt: Date.now() - 86400000 * 15 }
+    ],
     tags: [],
     createdAt: Date.now()
   }
