@@ -72,35 +72,6 @@ const Hero: React.FC = () => {
 
   return (
     <div className="relative h-[65vh] sm:h-[75vh] md:h-[85vh] lg:h-[90vh] min-h-[500px] md:min-h-[700px] w-full overflow-hidden bg-black">
-      {/* Floating Logo Top Left - Aligned with Content */}
-      <div className="absolute top-0 left-0 right-0 z-30">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-8 md:pt-12">
-          <Link to="/" className="inline-flex items-center space-x-4 group">
-              <div className="relative">
-                {settings.companyLogoUrl ? (
-                  <img 
-                    src={settings.companyLogoUrl} 
-                    alt={settings.companyName} 
-                    className="h-14 md:h-20 w-auto object-contain transition-transform drop-shadow-lg" 
-                  />
-                ) : (
-                  <div className="w-10 h-10 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white font-black text-lg md:text-xl shadow-2xl border border-white/10">
-                    {settings.companyLogo}
-                  </div>
-                )}
-              </div>
-              <div className={`flex flex-col -space-y-1 text-left`}>
-                <span className={`text-base md:text-xl font-serif font-bold tracking-tight text-white`}>
-                  {settings.companyName}
-                </span>
-                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-primary">
-                  {settings.slogan}
-                </span>
-              </div>
-          </Link>
-        </div>
-      </div>
-
       {/* Hero Slides */}
       {slides.map((slide, index) => (
         <div

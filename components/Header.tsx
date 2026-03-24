@@ -50,7 +50,7 @@ const Header: React.FC = () => {
                 <img 
                   src={settings.companyLogoUrl} 
                   alt={settings.companyName} 
-                  className="h-8 md:h-10 w-auto object-contain group-hover:opacity-80 transition-opacity drop-shadow-sm" 
+                  className="h-20 md:h-32 w-auto object-contain group-hover:opacity-80 transition-opacity drop-shadow-sm" 
                 />
               ) : (
                 <div className="text-2xl md:text-3xl font-black tracking-tighter group-hover:opacity-80 transition-opacity">
