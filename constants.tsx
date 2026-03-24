@@ -133,7 +133,7 @@ export const GUIDE_STEPS = [
       '5. VERIFY: Click the "Table Editor" icon (grid icon) in the sidebar. You should now see tables like "products", "settings", and "clients".',
       '6. INITIAL RECORD: Click the "settings" table. Ensure there is one row with the ID "global". If not, re-run the script.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v6.0 (Idempotent & Safe)
+    code: `-- MASTER ARCHITECTURE SCRIPT v7.0 (SEO & Integrations Ready)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. TABLES
@@ -172,12 +172,12 @@ CREATE TABLE IF NOT EXISTS settings (
   "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
   "googleAnalyticsId" TEXT, "googleTagManagerId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "pinterestTagId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "gscVerificationId" TEXT,
   "customHeaderScripts" TEXT, "customFooterScripts" TEXT, "seoTitle" TEXT, "seoDescription" TEXT, "seoOgImage" TEXT,
-  "enableSchemaMarkup" BOOLEAN, "schemaType" TEXT, "customSchemaJson" TEXT,
+  "enableSchemaMarkup" BOOLEAN DEFAULT FALSE, "schemaType" TEXT, "customSchemaJson" TEXT,
   "localBusinessName" TEXT, "localBusinessAddress" TEXT, "localBusinessPhone" TEXT, "localBusinessOpeningHours" TEXT, "localBusinessCountry" TEXT,
   "localBusinessLat" NUMERIC, "localBusinessLng" NUMERIC, "localBusinessWebsite" TEXT, "localBusinessCategory" TEXT,
-  "robotsGeneratedAt" BIGINT, "sitemapGeneratedAt" BIGINT, "robotsStatus" TEXT, "sitemapStatus" TEXT,
-  "seoAutoCleanUrls" BOOLEAN, "seoEnableLazyLoading" BOOLEAN, "seoRequireAltText" BOOLEAN, "seoAutoRelatedProducts" BOOLEAN,
-  "seoForceHttps" BOOLEAN, "seoEnableCanonicalTags" BOOLEAN, "seoShowLastUpdated" BOOLEAN, "isMaintenanceMode" BOOLEAN,
+  "robotsGeneratedAt" BIGINT, "sitemapGeneratedAt" BIGINT, "robotsStatus" TEXT DEFAULT 'pending', "sitemapStatus" TEXT DEFAULT 'pending',
+  "seoAutoCleanUrls" BOOLEAN DEFAULT TRUE, "seoEnableLazyLoading" BOOLEAN DEFAULT TRUE, "seoRequireAltText" BOOLEAN DEFAULT FALSE, "seoAutoRelatedProducts" BOOLEAN DEFAULT TRUE,
+  "seoForceHttps" BOOLEAN DEFAULT TRUE, "seoEnableCanonicalTags" BOOLEAN DEFAULT TRUE, "seoShowLastUpdated" BOOLEAN DEFAULT TRUE, "isMaintenanceMode" BOOLEAN DEFAULT FALSE,
   "maintenanceTitle" TEXT, "maintenanceMessage" TEXT, "loadingMessage" TEXT,
   "homeNicheDescription" TEXT, "homeTrustBadge" TEXT, "homeTrustTitle" TEXT, "homeTrustDescription" TEXT, "homeTrustCta" TEXT,
   "aboutHeroBadge" TEXT, "aboutHeroDescription" TEXT, "aboutIntegrityBadge1" TEXT, "aboutIntegrityBadge2" TEXT,
@@ -216,10 +216,35 @@ CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, t
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT);
 
--- 2. INITIAL DATA
+-- 2. INITIAL DATA & SEO DEFAULTS
 INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
 VALUES ('global', 'Findara', 'Curating the Exceptional', '#E5C1CD')
 ON CONFLICT (id) DO NOTHING;
+
+UPDATE settings SET
+  "seoTitle" = COALESCE("seoTitle", 'Findara'),
+  "seoDescription" = COALESCE("seoDescription", 'Findara is my personal curation platform, dedicated to discovering and showcasing the most Fashion, Tech and Home accessories from across the continent.'),
+  "seoOgImage" = COALESCE("seoOgImage", 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png'),
+  "googleAnalyticsId" = COALESCE("googleAnalyticsId", 'G-PP15D984GN'),
+  "gscVerificationId" = COALESCE("gscVerificationId", 'sTIigqcooUP2WH9dBXRln_odKfNTrOveiyo4mSjXn0A'),
+  "seoAutoCleanUrls" = COALESCE("seoAutoCleanUrls", true),
+  "seoEnableLazyLoading" = COALESCE("seoEnableLazyLoading", true),
+  "seoRequireAltText" = COALESCE("seoRequireAltText", true),
+  "seoAutoRelatedProducts" = COALESCE("seoAutoRelatedProducts", true),
+  "seoForceHttps" = COALESCE("seoForceHttps", true),
+  "seoEnableCanonicalTags" = COALESCE("seoEnableCanonicalTags", true),
+  "seoShowLastUpdated" = COALESCE("seoShowLastUpdated", true),
+  "enableSchemaMarkup" = COALESCE("enableSchemaMarkup", false),
+  "localBusinessName" = COALESCE("localBusinessName", 'Findara Luxury'),
+  "localBusinessCategory" = COALESCE("localBusinessCategory", 'Retail Store'),
+  "localBusinessAddress" = COALESCE("localBusinessAddress", '123 Fashion Ave, New York, NY 10001'),
+  "localBusinessCountry" = COALESCE("localBusinessCountry", 'United States'),
+  "localBusinessWebsite" = COALESCE("localBusinessWebsite", 'https://findara.com'),
+  "localBusinessPhone" = COALESCE("localBusinessPhone", '+1 234 567 8900'),
+  "localBusinessOpeningHours" = COALESCE("localBusinessOpeningHours", 'Mo-Fr 09:00-18:00'),
+  "localBusinessLat" = COALESCE("localBusinessLat", 40.7128),
+  "localBusinessLng" = COALESCE("localBusinessLng", -74.0060)
+WHERE id = 'global';
 
 INSERT INTO admin_users (id, name, email, role, permissions)
 VALUES ('admin-1', 'System Administrator', 'ankebaeleejason@gmail.com', 'owner', '["all"]'::jsonb)

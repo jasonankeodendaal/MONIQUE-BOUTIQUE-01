@@ -36,35 +36,35 @@ const Header: React.FC = () => {
   const isDarkSection = !shouldBeSolid && isHomePage;
 
   return (
-    <header className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 ease-in-out rounded-2xl ${
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
       shouldBeSolid 
-        ? 'bg-white/70 backdrop-blur-2xl border border-white/30 py-2 shadow-lg' 
-        : 'bg-white/10 backdrop-blur-md border border-white/10 py-3'
+        ? 'bg-white/80 backdrop-blur-2xl border-b border-slate-200/50 py-3 shadow-sm' 
+        : 'bg-transparent py-5'
     }`}>
-      <nav className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="flex justify-between items-center">
-          {/* Logo Section */}
-          <Link to="/" className={`flex items-center space-x-6 group ${isHomePage && !scrolled && !isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+      <nav className="w-full max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="flex justify-between items-center relative">
+          {/* Logo Section - Left */}
+          <Link to="/" className="flex items-center space-x-3 group opacity-100 z-10 flex-shrink-0">
             <div className="relative">
               {settings.companyLogoUrl ? (
                 <img 
                   src={settings.companyLogoUrl} 
                   alt={settings.companyName} 
-                  className="h-16 md:h-24 w-auto object-contain group-hover:scale-105 transition-transform drop-shadow-md" 
+                  className="h-8 md:h-10 w-auto object-contain group-hover:opacity-80 transition-opacity drop-shadow-sm" 
                 />
               ) : (
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-xl md:text-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-xl">
+                <div className="text-2xl md:text-3xl font-black tracking-tighter group-hover:opacity-80 transition-opacity">
                   {settings.companyLogo}
                 </div>
               )}
             </div>
-            <div className={`flex flex-col -space-y-1 text-left ${settings.companyLogoUrl ? 'hidden md:flex' : 'flex'}`}>
-              <span className={`text-xl md:text-2xl font-serif font-bold tracking-tight transition-colors duration-300 ${
+            <div className={`flex flex-col -space-y-1 text-left ${settings.companyLogoUrl ? 'hidden lg:flex' : 'flex'}`}>
+              <span className={`text-lg md:text-xl font-serif font-bold tracking-tight transition-colors duration-300 ${
                 !isDarkSection ? 'text-slate-900' : 'text-white'
               }`}>
                 {settings.companyName}
               </span>
-              <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] ${
+              <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] ${
                 !isDarkSection ? 'text-primary' : 'text-primary/90'
               }`}>
                 {settings.slogan}
@@ -72,8 +72,8 @@ const Header: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-10">
+          {/* Desktop Nav - Center */}
+          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center space-x-8 z-0">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -90,48 +90,49 @@ const Header: React.FC = () => {
                 }`}></span>
               </Link>
             ))}
-            
-            <div className="flex items-center pl-6 border-l border-slate-200/20 space-x-4">
+          </div>
+          
+          {/* Actions - Right */}
+          <div className="hidden md:flex items-center space-x-5 z-10 flex-shrink-0">
+            <Link
+              to="/products"
+              className={`p-2 transition-colors ${!isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+            >
+              <ShoppingBag size={20} />
+            </Link>
+            {user ? (
               <Link
-                to="/products"
-                className={`p-2 transition-colors ${!isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+                to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
+                className={`px-5 py-2.5 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
+                  !isDarkSection 
+                    ? 'border-slate-200 text-slate-900 hover:border-slate-900 hover:bg-slate-900 hover:text-white' 
+                    : 'border-white/30 text-white hover:border-white hover:bg-white hover:text-slate-900'
+                }`}
               >
-                <ShoppingBag size={22} />
+                {user.user_metadata?.role === 'admin' ? 'Dashboard' : 'Account'}
               </Link>
-              {user ? (
+            ) : (
+              <>
                 <Link
-                  to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
-                  className={`px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
-                    !isDarkSection 
-                      ? 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white' 
-                      : 'border-white text-white hover:bg-white hover:text-slate-900'
+                  to="/login?view=login"
+                  className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-primary ${
+                    !isDarkSection ? 'text-slate-900' : 'text-white'
                   }`}
                 >
-                  {user.user_metadata?.role === 'admin' ? 'Dashboard' : 'My Account'}
+                  Log In
                 </Link>
-              ) : (
-                <>
-                  <Link
-                    to="/login?view=login"
-                    className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-primary ${
-                      !isDarkSection ? 'text-slate-900' : 'text-white'
-                    }`}
-                  >
-                    Log In
-                  </Link>
-                  <Link
-                    to="/login?view=signup"
-                    className={`px-4 py-2 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
-                      !isDarkSection 
-                        ? 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white' 
-                        : 'border-white text-white hover:bg-white hover:text-slate-900'
-                    }`}
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
+                <Link
+                  to="/login?view=signup"
+                  className={`px-5 py-2.5 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
+                    !isDarkSection 
+                      ? 'border-slate-200 text-slate-900 hover:border-slate-900 hover:bg-slate-900 hover:text-white' 
+                      : 'border-white/30 text-white hover:border-white hover:bg-white hover:text-slate-900'
+                  }`}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Toggle */}
