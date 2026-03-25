@@ -171,9 +171,9 @@ const Login: React.FC = () => {
           </button>
           <div>
             <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
-              <Lock size={24} className="text-primary"/> {view === 'login' ? settings.clientLoginHeroTitle : view === 'signup' ? 'Create Account' : 'Reset Password'}
+              <Lock size={24} className="text-primary"/> {view === 'login' ? settings.clientLoginHeroTitle : 'Reset Password'}
             </h2>
-            <p className="text-slate-500">{view === 'login' ? settings.clientLoginHeroDescription : view === 'signup' ? 'Sign up to track your orders and history.' : 'Enter your email to receive password reset instructions.'}</p>
+            <p className="text-slate-500">{view === 'login' ? settings.clientLoginHeroDescription : 'Enter your email to receive password reset instructions.'}</p>
           </div>
 
           {error && (
