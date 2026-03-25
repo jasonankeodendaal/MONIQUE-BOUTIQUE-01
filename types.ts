@@ -563,6 +563,22 @@ export interface Order {
   updatedAt?: number;
 }
 
+export interface WishlistItem {
+  id: string;
+  userId: string;
+  productId: string;
+  createdAt: number;
+}
+
+export interface SiteReview {
+  id: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  createdAt: number;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 export interface SettingsContextType {
   settings: SiteSettings;
   updateSettings: (newSettings: Partial<SiteSettings>) => void;
@@ -577,6 +593,8 @@ export interface SettingsContextType {
   orders: Order[];
   stats: ProductStats[];
   trainingModules: TrainingModule[];
+  wishlist: WishlistItem[];
+  siteReviews: SiteReview[];
   // Actions
   refreshAllData: () => Promise<void>;
   updateData: (table: string, data: any) => Promise<boolean>;

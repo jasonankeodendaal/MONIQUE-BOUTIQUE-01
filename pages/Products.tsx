@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, ShoppingBag, FileText, Video as VideoIcon, ChevronDown, ArrowUpDown, ArrowLeft, Layers, Tag, LayoutGrid, Check, Filter } from 'lucide-react';
+import { Search, ShoppingBag, FileText, Video as VideoIcon, ChevronDown, ArrowUpDown, ArrowLeft, Layers, Tag, LayoutGrid, Check, Filter, Heart } from 'lucide-react';
 import Fuse from 'fuse.js';
 import { useSettings } from '../App';
-import { Product, SubCategory } from '../types';
+import { Product, SubCategory, WishlistItem } from '../types';
 
 const Products: React.FC = () => {
-  const { settings, products, categories, subCategories } = useSettings();
+  const { settings, products, categories, subCategories, user, wishlist, updateData, deleteData, logEvent } = useSettings();
   const navigate = useNavigate();
   const query = new URLSearchParams(useLocation().search);
   const initialCat = query.get('category');
@@ -170,6 +170,30 @@ const Products: React.FC = () => {
         <span className="text-[8px] uppercase font-black tracking-widest mt-2">{primary.type.split('/')[1]}</span>
       </div>
     );
+  };
+
+  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const existingItem = wishlist.find(item => item.productId === productId && item.userId === user.id);
+    
+    if (existingItem) {
+      await deleteData('wishlist', existingItem.id);
+      logEvent('click', `Removed from Wishlist: ${productId}`);
+    } else {
+      const newItem: WishlistItem = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        productId,
+        createdAt: Date.now()
+      };
+      await updateData('wishlist', newItem);
+      logEvent('click', `Added to Wishlist: ${productId}`);
+    }
   };
 
   return (
@@ -499,10 +523,19 @@ const Products: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center z-10">
-                           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-900 shadow-2xl scale-50 group-hover:scale-100 transition-transform duration-500">
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center z-10 gap-4">
+                           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-900 shadow-2xl scale-50 group-hover:scale-100 transition-transform duration-500 delay-75">
                               <ShoppingBag size={20} />
                            </div>
+                           <button 
+                             onClick={(e) => toggleWishlist(e, product.id)}
+                             className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-900 shadow-2xl scale-50 group-hover:scale-100 transition-transform duration-500 hover:bg-red-50"
+                           >
+                              <Heart 
+                                size={20} 
+                                className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-500 transition-colors"} 
+                              />
+                           </button>
                         </div>
                       </div>
                       

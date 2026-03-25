@@ -1479,6 +1479,10 @@ export const INITIAL_PRODUCTS: Product[] = [
     features: ['18k White Gold', 'Conflict-free diamond', 'Certificate included'],
     specifications: { 'Carat': '0.5', 'Clarity': 'VVS1' },
     media: [{ id: 'm4', url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=800', name: 'Jewelry', type: 'image/jpeg', size: 0 }],
+    reviews: [
+      { id: 'r6', userName: 'Isabella R.', rating: 5, comment: 'Purchased this as an anniversary gift. The clarity is incredible and it catches the light beautifully.', createdAt: Date.now() - 86400000 * 3 },
+      { id: 'r7', userName: 'James H.', rating: 5, comment: 'Elegant and understated. The white gold setting is very secure.', createdAt: Date.now() - 86400000 * 7 }
+    ],
     tags: [],
     createdAt: Date.now()
   },
@@ -1496,9 +1500,46 @@ export const INITIAL_PRODUCTS: Product[] = [
     specifications: { 'Capacity': '1.7L', 'Style': '50s Retro' },
     media: [{ id: 'm5', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800', name: 'Smeg Kettle', type: 'image/jpeg', size: 0 }],
     reviews: [
-      { id: 'r5', userName: 'Olivia W.', rating: 4, comment: 'Looks amazing in my kitchen. It boils quickly, though it is a bit louder than my previous one.', createdAt: Date.now() - 86400000 * 15 }
+      { id: 'r5', userName: 'Olivia W.', rating: 4, comment: 'Looks amazing in my kitchen. It boils quickly, though it is a bit louder than my previous one.', createdAt: Date.now() - 86400000 * 15 },
+      { id: 'r8', userName: 'Liam N.', rating: 5, comment: 'The cream color is perfect. High quality build as expected from Smeg.', createdAt: Date.now() - 86400000 * 20 }
     ],
     tags: [],
+    createdAt: Date.now()
+  },
+  {
+    id: 'p6',
+    name: 'Velvet Evening Blazer',
+    sku: 'F-CLOT-006',
+    price: 6500,
+    affiliateLink: 'https://example.com/blazer',
+    categoryId: 'cat1',
+    subCategoryId: 'sub1',
+    description: 'A deep emerald velvet blazer with silk lapels. Perfect for making a statement at any formal event.',
+    features: ['Italian Velvet', 'Silk Lapels', 'Tailored Fit'],
+    specifications: { 'Material': 'Velvet/Silk', 'Fit': 'Slim' },
+    media: [{ id: 'm6', url: 'https://images.unsplash.com/photo-1594932224030-940955d2a015?auto=format&fit=crop&q=80&w=800', name: 'Blazer', type: 'image/jpeg', size: 0 }],
+    reviews: [
+      { id: 'r9', userName: 'Alexander B.', rating: 5, comment: 'The fit is impeccable. I received so many compliments at the charity auction.', createdAt: Date.now() - 86400000 * 4 }
+    ],
+    tags: ['formal', 'velvet'],
+    createdAt: Date.now()
+  },
+  {
+    id: 'p7',
+    name: 'Minimalist Oak Desk',
+    sku: 'F-HOME-007',
+    price: 18000,
+    affiliateLink: 'https://example.com/desk',
+    categoryId: 'cat4',
+    subCategoryId: 'sub5',
+    description: 'Handcrafted from solid white oak, this desk brings a sense of calm and productivity to your workspace.',
+    features: ['Solid White Oak', 'Hidden Cable Management', 'Sustainably Sourced'],
+    specifications: { 'Material': 'Oak', 'Dimensions': '140x70cm' },
+    media: [{ id: 'm7', url: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&q=80&w=800', name: 'Desk', type: 'image/jpeg', size: 0 }],
+    reviews: [
+      { id: 'r10', userName: 'Chloe M.', rating: 5, comment: 'The wood grain is stunning. It feels very solid and the cable management is a lifesaver.', createdAt: Date.now() - 86400000 * 12 }
+    ],
+    tags: ['furniture', 'office'],
     createdAt: Date.now()
   }
 ];

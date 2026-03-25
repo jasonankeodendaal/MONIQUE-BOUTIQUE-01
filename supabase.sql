@@ -73,3 +73,28 @@ UPDATE settings SET
   "localBusinessLat" = COALESCE("localBusinessLat", 40.7128),
   "localBusinessLng" = COALESCE("localBusinessLng", -74.0060)
 WHERE id = 'global';
+
+-- Wishlist Table
+CREATE TABLE IF NOT EXISTS wishlist (
+    id TEXT PRIMARY KEY,
+    "userId" TEXT,
+    "productId" TEXT,
+    "createdAt" BIGINT
+);
+ALTER TABLE wishlist ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage their own wishlist" ON wishlist FOR ALL USING (auth.uid()::text = "userId");
+CREATE POLICY "Public read wishlist" ON wishlist FOR SELECT USING (true);
+
+-- Site Reviews Table
+CREATE TABLE IF NOT EXISTS site_reviews (
+    id TEXT PRIMARY KEY,
+    "userName" TEXT,
+    rating NUMERIC,
+    comment TEXT,
+    "createdAt" BIGINT,
+    status TEXT DEFAULT 'pending'
+);
+ALTER TABLE site_reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can insert site_reviews" ON site_reviews FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public read approved site_reviews" ON site_reviews FOR SELECT USING (true);
+CREATE POLICY "Admin all site_reviews" ON site_reviews FOR ALL USING (true);

@@ -12,7 +12,7 @@ import {
   HelpCircle, Layers, FileCode, Search, CheckSquare, Square, Target, Clock, Filter,
   FileSpreadsheet, BarChart3, TrendingUp, Activity, Zap, BarChart, Wifi, Lightbulb,
   CheckCircle2, GraduationCap, HardDrive, FilePieChart, TrendingDown, Presentation, Printer,
-  History, RotateCcw, PlayCircle, Briefcase, Crown, FileText,
+  History, RotateCcw, PlayCircle, Briefcase, Crown, FileText, RefreshCw, File as FileIcon,
   Facebook, Instagram, Pin, MessageCircle, SearchCode, Twitter, Linkedin, Tablet,
   MousePointerClick, ZapIcon, Inbox, Package, LayoutPanelTop, Palette, Timer, Star, User, Link as LinkIcon
 } from 'lucide-react';
@@ -1650,7 +1650,7 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients' | 'media';
 
 const Admin: React.FC = () => {
   const { 
@@ -1769,6 +1769,7 @@ const Admin: React.FC = () => {
       case 'clients': return perms.includes('sales.view');
       case 'analytics': return perms.includes('analytics.view');
       case 'catalog': return perms.includes('catalog.products.view');
+      case 'media': return perms.includes('content.hero'); // Or a specific media permission if needed
       case 'hero': return perms.includes('content.hero');
       case 'categories': return perms.includes('catalog.categories.manage');
       case 'site_editor': return perms.some(p => p.startsWith('content.'));
@@ -1786,6 +1787,7 @@ const Admin: React.FC = () => {
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'analytics', label: 'Insights', icon: BarChart3 },
     { id: 'catalog', label: 'Items', icon: ShoppingBag },
+    { id: 'media', label: 'Media', icon: Image },
     { id: 'hero', label: 'Visuals', icon: LayoutPanelTop },
     { id: 'categories', label: 'Depts', icon: Layout },
     { id: 'site_editor', label: 'Canvas', icon: Palette },
@@ -4227,6 +4229,97 @@ const Admin: React.FC = () => {
     );
   };
 
+  const renderMedia = () => {
+    const [mediaFiles, setMediaFiles] = useState<any[]>([]);
+    const [loadingMedia, setLoadingMedia] = useState(false);
+    
+    const fetchMedia = async () => {
+      setLoadingMedia(true);
+      try {
+        const { listMedia } = await import('../lib/supabase');
+        const files = await listMedia();
+        setMediaFiles(files);
+      } catch (err) {
+        console.error("Failed to fetch media", err);
+      } finally {
+        setLoadingMedia(false);
+      }
+    };
+
+    useEffect(() => {
+      if (activeTab === 'media') {
+        fetchMedia();
+      }
+    }, [activeTab]);
+
+    const handleDeleteMedia = async (fileName: string) => {
+      if (!window.confirm("Are you sure you want to delete this file?")) return;
+      try {
+        const { deleteMediaFiles } = await import('../lib/supabase');
+        await deleteMediaFiles([fileName]);
+        fetchMedia();
+      } catch (err) {
+        console.error("Failed to delete media", err);
+      }
+    };
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+           <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Media Library</h2><p className="text-slate-400 text-sm">Manage your uploaded files.</p></div>
+           <div className="flex gap-3 w-full md:w-auto">
+              <button onClick={fetchMedia} className="flex-1 md:flex-none justify-center px-6 py-3 bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-700 transition-colors flex items-center gap-2"><RefreshCw size={16}/> Refresh</button>
+           </div>
+        </div>
+        
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <h3 className="text-lg font-bold text-white mb-4">Upload New Media</h3>
+          <FileUploader files={[]} onFilesChange={(newFiles) => {
+            // After upload, refresh the list
+            fetchMedia();
+          }} />
+        </div>
+
+        {loadingMedia ? (
+          <div className="flex justify-center py-20"><div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {mediaFiles.filter(f => f.name !== '.emptyFolderPlaceholder').map((file, idx) => (
+              <div key={idx} className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden group relative">
+                <div className="aspect-square bg-slate-950 flex items-center justify-center overflow-hidden">
+                  {file.metadata?.mimetype?.startsWith('image/') ? (
+                    <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
+                  ) : file.metadata?.mimetype?.startsWith('video/') ? (
+                    <video src={file.url} className="w-full h-full object-cover" />
+                  ) : (
+                    <FileIcon size={32} className="text-slate-500" />
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="text-xs text-white truncate" title={file.name}>{file.name}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{(file.metadata?.size / 1024).toFixed(1)} KB</p>
+                </div>
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                  <a href={file.url} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-slate-900/80 backdrop-blur-sm text-white rounded hover:bg-primary hover:text-slate-900 transition-colors">
+                    <Eye size={14} />
+                  </a>
+                  <button onClick={() => handleDeleteMedia(file.name)} className="p-1.5 bg-slate-900/80 backdrop-blur-sm text-red-500 rounded hover:bg-red-500 hover:text-white transition-colors">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {mediaFiles.filter(f => f.name !== '.emptyFolderPlaceholder').length === 0 && (
+              <div className="col-span-full text-center py-12 text-slate-500 text-sm border border-dashed border-slate-800 rounded-2xl">
+                No media files found.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderHero = () => (
      <div className="space-y-6 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
         <AdminTip title="Hero Master Visuals">Set the tone for your bridge page with cinematic hero visuals. Videos increase dwell time by up to 40%.</AdminTip>
@@ -4986,6 +5079,7 @@ const Admin: React.FC = () => {
         { (activeTab === 'clients') && renderClients() }
         { (activeTab === 'analytics') && renderAnalytics() }
         { (activeTab === 'catalog') && renderCatalog() }
+        { (activeTab === 'media') && renderMedia() }
         { (activeTab === 'hero') && renderHero() }
         { (activeTab === 'categories') && renderCategories() }
         { (activeTab === 'site_editor') && renderSiteEditor() }

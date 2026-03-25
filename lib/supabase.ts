@@ -200,6 +200,32 @@ export async function deleteMedia(url: string, bucket = 'media') {
   }
 }
 
+export async function listMedia(bucket = 'media') {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase.storage.from(bucket).list();
+  if (error) {
+    console.error('Error listing media:', error);
+    return [];
+  }
+  return data.map(file => ({
+    name: file.name,
+    id: file.id,
+    metadata: file.metadata,
+    created_at: file.created_at,
+    url: supabase.storage.from(bucket).getPublicUrl(file.name).data.publicUrl
+  }));
+}
+
+export async function deleteMediaFiles(paths: string[], bucket = 'media') {
+  if (!isSupabaseConfigured) return true;
+  const { error } = await supabase.storage.from(bucket).remove(paths);
+  if (error) {
+    console.error('Error deleting media files:', error);
+    return false;
+  }
+  return true;
+}
+
 export async function measureConnection(): Promise<{ status: 'online' | 'offline', latency: number, message: string }> {
   if (!isSupabaseConfigured) {
     return { status: 'offline', latency: 0, message: 'Missing Cloud Environment' };

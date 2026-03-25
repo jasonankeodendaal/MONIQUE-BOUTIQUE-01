@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2, Heart } from 'lucide-react';
 import { useSettings } from '../App';
-import { Review, Product } from '../types';
+import { Review, Product, WishlistItem } from '../types';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { settings, products, categories, updateData, logEvent } = useSettings();
+  const { settings, products, categories, updateData, deleteData, logEvent, user, wishlist } = useSettings();
   
   const product = products.find((p: Product) => p.id === id);
   const category = categories.find(c => c.id === product?.categoryId);
@@ -155,6 +155,29 @@ const ProductDetail: React.FC = () => {
     const sum = product.reviews.reduce((acc, r) => acc + r.rating, 0);
     return Math.round(sum / product.reviews.length);
   }, [product?.reviews]);
+
+  const toggleWishlist = async () => {
+    if (!user || !product) {
+      navigate('/login');
+      return;
+    }
+
+    const existingItem = wishlist.find(item => item.productId === product.id && item.userId === user.id);
+    
+    if (existingItem) {
+      await deleteData('wishlist', existingItem.id);
+      logEvent('click', `Removed from Wishlist: ${product.id}`);
+    } else {
+      const newItem: WishlistItem = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        productId: product.id,
+        createdAt: Date.now()
+      };
+      await updateData('wishlist', newItem);
+      logEvent('click', `Added to Wishlist: ${product.id}`);
+    }
+  };
 
   const socialShares = useMemo(() => {
      const url = window.location.href;
@@ -310,9 +333,14 @@ const ProductDetail: React.FC = () => {
                   </div>
                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">({product.reviews?.length || 0} {settings.reviewCountLabel || 'Appraisals'})</span>
                 </div>
-                <button onClick={handleShareTrigger} className="p-3 rounded-full bg-slate-50 hover:bg-primary/20 text-slate-400 hover:text-primary transition-all duration-300 flex items-center justify-center">
-                  <Share2 size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={toggleWishlist} className="p-3 rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all duration-300 flex items-center justify-center">
+                    <Heart size={20} className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : ""} />
+                  </button>
+                  <button onClick={handleShareTrigger} className="p-3 rounded-full bg-slate-50 hover:bg-primary/20 text-slate-400 hover:text-primary transition-all duration-300 flex items-center justify-center">
+                    <Share2 size={20} />
+                  </button>
+                </div>
               </div>
 
               <h1 className="text-4xl md:text-6xl font-serif text-slate-900 leading-[0.9] tracking-tighter text-balance">

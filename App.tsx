@@ -14,7 +14,7 @@ import AdminLogin from './pages/AdminLogin';
 import Login from './pages/Login';
 import Account from './pages/Account';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, TRAINING_MODULES as INITIAL_TRAINING } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, moveRecord } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -658,6 +658,8 @@ const App: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
   const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(() => getLocalState('admin_training_modules', INITIAL_TRAINING));
+  const [wishlist, setWishlist] = useState<WishlistItem[]>(() => getLocalState('user_wishlist', []));
+  const [siteReviews, setSiteReviews] = useState<SiteReview[]>(() => getLocalState('site_reviews', []));
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
@@ -851,9 +853,11 @@ const App: React.FC = () => {
           fetchTableData('training_modules'),
           fetchTableData('system_logs'),
           fetchTableData('clients'),
-          fetchTableData('orders')
+          fetchTableData('orders'),
+          fetchTableData('wishlist'),
+          fetchTableData('site_reviews')
         ]);
-        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord] = results;
+        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord, wl, sr] = results;
         if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
           // Prefer 'global' ID if it exists, otherwise take the first one
           const globalSettings = s.value.find((item: any) => item.id === 'global');
@@ -877,6 +881,8 @@ const App: React.FC = () => {
         if (sl.status === 'fulfilled' && sl.value !== null) { setSystemLogs(sl.value); }
         if (cli.status === 'fulfilled' && cli.value !== null) { setClients(cli.value); localStorage.setItem('admin_clients', JSON.stringify(cli.value)); }
         if (ord.status === 'fulfilled' && ord.value !== null) { setOrders(ord.value); localStorage.setItem('admin_orders', JSON.stringify(ord.value)); }
+        if (wl.status === 'fulfilled' && wl.value !== null) { setWishlist(wl.value); localStorage.setItem('user_wishlist', JSON.stringify(wl.value)); }
+        if (sr.status === 'fulfilled' && sr.value !== null) { setSiteReviews(sr.value); localStorage.setItem('site_reviews', JSON.stringify(sr.value)); }
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
       } else {
         setSettings(getLocalState('site_settings', INITIAL_SETTINGS));
@@ -890,6 +896,8 @@ const App: React.FC = () => {
         setTrainingModules(getLocalState('admin_training_modules', INITIAL_TRAINING));
         setClients(getLocalState('admin_clients', []));
         setOrders(getLocalState('admin_orders', []));
+        setWishlist(getLocalState('user_wishlist', []));
+        setSiteReviews(getLocalState('site_reviews', []));
       }
       setSaveStatus('saved');
     } catch (e) { addSystemLog('ERROR', 'ALL', 'Data sync failed', 0, 'failed'); setSaveStatus('error'); }
@@ -948,8 +956,10 @@ const App: React.FC = () => {
         case 'training_modules': setTrainingModules(updateLocalState(trainingModules)); break;
         case 'clients': setClients(updateLocalState(clients)); break;
         case 'orders': setOrders(updateLocalState(orders)); break;
+        case 'wishlist': setWishlist(updateLocalState(wishlist)); break;
+        case 'site_reviews': setSiteReviews(updateLocalState(siteReviews)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? data : i) : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
@@ -970,8 +980,10 @@ const App: React.FC = () => {
         case 'training_modules': setTrainingModules(deleteLocalState(trainingModules)); break;
         case 'clients': setClients(deleteLocalState(clients)); break;
         case 'orders': setOrders(deleteLocalState(orders)); break;
+        case 'wishlist': setWishlist(deleteLocalState(wishlist)); break;
+        case 'site_reviews': setSiteReviews(deleteLocalState(siteReviews)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.filter((i: any) => i.id !== id);
     localStorage.setItem(key, JSON.stringify(updated));
@@ -1014,7 +1026,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, wishlist, siteReviews, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
           <title>{settings.seoTitle || settings.companyName}</title>
           <meta name="description" content={settings.seoDescription || settings.footerDescription} />
