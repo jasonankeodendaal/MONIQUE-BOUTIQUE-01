@@ -714,7 +714,8 @@ export const PERMISSION_TREE: PermissionNode[] = [
       { id: 'content.home', label: 'Home Page Sections' },
       { id: 'content.about', label: 'About Page' },
       { id: 'content.contact', label: 'Contact Page' },
-      { id: 'content.legal', label: 'Legal Pages' }
+      { id: 'content.legal', label: 'Legal Pages' },
+      { id: 'content.reviews', label: 'Review Management' }
     ]
   },
   {

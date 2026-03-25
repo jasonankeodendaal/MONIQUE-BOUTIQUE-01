@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule, Order, OrderItem, AppUser } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule, Order, OrderItem, AppUser, SiteReview } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, deleteMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
@@ -1650,7 +1650,7 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients' | 'media';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients' | 'media' | 'reviews';
 
 const Admin: React.FC = () => {
   const { 
@@ -1769,7 +1769,8 @@ const Admin: React.FC = () => {
       case 'clients': return perms.includes('sales.view');
       case 'analytics': return perms.includes('analytics.view');
       case 'catalog': return perms.includes('catalog.products.view');
-      case 'media': return perms.includes('content.hero'); // Or a specific media permission if needed
+      case 'media': return perms.includes('content.hero');
+      case 'reviews': return perms.includes('content.reviews');
       case 'hero': return perms.includes('content.hero');
       case 'categories': return perms.includes('catalog.categories.manage');
       case 'site_editor': return perms.some(p => p.startsWith('content.'));
@@ -1788,6 +1789,7 @@ const Admin: React.FC = () => {
     { id: 'analytics', label: 'Insights', icon: BarChart3 },
     { id: 'catalog', label: 'Items', icon: ShoppingBag },
     { id: 'media', label: 'Media', icon: Image },
+    { id: 'reviews', label: 'Reviews', icon: Star },
     { id: 'hero', label: 'Visuals', icon: LayoutPanelTop },
     { id: 'categories', label: 'Depts', icon: Layout },
     { id: 'site_editor', label: 'Canvas', icon: Palette },
@@ -4229,7 +4231,7 @@ const Admin: React.FC = () => {
     );
   };
 
-  const renderMedia = () => {
+  const MediaTab: React.FC = () => {
     const [mediaFiles, setMediaFiles] = useState<any[]>([]);
     const [loadingMedia, setLoadingMedia] = useState(false);
     
@@ -4238,7 +4240,7 @@ const Admin: React.FC = () => {
       try {
         const { listMedia } = await import('../lib/supabase');
         const files = await listMedia();
-        setMediaFiles(files);
+        setMediaFiles(files || []);
       } catch (err) {
         console.error("Failed to fetch media", err);
       } finally {
@@ -4247,10 +4249,8 @@ const Admin: React.FC = () => {
     };
 
     useEffect(() => {
-      if (activeTab === 'media') {
-        fetchMedia();
-      }
-    }, [activeTab]);
+      fetchMedia();
+    }, []);
 
     const handleDeleteMedia = async (fileName: string) => {
       if (!window.confirm("Are you sure you want to delete this file?")) return;
@@ -4275,7 +4275,6 @@ const Admin: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <h3 className="text-lg font-bold text-white mb-4">Upload New Media</h3>
           <FileUploader files={[]} onFilesChange={(newFiles) => {
-            // After upload, refresh the list
             fetchMedia();
           }} />
         </div>
@@ -4316,6 +4315,114 @@ const Admin: React.FC = () => {
             )}
           </div>
         )}
+      </div>
+    );
+  };
+
+  const ReviewsTab: React.FC = () => {
+    const { siteReviews, updateData, deleteData, refreshAllData } = useSettings();
+    const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+
+    const filteredReviews = siteReviews.filter(r => filter === 'all' || r.status === filter);
+
+    const handleStatusChange = async (review: SiteReview, status: 'approved' | 'rejected') => {
+      try {
+        await updateData('site_reviews', { ...review, status });
+        refreshAllData();
+      } catch (err) {
+        console.error("Failed to update review status", err);
+      }
+    };
+
+    const handleDeleteReview = async (id: string) => {
+      if (!window.confirm('Delete this review permanently?')) return;
+      try {
+        await deleteData('site_reviews', id);
+        refreshAllData();
+      } catch (err) {
+        console.error("Failed to delete review", err);
+      }
+    };
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+           <div className="space-y-2">
+             <h2 className="text-3xl font-serif text-white">Review Management</h2>
+             <p className="text-slate-400 text-sm">Approve or reject site-wide reviews.</p>
+           </div>
+           <div className="flex gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+             {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
+               <button
+                 key={f}
+                 onClick={() => setFilter(f)}
+                 className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-primary text-slate-900' : 'text-slate-400 hover:text-white'}`}
+               >
+                 {f}
+               </button>
+             ))}
+           </div>
+        </div>
+
+        <div className="grid gap-4">
+          {filteredReviews.map((review) => (
+            <div key={review.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between gap-6">
+              <div className="space-y-3 flex-grow">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={14} className={i < review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-slate-700'} />
+                    ))}
+                  </div>
+                  <span className="text-slate-500 text-xs">•</span>
+                  <span className="text-xs text-slate-400">{new Date(review.createdAt).toLocaleDateString()}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                    review.status === 'approved' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
+                    review.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                    'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'
+                  }`}>
+                    {review.status}
+                  </span>
+                </div>
+                <h4 className="text-white font-bold">{review.userName || 'Anonymous'}</h4>
+                <p className="text-slate-400 text-sm leading-relaxed italic">"{review.comment}"</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {review.status !== 'approved' && (
+                  <button
+                    onClick={() => handleStatusChange(review, 'approved')}
+                    className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all border border-green-500/20"
+                    title="Approve"
+                  >
+                    <CheckCircle size={18} />
+                  </button>
+                )}
+                {review.status !== 'rejected' && (
+                  <button
+                    onClick={() => handleStatusChange(review, 'rejected')}
+                    className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+                    title="Reject"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDeleteReview(review.id)}
+                  className="p-3 bg-slate-800 text-slate-400 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-slate-700"
+                  title="Delete"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          ))}
+          {filteredReviews.length === 0 && (
+            <div className="text-center py-20 bg-slate-900/50 border border-dashed border-slate-800 rounded-3xl">
+              <Star size={48} className="mx-auto text-slate-800 mb-4 opacity-20" />
+              <p className="text-slate-500 font-serif italic">No reviews found in this category.</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -5079,7 +5186,8 @@ const Admin: React.FC = () => {
         { (activeTab === 'clients') && renderClients() }
         { (activeTab === 'analytics') && renderAnalytics() }
         { (activeTab === 'catalog') && renderCatalog() }
-        { (activeTab === 'media') && renderMedia() }
+        { (activeTab === 'media') && <MediaTab /> }
+        { (activeTab === 'reviews') && <ReviewsTab /> }
         { (activeTab === 'hero') && renderHero() }
         { (activeTab === 'categories') && renderCategories() }
         { (activeTab === 'site_editor') && renderSiteEditor() }
