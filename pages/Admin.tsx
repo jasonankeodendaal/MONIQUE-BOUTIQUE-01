@@ -25,6 +25,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { CustomIcons } from '../components/CustomIcons';
 import { IconRenderer } from '../components/IconRenderer';
 
+/**
+ * AdminTip: Displays a helpful tip or information box within the admin panel.
+ * Used to guide the administrator on how to use specific features.
+ */
 const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-yellow-500/5 border border-yellow-500/20 p-5 md:p-6 rounded-3xl mb-8 flex gap-4 md:gap-5 items-start text-left animate-in fade-in slide-in-from-top-2">
     <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-600 flex-shrink-0">
@@ -39,6 +43,10 @@ const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ titl
   </div>
 );
 
+/**
+ * SaveIndicator: A floating notification that appears at the bottom right
+ * to indicate the status of data synchronization with the backend (Supabase).
+ */
 const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }> = ({ status }) => {
   const [visible, setVisible] = useState(false);
 
@@ -65,6 +73,10 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
   );
 };
 
+/**
+ * SettingField: A generic input component for various types of settings.
+ * Supports text, textarea, color, number, password, and rich text (via ReactQuill).
+ */
 const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password' | 'richtext'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
   <div className="space-y-2 text-left w-full min-w-0">
     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
@@ -80,6 +92,10 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
   </div>
 );
 
+/**
+ * SingleImageUploader: Handles uploading a single media file (image or video)
+ * to Supabase storage and returns the public URL.
+ */
 const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -152,6 +168,10 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
   );
 };
 
+/**
+ * MultiImageUploader: Allows uploading multiple images at once.
+ * Useful for galleries or carousels.
+ */
 const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string[]) => void; label: string }> = ({ images = [], onChange, label }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -5059,6 +5079,10 @@ const Admin: React.FC = () => {
      </div>
   );
 
+/**
+ * renderSiteEditor: Renders the "Canvas" tab which allows the admin to
+ * customize the visual identity and content of the entire website.
+ */
   const renderSiteEditor = () => (
      <div className="space-y-6 w-full max-w-7xl mx-auto text-left">
        <AdminTip title="Canvas Editor">Control your site's visual identity. Publishing changes here will synchronize with Supabase and update for all visitors.</AdminTip>
@@ -5223,13 +5247,40 @@ const Admin: React.FC = () => {
              <div className="space-y-8 text-left">
                { (activeEditorSection === 'brand') && (
                  <>
-                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} /><SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} /></div>
-                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4><div className="grid grid-cols-2 gap-6"><SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} /></div><div className="grid grid-cols-2 gap-6"><SingleImageUploader label="Favicon (ICO/PNG)" value={tempSettings.faviconUrl || ''} onChange={v => updateTempSettings({ faviconUrl: v })} className="h-24 w-24" /><SingleImageUploader label="OG Image (SEO)" value={tempSettings.ogImageUrl || ''} onChange={v => updateTempSettings({ ogImageUrl: v })} className="h-24 w-full" /></div></div>
-                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" /><SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" /><SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" /></div></div>
+                   {/* Brand Identity: Core Branding Section */}
+                   <div className="space-y-6">
+                     <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4>
+                     <SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} />
+                     <SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} />
+                   </div>
+
+                   {/* Brand Identity: Visual Assets Section */}
+                   <div className="space-y-6">
+                     <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4>
+                     <div className="grid grid-cols-2 gap-6">
+                       <SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} />
+                       <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} />
+                     </div>
+                     <div className="grid grid-cols-2 gap-6">
+                       <SingleImageUploader label="Favicon (ICO/PNG)" value={tempSettings.faviconUrl || ''} onChange={v => updateTempSettings({ faviconUrl: v })} className="h-24 w-24" />
+                       <SingleImageUploader label="OG Image (SEO)" value={tempSettings.ogImageUrl || ''} onChange={v => updateTempSettings({ ogImageUrl: v })} className="h-24 w-full" />
+                     </div>
+                   </div>
+
+                   {/* Brand Identity: Palette Section */}
+                   <div className="space-y-6">
+                     <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4>
+                     <div className="grid grid-cols-3 gap-4">
+                       <SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" />
+                       <SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" />
+                       <SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" />
+                     </div>
+                   </div>
                  </>
                )}
                { (activeEditorSection === 'nav') && (
                   <>
+                    {/* Navigation & Layout: Menu Labels Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Menu Labels</h4>
                       <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
@@ -5238,9 +5289,11 @@ const Admin: React.FC = () => {
                       <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
                     </div>
 
+                    {/* Navigation & Layout: Structural Overrides Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><Layout size={18} className="text-primary"/> Structural Overrides</h4>
                       <div className="space-y-4">
+                        {/* Toggle for sticky header behavior */}
                         <div className="flex items-center gap-4 mb-4">
                            <input 
                               type="checkbox" 
@@ -5250,6 +5303,7 @@ const Admin: React.FC = () => {
                            />
                            <span className="text-white font-bold text-sm">Enable Sticky Header</span>
                         </div>
+                        {/* Layout selector for departments/categories */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Departments Layout</label>
                           <select 
@@ -5262,6 +5316,7 @@ const Admin: React.FC = () => {
                           </select>
                           <p className="text-[10px] text-slate-500 italic mt-1">* Dropdown mode moves department links into a hover menu in the top navigation bar.</p>
                         </div>
+                        {/* Visual style selector for the header */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Header Navigation Style</label>
                           <select 
@@ -5277,6 +5332,7 @@ const Admin: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Navigation & Layout: Footer Content Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Footer Content</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -5294,6 +5350,7 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'home') && (
                   <>
+                    {/* Home Page: Hero & Niches Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Hero & Niches</h4>
                       <SettingField label="Hero Title" value={tempSettings.homeHeroTitle || ''} onChange={v => updateTempSettings({ homeHeroTitle: v })} />
@@ -5304,6 +5361,8 @@ const Admin: React.FC = () => {
                         <SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} />
                       </div>
                     </div>
+
+                    {/* Home Page: About Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">About Section</h4>
                       <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} />
@@ -5311,11 +5370,15 @@ const Admin: React.FC = () => {
                       <SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} />
                       <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} />
                     </div>
+
+                    {/* Home Page: Category Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Category Section</h4>
                       <SettingField label="Category Section Title" value={tempSettings.homeCategorySectionTitle} onChange={v => updateTempSettings({ homeCategorySectionTitle: v })} />
                       <SettingField label="Category Section Subtitle" value={tempSettings.homeCategorySectionSubtitle} onChange={v => updateTempSettings({ homeCategorySectionSubtitle: v })} />
                     </div>
+
+                    {/* Home Page: Trust Signals Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Trust Signals</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -5323,18 +5386,21 @@ const Admin: React.FC = () => {
                         <SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} />
                       </div>
                       <div className="grid grid-cols-1 gap-4">
+                        {/* Trust Item 1 */}
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
                           <SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} />
                           <SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} />
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
                           <IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} />
                         </div>
+                        {/* Trust Item 2 */}
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
                           <SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} />
                           <SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} />
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
                           <IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} />
                         </div>
+                        {/* Trust Item 3 */}
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
                           <SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} />
                           <SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} />
@@ -5355,12 +5421,15 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'collections') && (
                   <>
+                    {/* Collections Page: Hero Section */}
                     <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
                     <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
                     
+                    {/* Collections Page: Discovery Layout Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><Layers size={18} className="text-primary"/> Discovery Layout</h4>
                       <div className="space-y-4">
+                        {/* Subcategory navigation style selector */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Subcategory Navigation Style</label>
                           <select 
@@ -5373,6 +5442,7 @@ const Admin: React.FC = () => {
                           </select>
                           <p className="text-[10px] text-slate-500 italic mt-1">* Balanced row mode organizes subcategories into dense, high-efficiency horizontal scroll areas.</p>
                         </div>
+                        {/* Category card style selector */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Category Card Style</label>
                           <select 
@@ -5388,6 +5458,7 @@ const Admin: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Collections Page: General Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
                       <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
@@ -5410,6 +5481,7 @@ const Admin: React.FC = () => {
                       <SettingField label="Empty State Reset Label" value={tempSettings.emptyProductsResetLabel} onChange={v => updateTempSettings({ emptyProductsResetLabel: v })} />
                     </div>
 
+                    {/* Collections Page: Product Detail Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Product Detail Labels</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -5424,6 +5496,7 @@ const Admin: React.FC = () => {
                       </div>
                     </div>
 
+                    {/* Collections Page: Review Section Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Review Section Labels</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -5444,6 +5517,7 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'about') && (
                   <>
+                    {/* About Page: Hero Section */}
                     <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
                     <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
                     <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
@@ -5452,10 +5526,14 @@ const Admin: React.FC = () => {
                       <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
                       <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
                     </div>
+
+                    {/* About Page: History & Manifesto Section */}
                     <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
                     <SettingField label="Manifesto Title" value={tempSettings.aboutManifestoTitle} onChange={v => updateTempSettings({ aboutManifestoTitle: v })} />
                     <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
                     <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
+                    
+                    {/* About Page: Values & Gallery Section */}
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
                     <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
                     <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
@@ -5468,6 +5546,7 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'contact') && (
                   <>
+                    {/* Contact Page: Hero & Core Info Section */}
                     <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} />
                     <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" />
                     <div className="grid grid-cols-2 gap-4">
@@ -5476,6 +5555,8 @@ const Admin: React.FC = () => {
                     </div>
                     <SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} />
                     <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" />
+                    
+                    {/* Contact Page: Labels & Hours Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Contact Info Labels</h4>
                       <SettingField label="Info Title" value={tempSettings.contactInfoTitle} onChange={v => updateTempSettings({ contactInfoTitle: v })} />
@@ -5488,9 +5569,13 @@ const Admin: React.FC = () => {
                         <SettingField label="Weekends Hours" value={tempSettings.contactHoursWeekends} onChange={v => updateTempSettings({ contactHoursWeekends: v })} />
                       </div>
                     </div>
+
+                    {/* Contact Page: FAQs Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <FaqsManager faqs={tempSettings.contactFaqs || []} onChange={v => updateTempSettings({ contactFaqs: v })} />
                     </div>
+
+                    {/* Contact Page: Form Labels Section */}
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <SettingField label="Name Label" value={tempSettings.contactFormNameLabel} onChange={v => updateTempSettings({ contactFormNameLabel: v })} />
@@ -5508,12 +5593,15 @@ const Admin: React.FC = () => {
                     <SettingField label="Follow Us Label" value={tempSettings.contactFollowUsLabel} onChange={v => updateTempSettings({ contactFollowUsLabel: v })} />
                     <SettingField label="FAQ Title" value={tempSettings.contactFaqTitle} onChange={v => updateTempSettings({ contactFaqTitle: v })} />
                     <SettingField label="Last Updated Label" value={tempSettings.contactLastUpdatedLabel} onChange={v => updateTempSettings({ contactLastUpdatedLabel: v })} />
+                    
+                    {/* Contact Page: Socials Section */}
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Socials</h4>
                     <SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} />
                   </>
                )}
                 { (activeEditorSection === 'admin_login') && (
                   <>
+                    {/* Admin Login Experience: Hero Content Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><ShieldCheck size={18} className="text-primary"/> Admin Hero Content</h4>
                       <SettingField label="Hero Badge" value={tempSettings.adminLoginHeroBadge || ''} onChange={v => updateTempSettings({ adminLoginHeroBadge: v })} />
@@ -5528,10 +5616,12 @@ const Admin: React.FC = () => {
                             onChange={e => updateTempSettings({ adminLoginAccentEnabled: e.target.checked })} 
                             className="w-5 h-5 rounded border-slate-700 bg-slate-900"
                          />
-                         <span className="text-white font-bold text-sm">Enable Primary Glow Effect</span>
+                          {/* Toggle for visual glow effect on login page */}
+                          <span className="text-white font-bold text-sm">Enable Primary Glow Effect</span>
                       </div>
                     </div>
 
+                    {/* Admin Login Experience: Form Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Admin Form Labels & Placeholders</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -5550,6 +5640,7 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'client_login') && (
                   <>
+                    {/* Client Login Experience: Hero Content Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><Lock size={18} className="text-primary"/> Client Hero Content</h4>
                       <SettingField label="Hero Badge" value={tempSettings.clientLoginHeroBadge || ''} onChange={v => updateTempSettings({ clientLoginHeroBadge: v })} />
@@ -5558,8 +5649,10 @@ const Admin: React.FC = () => {
                       <SingleImageUploader label="Login Hero Image" value={tempSettings.clientLoginHeroImage || ''} onChange={v => updateTempSettings({ clientLoginHeroImage: v })} />
                     </div>
 
+                    {/* Client Login Experience: Form Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Client Form Labels & Placeholders</h4>
+                      {/* Toggle to enable/disable public client registration */}
                       <div className="flex items-center gap-4 mb-4">
                          <input 
                             type="checkbox" 
@@ -5583,6 +5676,7 @@ const Admin: React.FC = () => {
                       <SettingField label="Back to Site Label" value={tempSettings.clientLoginBackToSite || ''} onChange={v => updateTempSettings({ clientLoginBackToSite: v })} />
                     </div>
 
+                    {/* Client Login Experience: Success State Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Success State Content</h4>
                       <div className="grid grid-cols-2 gap-4">
@@ -5599,16 +5693,19 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'legal') && (
                   <>
+                    {/* Legal & Policy: Disclosure Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Disclosure</h4>
                       <SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
                       <SettingField label="Content" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="richtext" />
                     </div>
+                    {/* Legal & Policy: Privacy Policy Section */}
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                       <h4 className="text-white font-bold">Privacy Policy</h4>
                       <SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
                       <SettingField label="Content" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="richtext" />
                     </div>
+                    {/* Legal & Policy: Terms of Service Section */}
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                       <h4 className="text-white font-bold">Terms of Service</h4>
                       <SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
@@ -5618,10 +5715,12 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'integrations') && (
                   <>
+                    {/* Integrations: Third-Party Tracking Tip */}
                     <AdminTip title="Third-Party Tracking">
                        Add your tracking IDs here. These scripts will automatically inject into the head of your site for analytics and retargeting.
                     </AdminTip>
                     <IntegrationGuide />
+                    {/* Integrations: Analytics & Pixels Section */}
                     <div className="space-y-6">
                        <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Analytics & Pixels</h4>
                        <SettingField label="Google Analytics 4 (G-XXXXXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />

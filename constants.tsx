@@ -133,20 +133,20 @@ export const GUIDE_STEPS = [
       '5. VERIFY: Click the "Table Editor" icon (grid icon) in the sidebar. You should now see tables like "products", "settings", and "clients".',
       '6. INITIAL RECORD: Click the "settings" table. Ensure there is one row with the ID "global". If not, re-run the script.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v7.0 (SEO & Integrations Ready)
+    code: `-- MASTER ARCHITECTURE SCRIPT v8.0 (SEO & Integrations Ready)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. TABLES
 CREATE TABLE IF NOT EXISTS settings (
   id TEXT PRIMARY KEY DEFAULT 'global',
-  "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
+  "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT, "faviconUrl" TEXT, "ogImageUrl" TEXT,
   "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
-  "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT,
-  "departmentsLayout" TEXT, "subcategoryLayout" TEXT,
+  "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT, "navStickyHeader" BOOLEAN DEFAULT TRUE,
+  "departmentsLayout" TEXT, "subcategoryLayout" TEXT, "categoryCardStyle" TEXT, "navStyle" TEXT,
   "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT,
   "socialLinks" JSONB, "contactFaqs" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT,
   "footerNavHeader" TEXT, "footerPolicyHeader" TEXT, "footerCreatorRole" TEXT, "footerSocialsLabel" TEXT,
-  "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
+  "homeHeroBadge" TEXT, "homeHeroTitle" TEXT, "homeHeroSubtitle" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
   "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeNicheHeader" TEXT, "homeNicheSubheader" TEXT, "homeTrustHeader" TEXT, "homeTrustSubheader" TEXT, "homeTrustSectionTitle" TEXT,
   "homeTrustItem1Title" TEXT, "homeTrustItem1Desc" TEXT, "homeTrustItem1Icon" TEXT,
   "homeTrustItem2Title" TEXT, "homeTrustItem2Desc" TEXT, "homeTrustItem2Icon" TEXT,
@@ -167,7 +167,10 @@ CREATE TABLE IF NOT EXISTS settings (
   "contactSuccessTitle" TEXT, "contactConciergeLabel" TEXT, "contactSuccessMessage" TEXT, "contactSubmitNewBtn" TEXT,
   "contactVerifiedLabel" TEXT, "contactWhatsappLabel" TEXT, "contactFollowUsLabel" TEXT, "contactFaqTitle" TEXT, "contactLastUpdatedLabel" TEXT,
   "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactEmailLabel" TEXT, "contactPhoneLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
-  "adminLoginHeroImage" TEXT, "adminLoginAccentEnabled" BOOLEAN,
+  "adminLoginHeroImage" TEXT, "adminLoginAccentEnabled" BOOLEAN, "adminLoginHeroBadge" TEXT, "adminLoginHeroTitle" TEXT, "adminLoginHeroDescription" TEXT,
+  "adminLoginEmailLabel" TEXT, "adminLoginPasswordLabel" TEXT, "adminLoginEmailPlaceholder" TEXT, "adminLoginPasswordPlaceholder" TEXT, "adminLoginSubmitLabel" TEXT, "adminLoginSubmittingLabel" TEXT, "adminLoginGoogleLabel" TEXT, "adminLoginBackToSite" TEXT, "adminLoginDividerLabel" TEXT,
+  "clientLoginHeroBadge" TEXT, "clientLoginHeroTitle" TEXT, "clientLoginHeroDescription" TEXT, "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE, "clientLoginEmailLabel" TEXT, "clientLoginPasswordLabel" TEXT, "clientLoginEmailPlaceholder" TEXT, "clientLoginPasswordPlaceholder" TEXT, "clientLoginSubmitLabel" TEXT, "clientLoginSubmittingLabel" TEXT, "clientLoginGoogleLabel" TEXT, "clientLoginBackToSite" TEXT, "clientLoginHeroImage" TEXT,
+  "clientLoginSuccessBadge" TEXT, "clientLoginSuccessTitlePrefix" TEXT, "clientLoginSuccessTitleSuffix" TEXT, "clientLoginSuccessMessage" TEXT, "clientLoginSecurityLabel" TEXT, "clientLoginDividerLabel" TEXT,
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
   "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
   "googleAnalyticsId" TEXT, "googleTagManagerId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "pinterestTagId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "gscVerificationId" TEXT,
@@ -214,7 +217,7 @@ CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, pl
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
-CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT);
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT);
 CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
 
@@ -223,8 +226,46 @@ INSERT INTO settings (id, "companyName", slogan, "primaryColor")
 VALUES ('global', 'My Store', 'Curated Collection', '#E5C1CD')
 ON CONFLICT (id) DO NOTHING;
 
--- Add SEO columns to the settings table if they don't exist
+-- Add missing columns to the settings table if they don't exist
 ALTER TABLE settings 
+ADD COLUMN IF NOT EXISTS "faviconUrl" TEXT,
+ADD COLUMN IF NOT EXISTS "ogImageUrl" TEXT,
+ADD COLUMN IF NOT EXISTS "navStickyHeader" BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS "categoryCardStyle" TEXT,
+ADD COLUMN IF NOT EXISTS "navStyle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeHeroTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeHeroSubtitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginHeroBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginHeroTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginHeroDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginEmailLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginPasswordLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginEmailPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginPasswordPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginSubmitLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginSubmittingLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginGoogleLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginBackToSite" TEXT,
+ADD COLUMN IF NOT EXISTS "adminLoginDividerLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginHeroBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginHeroTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginHeroDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS "clientLoginEmailLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginPasswordLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginEmailPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginPasswordPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginSubmitLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginSubmittingLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginGoogleLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginBackToSite" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginHeroImage" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginSuccessBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginSuccessTitlePrefix" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginSuccessTitleSuffix" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginSuccessMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginSecurityLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginDividerLabel" TEXT,
 ADD COLUMN IF NOT EXISTS "seoTitle" TEXT,
 ADD COLUMN IF NOT EXISTS "seoDescription" TEXT,
 ADD COLUMN IF NOT EXISTS "seoOgImage" TEXT,
@@ -264,6 +305,9 @@ ADD COLUMN IF NOT EXISTS "customFooterScripts" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsServiceId" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsTemplateId" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsPublicKey" TEXT;
+
+-- Add missing columns to clients table
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS notes TEXT;
 
 UPDATE settings SET
   "seoTitle" = COALESCE("seoTitle", 'My Store'),
@@ -394,7 +438,7 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`,
-    codeLabel: 'Idempotent Master SQL Script v7.0'
+    codeLabel: 'Idempotent Master SQL Script v8.0'
   },
   {
     id: 'security-auth',
