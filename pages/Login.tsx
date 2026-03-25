@@ -12,7 +12,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [view, setView] = useState<'login' | 'signup' | 'forgot-password'>('login');
+  const [view, setView] = useState<'login' | 'forgot-password'>('login');
   const [name, setName] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,12 +20,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const viewParam = params.get('view');
-    if (viewParam === 'signup' && settings.clientLoginRegistrationEnabled === false) {
-      setView('login');
-      navigate('/login?view=login', { replace: true });
-    } else if (viewParam === 'signup') {
-      setView('signup');
-    } else if (viewParam === 'forgot-password') {
+    if (viewParam === 'forgot-password') {
       setView('forgot-password');
     } else {
       setView('login');
@@ -80,40 +75,7 @@ const Login: React.FC = () => {
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: {
-            full_name: name,
-            role: 'client'
-          }
-        }
-      });
-      if (error) throw error;
-      
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        setError('An account with this email already exists.');
-        setLoading(false);
-        return;
-      }
-
-      setSuccessMessage('Account created successfully! You can now log in.');
-      setView('login');
-    } catch (err: any) {
-      if (err.message.includes('already registered') || err.message.includes('User already exists') || err.message.includes('already exists')) {
-        setError('This email is already registered with a different account type. Please use a different email address.');
-      } else {
-        setError(err.message);
-      }
-    } finally {
-      setLoading(false);
-    }
+    navigate('/signup');
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -227,7 +189,7 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          {view === 'login' || view === 'signup' ? (
+          {view === 'login' ? (
             <div className="space-y-6">
                <button 
                 onClick={handleGoogleLogin}
@@ -244,23 +206,7 @@ const Login: React.FC = () => {
                 <div className="flex-grow border-t border-slate-800"></div>
               </div>
 
-              <form onSubmit={view === 'login' ? handleEmailLogin : handleEmailSignup} className="space-y-6">
-                {view === 'signup' && (
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-slate-500 mb-2">Note: If you are an administrator, please use a different email address.</p>
-                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
-                    <div className="relative group">
-                      <input 
-                        type="text" 
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full px-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                        placeholder="John Doe"
-                      />
-                    </div>
-                  </div>
-                )}
+              <form onSubmit={handleEmailLogin} className="space-y-6">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.clientLoginEmailLabel}</label>
                   <div className="relative group">
@@ -280,22 +226,20 @@ const Login: React.FC = () => {
                 <div className="space-y-1">
                   <div className="flex justify-between items-center ml-1">
                     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.clientLoginPasswordLabel}</label>
-                    {view === 'login' && (
-                      <button 
-                        type="button" 
-                        onClick={() => { navigate('/login?view=forgot-password', { replace: true }); setError(null); setSuccessMessage(null); }}
-                        className="text-[10px] text-primary hover:text-white transition-colors"
-                      >
-                        Forgot Password?
-                      </button>
-                    )}
+                    <button 
+                      type="button" 
+                      onClick={() => { navigate('/login?view=forgot-password', { replace: true }); setError(null); setSuccessMessage(null); }}
+                      className="text-[10px] text-primary hover:text-white transition-colors"
+                    >
+                      Forgot Password?
+                    </button>
                   </div>
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
                       type="password" 
                       required
-                      autoComplete={view === 'login' ? "current-password" : "new-password"}
+                      autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
@@ -313,7 +257,7 @@ const Login: React.FC = () => {
                     <Loader2 size={16} className="animate-spin" />
                   ) : (
                     <>
-                      <span>{view === 'login' ? settings.clientLoginSubmitLabel : 'Create Account'}</span>
+                      <span>{settings.clientLoginSubmitLabel}</span>
                       <ArrowRight size={16} />
                     </>
                   )}
@@ -323,10 +267,10 @@ const Login: React.FC = () => {
               {settings.clientLoginRegistrationEnabled !== false && (
                 <div className="text-center mt-6">
                   <Link 
-                    to={view === 'login' ? "/signup" : "/login?view=login"}
+                    to="/signup"
                     className="text-xs text-slate-400 hover:text-white transition-colors"
                   >
-                    {view === 'login' ? "Don't have an account? Sign up" : "Already have an account? Log in"}
+                    Don't have an account? Sign up
                   </Link>
                 </div>
               )}
