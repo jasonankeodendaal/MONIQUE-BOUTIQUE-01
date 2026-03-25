@@ -127,7 +127,7 @@ const Header: React.FC = () => {
                 </Link>
                 {settings.clientLoginRegistrationEnabled !== false && (
                   <Link
-                    to="/login?view=signup"
+                    to="/signup"
                     className={`px-5 py-2.5 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
                       !isDarkSection 
                         ? 'border-slate-200 text-slate-900 hover:border-slate-900 hover:bg-slate-900 hover:text-white' 
@@ -191,7 +191,7 @@ const Header: React.FC = () => {
                   </Link>
                   {settings.clientLoginRegistrationEnabled !== false && (
                     <Link
-                      to="/login?view=signup"
+                      to="/signup"
                       onClick={() => setIsOpen(false)}
                       className="text-xl font-serif font-bold text-primary"
                     >

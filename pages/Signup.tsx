@@ -24,6 +24,7 @@ const PROVINCES = [
 ];
 
 const Signup: React.FC = () => {
+  console.log('Signup component rendering');
   const { settings } = useSettings();
   const navigate = useNavigate();
   
