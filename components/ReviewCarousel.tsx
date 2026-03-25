@@ -74,9 +74,6 @@ const ReviewCarousel: React.FC = () => {
     setShowReviewForm(true);
   };
 
-  // Duplicate reviews for infinite scroll effect
-  const displayReviews = allReviews.length > 0 ? [...allReviews, ...allReviews, ...allReviews] : [];
-
   return (
     <section className="py-12 md:py-24 bg-copper-wash overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-4 md:px-6 mb-12 text-center relative z-10">
@@ -186,23 +183,9 @@ const ReviewCarousel: React.FC = () => {
       )}
 
       {allReviews.length > 0 && (
-        <div className="relative flex overflow-hidden group">
-          <motion.div
-            className="flex gap-6 py-4"
-            animate={{
-              x: [0, -100 * allReviews.length + "%"],
-            }}
-            transition={{
-              x: {
-                repeat: Infinity,
-                repeatType: "loop",
-                duration: Math.max(20, allReviews.length * 8), // Slow auto carousel
-                ease: "linear",
-              },
-            }}
-            style={{ width: "fit-content" }}
-          >
-            {displayReviews.map((review, idx) => {
+        <div className="relative w-full overflow-x-auto pb-8 hide-scrollbar">
+          <div className="flex gap-6 px-4 md:px-6 w-max mx-auto">
+            {allReviews.map((review, idx) => {
               const CardWrapper = review.type === 'product' ? Link : 'div';
               const wrapperProps = review.type === 'product' ? { to: `/product/${review.productId}` } : {};
               
@@ -255,7 +238,7 @@ const ReviewCarousel: React.FC = () => {
                 </CardWrapper>
               );
             })}
-          </motion.div>
+          </div>
         </div>
       )}
     </section>

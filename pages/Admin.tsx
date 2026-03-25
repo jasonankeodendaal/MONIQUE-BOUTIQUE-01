@@ -5251,6 +5251,18 @@ const Admin: React.FC = () => {
                           </select>
                           <p className="text-[10px] text-slate-500 italic mt-1">* Dropdown mode moves department links into a hover menu in the top navigation bar.</p>
                         </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Header Navigation Style</label>
+                          <select 
+                            className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" 
+                            value={tempSettings.navStyle || 'classic'} 
+                            onChange={e => updateTempSettings({ navStyle: e.target.value as any })}
+                          >
+                            <option value="classic">Classic (Centered)</option>
+                            <option value="modern">Modern (Left Aligned)</option>
+                            <option value="minimal">Minimal (Floating Pill)</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
 
@@ -5347,6 +5359,18 @@ const Admin: React.FC = () => {
                             <option value="scrollable-rows">Infinite Row Scroll (3-4 Balanced Rows)</option>
                           </select>
                           <p className="text-[10px] text-slate-500 italic mt-1">* Balanced row mode organizes subcategories into dense, high-efficiency horizontal scroll areas.</p>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Category Card Style</label>
+                          <select 
+                            className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none" 
+                            value={tempSettings.categoryCardStyle || 'minimal'} 
+                            onChange={e => updateTempSettings({ categoryCardStyle: e.target.value as any })}
+                          >
+                            <option value="minimal">Minimal (Text Only)</option>
+                            <option value="detailed">Detailed (Image + Description)</option>
+                            <option value="glass">Glassmorphism (Frosted Overlay)</option>
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -5542,6 +5566,7 @@ const Admin: React.FC = () => {
                        <SettingField label="Meta Pixel ID (Dataset ID)" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
                        <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
                        <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
+                       <SettingField label="Webhook URL (Zapier/Make)" value={tempSettings.webhookUrl || ''} onChange={v => updateTempSettings({ webhookUrl: v })} />
                     </div>
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                        <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Communications</h4>

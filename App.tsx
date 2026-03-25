@@ -245,7 +245,7 @@ const Footer: React.FC = () => {
                         'bg-slate-700'
                       }`} 
                     />
-                    <Link to={user ? "/admin" : "/login"} className="opacity-40 hover:opacity-100 hover:text-white transition-all text-[8px] md:text-[11px] font-black">
+                    <Link to={user ? "/admin" : "/admin/login"} className="opacity-40 hover:opacity-100 hover:text-white transition-all text-[8px] md:text-[11px] font-black">
                       PORTAL
                     </Link>
                   </div>
@@ -908,7 +908,7 @@ const App: React.FC = () => {
       await supabase.auth.signOut();
     }
     setUser(null);
-    window.location.hash = '#/login';
+    window.location.hash = '#/';
   };
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {

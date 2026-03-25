@@ -58,6 +58,12 @@ const Login: React.FC = () => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      
+      if (data.user?.user_metadata?.role !== 'client' && data.user?.user_metadata?.role !== undefined) {
+        await supabase.auth.signOut();
+        throw new Error("Admins must use the admin portal to login.");
+      }
+      
       handleSuccessfulAuth(data.user);
     } catch (err: any) {
       if (err.message === 'Invalid login credentials') {

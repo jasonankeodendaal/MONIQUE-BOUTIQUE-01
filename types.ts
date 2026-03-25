@@ -145,6 +145,8 @@ export interface SiteSettings {
   // Layout Controls
   departmentsLayout?: 'grid' | 'dropdown';
   subcategoryLayout?: 'wrapped' | 'scrollable-rows';
+  categoryCardStyle?: 'minimal' | 'detailed' | 'glass';
+  navStyle?: 'classic' | 'modern' | 'minimal';
 
   // Contact Info
   contactEmail: string;

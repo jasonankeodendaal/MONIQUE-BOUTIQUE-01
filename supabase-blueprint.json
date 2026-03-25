@@ -86,6 +86,8 @@
         "pinterestTagId": { "type": "string" },
         "amazonAssociateId": { "type": "string" },
         "webhookUrl": { "type": "string" },
+        "categoryCardStyle": { "type": "string" },
+        "navStyle": { "type": "string" },
         "gscVerificationId": { "type": "string" },
         "customHeaderScripts": { "type": "string" },
         "customFooterScripts": { "type": "string" },

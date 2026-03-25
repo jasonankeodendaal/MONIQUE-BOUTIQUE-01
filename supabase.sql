@@ -1,7 +1,94 @@
--- Master SQL Script for Site Settings Upgrade
--- Run this in your Supabase SQL Editor (Pilot Tab)
+-- MASTER ARCHITECTURE SCRIPT v7.0 (SEO & Integrations Ready)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Add SEO columns to the settings table
+-- 1. TABLES
+CREATE TABLE IF NOT EXISTS settings (
+  id TEXT PRIMARY KEY DEFAULT 'global',
+  "companyName" TEXT, slogan TEXT, "companyLogo" TEXT, "companyLogoUrl" TEXT,
+  "primaryColor" TEXT, "secondaryColor" TEXT, "accentColor" TEXT,
+  "navHomeLabel" TEXT, "navProductsLabel" TEXT, "navAboutLabel" TEXT, "navContactLabel" TEXT, "navDashboardLabel" TEXT,
+  "departmentsLayout" TEXT, "subcategoryLayout" TEXT, "categoryCardStyle" TEXT, "navStyle" TEXT,
+  "contactEmail" TEXT, "contactPhone" TEXT, "whatsappNumber" TEXT, address TEXT,
+  "socialLinks" JSONB, "contactFaqs" JSONB, "footerDescription" TEXT, "footerCopyrightText" TEXT,
+  "footerNavHeader" TEXT, "footerPolicyHeader" TEXT, "footerCreatorRole" TEXT, "footerSocialsLabel" TEXT,
+  "homeHeroBadge" TEXT, "homeAboutTitle" TEXT, "homeAboutDescription" TEXT, "homeAboutImage" TEXT, "homeAboutCta" TEXT,
+  "homeCategorySectionTitle" TEXT, "homeCategorySectionSubtitle" TEXT, "homeNicheHeader" TEXT, "homeNicheSubheader" TEXT, "homeTrustHeader" TEXT, "homeTrustSubheader" TEXT, "homeTrustSectionTitle" TEXT,
+  "homeTrustItem1Title" TEXT, "homeTrustItem1Desc" TEXT, "homeTrustItem1Icon" TEXT,
+  "homeTrustItem2Title" TEXT, "homeTrustItem2Desc" TEXT, "homeTrustItem2Icon" TEXT,
+  "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT,
+  "homeReadStoryBtn" TEXT, "homeAboutCuratorLabel" TEXT, "homeAboutNarrativeLabel" TEXT,
+  "homeCategoryShopByLabel" TEXT, "homeCategoryPortfolioLabel" TEXT, "homeCategoryDiscoverLabel" TEXT,
+  "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroImage" TEXT, "productsHeroImages" JSONB, "productsHeroImagesArray" JSONB,
+  "productsSearchPlaceholder" TEXT, "aboutHeroTitle" TEXT, "aboutHeroSubtitle" TEXT, "aboutMainImage" TEXT,
+  "aboutEstablishedYear" TEXT, "aboutEstablishedDate" BIGINT, "aboutFounderName" TEXT, "aboutLocation" TEXT,
+  "aboutHistoryBadge" TEXT, "aboutHistoryTitle" TEXT, "aboutHistoryBody" TEXT, "aboutManifestoBadge" TEXT, "aboutManifestoTitle" TEXT,
+  "aboutMissionTitle" TEXT, "aboutMissionBody" TEXT, "aboutMissionIcon" TEXT,
+  "aboutCommunityTitle" TEXT, "aboutCommunityBody" TEXT, "aboutCommunityIcon" TEXT,
+  "aboutIntegrityTitle" TEXT, "aboutIntegrityBody" TEXT, "aboutIntegrityIcon" TEXT,
+  "aboutSignatureImage" TEXT, "aboutGalleryImages" JSONB, "aboutEstLabel" TEXT, "aboutVerifiedNarrativeLabel" TEXT,
+  "aboutCuratorsEditTitle" TEXT, "aboutCuratorsEditDesc" TEXT, "aboutExploreCollectionBtn" TEXT, "aboutPortfolioVerifiedLabel" TEXT,
+  "contactHeroTitle" TEXT, "contactHeroSubtitle" TEXT, "contactFormNameLabel" TEXT, "contactFormEmailLabel" TEXT,
+  "contactFormSubjectLabel" TEXT, "contactFormMessageLabel" TEXT, "contactFormButtonText" TEXT,
+  "contactSuccessTitle" TEXT, "contactConciergeLabel" TEXT, "contactSuccessMessage" TEXT, "contactSubmitNewBtn" TEXT,
+  "contactVerifiedLabel" TEXT, "contactWhatsappLabel" TEXT, "contactFollowUsLabel" TEXT, "contactFaqTitle" TEXT, "contactLastUpdatedLabel" TEXT,
+  "contactInfoTitle" TEXT, "contactAddressLabel" TEXT, "contactEmailLabel" TEXT, "contactPhoneLabel" TEXT, "contactHoursLabel" TEXT, "contactHoursWeekdays" TEXT, "contactHoursWeekends" TEXT,
+  "adminLoginHeroImage" TEXT, "adminLoginAccentEnabled" BOOLEAN,
+  "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
+  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
+  "googleAnalyticsId" TEXT, "googleTagManagerId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "pinterestTagId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "gscVerificationId" TEXT,
+  "customHeaderScripts" TEXT, "customFooterScripts" TEXT, "seoTitle" TEXT, "seoDescription" TEXT, "seoOgImage" TEXT,
+  "enableSchemaMarkup" BOOLEAN DEFAULT FALSE, "schemaType" TEXT, "customSchemaJson" TEXT,
+  "localBusinessName" TEXT, "localBusinessAddress" TEXT, "localBusinessPhone" TEXT, "localBusinessOpeningHours" TEXT, "localBusinessCountry" TEXT,
+  "localBusinessLat" NUMERIC, "localBusinessLng" NUMERIC, "localBusinessWebsite" TEXT, "localBusinessCategory" TEXT,
+  "robotsGeneratedAt" BIGINT, "sitemapGeneratedAt" BIGINT, "robotsStatus" TEXT DEFAULT 'pending', "sitemapStatus" TEXT DEFAULT 'pending',
+  "seoAutoCleanUrls" BOOLEAN DEFAULT TRUE, "seoEnableLazyLoading" BOOLEAN DEFAULT TRUE, "seoRequireAltText" BOOLEAN DEFAULT FALSE, "seoAutoRelatedProducts" BOOLEAN DEFAULT TRUE,
+  "seoForceHttps" BOOLEAN DEFAULT TRUE, "seoEnableCanonicalTags" BOOLEAN DEFAULT TRUE, "seoShowLastUpdated" BOOLEAN DEFAULT TRUE, "isMaintenanceMode" BOOLEAN DEFAULT FALSE,
+  "maintenanceTitle" TEXT, "maintenanceMessage" TEXT, "loadingMessage" TEXT,
+  "homeNicheDescription" TEXT, "homeTrustBadge" TEXT, "homeTrustTitle" TEXT, "homeTrustDescription" TEXT, "homeTrustCta" TEXT,
+  "aboutHeroBadge" TEXT, "aboutHeroDescription" TEXT, "aboutIntegrityBadge1" TEXT, "aboutIntegrityBadge2" TEXT,
+  "contactHeroBadge" TEXT, "contactHeroDescription" TEXT, "contactFormNamePlaceholder" TEXT, "contactFormEmailPlaceholder" TEXT,
+  "contactFormSubjectPlaceholder" TEXT, "contactFormMessagePlaceholder" TEXT, "contactFormSubmitLabel" TEXT, "contactFormSubmittingLabel" TEXT, "contactFormSuccessMessage" TEXT, "contactSocialTitle" TEXT,
+  "productsHeroBadge" TEXT, "productsHeroDescription" TEXT, "productsFilterAll" TEXT, "productsEmptyMessage" TEXT,
+  "productsDeptLabel" TEXT, "productsAllCollectionsLabel" TEXT, "productsBrowseEverythingLabel" TEXT, "productsNichesLabel" TEXT, "productsClearFilterLabel" TEXT, "productsShowAllLabel" TEXT, "productsSelectionsLabel" TEXT, "productRefLabel" TEXT,
+  "sortLatestLabel" TEXT, "sortPriceLowLabel" TEXT, "sortPriceHighLabel" TEXT, "sortNameLabel" TEXT,
+  "emptyProductsTitle" TEXT, "emptyProductsResetLabel" TEXT,
+  "productNotFoundTitle" TEXT, "productNotFoundCta" TEXT, "productPriceLabel" TEXT, "productSpecsLabel" TEXT, "productLastUpdatedLabel" TEXT, "productMerchantVerifiedLabel" TEXT, "productAcquisitionLabel" TEXT,
+  "reviewSectionTitle" TEXT, "reviewWriteCta" TEXT, "reviewCountLabel" TEXT, "reviewRatingLabel" TEXT, "reviewIdentityLabel" TEXT, "reviewIdentityPlaceholder" TEXT, "reviewCommentPlaceholder" TEXT, "reviewSubmitLabel" TEXT, "reviewSubmittingLabel" TEXT, "emptyReviewsMessage" TEXT,
+  "relatedProductsTitle" TEXT, "modalReturnTitle" TEXT, "modalCloseTitle" TEXT, "modalSlideLabel" TEXT, "modalOfLabel" TEXT,
+  "sharePreviewLabel" TEXT, "shareTitlePrefix" TEXT, "shareTitleSuffix" TEXT, "shareSubtitle" TEXT, "shareLaunchLabel" TEXT, "shareCopiedLabel" TEXT, "shareCopyLinkLabel" TEXT, "shareSecurityLabel" TEXT,
+  "loginHeroBadge" TEXT, "loginHeroTitle" TEXT, "loginHeroDescription" TEXT, "loginEmailLabel" TEXT, "loginPasswordLabel" TEXT, "loginEmailPlaceholder" TEXT, "loginPasswordPlaceholder" TEXT, "loginSubmitLabel" TEXT, "loginSubmittingLabel" TEXT, "loginGoogleLabel" TEXT, "loginBackToSite" TEXT,
+  "loginSuccessBadge" TEXT, "loginSuccessTitlePrefix" TEXT, "loginSuccessTitleSuffix" TEXT, "loginSuccessMessage" TEXT, "loginSecurityLabel" TEXT, "loginDividerLabel" TEXT,
+  "adminSaveIndicatorErrorTitle" TEXT, "adminSaveIndicatorErrorMessage" TEXT, "adminSaveIndicatorSuccessTitle" TEXT, "adminSaveIndicatorSuccessMessage" TEXT,
+  "adminUploadLabel" TEXT, "adminSocialNewPlatform" TEXT, "adminSocialProfilesLabel" TEXT, "adminSocialAddLabel" TEXT, "adminSocialPlatformPlaceholder" TEXT, "adminSocialUrlPlaceholder" TEXT, "adminSocialEmptyMessage" TEXT,
+  "adminFaqNewQuestion" TEXT, "adminFaqNewAnswer" TEXT, "adminFaqLabel" TEXT, "adminFaqAddLabel" TEXT, "adminFaqQuestionLabel" TEXT, "adminFaqAnswerLabel" TEXT, "adminFaqQuestionPlaceholder" TEXT, "adminFaqAnswerPlaceholder" TEXT, "adminFaqEmptyMessage" TEXT,
+  "adminTrafficLiveLabel" TEXT, "adminTrafficLocationTitle" TEXT, "adminTrafficTotalHitsLabel" TEXT, "adminTrafficMapEnlargeLabel" TEXT, "adminTrafficMapModalTitle" TEXT, "adminTrafficMapModalSubtitle" TEXT, "adminTrafficMapModalActiveNode" TEXT, "adminTrafficMapModalNodeDescription" TEXT, "adminTrafficMapModalCategorizedLabel" TEXT, "adminTrafficMapModalSortedLabel" TEXT, "adminTrafficMapModalInstructions" TEXT, "adminTrafficMapModalVisitorNode" TEXT, "adminTrafficMapModalInactiveZone" TEXT, "adminTrafficTableLocationHeader" TEXT, "adminTrafficTableHitsHeader" TEXT, "adminTrafficTableDeviceHeader" TEXT, "adminTrafficStatusOnline" TEXT, "adminTrafficEmptyMessage" TEXT, "adminTrafficEmptyDescription" TEXT,
+  "adminDeviceBreakdownTitle" TEXT, "adminDeviceBreakdownSubtitle" TEXT, "adminDeviceShareLabel" TEXT,
+  "adminPermissionOwnerMessage" TEXT, "adminPermissionDeselectAll" TEXT, "adminPermissionSelectAll" TEXT,
+  "reviewDefaultName" TEXT, "shareCopySuccessMessage" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS enquiries (id TEXT PRIMARY KEY, name TEXT, email TEXT, whatsapp TEXT, subject TEXT, message TEXT, "createdAt" BIGINT, status TEXT);
+CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TEXT, role TEXT, permissions JSONB, "password" TEXT, "autoWipeExempt" BOOLEAN, "createdAt" BIGINT, "lastActive" BIGINT, "profileImage" TEXT, phone TEXT, address TEXT);
+CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
+CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
+CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies JSONB, "actionItems" JSONB, steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
+CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT);
+CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
+CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
+
+-- 2. INITIAL DATA & SEO DEFAULTS
+INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
+VALUES ('global', 'My Store', 'Curated Collection', '#E5C1CD')
+ON CONFLICT (id) DO NOTHING;
+
+-- Add SEO columns to the settings table if they don't exist
 ALTER TABLE settings 
 ADD COLUMN IF NOT EXISTS "seoTitle" TEXT,
 ADD COLUMN IF NOT EXISTS "seoDescription" TEXT,
@@ -36,6 +123,8 @@ ADD COLUMN IF NOT EXISTS "tiktokPixelId" TEXT,
 ADD COLUMN IF NOT EXISTS "pinterestTagId" TEXT,
 ADD COLUMN IF NOT EXISTS "amazonAssociateId" TEXT,
 ADD COLUMN IF NOT EXISTS "webhookUrl" TEXT,
+ADD COLUMN IF NOT EXISTS "categoryCardStyle" TEXT,
+ADD COLUMN IF NOT EXISTS "navStyle" TEXT,
 ADD COLUMN IF NOT EXISTS "gscVerificationId" TEXT,
 ADD COLUMN IF NOT EXISTS "customHeaderScripts" TEXT,
 ADD COLUMN IF NOT EXISTS "customFooterScripts" TEXT,
@@ -43,18 +132,12 @@ ADD COLUMN IF NOT EXISTS "emailJsServiceId" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsTemplateId" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsPublicKey" TEXT;
 
--- Ensure the 'global' row exists
-INSERT INTO settings (id) 
-VALUES ('global') 
-ON CONFLICT (id) DO NOTHING;
-
--- Populate SEO Defaults
 UPDATE settings SET
-  "seoTitle" = COALESCE("seoTitle", 'Findara'),
-  "seoDescription" = COALESCE("seoDescription", 'Findara is my personal curation platform, dedicated to discovering and showcasing the most Fashion, Tech and Home accessories from across the continent.'),
-  "seoOgImage" = COALESCE("seoOgImage", 'https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png'),
-  "googleAnalyticsId" = COALESCE("googleAnalyticsId", 'G-PP15D984GN'),
-  "gscVerificationId" = COALESCE("gscVerificationId", 'sTIigqcooUP2WH9dBXRln_odKfNTrOveiyo4mSjXn0A'),
+  "seoTitle" = COALESCE("seoTitle", 'My Store'),
+  "seoDescription" = COALESCE("seoDescription", 'My personal curation platform, dedicated to discovering and showcasing the most Fashion, Tech and Home accessories from across the continent.'),
+  "seoOgImage" = COALESCE("seoOgImage", ''),
+  "googleAnalyticsId" = COALESCE("googleAnalyticsId", ''),
+  "gscVerificationId" = COALESCE("gscVerificationId", ''),
   "seoAutoCleanUrls" = COALESCE("seoAutoCleanUrls", true),
   "seoEnableLazyLoading" = COALESCE("seoEnableLazyLoading", true),
   "seoRequireAltText" = COALESCE("seoRequireAltText", true),
@@ -63,7 +146,7 @@ UPDATE settings SET
   "seoEnableCanonicalTags" = COALESCE("seoEnableCanonicalTags", true),
   "seoShowLastUpdated" = COALESCE("seoShowLastUpdated", true),
   "enableSchemaMarkup" = COALESCE("enableSchemaMarkup", false),
-  "localBusinessName" = COALESCE("localBusinessName", 'Findara Luxury'),
+  "localBusinessName" = COALESCE("localBusinessName", 'My Store'),
   "localBusinessCategory" = COALESCE("localBusinessCategory", 'Retail Store'),
   "localBusinessAddress" = COALESCE("localBusinessAddress", '123 Fashion Ave, New York, NY 10001'),
   "localBusinessCountry" = COALESCE("localBusinessCountry", 'United States'),
@@ -74,27 +157,107 @@ UPDATE settings SET
   "localBusinessLng" = COALESCE("localBusinessLng", -74.0060)
 WHERE id = 'global';
 
--- Wishlist Table
-CREATE TABLE IF NOT EXISTS wishlist (
-    id TEXT PRIMARY KEY,
-    "userId" TEXT,
-    "productId" TEXT,
-    "createdAt" BIGINT
-);
-ALTER TABLE wishlist ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can manage their own wishlist" ON wishlist FOR ALL USING (auth.uid()::text = "userId");
-CREATE POLICY "Public read wishlist" ON wishlist FOR SELECT USING (true);
+INSERT INTO admin_users (id, name, email, role, permissions)
+VALUES ('admin-1', 'System Administrator', 'ankebaeleejason@gmail.com', 'owner', '["all"]'::jsonb)
+ON CONFLICT (id) DO NOTHING;
 
--- Site Reviews Table
-CREATE TABLE IF NOT EXISTS site_reviews (
-    id TEXT PRIMARY KEY,
-    "userName" TEXT,
-    rating NUMERIC,
-    comment TEXT,
-    "createdAt" BIGINT,
-    status TEXT DEFAULT 'pending'
-);
+-- 3. ENABLE RLS
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hero_slides ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subcategories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_stats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE enquiries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wishlist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_reviews ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can insert site_reviews" ON site_reviews FOR INSERT WITH CHECK (true);
-CREATE POLICY "Public read approved site_reviews" ON site_reviews FOR SELECT USING (true);
-CREATE POLICY "Admin all site_reviews" ON site_reviews FOR ALL USING (true);
+
+-- 4. POLICIES (Idempotent)
+DO $$ 
+BEGIN
+    -- DROP ALL POLICIES FIRST
+    DROP POLICY IF EXISTS "Public Read settings" ON settings;
+    DROP POLICY IF EXISTS "Public Read products" ON products;
+    DROP POLICY IF EXISTS "Public Read hero" ON hero_slides;
+    DROP POLICY IF EXISTS "Public Read cat" ON categories;
+    DROP POLICY IF EXISTS "Public Read sub" ON subcategories;
+    DROP POLICY IF EXISTS "Public Read training" ON training_modules;
+    DROP POLICY IF EXISTS "Public Read stats" ON product_stats;
+    DROP POLICY IF EXISTS "Enable all for anon" ON settings;
+    DROP POLICY IF EXISTS "Enable all for anon products" ON products;
+    DROP POLICY IF EXISTS "Enable all for anon enquiries" ON enquiries;
+    DROP POLICY IF EXISTS "Enable all for anon logs" ON traffic_logs;
+    DROP POLICY IF EXISTS "Enable all for anon admins" ON admin_users;
+    DROP POLICY IF EXISTS "Enable all for anon stats" ON product_stats;
+    DROP POLICY IF EXISTS "Enable all for anon hero" ON hero_slides;
+    DROP POLICY IF EXISTS "Enable all for anon cat" ON categories;
+    DROP POLICY IF EXISTS "Enable all for anon sub" ON subcategories;
+    DROP POLICY IF EXISTS "Enable all for anon history" ON product_history;
+    DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
+    DROP POLICY IF EXISTS "Enable all for anon system_logs" ON system_logs;
+    DROP POLICY IF EXISTS "Enable all for anon orders" ON orders;
+    DROP POLICY IF EXISTS "Enable all for anon clients" ON clients;
+    DROP POLICY IF EXISTS "Enable all for anon wishlist" ON wishlist;
+    DROP POLICY IF EXISTS "Enable all for anon site_reviews" ON site_reviews;
+END $$;
+
+-- RECREATE POLICIES
+CREATE POLICY "Public Read settings" ON settings FOR SELECT USING (true);
+CREATE POLICY "Public Read products" ON products FOR SELECT USING (true);
+CREATE POLICY "Public Read hero" ON hero_slides FOR SELECT USING (true);
+CREATE POLICY "Public Read cat" ON categories FOR SELECT USING (true);
+CREATE POLICY "Public Read sub" ON subcategories FOR SELECT USING (true);
+CREATE POLICY "Public Read training" ON training_modules FOR SELECT USING (true);
+CREATE POLICY "Public Read stats" ON product_stats FOR SELECT USING (true);
+
+CREATE POLICY "Enable all for anon" ON settings FOR ALL USING (true);
+CREATE POLICY "Enable all for anon products" ON products FOR ALL USING (true);
+CREATE POLICY "Enable all for anon enquiries" ON enquiries FOR ALL USING (true);
+CREATE POLICY "Enable all for anon logs" ON traffic_logs FOR ALL USING (true);
+CREATE POLICY "Enable all for anon admins" ON admin_users FOR ALL USING (true);
+CREATE POLICY "Enable all for anon stats" ON product_stats FOR ALL USING (true);
+CREATE POLICY "Enable all for anon hero" ON hero_slides FOR ALL USING (true);
+CREATE POLICY "Enable all for anon cat" ON categories FOR ALL USING (true);
+CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
+CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
+CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
+CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (true);
+CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true);
+CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);
+CREATE POLICY "Enable all for anon wishlist" ON wishlist FOR ALL USING (true);
+CREATE POLICY "Enable all for anon site_reviews" ON site_reviews FOR ALL USING (true);
+
+-- 5. AUTH SYNC TRIGGER
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Set default role to 'client' in metadata if not present
+  IF NEW.raw_user_meta_data IS NULL THEN
+    NEW.raw_user_meta_data := jsonb_build_object('role', 'client');
+  ELSIF NEW.raw_user_meta_data->>'role' IS NULL THEN
+    NEW.raw_user_meta_data := NEW.raw_user_meta_data || jsonb_build_object('role', 'client');
+  END IF;
+
+  INSERT INTO public.clients (id, email, name, "createdAt")
+  VALUES (
+    new.id, 
+    new.email, 
+    COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    EXTRACT(EPOCH FROM now()) * 1000
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
