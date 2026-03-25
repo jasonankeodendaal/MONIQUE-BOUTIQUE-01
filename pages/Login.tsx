@@ -20,7 +20,10 @@ const Login: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const viewParam = params.get('view');
-    if (viewParam === 'signup') {
+    if (viewParam === 'signup' && settings.clientLoginRegistrationEnabled === false) {
+      setView('login');
+      navigate('/login?view=login', { replace: true });
+    } else if (viewParam === 'signup') {
       setView('signup');
     } else if (viewParam === 'forgot-password') {
       setView('forgot-password');
@@ -317,20 +320,22 @@ const Login: React.FC = () => {
                 </button>
               </form>
               
-              <div className="text-center mt-6">
-                <button 
-                  type="button"
-                  onClick={() => { 
-                    const newView = view === 'login' ? 'signup' : 'login';
-                    navigate(`/login?view=${newView}`, { replace: true });
-                    setError(null); 
-                    setSuccessMessage(null); 
-                  }}
-                  className="text-xs text-slate-400 hover:text-white transition-colors"
-                >
-                  {view === 'login' ? "Don't have an account? Sign up" : "Already have an account? Log in"}
-                </button>
-              </div>
+              {settings.clientLoginRegistrationEnabled !== false && (
+                <div className="text-center mt-6">
+                  <button 
+                    type="button"
+                    onClick={() => { 
+                      const newView = view === 'login' ? 'signup' : 'login';
+                      navigate(`/login?view=${newView}`, { replace: true });
+                      setError(null); 
+                      setSuccessMessage(null); 
+                    }}
+                    className="text-xs text-slate-400 hover:text-white transition-colors"
+                  >
+                    {view === 'login' ? "Don't have an account? Sign up" : "Already have an account? Log in"}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">

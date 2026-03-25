@@ -112,14 +112,14 @@ const Hero: React.FC = () => {
               
               <h1 className="font-serif text-white mb-4 md:mb-6 leading-[1.1] md:leading-[1] tracking-tighter text-balance capitalize"
                   style={{ fontSize: 'clamp(1.6rem, 7vw, 4.8rem)' }}>
-                {slide.title.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
+                {(settings.homeHeroTitle || slide.title).split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
                 <span className="text-primary italic font-light">
-                  {slide.title.split(' ').slice(-1)}
+                  {(settings.homeHeroTitle || slide.title).split(' ').slice(-1)}
                 </span>
               </h1>
               
               <p className="text-xs md:text-lg text-white/70 md:text-white/60 mb-6 md:mb-8 max-w-xs md:max-w-md font-light leading-relaxed text-balance mx-auto">
-                {slide.subtitle}
+                {settings.homeHeroSubtitle || slide.subtitle}
               </p>
               
               <Link 

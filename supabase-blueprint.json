@@ -124,7 +124,14 @@
         "customFooterScripts": { "type": "string" },
         "emailJsServiceId": { "type": "string" },
         "emailJsTemplateId": { "type": "string" },
-        "emailJsPublicKey": { "type": "string" }
+        "emailJsPublicKey": { "type": "string" },
+        "faviconUrl": { "type": "string" },
+        "ogImageUrl": { "type": "string" },
+        "navStickyHeader": { "type": "boolean" },
+        "homeHeroTitle": { "type": "string" },
+        "homeHeroSubtitle": { "type": "string" },
+        "clientLoginRegistrationEnabled": { "type": "boolean" },
+        "adminLoginDividerLabel": { "type": "string" }
       }
     },
     "AdminUser": {
@@ -151,6 +158,7 @@
         "phone": { "type": "string" },
         "company": { "type": "string" },
         "status": { "type": "string" },
+        "notes": { "type": "string" },
         "created_at": { "type": "number" }
       }
     }

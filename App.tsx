@@ -766,7 +766,7 @@ const App: React.FC = () => {
       };
       const metaTitle = settings.companyName;
       const metaDesc = settings.slogan || settings.footerDescription;
-      const metaImage = settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png";
+      const metaImage = settings.ogImageUrl || settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png";
       updateOrAddMeta('og:title', metaTitle);
       updateOrAddMeta('og:description', metaDesc);
       updateOrAddMeta('og:image', metaImage);
@@ -777,10 +777,10 @@ const App: React.FC = () => {
       updateOrAddMeta('description', metaDesc, 'name');
     };
     updateMetaTags();
-    if (settings.companyLogoUrl) {
+    if (settings.faviconUrl || settings.companyLogoUrl) {
       let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
       if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
-      link.href = settings.companyLogoUrl;
+      link.href = settings.faviconUrl || settings.companyLogoUrl || '';
     }
   }, [settings]);
 

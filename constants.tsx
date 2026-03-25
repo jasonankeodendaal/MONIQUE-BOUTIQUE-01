@@ -802,6 +802,9 @@ export const INITIAL_SETTINGS: SiteSettings = {
   navAboutLabel: 'My Journey',
   navContactLabel: 'Concierge',
   navDashboardLabel: 'Portal',
+  faviconUrl: '',
+  ogImageUrl: '',
+  navStickyHeader: true,
 
   contactEmail: 'contact@findara.com',
   contactPhone: '+27 76 836 0325',
@@ -834,6 +837,8 @@ export const INITIAL_SETTINGS: SiteSettings = {
   footerSocialsLabel: 'Socials :',
 
   // Home Page Content
+  homeHeroTitle: 'Curated Luxury',
+  homeHeroSubtitle: 'Discover the finest selections from global brands.',
   homeHeroBadge: 'Curator Exclusive',
   homeAboutTitle: 'The Curator\'s Journey.',
   homeAboutDescription: 'What started as a personal quest for the perfect wardrobe evolved into this curated collection. I believe that style shouldn\'t be a luxury, but a well-curated choice. My bridge page connects you to the pieces that define my daily style, sourced from partners I trust like Shein and beyond.',
@@ -1341,6 +1346,7 @@ Address: Mokopane, Limpopo, 0601`,
   adminLoginSubmitLabel: 'Authenticate',
   adminLoginSubmittingLabel: 'Authenticating...',
   adminLoginGoogleLabel: 'Admin Google Auth',
+  adminLoginDividerLabel: 'OR SECURE EMAIL',
   adminLoginBackToSite: 'Back to Site',
 
   // Client Login
@@ -1355,6 +1361,7 @@ Address: Mokopane, Limpopo, 0601`,
   clientLoginSubmittingLabel: 'Signing In...',
   clientLoginGoogleLabel: 'Continue with Google',
   clientLoginBackToSite: 'Back to Home',
+  clientLoginRegistrationEnabled: true,
   clientLoginHeroImage: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000',
   clientLoginSuccessBadge: 'Success',
   clientLoginSuccessTitlePrefix: 'Welcome,',

@@ -5224,7 +5224,7 @@ const Admin: React.FC = () => {
                { (activeEditorSection === 'brand') && (
                  <>
                    <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4><SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} /><SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} /></div>
-                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4><div className="grid grid-cols-2 gap-6"><SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} /></div></div>
+                   <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4><div className="grid grid-cols-2 gap-6"><SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} /><SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} /></div><div className="grid grid-cols-2 gap-6"><SingleImageUploader label="Favicon (ICO/PNG)" value={tempSettings.faviconUrl || ''} onChange={v => updateTempSettings({ faviconUrl: v })} className="h-24 w-24" /><SingleImageUploader label="OG Image (SEO)" value={tempSettings.ogImageUrl || ''} onChange={v => updateTempSettings({ ogImageUrl: v })} className="h-24 w-full" /></div></div>
                    <div className="space-y-6"><h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4><div className="grid grid-cols-3 gap-4"><SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" /><SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" /><SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" /></div></div>
                  </>
                )}
@@ -5241,6 +5241,15 @@ const Admin: React.FC = () => {
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><Layout size={18} className="text-primary"/> Structural Overrides</h4>
                       <div className="space-y-4">
+                        <div className="flex items-center gap-4 mb-4">
+                           <input 
+                              type="checkbox" 
+                              checked={tempSettings.navStickyHeader || false} 
+                              onChange={e => updateTempSettings({ navStickyHeader: e.target.checked })} 
+                              className="w-5 h-5 rounded border-slate-700 bg-slate-900"
+                           />
+                           <span className="text-white font-bold text-sm">Enable Sticky Header</span>
+                        </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Departments Layout</label>
                           <select 
@@ -5287,6 +5296,8 @@ const Admin: React.FC = () => {
                   <>
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Hero & Niches</h4>
+                      <SettingField label="Hero Title" value={tempSettings.homeHeroTitle || ''} onChange={v => updateTempSettings({ homeHeroTitle: v })} />
+                      <SettingField label="Hero Subtitle" value={tempSettings.homeHeroSubtitle || ''} onChange={v => updateTempSettings({ homeHeroSubtitle: v })} type="textarea" />
                       <SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} />
                       <div className="grid grid-cols-2 gap-4">
                         <SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} />
@@ -5549,6 +5560,15 @@ const Admin: React.FC = () => {
 
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Client Form Labels & Placeholders</h4>
+                      <div className="flex items-center gap-4 mb-4">
+                         <input 
+                            type="checkbox" 
+                            checked={tempSettings.clientLoginRegistrationEnabled || false} 
+                            onChange={e => updateTempSettings({ clientLoginRegistrationEnabled: e.target.checked })} 
+                            className="w-5 h-5 rounded border-slate-700 bg-slate-900"
+                         />
+                         <span className="text-white font-bold text-sm">Enable Client Registration</span>
+                      </div>
                       <div className="grid grid-cols-2 gap-4">
                         <SettingField label="Email Label" value={tempSettings.clientLoginEmailLabel || ''} onChange={v => updateTempSettings({ clientLoginEmailLabel: v })} />
                         <SettingField label="Email Placeholder" value={tempSettings.clientLoginEmailPlaceholder || ''} onChange={v => updateTempSettings({ clientLoginEmailPlaceholder: v })} />

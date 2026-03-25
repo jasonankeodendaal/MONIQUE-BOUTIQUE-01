@@ -36,7 +36,7 @@ const Header: React.FC = () => {
   const isDarkSection = !shouldBeSolid && isHomePage;
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ease-in-out ${
+    <header className={`${settings.navStickyHeader !== false ? 'fixed' : 'absolute'} top-0 left-0 right-0 z-40 transition-all duration-500 ease-in-out ${
       shouldBeSolid 
         ? 'bg-white/80 backdrop-blur-2xl border-b border-slate-200/50 py-3 shadow-sm' 
         : 'bg-transparent py-5'
@@ -121,16 +121,18 @@ const Header: React.FC = () => {
                 >
                   Log In
                 </Link>
-                <Link
-                  to="/login?view=signup"
-                  className={`px-5 py-2.5 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
-                    !isDarkSection 
-                      ? 'border-slate-200 text-slate-900 hover:border-slate-900 hover:bg-slate-900 hover:text-white' 
-                      : 'border-white/30 text-white hover:border-white hover:bg-white hover:text-slate-900'
-                  }`}
-                >
-                  Sign Up
-                </Link>
+                {settings.clientLoginRegistrationEnabled !== false && (
+                  <Link
+                    to="/login?view=signup"
+                    className={`px-5 py-2.5 rounded-full border text-[10px] font-black uppercase tracking-widest transition-all ${
+                      !isDarkSection 
+                        ? 'border-slate-200 text-slate-900 hover:border-slate-900 hover:bg-slate-900 hover:text-white' 
+                        : 'border-white/30 text-white hover:border-white hover:bg-white hover:text-slate-900'
+                    }`}
+                  >
+                    Sign Up
+                  </Link>
+                )}
               </>
             )}
           </div>
@@ -183,13 +185,15 @@ const Header: React.FC = () => {
                   >
                     Log In
                   </Link>
-                  <Link
-                    to="/login?view=signup"
-                    onClick={() => setIsOpen(false)}
-                    className="text-xl font-serif font-bold text-primary"
-                  >
-                    Sign Up
-                  </Link>
+                  {settings.clientLoginRegistrationEnabled !== false && (
+                    <Link
+                      to="/login?view=signup"
+                      onClick={() => setIsOpen(false)}
+                      className="text-xl font-serif font-bold text-primary"
+                    >
+                      Sign Up
+                    </Link>
+                  )}
                 </>
               )}
             </div>

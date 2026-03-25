@@ -64,6 +64,23 @@ const AdminLogin: React.FC = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/admin`,
+        },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -152,7 +169,26 @@ const AdminLogin: React.FC = () => {
           )}
 
           {view === 'login' ? (
-            <form onSubmit={handleEmailLogin} className="space-y-6">
+            <div className="space-y-6">
+              <button
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full h-16 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-2xl flex items-center justify-center gap-4 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
+              >
+                <Chrome size={24} className="text-primary group-hover:rotate-12 transition-transform" />
+                <span className="font-serif text-lg">{settings.adminLoginGoogleLabel}</span>
+              </button>
+
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-800"></div>
+                </div>
+                <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.3em]">
+                  <span className="bg-slate-950 px-4 text-slate-500">{settings.adminLoginDividerLabel}</span>
+                </div>
+              </div>
+
+              <form onSubmit={handleEmailLogin} className="space-y-6">
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.adminLoginEmailLabel}</label>
                 <div className="relative group">
@@ -209,6 +245,7 @@ const AdminLogin: React.FC = () => {
                 )}
               </button>
             </form>
+          </div>
           ) : (
             <div className="space-y-6">
               <form onSubmit={handleForgotPassword} className="space-y-6">

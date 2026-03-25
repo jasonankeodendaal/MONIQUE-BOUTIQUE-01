@@ -133,6 +133,8 @@ export interface SiteSettings {
   slogan: string; // Added Slogan
   companyLogo: string; // Text fallback
   companyLogoUrl?: string; // PNG Upload
+  faviconUrl?: string; // Browser Tab Icon
+  ogImageUrl?: string; // Social Share Image
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
@@ -141,6 +143,7 @@ export interface SiteSettings {
   navAboutLabel: string;
   navContactLabel: string;
   navDashboardLabel: string;
+  navStickyHeader?: boolean; // Sticky Header Toggle
 
   // Layout Controls
   departmentsLayout?: 'grid' | 'dropdown';
@@ -166,6 +169,8 @@ export interface SiteSettings {
 
   // Home Page Content
   homeHeroBadge: string;
+  homeHeroTitle?: string; // Main Hero Heading
+  homeHeroSubtitle?: string; // Hero Sub-text
   homeAboutTitle: string;
   homeAboutDescription: string;
   homeAboutImage: string;
@@ -283,6 +288,7 @@ export interface SiteSettings {
   adminLoginSubmittingLabel?: string;
   adminLoginGoogleLabel?: string;
   adminLoginBackToSite?: string;
+  adminLoginDividerLabel?: string;
 
   // Legal Content
   disclosureTitle: string;
@@ -428,6 +434,7 @@ export interface SiteSettings {
   clientLoginHeroBadge: string;
   clientLoginHeroTitle: string;
   clientLoginHeroDescription: string;
+  clientLoginRegistrationEnabled?: boolean; // Registration Toggle
   clientLoginEmailLabel: string;
   clientLoginPasswordLabel: string;
   clientLoginEmailPlaceholder: string;

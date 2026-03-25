@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS settings (
   "adminTrafficLiveLabel" TEXT, "adminTrafficLocationTitle" TEXT, "adminTrafficTotalHitsLabel" TEXT, "adminTrafficMapEnlargeLabel" TEXT, "adminTrafficMapModalTitle" TEXT, "adminTrafficMapModalSubtitle" TEXT, "adminTrafficMapModalActiveNode" TEXT, "adminTrafficMapModalNodeDescription" TEXT, "adminTrafficMapModalCategorizedLabel" TEXT, "adminTrafficMapModalSortedLabel" TEXT, "adminTrafficMapModalInstructions" TEXT, "adminTrafficMapModalVisitorNode" TEXT, "adminTrafficMapModalInactiveZone" TEXT, "adminTrafficTableLocationHeader" TEXT, "adminTrafficTableHitsHeader" TEXT, "adminTrafficTableDeviceHeader" TEXT, "adminTrafficStatusOnline" TEXT, "adminTrafficEmptyMessage" TEXT, "adminTrafficEmptyDescription" TEXT,
   "adminDeviceBreakdownTitle" TEXT, "adminDeviceBreakdownSubtitle" TEXT, "adminDeviceShareLabel" TEXT,
   "adminPermissionOwnerMessage" TEXT, "adminPermissionDeselectAll" TEXT, "adminPermissionSelectAll" TEXT,
-  "reviewDefaultName" TEXT, "shareCopySuccessMessage" TEXT
+  "reviewDefaultName" TEXT, "shareCopySuccessMessage" TEXT,
+  "faviconUrl" TEXT, "ogImageUrl" TEXT, "navStickyHeader" BOOLEAN, "homeHeroTitle" TEXT, "homeHeroSubtitle" TEXT, "clientLoginRegistrationEnabled" BOOLEAN, "adminLoginDividerLabel" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
@@ -87,7 +88,7 @@ CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, pl
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
-CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT);
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT);
 CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
 
@@ -167,7 +168,16 @@ ADD COLUMN IF NOT EXISTS "customHeaderScripts" TEXT,
 ADD COLUMN IF NOT EXISTS "customFooterScripts" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsServiceId" TEXT,
 ADD COLUMN IF NOT EXISTS "emailJsTemplateId" TEXT,
-ADD COLUMN IF NOT EXISTS "emailJsPublicKey" TEXT;
+ADD COLUMN IF NOT EXISTS "emailJsPublicKey" TEXT,
+ADD COLUMN IF NOT EXISTS "faviconUrl" TEXT,
+ADD COLUMN IF NOT EXISTS "ogImageUrl" TEXT,
+ADD COLUMN IF NOT EXISTS "navStickyHeader" BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS "homeHeroTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeHeroSubtitle" TEXT,
+ADD COLUMN IF NOT EXISTS "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS "adminLoginDividerLabel" TEXT;
+
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS notes TEXT;
 
 UPDATE settings SET
   "seoTitle" = COALESCE("seoTitle", 'My Store'),
