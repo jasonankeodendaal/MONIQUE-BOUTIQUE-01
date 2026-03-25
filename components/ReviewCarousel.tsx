@@ -1,13 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { useSettings } from '../App';
-import { Star, Quote, MessageSquarePlus, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Star, Quote, MessageSquarePlus, X, Smile } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import EmojiPicker from 'emoji-picker-react';
 
 const ReviewCarousel: React.FC = () => {
   const { products, siteReviews, updateData, user } = useSettings();
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '', name: '' });
 
   const allReviews = useMemo(() => {
     const reviews: any[] = [];
@@ -44,14 +46,16 @@ const ReviewCarousel: React.FC = () => {
     return reviews.sort((a, b) => b.createdAt - a.createdAt);
   }, [products, siteReviews]);
 
+  const navigate = useNavigate();
+
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newReview.comment.trim()) return;
 
     const reviewData = {
       id: crypto.randomUUID(),
-      userId: user?.id,
-      userName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Anonymous Client',
+      userId: user?.id || null,
+      userName: newReview.name.trim() || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Anonymous Client',
       rating: newReview.rating,
       comment: newReview.comment,
       status: 'pending', // Requires admin approval
@@ -62,11 +66,13 @@ const ReviewCarousel: React.FC = () => {
     if (success) {
       alert('Thank you for your review! It will be visible once approved by our team.');
       setShowReviewForm(false);
-      setNewReview({ rating: 5, comment: '' });
+      setNewReview({ rating: 5, comment: '', name: '' });
     }
   };
 
-  if (allReviews.length === 0 && !user) return null;
+  const handleLeaveReviewClick = () => {
+    setShowReviewForm(true);
+  };
 
   // Duplicate reviews for infinite scroll effect
   const displayReviews = allReviews.length > 0 ? [...allReviews, ...allReviews, ...allReviews] : [];
@@ -81,69 +87,101 @@ const ReviewCarousel: React.FC = () => {
           Real feedback from our curated collection
         </p>
         
-        {user && (
-          <button 
-            onClick={() => setShowReviewForm(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-colors"
-          >
-            <MessageSquarePlus size={16} /> Leave a Review
-          </button>
-        )}
+        <button 
+          onClick={handleLeaveReviewClick}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-slate-900 border border-slate-200 rounded-full text-xs font-medium hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+        >
+          <MessageSquarePlus size={14} /> Leave a Review
+        </button>
       </div>
 
       {showReviewForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full relative shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 max-w-sm w-full relative shadow-2xl border border-slate-100"
+          >
             <button 
               onClick={() => setShowReviewForm(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 transition-colors"
+              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
             >
-              <X size={20} />
+              <X size={16} />
             </button>
             
-            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Share Your Experience</h3>
-            <p className="text-sm text-slate-500 mb-6">Your feedback helps us maintain our elite standards.</p>
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-1 tracking-tight">Leave a Review</h3>
+              <p className="text-xs text-slate-500">We'd love to hear your thoughts.</p>
+            </div>
             
-            <form onSubmit={handleSubmitReview} className="space-y-6">
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              <div className="flex justify-center gap-1 mb-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setNewReview({...newReview, rating: star})}
+                    className="focus:outline-none p-1 hover:scale-110 transition-transform"
+                  >
+                    <Star 
+                      size={24} 
+                      className={`${star <= newReview.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'} transition-colors`} 
+                    />
+                  </button>
+                ))}
+              </div>
+
               <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Rating</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setNewReview({...newReview, rating: star})}
-                      className="focus:outline-none"
-                    >
-                      <Star 
-                        size={32} 
-                        className={`${star <= newReview.rating ? 'fill-primary text-primary' : 'text-slate-200 hover:text-primary/50'} transition-colors`} 
-                      />
-                    </button>
-                  ))}
-                </div>
+                <input
+                  type="text"
+                  value={newReview.name}
+                  onChange={(e) => setNewReview({...newReview, name: e.target.value})}
+                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all"
+                  placeholder={user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Your Name (Optional)"}
+                />
               </div>
               
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Your Review</label>
+              <div className="relative">
                 <textarea
                   required
-                  rows={4}
+                  rows={3}
                   value={newReview.comment}
                   onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
-                  placeholder="Tell us about your experience..."
+                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all resize-none pr-10"
+                  placeholder="Share your experience..."
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="absolute bottom-3 right-3 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <Smile size={18} />
+                </button>
+                
+                {showEmojiPicker && (
+                  <div className="absolute bottom-full right-0 mb-2 z-50 shadow-xl rounded-xl overflow-hidden border border-slate-100">
+                    <EmojiPicker 
+                      onEmojiClick={(emojiData) => {
+                        setNewReview(prev => ({...prev, comment: prev.comment + emojiData.emoji}));
+                        setShowEmojiPicker(false);
+                      }}
+                      width={300}
+                      height={350}
+                      searchDisabled
+                      skinTonesDisabled
+                    />
+                  </div>
+                )}
               </div>
               
               <button 
                 type="submit"
-                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-slate-900 transition-colors"
+                className="w-full py-2.5 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors shadow-sm"
               >
-                Submit Review
+                Submit
               </button>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
 
