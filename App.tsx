@@ -1089,6 +1089,7 @@ const App: React.FC = () => {
                 <Route path="/" element={<HomeRoute />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                {/* Rebuild Trigger */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/about" element={<About />} />

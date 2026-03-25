@@ -16,8 +16,8 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Hide header entirely on admin and login pages
-  if (location.pathname.startsWith('/admin') || location.pathname === '/login') {
+  // Hide header entirely on admin, login, and signup pages
+  if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/signup') {
     return null;
   }
 
@@ -27,6 +27,8 @@ const Header: React.FC = () => {
     { name: settings.navAboutLabel, path: '/about' },
     { name: settings.navContactLabel, path: '/contact' },
   ];
+
+  const isDashboard = location.pathname === '/account';
 
   // Logic: Header is solid if we are scrolled OR if we are NOT on the home page
   const isHomePage = location.pathname === '/';
@@ -73,24 +75,26 @@ const Header: React.FC = () => {
           </Link>
 
           {/* Desktop Nav - Center */}
-          <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center space-x-8 z-0">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-primary relative group ${
-                  location.pathname === link.path 
-                    ? 'text-primary' 
-                    : (!isDarkSection ? 'text-slate-500' : 'text-white/80')
-                }`}
-              >
-                {link.name}
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${
-                  location.pathname === link.path ? 'w-full' : 'w-0 group-hover:w-full'
-                }`}></span>
-              </Link>
-            ))}
-          </div>
+          {!isDashboard && (
+            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center space-x-8 z-0">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-primary relative group ${
+                    location.pathname === link.path 
+                      ? 'text-primary' 
+                      : (!isDarkSection ? 'text-slate-500' : 'text-white/80')
+                  }`}
+                >
+                  {link.name}
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${
+                    location.pathname === link.path ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`}></span>
+                </Link>
+              ))}
+            </div>
+          )}
           
           {/* Actions - Right */}
           <div className="hidden md:flex items-center space-x-5 z-10 flex-shrink-0">
@@ -155,7 +159,7 @@ const Header: React.FC = () => {
           isOpen ? 'max-h-screen opacity-100 py-8 px-6' : 'max-h-0 opacity-0'
         }`}>
           <div className="flex flex-col space-y-8">
-            {navLinks.map((link) => (
+            {!isDashboard && navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
