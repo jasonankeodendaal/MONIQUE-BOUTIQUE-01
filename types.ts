@@ -272,6 +272,17 @@ export interface SiteSettings {
   // Admin Login Configuration
   adminLoginHeroImage?: string;
   adminLoginAccentEnabled?: boolean;
+  adminLoginHeroBadge?: string;
+  adminLoginHeroTitle?: string;
+  adminLoginHeroDescription?: string;
+  adminLoginEmailLabel?: string;
+  adminLoginPasswordLabel?: string;
+  adminLoginEmailPlaceholder?: string;
+  adminLoginPasswordPlaceholder?: string;
+  adminLoginSubmitLabel?: string;
+  adminLoginSubmittingLabel?: string;
+  adminLoginGoogleLabel?: string;
+  adminLoginBackToSite?: string;
 
   // Legal Content
   disclosureTitle: string;
@@ -289,9 +300,9 @@ export interface SiteSettings {
   googleTagManagerId?: string;
   facebookPixelId?: string;
   tiktokPixelId?: string;
-  pinterestTagId?: string; // New
+  pinterestTagId?: string;
   amazonAssociateId?: string;
-  webhookUrl?: string; // Zapier/Make
+  webhookUrl?: string;
   gscVerificationId?: string;
   customHeaderScripts?: string;
   customFooterScripts?: string;
@@ -413,7 +424,28 @@ export interface SiteSettings {
   shareCopyLinkLabel: string;
   shareSecurityLabel: string;
 
-  // Login Page
+  // Client Login Page
+  clientLoginHeroBadge: string;
+  clientLoginHeroTitle: string;
+  clientLoginHeroDescription: string;
+  clientLoginEmailLabel: string;
+  clientLoginPasswordLabel: string;
+  clientLoginEmailPlaceholder: string;
+  clientLoginPasswordPlaceholder: string;
+  clientLoginSubmitLabel: string;
+  clientLoginSubmittingLabel: string;
+  clientLoginGoogleLabel: string;
+  clientLoginBackToSite: string;
+  clientLoginHeroImage?: string;
+
+  clientLoginSuccessBadge: string;
+  clientLoginSuccessTitlePrefix: string;
+  clientLoginSuccessTitleSuffix: string;
+  clientLoginSuccessMessage: string;
+  clientLoginSecurityLabel: string;
+  clientLoginDividerLabel: string;
+
+  // Legacy Login (Keep for compatibility if needed, but we'll migrate)
   loginHeroBadge: string;
   loginHeroTitle: string;
   loginHeroDescription: string;
@@ -425,7 +457,6 @@ export interface SiteSettings {
   loginSubmittingLabel: string;
   loginGoogleLabel: string;
   loginBackToSite: string;
-
   loginSuccessBadge: string;
   loginSuccessTitlePrefix: string;
   loginSuccessTitleSuffix: string;

@@ -91,9 +91,10 @@ const AdminLogin: React.FC = () => {
         <div className="hidden md:block md:w-1/2 relative overflow-hidden">
           <div className="absolute inset-0 bg-slate-900">
             <img 
-              src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000" 
+              src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000"} 
               alt="Admin Portal" 
               className="w-full h-full object-cover opacity-40"
+              referrerPolicy="no-referrer"
             />
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
@@ -101,13 +102,13 @@ const AdminLogin: React.FC = () => {
           <div className="absolute bottom-0 left-0 p-16 w-full">
              <div className="mb-6">
                <span className="inline-block px-3 py-1 rounded-full border border-primary/20 bg-primary/10 backdrop-blur-md text-primary font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                  Command Center
+                  {settings.adminLoginHeroBadge}
                </span>
                <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
-                  Maison <span className="text-primary italic font-light">Portal</span>
+                  {settings.adminLoginHeroTitle}
                </h1>
                <p className="text-xl text-slate-400 font-serif italic mt-2">
-                  Administrative Control Panel
+                  {settings.adminLoginHeroDescription}
                </p>
              </div>
              <div className="h-px w-24 bg-primary/50 mb-6"></div>
@@ -125,10 +126,10 @@ const AdminLogin: React.FC = () => {
             className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest group"
           >
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Site</span>
+            <span>{settings.adminLoginBackToSite}</span>
           </button>
           <div className="text-center md:text-left">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 mx-auto md:mx-0 border border-primary/20">
+            <div className={`w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 mx-auto md:mx-0 border border-primary/20 ${settings.adminLoginAccentEnabled ? 'shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]' : ''}`}>
               <Shield size={32} />
             </div>
             <h2 className="text-3xl font-serif text-white mb-2">
@@ -153,7 +154,7 @@ const AdminLogin: React.FC = () => {
           {view === 'login' ? (
             <form onSubmit={handleEmailLogin} className="space-y-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Admin Email</label>
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.adminLoginEmailLabel}</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                   <input 
@@ -163,14 +164,14 @@ const AdminLogin: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder="admin@maisonportal.com"
+                    placeholder={settings.adminLoginEmailPlaceholder}
                   />
                 </div>
               </div>
               
               <div className="space-y-1">
                 <div className="flex justify-between items-center ml-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Password</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.adminLoginPasswordLabel}</label>
                   <button 
                     type="button" 
                     onClick={() => { setView('forgot-password'); setError(null); setSuccessMessage(null); }}
@@ -188,11 +189,11 @@ const AdminLogin: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder="••••••••"
+                    placeholder={settings.adminLoginPasswordPlaceholder}
                   />
                 </div>
               </div>
-
+ 
               <button 
                 type="submit" 
                 disabled={loading}
@@ -202,7 +203,7 @@ const AdminLogin: React.FC = () => {
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <>
-                    <span>Authenticate</span>
+                    <span>{settings.adminLoginSubmitLabel}</span>
                     <ArrowRight size={16} />
                   </>
                 )}
@@ -212,7 +213,7 @@ const AdminLogin: React.FC = () => {
             <div className="space-y-6">
               <form onSubmit={handleForgotPassword} className="space-y-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Admin Email</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.adminLoginEmailLabel}</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
@@ -222,7 +223,7 @@ const AdminLogin: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                      placeholder="admin@maisonportal.com"
+                      placeholder={settings.adminLoginEmailPlaceholder}
                     />
                   </div>
                 </div>

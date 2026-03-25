@@ -1664,7 +1664,7 @@ const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('enquiries');
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [editorDrawerOpen, setEditorDrawerOpen] = useState(false);
-  const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | 'login' | null>(null);
+  const [activeEditorSection, setActiveEditorSection] = useState<'brand' | 'nav' | 'home' | 'collections' | 'about' | 'contact' | 'legal' | 'integrations' | 'admin_login' | 'client_login' | 'login' | null>(null);
   const [tempSettings, setTempSettings] = useState<SiteSettings>(settings);
   
   const [trafficEvents, setTrafficEvents] = useState<any[]>([]);
@@ -5070,7 +5070,8 @@ const Admin: React.FC = () => {
             {id: 'collections', label: 'Collections', icon: ShoppingBag, desc: 'Shop Hero, Categories Style'}, 
             {id: 'about', label: 'About Page', icon: User, desc: 'Story, Values, Gallery'}, 
             {id: 'contact', label: 'Contact Page', icon: Mail, desc: 'Info, Form, Socials'}, 
-            {id: 'login', label: 'Login Page', icon: Lock, desc: 'Auth Experience visuals'},
+            {id: 'admin_login', label: 'Admin Login', icon: ShieldCheck, desc: 'Internal Access visuals'},
+            {id: 'client_login', label: 'Client Login', icon: Lock, desc: 'Customer Access visuals'},
             {id: 'legal', label: 'Legal Text', icon: Shield, desc: 'Privacy, Terms, Disclosure'}, 
             {id: 'integrations', label: 'Integrations', icon: LinkIcon, desc: 'Tracking, Webhooks'} 
           ].map(s => {
@@ -5210,7 +5211,8 @@ const Admin: React.FC = () => {
                     { (activeEditorSection === 'collections') && 'Collections Page' }
                     { (activeEditorSection === 'about') && 'About Page' }
                     { (activeEditorSection === 'contact') && 'Contact Page' }
-                    { (activeEditorSection === 'login') && 'Login Experience' }
+                    { (activeEditorSection === 'admin_login') && 'Admin Login Experience' }
+                    { (activeEditorSection === 'client_login') && 'Client Login Experience' }
                     { (activeEditorSection === 'legal') && 'Legal & Policy' }
                     { (activeEditorSection === 'integrations') && 'Integrations' }
                   </h3>
@@ -5499,13 +5501,13 @@ const Admin: React.FC = () => {
                     <SocialLinksManager links={tempSettings.socialLinks || []} onChange={v => updateTempSettings({ socialLinks: v })} />
                   </>
                )}
-               { (activeEditorSection === 'login') && (
+                { (activeEditorSection === 'admin_login') && (
                   <>
                     <div className="space-y-6">
-                      <h4 className="text-white font-bold flex items-center gap-2"><Lock size={18} className="text-primary"/> Hero Content</h4>
-                      <SettingField label="Hero Badge" value={tempSettings.loginHeroBadge || ''} onChange={v => updateTempSettings({ loginHeroBadge: v })} />
-                      <SettingField label="Login Title" value={tempSettings.loginHeroTitle || ''} onChange={v => updateTempSettings({ loginHeroTitle: v })} />
-                      <SettingField label="Login Description" value={tempSettings.loginHeroDescription || ''} onChange={v => updateTempSettings({ loginHeroDescription: v })} type="textarea" />
+                      <h4 className="text-white font-bold flex items-center gap-2"><ShieldCheck size={18} className="text-primary"/> Admin Hero Content</h4>
+                      <SettingField label="Hero Badge" value={tempSettings.adminLoginHeroBadge || ''} onChange={v => updateTempSettings({ adminLoginHeroBadge: v })} />
+                      <SettingField label="Login Title" value={tempSettings.adminLoginHeroTitle || ''} onChange={v => updateTempSettings({ adminLoginHeroTitle: v })} />
+                      <SettingField label="Login Description" value={tempSettings.adminLoginHeroDescription || ''} onChange={v => updateTempSettings({ adminLoginHeroDescription: v })} type="textarea" />
                       <SingleImageUploader label="Login Hero Image" value={tempSettings.adminLoginHeroImage || ''} onChange={v => updateTempSettings({ adminLoginHeroImage: v })} />
                       
                       <div className="flex items-center gap-4 mt-6">
@@ -5520,18 +5522,58 @@ const Admin: React.FC = () => {
                     </div>
 
                     <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <h4 className="text-white font-bold">Form Labels & Placeholders</h4>
+                      <h4 className="text-white font-bold">Admin Form Labels & Placeholders</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Email Label" value={tempSettings.loginEmailLabel || ''} onChange={v => updateTempSettings({ loginEmailLabel: v })} />
-                        <SettingField label="Email Placeholder" value={tempSettings.loginEmailPlaceholder || ''} onChange={v => updateTempSettings({ loginEmailPlaceholder: v })} />
-                        <SettingField label="Password Label" value={tempSettings.loginPasswordLabel || ''} onChange={v => updateTempSettings({ loginPasswordLabel: v })} />
-                        <SettingField label="Password Placeholder" value={tempSettings.loginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ loginPasswordPlaceholder: v })} />
+                        <SettingField label="Email Label" value={tempSettings.adminLoginEmailLabel || ''} onChange={v => updateTempSettings({ adminLoginEmailLabel: v })} />
+                        <SettingField label="Email Placeholder" value={tempSettings.adminLoginEmailPlaceholder || ''} onChange={v => updateTempSettings({ adminLoginEmailPlaceholder: v })} />
+                        <SettingField label="Password Label" value={tempSettings.adminLoginPasswordLabel || ''} onChange={v => updateTempSettings({ adminLoginPasswordLabel: v })} />
+                        <SettingField label="Password Placeholder" value={tempSettings.adminLoginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ adminLoginPasswordPlaceholder: v })} />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Submit Button" value={tempSettings.loginSubmitLabel || ''} onChange={v => updateTempSettings({ loginSubmitLabel: v })} />
-                        <SettingField label="Google Button" value={tempSettings.loginGoogleLabel || ''} onChange={v => updateTempSettings({ loginGoogleLabel: v })} />
+                        <SettingField label="Submit Button" value={tempSettings.adminLoginSubmitLabel || ''} onChange={v => updateTempSettings({ adminLoginSubmitLabel: v })} />
+                        <SettingField label="Google Button" value={tempSettings.adminLoginGoogleLabel || ''} onChange={v => updateTempSettings({ adminLoginGoogleLabel: v })} />
                       </div>
-                      <SettingField label="Divider Text" value={tempSettings.loginDividerLabel || ''} onChange={v => updateTempSettings({ loginDividerLabel: v })} />
+                      <SettingField label="Back to Site Label" value={tempSettings.adminLoginBackToSite || ''} onChange={v => updateTempSettings({ adminLoginBackToSite: v })} />
+                    </div>
+                  </>
+               )}
+               { (activeEditorSection === 'client_login') && (
+                  <>
+                    <div className="space-y-6">
+                      <h4 className="text-white font-bold flex items-center gap-2"><Lock size={18} className="text-primary"/> Client Hero Content</h4>
+                      <SettingField label="Hero Badge" value={tempSettings.clientLoginHeroBadge || ''} onChange={v => updateTempSettings({ clientLoginHeroBadge: v })} />
+                      <SettingField label="Login Title" value={tempSettings.clientLoginHeroTitle || ''} onChange={v => updateTempSettings({ clientLoginHeroTitle: v })} />
+                      <SettingField label="Login Description" value={tempSettings.clientLoginHeroDescription || ''} onChange={v => updateTempSettings({ clientLoginHeroDescription: v })} type="textarea" />
+                      <SingleImageUploader label="Login Hero Image" value={tempSettings.clientLoginHeroImage || ''} onChange={v => updateTempSettings({ clientLoginHeroImage: v })} />
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Client Form Labels & Placeholders</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Email Label" value={tempSettings.clientLoginEmailLabel || ''} onChange={v => updateTempSettings({ clientLoginEmailLabel: v })} />
+                        <SettingField label="Email Placeholder" value={tempSettings.clientLoginEmailPlaceholder || ''} onChange={v => updateTempSettings({ clientLoginEmailPlaceholder: v })} />
+                        <SettingField label="Password Label" value={tempSettings.clientLoginPasswordLabel || ''} onChange={v => updateTempSettings({ clientLoginPasswordLabel: v })} />
+                        <SettingField label="Password Placeholder" value={tempSettings.clientLoginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ clientLoginPasswordPlaceholder: v })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Submit Button" value={tempSettings.clientLoginSubmitLabel || ''} onChange={v => updateTempSettings({ clientLoginSubmitLabel: v })} />
+                        <SettingField label="Google Button" value={tempSettings.clientLoginGoogleLabel || ''} onChange={v => updateTempSettings({ clientLoginGoogleLabel: v })} />
+                      </div>
+                      <SettingField label="Divider Text" value={tempSettings.clientLoginDividerLabel || ''} onChange={v => updateTempSettings({ clientLoginDividerLabel: v })} />
+                      <SettingField label="Back to Site Label" value={tempSettings.clientLoginBackToSite || ''} onChange={v => updateTempSettings({ clientLoginBackToSite: v })} />
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-800 space-y-6">
+                      <h4 className="text-white font-bold">Success State Content</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Success Badge" value={tempSettings.clientLoginSuccessBadge || ''} onChange={v => updateTempSettings({ clientLoginSuccessBadge: v })} />
+                        <SettingField label="Security Label" value={tempSettings.clientLoginSecurityLabel || ''} onChange={v => updateTempSettings({ clientLoginSecurityLabel: v })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SettingField label="Title Prefix" value={tempSettings.clientLoginSuccessTitlePrefix || ''} onChange={v => updateTempSettings({ clientLoginSuccessTitlePrefix: v })} />
+                        <SettingField label="Title Suffix" value={tempSettings.clientLoginSuccessTitleSuffix || ''} onChange={v => updateTempSettings({ clientLoginSuccessTitleSuffix: v })} />
+                      </div>
+                      <SettingField label="Success Message" value={tempSettings.clientLoginSuccessMessage || ''} onChange={v => updateTempSettings({ clientLoginSuccessMessage: v })} type="textarea" />
                     </div>
                   </>
                )}

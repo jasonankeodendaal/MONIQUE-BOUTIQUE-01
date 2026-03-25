@@ -163,9 +163,10 @@ const Login: React.FC = () => {
         <div className="hidden md:block md:w-1/2 relative overflow-hidden">
           <div className="absolute inset-0 bg-slate-900">
             <img 
-              src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000"} 
+              src={settings.clientLoginHeroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000"} 
               alt="Editorial Fashion" 
               className="w-full h-full object-cover opacity-60"
+              referrerPolicy="no-referrer"
             />
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
@@ -173,13 +174,13 @@ const Login: React.FC = () => {
           <div className="absolute bottom-0 left-0 p-16 w-full">
              <div className="mb-6">
                <span className="inline-block px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                  Exclusive Access
+                  {settings.clientLoginHeroBadge}
                </span>
                <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
-                  {settings.companyName}
+                  {settings.clientLoginHeroTitle}
                </h1>
                <p className="text-xl text-primary font-serif italic mt-2">
-                  {settings.slogan}
+                  {settings.clientLoginHeroDescription}
                </p>
              </div>
              <div className="h-px w-24 bg-primary/50 mb-6"></div>
@@ -201,13 +202,13 @@ const Login: React.FC = () => {
             className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest group"
           >
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Home</span>
+            <span>{settings.clientLoginBackToSite}</span>
           </button>
           <div>
             <h2 className={`text-3xl font-serif text-white mb-2 flex items-center gap-3 ${settings.adminLoginAccentEnabled ? 'drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : ''}`}>
-              <Lock size={24} className="text-primary"/> {view === 'login' ? settings.loginHeroTitle : view === 'signup' ? 'Create Account' : 'Reset Password'}
+              <Lock size={24} className="text-primary"/> {view === 'login' ? settings.clientLoginHeroTitle : view === 'signup' ? 'Create Account' : 'Reset Password'}
             </h2>
-            <p className="text-slate-500">{view === 'login' ? settings.loginHeroDescription : view === 'signup' ? 'Sign up to track your orders and history.' : 'Enter your email to receive password reset instructions.'}</p>
+            <p className="text-slate-500">{view === 'login' ? settings.clientLoginHeroDescription : view === 'signup' ? 'Sign up to track your orders and history.' : 'Enter your email to receive password reset instructions.'}</p>
           </div>
 
           {error && (
@@ -231,12 +232,12 @@ const Login: React.FC = () => {
                 className="w-full py-4 bg-white text-slate-900 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
                  {loading ? <Loader2 size={18} className="animate-spin" /> : <Chrome size={18} />}
-                 <span>{settings.loginGoogleLabel}</span>
+                 <span>{settings.clientLoginGoogleLabel}</span>
               </button>
 
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-slate-800"></div>
-                <span className="flex-shrink-0 mx-4 text-slate-600 text-xs font-bold uppercase tracking-widest">{settings.loginDividerLabel}</span>
+                <span className="flex-shrink-0 mx-4 text-slate-600 text-xs font-bold uppercase tracking-widest">{settings.clientLoginDividerLabel}</span>
                 <div className="flex-grow border-t border-slate-800"></div>
               </div>
 
@@ -258,7 +259,7 @@ const Login: React.FC = () => {
                   </div>
                 )}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginEmailLabel}</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.clientLoginEmailLabel}</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
@@ -268,14 +269,14 @@ const Login: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                      placeholder={settings.loginEmailPlaceholder}
+                      placeholder={settings.clientLoginEmailPlaceholder}
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-1">
                   <div className="flex justify-between items-center ml-1">
-                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.loginPasswordLabel}</label>
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.clientLoginPasswordLabel}</label>
                     {view === 'login' && (
                       <button 
                         type="button" 
@@ -295,7 +296,7 @@ const Login: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                      placeholder={settings.loginPasswordPlaceholder}
+                      placeholder={settings.clientLoginPasswordPlaceholder}
                     />
                   </div>
                 </div>
@@ -309,7 +310,7 @@ const Login: React.FC = () => {
                     <Loader2 size={16} className="animate-spin" />
                   ) : (
                     <>
-                      <span>{view === 'login' ? settings.loginSubmitLabel : 'Create Account'}</span>
+                      <span>{view === 'login' ? settings.clientLoginSubmitLabel : 'Create Account'}</span>
                       <ArrowRight size={16} />
                     </>
                   )}
@@ -335,7 +336,7 @@ const Login: React.FC = () => {
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
               <form onSubmit={handleForgotPassword} className="space-y-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.loginEmailLabel}</label>
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.clientLoginEmailLabel}</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
@@ -345,7 +346,7 @@ const Login: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                      placeholder={settings.loginEmailPlaceholder}
+                      placeholder={settings.clientLoginEmailPlaceholder}
                     />
                   </div>
                 </div>
