@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, Info, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
 import { useSettings } from '../App';
@@ -322,18 +322,12 @@ const Login: React.FC = () => {
               
               {settings.clientLoginRegistrationEnabled !== false && (
                 <div className="text-center mt-6">
-                  <button 
-                    type="button"
-                    onClick={() => { 
-                      const newView = view === 'login' ? 'signup' : 'login';
-                      navigate(`/login?view=${newView}`, { replace: true });
-                      setError(null); 
-                      setSuccessMessage(null); 
-                    }}
+                  <Link 
+                    to={view === 'login' ? "/signup" : "/login?view=login"}
                     className="text-xs text-slate-400 hover:text-white transition-colors"
                   >
                     {view === 'login' ? "Don't have an account? Sign up" : "Already have an account? Log in"}
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>

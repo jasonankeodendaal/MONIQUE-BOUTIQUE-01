@@ -12,6 +12,7 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Account from './pages/Account';
 import Legal from './pages/Legal';
 import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview } from './types';
@@ -1087,6 +1088,7 @@ const App: React.FC = () => {
               <Routes>
                 <Route path="/" element={<HomeRoute />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/about" element={<About />} />

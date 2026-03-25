@@ -217,7 +217,7 @@ CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, pl
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
-CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT);
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT, "buildingNumber" TEXT, "streetName" TEXT, "suburb" TEXT, "city" TEXT, "province" TEXT, "postalCode" TEXT, "country" TEXT, "newsletter" BOOLEAN DEFAULT FALSE);
 CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
 
@@ -308,6 +308,14 @@ ADD COLUMN IF NOT EXISTS "emailJsPublicKey" TEXT;
 
 -- Add missing columns to clients table
 ALTER TABLE clients ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "buildingNumber" TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "streetName" TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "suburb" TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "city" TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "province" TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "postalCode" TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "country" TEXT;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS "newsletter" BOOLEAN DEFAULT FALSE;
 
 UPDATE settings SET
   "seoTitle" = COALESCE("seoTitle", 'My Store'),
@@ -422,12 +430,21 @@ BEGIN
     NEW.raw_user_meta_data := NEW.raw_user_meta_data || jsonb_build_object('role', 'client');
   END IF;
 
-  INSERT INTO public.clients (id, email, name, "createdAt")
+  INSERT INTO public.clients (id, email, name, phone, "createdAt", "buildingNumber", "streetName", "suburb", "city", "province", "postalCode", "country", "newsletter")
   VALUES (
     new.id, 
     new.email, 
     COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    EXTRACT(EPOCH FROM now()) * 1000
+    new.raw_user_meta_data->>'phone',
+    EXTRACT(EPOCH FROM now()) * 1000,
+    new.raw_user_meta_data->>'buildingNumber',
+    new.raw_user_meta_data->>'streetName',
+    new.raw_user_meta_data->>'suburb',
+    new.raw_user_meta_data->>'city',
+    new.raw_user_meta_data->>'province',
+    new.raw_user_meta_data->>'postalCode',
+    new.raw_user_meta_data->>'country',
+    COALESCE((new.raw_user_meta_data->>'newsletter')::boolean, false)
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
