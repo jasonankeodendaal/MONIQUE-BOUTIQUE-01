@@ -150,8 +150,8 @@ const Footer: React.FC = () => {
     <>
       <footer className="bg-slate-900 text-slate-400 py-8 md:py-24 border-t border-slate-800 relative z-20">
         <div className="max-w-7xl mx-auto px-4 md:px-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-20 mb-8 md:mb-16 text-left items-start">
-            <div className="col-span-2 space-y-4 md:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12 mb-8 md:mb-16 text-left items-start">
+            <div className="col-span-1 md:col-span-2 space-y-4 md:space-y-8">
               <div className="flex items-center space-x-3 md:space-x-6">
                  {settings.companyLogoUrl ? (
                   <img src={settings.companyLogoUrl} alt={settings.companyName} className="h-10 md:h-24 w-auto object-contain drop-shadow-lg" />
@@ -216,6 +216,48 @@ const Footer: React.FC = () => {
                 <li><Link to="/privacy" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.privacyTitle}</Link></li>
                 <li><Link to="/terms" className="hover:text-primary transition-colors flex items-center gap-2 group"><div className="w-1 h-1 bg-slate-700 group-hover:bg-primary rounded-full transition-colors"></div>{settings.termsTitle}</Link></li>
               </ul>
+            </div>
+
+            <div className="space-y-4 md:space-y-8">
+              <h4 className="text-white font-bold text-[10px] md:text-sm uppercase tracking-widest border-b border-slate-800 pb-2 md:pb-4">Newsletter</h4>
+              <p className="text-[10px] md:text-sm font-light text-slate-400">Subscribe to receive updates, access to exclusive deals, and more.</p>
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target as HTMLFormElement;
+                  const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+                  if (!email) return;
+                  
+                  try {
+                    const id = crypto.randomUUID();
+                    await upsertData('clients', {
+                      id,
+                      email,
+                      name: email.split('@')[0],
+                      newsletter: true,
+                      createdAt: Date.now(),
+                      status: 'active'
+                    });
+                    alert('Successfully subscribed to the newsletter!');
+                    form.reset();
+                  } catch (err) {
+                    console.error('Error subscribing:', err);
+                    alert('Failed to subscribe. Please try again later.');
+                  }
+                }}
+                className="flex flex-col gap-3"
+              >
+                <input 
+                  type="email" 
+                  name="email"
+                  placeholder="Enter your email address" 
+                  required
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary transition-colors"
+                />
+                <button type="submit" className="w-full bg-primary text-slate-900 font-bold text-xs uppercase tracking-widest py-3 rounded-xl hover:bg-white transition-colors">
+                  Subscribe
+                </button>
+              </form>
             </div>
           </div>
 

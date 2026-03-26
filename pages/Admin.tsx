@@ -1670,7 +1670,7 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients' | 'media' | 'reviews';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients' | 'media' | 'reviews' | 'newsletter';
 
 const Admin: React.FC = () => {
   const { 
@@ -1712,6 +1712,7 @@ const Admin: React.FC = () => {
   const [orderSearch, setOrderSearch] = useState('');
   const [orderFilter, setOrderFilter] = useState<'all' | 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled'>('all');
   const [clientSearch, setClientSearch] = useState('');
+  const [newsletterSearch, setNewsletterSearch] = useState('');
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [orderData, setOrderData] = useState<Partial<Order>>({ items: [], status: 'Pending', totalAmount: 0 });
   const [tempOrderItem, setTempOrderItem] = useState<Partial<OrderItem>>({ quantity: 1, price: 0 });
@@ -1787,6 +1788,7 @@ const Admin: React.FC = () => {
       case 'enquiries': return perms.includes('sales.view');
       case 'orders': return perms.includes('sales.view');
       case 'clients': return perms.includes('sales.view');
+      case 'newsletter': return perms.includes('sales.view');
       case 'analytics': return perms.includes('analytics.view');
       case 'catalog': return perms.includes('catalog.products.view');
       case 'media': return perms.includes('content.hero');
@@ -1806,6 +1808,7 @@ const Admin: React.FC = () => {
     { id: 'enquiries', label: 'Inbox', icon: Inbox },
     { id: 'orders', label: 'Orders', icon: Package },
     { id: 'clients', label: 'Clients', icon: Users },
+    { id: 'newsletter', label: 'Newsletter', icon: Mail },
     { id: 'analytics', label: 'Insights', icon: BarChart3 },
     { id: 'catalog', label: 'Items', icon: ShoppingBag },
     { id: 'media', label: 'Media', icon: Image },
@@ -2109,6 +2112,9 @@ const Admin: React.FC = () => {
 
   const renderOrders = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <AdminTip title="Order Management">
+        Track and manage all client orders. You can update order statuses, view order details, and create new orders manually.
+      </AdminTip>
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Orders</h2><p className="text-slate-400 text-sm">Manage client orders.</p></div>
          <div className="flex gap-3 w-full md:w-auto">
@@ -2270,6 +2276,9 @@ const Admin: React.FC = () => {
 
   const renderClients = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <AdminTip title="Client Directory">
+        Manage your client database. You can view client details, update their information, and manage their account status.
+      </AdminTip>
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Clients</h2><p className="text-slate-400 text-sm">View and manage registered clients.</p></div>
          <div className="flex gap-3 w-full md:w-auto">
@@ -2429,6 +2438,114 @@ const Admin: React.FC = () => {
     </div>
   );
 
+  const renderNewsletter = () => {
+    const subscribers = clients.filter(c => 
+      c.newsletter && 
+      (c.email?.toLowerCase().includes(newsletterSearch.toLowerCase()) || 
+       c.name?.toLowerCase().includes(newsletterSearch.toLowerCase()))
+    );
+
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter italic">Newsletter <span className="text-primary font-light not-italic">Subscribers</span></h2>
+            <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest font-black">Manage your marketing audience and export data.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                const csv = [
+                  ['Name', 'Email', 'Joined'],
+                  ...subscribers.map(s => [s.name, s.email, new Date(s.createdAt || 0).toLocaleDateString()])
+                ].map(e => e.join(",")).join("\n");
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('hidden', '');
+                a.setAttribute('href', url);
+                a.setAttribute('download', 'subscribers.csv');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }}
+              className="px-6 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+            >
+              <Download size={14} /> Export CSV
+            </button>
+          </div>
+        </div>
+
+        <AdminTip title="Newsletter Management">
+          This list shows all users who have opted-in to receive marketing materials. You can export this list to your preferred email marketing platform (like Mailchimp or Klaviyo).
+        </AdminTip>
+
+        <div className="relative mb-8">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search subscribers by name or email..." 
+            className="w-full pl-16 pr-6 py-5 bg-slate-900 border border-slate-800 rounded-3xl text-white outline-none focus:border-primary/50 transition-all text-sm font-light"
+            value={newsletterSearch}
+            onChange={(e) => setNewsletterSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800">
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Subscriber</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Email Address</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Joined Date</th>
+                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {subscribers.length > 0 ? subscribers.map((sub) => (
+                  <tr key={sub.id} className="hover:bg-slate-800/30 transition-colors group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                          {sub.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <span className="text-white font-bold text-sm">{sub.name || 'Anonymous Subscriber'}</span>
+                      </div>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className="text-slate-400 text-sm font-light">{sub.email}</span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+                        {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString() : 'Unknown'}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Active Opt-in</span>
+                      </div>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={4} className="px-8 py-20 text-center">
+                      <div className="flex flex-col items-center gap-4 opacity-20">
+                        <Mail size={48} className="text-slate-500" />
+                        <p className="text-sm font-bold uppercase tracking-widest">No subscribers found</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderAnalytics = () => {
     let visitorLogs: any[] = [];
     try {
@@ -2506,6 +2623,9 @@ const Admin: React.FC = () => {
 
     return (
       <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left w-full max-w-7xl mx-auto">
+        <AdminTip title="Analytics & Performance">
+          Monitor your site's performance, visitor traffic, and product engagement. Use these insights to optimize your collections and marketing strategies.
+        </AdminTip>
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
            <div className="space-y-2">
               <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter">Insights & Vitality</h2>
@@ -2791,6 +2911,9 @@ const Admin: React.FC = () => {
   const renderSEO = () => {
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
+        <AdminTip title="Search Engine Optimization">
+          Configure global SEO settings like meta titles, descriptions, and keywords to improve your site's visibility on search engines.
+        </AdminTip>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="text-3xl font-serif text-white mb-2 tracking-tight">Search Engine Optimization</h2>
@@ -4285,6 +4408,9 @@ const Admin: React.FC = () => {
 
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+        <AdminTip title="Media Library">
+          Manage all your uploaded images and files. You can upload new media, copy URLs for use in the site editor, or delete unused files.
+        </AdminTip>
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
            <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Media Library</h2><p className="text-slate-400 text-sm">Manage your uploaded files.</p></div>
            <div className="flex gap-3 w-full md:w-auto">
@@ -4366,6 +4492,9 @@ const Admin: React.FC = () => {
 
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+        <AdminTip title="Review Management">
+          Moderate customer reviews before they appear on your site. You can approve, reject, or delete reviews to maintain quality and trust.
+        </AdminTip>
         <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
            <div className="space-y-2">
              <h2 className="text-3xl font-serif text-white">Review Management</h2>
@@ -4540,6 +4669,9 @@ const Admin: React.FC = () => {
 
     return (
      <div className="space-y-12 text-left animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto">
+        <AdminTip title="Team Management">
+          Manage your team members and their permissions. Owners have full access, while curators can be restricted to specific tasks.
+        </AdminTip>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 text-left">
            <div className="text-left">
               <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Governance</span></h2>
@@ -4726,6 +4858,9 @@ const Admin: React.FC = () => {
 
   const renderTraining = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
+      <AdminTip title="Academy & Training">
+        Access training modules and resources to master curation marketing and improve your site's performance.
+      </AdminTip>
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
          <div className="space-y-2">
             <h2 className="text-3xl font-serif text-white">Academy</h2>
@@ -4994,6 +5129,9 @@ const Admin: React.FC = () => {
 
   const renderGuide = () => (
      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32 max-w-7xl mx-auto text-left w-full px-4 md:px-0">
+        <AdminTip title="Launch Protocol">
+          Follow this step-by-step guide to configure your site, deploy your inventory, and launch your platform.
+        </AdminTip>
         {/* Minimal Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-24 md:mb-40 pt-12">
            <div className="space-y-4">
@@ -5209,6 +5347,7 @@ const Admin: React.FC = () => {
         { (activeTab === 'enquiries') && renderEnquiries() }
         { (activeTab === 'orders') && renderOrders() }
         { (activeTab === 'clients') && renderClients() }
+        { (activeTab === 'newsletter') && renderNewsletter() }
         { (activeTab === 'analytics') && renderAnalytics() }
         { (activeTab === 'catalog') && renderCatalog() }
         { (activeTab === 'media') && <MediaTab /> }
@@ -5247,6 +5386,9 @@ const Admin: React.FC = () => {
              <div className="space-y-8 text-left">
                { (activeEditorSection === 'brand') && (
                  <>
+                   <AdminTip title="Brand Identity">
+                     Your brand identity is the visual core of the platform. Changes here affect the logo, primary color palette, and global typography.
+                   </AdminTip>
                    {/* Brand Identity: Core Branding Section */}
                    <div className="space-y-6">
                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4>
@@ -5280,6 +5422,9 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'nav') && (
                   <>
+                    <AdminTip title="Navigation & Layout">
+                      Configure your site's main navigation menu, header style, and footer content.
+                    </AdminTip>
                     {/* Navigation & Layout: Menu Labels Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Menu Labels</h4>
@@ -5350,6 +5495,9 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'home') && (
                   <>
+                    <AdminTip title="Home Page Editor">
+                      Customize the landing page experience, including the hero section, about snippet, and trust signals.
+                    </AdminTip>
                     {/* Home Page: Hero & Niches Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Hero & Niches</h4>
@@ -5421,6 +5569,9 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'collections') && (
                   <>
+                    <AdminTip title="Collections Experience">
+                      Manage how products are displayed, including the hero section, layout style, and various labels used throughout the shopping experience.
+                    </AdminTip>
                     {/* Collections Page: Hero Section */}
                     <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
                     <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
@@ -5517,6 +5668,9 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'about') && (
                   <>
+                    <AdminTip title="About Page Storytelling">
+                      Share your brand's history, mission, and values. Add a gallery to showcase your workspace or team.
+                    </AdminTip>
                     {/* About Page: Hero Section */}
                     <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
                     <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
@@ -5546,6 +5700,9 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'contact') && (
                   <>
+                    <AdminTip title="Contact & Support">
+                      Update your contact information, business hours, FAQs, and social media links.
+                    </AdminTip>
                     {/* Contact Page: Hero & Core Info Section */}
                     <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} />
                     <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" />
@@ -5601,6 +5758,9 @@ const Admin: React.FC = () => {
                )}
                 { (activeEditorSection === 'admin_login') && (
                   <>
+                    <AdminTip title="Admin Login Experience">
+                      Customize the appearance of the internal admin login page, including the hero image and text.
+                    </AdminTip>
                     {/* Admin Login Experience: Hero Content Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><ShieldCheck size={18} className="text-primary"/> Admin Hero Content</h4>
@@ -5640,6 +5800,9 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'client_login') && (
                   <>
+                    <AdminTip title="Client Login Experience">
+                      Customize the appearance of the client login page, including the hero image, text, and success state.
+                    </AdminTip>
                     {/* Client Login Experience: Hero Content Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><Lock size={18} className="text-primary"/> Client Hero Content</h4>
@@ -5693,6 +5856,9 @@ const Admin: React.FC = () => {
                )}
                { (activeEditorSection === 'legal') && (
                   <>
+                    <AdminTip title="Legal & Policy">
+                      Manage your site's legal documents, including the disclosure, privacy policy, and terms of service.
+                    </AdminTip>
                     {/* Legal & Policy: Disclosure Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Disclosure</h4>

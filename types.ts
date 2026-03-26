@@ -579,6 +579,7 @@ export interface AppUser {
   notes?: string;
   company?: string;
   status?: string;
+  newsletter?: boolean;
 }
 
 export interface OrderItem {
