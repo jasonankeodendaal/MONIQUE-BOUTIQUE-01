@@ -530,17 +530,18 @@ const Signup: React.FC = () => {
                   <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Preferences & Verification</h3>
                   
                   <div className="space-y-4">
-                    <label className="flex items-start gap-3 cursor-pointer group">
+                    <label htmlFor="newsletter" className="flex items-start gap-3 cursor-pointer group">
                       <div className="relative flex items-center mt-1">
                         <input 
                           type="checkbox" 
+                          id="newsletter"
                           name="newsletter"
                           checked={formData.newsletter}
                           onChange={handleChange}
                           className="peer sr-only"
                         />
-                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all"></div>
-                        <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity" />
+                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all pointer-events-none"></div>
+                        <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs text-white font-bold group-hover:text-primary transition-colors">Newsletter Opt-in</span>
@@ -548,22 +549,23 @@ const Signup: React.FC = () => {
                       </div>
                     </label>
 
-                    <label className="flex items-start gap-3 cursor-pointer group">
+                    <label htmlFor="termsAccepted" className="flex items-start gap-3 cursor-pointer group">
                       <div className="relative flex items-center mt-1">
                         <input 
                           type="checkbox" 
+                          id="termsAccepted"
                           name="termsAccepted"
                           required
                           checked={formData.termsAccepted}
                           onChange={handleChange}
                           className="peer sr-only"
                         />
-                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all"></div>
-                        <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity" />
+                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all pointer-events-none"></div>
+                        <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs text-white font-bold group-hover:text-primary transition-colors">
-                          I accept the <Link to="/terms" className="text-primary underline underline-offset-4">Terms and Conditions</Link>
+                          I accept the <Link to="/terms" className="text-primary underline underline-offset-4" onClick={(e) => e.stopPropagation()}>Terms and Conditions</Link>
                         </span>
                         <span className="text-[10px] text-slate-500">By creating an account, you agree to our privacy policy and terms.</span>
                       </div>

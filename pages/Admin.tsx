@@ -5613,7 +5613,7 @@ const Admin: React.FC = () => {
 
                     {/* Collections Page: General Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} description="Images that slide in the background of the Collections hero section." />
+                      <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
                       <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} description="Placeholder text inside the search bar." />
                       <SettingField label="Department Label" value={tempSettings.productsDeptLabel} onChange={v => updateTempSettings({ productsDeptLabel: v })} description="Label for the department/category filter." />
                       <SettingField label="All Collections Label" value={tempSettings.productsAllCollectionsLabel} onChange={v => updateTempSettings({ productsAllCollectionsLabel: v })} description="Label for the 'All Collections' filter option." />
@@ -5697,7 +5697,7 @@ const Admin: React.FC = () => {
                     <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" description="Description for the second value/community point." />
                     <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} description="Heading for the third value/integrity point." />
                     <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" description="Description for the third value/integrity point." />
-                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} description="Collection of images displayed in a grid at the bottom of the About page." />
+                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
                   </>
                )}
                { (activeEditorSection === 'contact') && (
@@ -5899,7 +5899,9 @@ const Admin: React.FC = () => {
                     </div>
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                        <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Communications</h4>
-                       <AdminTip title="EmailJS Setup" content="Configure your EmailJS credentials here to enable the contact form. See the Pilot tab for detailed setup instructions." />
+                       <AdminTip title="EmailJS Setup">
+                         Configure your EmailJS credentials here to enable the contact form. See the Pilot tab for detailed setup instructions.
+                       </AdminTip>
                        <SettingField label="EmailJS Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} description="Your EmailJS Service ID (e.g., service_xxxxx)." />
                        <SettingField label="EmailJS Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} description="Your EmailJS Template ID (e.g., template_xxxxx)." />
                        <SettingField label="EmailJS Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} description="Your EmailJS Public Key." />
