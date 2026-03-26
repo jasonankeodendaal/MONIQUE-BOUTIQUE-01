@@ -38,7 +38,7 @@ const Header: React.FC = () => {
   const isDarkSection = !shouldBeSolid && isHomePage;
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+    <header className={`absolute top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
       shouldBeSolid 
         ? 'bg-white/80 backdrop-blur-2xl border-b border-slate-200/50 py-3 shadow-sm' 
         : 'bg-transparent py-5'
