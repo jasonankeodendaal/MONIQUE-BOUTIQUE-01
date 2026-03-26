@@ -77,9 +77,10 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
  * SettingField: A generic input component for various types of settings.
  * Supports text, textarea, color, number, password, and rich text (via ReactQuill).
  */
-const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password' | 'richtext'; placeholder?: string; rows?: number }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4 }) => (
+const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password' | 'richtext'; placeholder?: string; rows?: number; description?: string }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4, description }) => (
   <div className="space-y-2 text-left w-full min-w-0">
     <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
+    {description && <p className="text-[10px] text-slate-400 font-light leading-relaxed mb-2">{description}</p>}
     {type === 'textarea' ? (
       <textarea rows={rows} className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all resize-none font-light text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
     ) : type === 'richtext' ? (
@@ -96,7 +97,7 @@ const SettingField: React.FC<{ label: string; value: string; onChange: (v: strin
  * SingleImageUploader: Handles uploading a single media file (image or video)
  * to Supabase storage and returns the public URL.
  */
-const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40" }) => {
+const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => void; label: string; accept?: string; className?: string; description?: string }> = ({ value, onChange, label, accept = "image/*", className = "h-40 w-40", description }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   
@@ -125,6 +126,7 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
   return (
     <div className="space-y-2 text-left w-full min-w-0">
        {label && <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>}
+       {description && <p className="text-[10px] text-slate-400 font-light leading-relaxed mb-2">{description}</p>}
        <div 
         onClick={() => !uploading && inputRef.current?.click()}
         className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`}
@@ -5392,20 +5394,20 @@ const Admin: React.FC = () => {
                    {/* Brand Identity: Core Branding Section */}
                    <div className="space-y-6">
                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Core Branding</h4>
-                     <SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} />
-                     <SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} />
+                     <SettingField label="Company Name" value={tempSettings.companyName} onChange={v => updateTempSettings({ companyName: v })} description="Displayed in the browser tab, footer, and emails." />
+                     <SettingField label="Slogan / Tagline" value={tempSettings.slogan} onChange={v => updateTempSettings({ slogan: v })} description="Displayed below the logo in the footer and on the About page." />
                    </div>
 
                    {/* Brand Identity: Visual Assets Section */}
                    <div className="space-y-6">
                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Visual Assets</h4>
                      <div className="grid grid-cols-2 gap-6">
-                       <SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} />
-                       <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} />
+                       <SettingField label="Logo Text (Fallback)" value={tempSettings.companyLogo} onChange={v => updateTempSettings({ companyLogo: v })} description="Text shown in the navigation bar if no logo image is uploaded." />
+                       <SingleImageUploader label="Logo Image (PNG)" value={tempSettings.companyLogoUrl || ''} onChange={v => updateTempSettings({ companyLogoUrl: v })} description="Main logo shown in the top navigation bar and footer." />
                      </div>
                      <div className="grid grid-cols-2 gap-6">
-                       <SingleImageUploader label="Favicon (ICO/PNG)" value={tempSettings.faviconUrl || ''} onChange={v => updateTempSettings({ faviconUrl: v })} className="h-24 w-24" />
-                       <SingleImageUploader label="OG Image (SEO)" value={tempSettings.ogImageUrl || ''} onChange={v => updateTempSettings({ ogImageUrl: v })} className="h-24 w-full" />
+                       <SingleImageUploader label="Favicon (ICO/PNG)" value={tempSettings.faviconUrl || ''} onChange={v => updateTempSettings({ faviconUrl: v })} className="h-24 w-24" description="Small icon shown in the browser tab." />
+                       <SingleImageUploader label="OG Image (SEO)" value={tempSettings.ogImageUrl || ''} onChange={v => updateTempSettings({ ogImageUrl: v })} className="h-24 w-full" description="Image shown when your site is shared on social media." />
                      </div>
                    </div>
 
@@ -5413,9 +5415,9 @@ const Admin: React.FC = () => {
                    <div className="space-y-6">
                      <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Palette (Hex Codes)</h4>
                      <div className="grid grid-cols-3 gap-4">
-                       <SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" />
-                       <SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" />
-                       <SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" />
+                       <SettingField label="Primary (Gold)" value={tempSettings.primaryColor} onChange={v => updateTempSettings({ primaryColor: v })} type="color" description="Main brand color used for buttons and highlights." />
+                       <SettingField label="Secondary (Dark)" value={tempSettings.secondaryColor} onChange={v => updateTempSettings({ secondaryColor: v })} type="color" description="Dark color used for backgrounds and text." />
+                       <SettingField label="Accent" value={tempSettings.accentColor} onChange={v => updateTempSettings({ accentColor: v })} type="color" description="Color used for subtle accents and borders." />
                      </div>
                    </div>
                  </>
@@ -5428,10 +5430,10 @@ const Admin: React.FC = () => {
                     {/* Navigation & Layout: Menu Labels Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Menu Labels</h4>
-                      <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} />
-                      <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} />
-                      <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} />
-                      <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} />
+                      <SettingField label="Home Label" value={tempSettings.navHomeLabel} onChange={v => updateTempSettings({ navHomeLabel: v })} description="Text for the Home link in the main navigation." />
+                      <SettingField label="Collections Label" value={tempSettings.navProductsLabel} onChange={v => updateTempSettings({ navProductsLabel: v })} description="Text for the Collections/Products link in the main navigation." />
+                      <SettingField label="About Label" value={tempSettings.navAboutLabel} onChange={v => updateTempSettings({ navAboutLabel: v })} description="Text for the About link in the main navigation." />
+                      <SettingField label="Contact Label" value={tempSettings.navContactLabel} onChange={v => updateTempSettings({ navContactLabel: v })} description="Text for the Contact link in the main navigation." />
                     </div>
 
                     {/* Navigation & Layout: Structural Overrides Section */}
@@ -5481,14 +5483,14 @@ const Admin: React.FC = () => {
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Footer Content</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Nav Header" value={tempSettings.footerNavHeader} onChange={v => updateTempSettings({ footerNavHeader: v })} />
-                        <SettingField label="Policy Header" value={tempSettings.footerPolicyHeader} onChange={v => updateTempSettings({ footerPolicyHeader: v })} />
+                        <SettingField label="Nav Header" value={tempSettings.footerNavHeader} onChange={v => updateTempSettings({ footerNavHeader: v })} description="Heading for the navigation links column in the footer." />
+                        <SettingField label="Policy Header" value={tempSettings.footerPolicyHeader} onChange={v => updateTempSettings({ footerPolicyHeader: v })} description="Heading for the legal/policy links column in the footer." />
                       </div>
-                      <SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" />
+                      <SettingField label="Footer Description" value={tempSettings.footerDescription} onChange={v => updateTempSettings({ footerDescription: v })} type="textarea" description="Short paragraph displayed below the logo in the footer." />
                       <div className="mt-4">
-                        <SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} />
-                        <SettingField label="Creator Role Label" value={tempSettings.footerCreatorRole} onChange={v => updateTempSettings({ footerCreatorRole: v })} />
-                        <SettingField label="Socials Label" value={tempSettings.footerSocialsLabel} onChange={v => updateTempSettings({ footerSocialsLabel: v })} />
+                        <SettingField label="Copyright Text" value={tempSettings.footerCopyrightText} onChange={v => updateTempSettings({ footerCopyrightText: v })} description="Copyright notice at the very bottom of the footer." />
+                        <SettingField label="Creator Role Label" value={tempSettings.footerCreatorRole} onChange={v => updateTempSettings({ footerCreatorRole: v })} description="Text showing who built the site (e.g., 'Built by')." />
+                        <SettingField label="Socials Label" value={tempSettings.footerSocialsLabel} onChange={v => updateTempSettings({ footerSocialsLabel: v })} description="Heading for the social media icons in the footer." />
                       </div>
                     </div>
                   </>
@@ -5501,68 +5503,68 @@ const Admin: React.FC = () => {
                     {/* Home Page: Hero & Niches Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Hero & Niches</h4>
-                      <SettingField label="Hero Title" value={tempSettings.homeHeroTitle || ''} onChange={v => updateTempSettings({ homeHeroTitle: v })} />
-                      <SettingField label="Hero Subtitle" value={tempSettings.homeHeroSubtitle || ''} onChange={v => updateTempSettings({ homeHeroSubtitle: v })} type="textarea" />
-                      <SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} />
+                      <SettingField label="Hero Title" value={tempSettings.homeHeroTitle || ''} onChange={v => updateTempSettings({ homeHeroTitle: v })} description="Main large headline on the Home page." />
+                      <SettingField label="Hero Subtitle" value={tempSettings.homeHeroSubtitle || ''} onChange={v => updateTempSettings({ homeHeroSubtitle: v })} type="textarea" description="Text displayed directly below the main headline." />
+                      <SettingField label="Hero Badge Text" value={tempSettings.homeHeroBadge} onChange={v => updateTempSettings({ homeHeroBadge: v })} description="Small highlighted text above the main headline." />
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} />
-                        <SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} />
+                        <SettingField label="Niche Header" value={tempSettings.homeNicheHeader} onChange={v => updateTempSettings({ homeNicheHeader: v })} description="Heading for the 'Niches' or 'Categories' section." />
+                        <SettingField label="Niche Subheader" value={tempSettings.homeNicheSubheader} onChange={v => updateTempSettings({ homeNicheSubheader: v })} description="Subtext below the Niches heading." />
                       </div>
                     </div>
 
                     {/* Home Page: About Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">About Section</h4>
-                      <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} />
-                      <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" />
-                      <SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} />
-                      <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} />
+                      <SettingField label="Title" value={tempSettings.homeAboutTitle} onChange={v => updateTempSettings({ homeAboutTitle: v })} description="Heading for the brief About section on the Home page." />
+                      <SettingField label="Description" value={tempSettings.homeAboutDescription} onChange={v => updateTempSettings({ homeAboutDescription: v })} type="textarea" description="Paragraph text for the brief About section." />
+                      <SingleImageUploader label="About Section Image" value={tempSettings.homeAboutImage} onChange={v => updateTempSettings({ homeAboutImage: v })} description="Image displayed next to the brief About section." />
+                      <SettingField label="Button Text" value={tempSettings.homeAboutCta} onChange={v => updateTempSettings({ homeAboutCta: v })} description="Text for the button linking to the full About page." />
                     </div>
 
                     {/* Home Page: Category Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Category Section</h4>
-                      <SettingField label="Category Section Title" value={tempSettings.homeCategorySectionTitle} onChange={v => updateTempSettings({ homeCategorySectionTitle: v })} />
-                      <SettingField label="Category Section Subtitle" value={tempSettings.homeCategorySectionSubtitle} onChange={v => updateTempSettings({ homeCategorySectionSubtitle: v })} />
+                      <SettingField label="Category Section Title" value={tempSettings.homeCategorySectionTitle} onChange={v => updateTempSettings({ homeCategorySectionTitle: v })} description="Heading for the featured categories section." />
+                      <SettingField label="Category Section Subtitle" value={tempSettings.homeCategorySectionSubtitle} onChange={v => updateTempSettings({ homeCategorySectionSubtitle: v })} description="Subtext below the featured categories heading." />
                     </div>
 
                     {/* Home Page: Trust Signals Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Trust Signals</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Trust Header" value={tempSettings.homeTrustHeader} onChange={v => updateTempSettings({ homeTrustHeader: v })} />
-                        <SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} />
+                        <SettingField label="Trust Header" value={tempSettings.homeTrustHeader} onChange={v => updateTempSettings({ homeTrustHeader: v })} description="Heading for the 'Why Choose Us' or Trust section." />
+                        <SettingField label="Trust Subheader" value={tempSettings.homeTrustSubheader} onChange={v => updateTempSettings({ homeTrustSubheader: v })} description="Subtext below the Trust section heading." />
                       </div>
                       <div className="grid grid-cols-1 gap-4">
                         {/* Trust Item 1 */}
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                          <SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} />
-                          <SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} />
+                          <SettingField label="Item 1 Title" value={tempSettings.homeTrustItem1Title} onChange={v => updateTempSettings({ homeTrustItem1Title: v })} description="Title for the first trust point (e.g., 'Free Shipping')." />
+                          <SettingField label="Item 1 Desc" value={tempSettings.homeTrustItem1Desc} onChange={v => updateTempSettings({ homeTrustItem1Desc: v })} description="Description for the first trust point." />
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
                           <IconPicker selected={tempSettings.homeTrustItem1Icon} onSelect={v => updateTempSettings({ homeTrustItem1Icon: v })} />
                         </div>
                         {/* Trust Item 2 */}
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                          <SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} />
-                          <SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} />
+                          <SettingField label="Item 2 Title" value={tempSettings.homeTrustItem2Title} onChange={v => updateTempSettings({ homeTrustItem2Title: v })} description="Title for the second trust point." />
+                          <SettingField label="Item 2 Desc" value={tempSettings.homeTrustItem2Desc} onChange={v => updateTempSettings({ homeTrustItem2Desc: v })} description="Description for the second trust point." />
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
                           <IconPicker selected={tempSettings.homeTrustItem2Icon} onSelect={v => updateTempSettings({ homeTrustItem2Icon: v })} />
                         </div>
                         {/* Trust Item 3 */}
                         <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
-                          <SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} />
-                          <SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} />
+                          <SettingField label="Item 3 Title" value={tempSettings.homeTrustItem3Title} onChange={v => updateTempSettings({ homeTrustItem3Title: v })} description="Title for the third trust point." />
+                          <SettingField label="Item 3 Desc" value={tempSettings.homeTrustItem3Desc} onChange={v => updateTempSettings({ homeTrustItem3Desc: v })} description="Description for the third trust point." />
                           <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-2 block">Icon</label>
                           <IconPicker selected={tempSettings.homeTrustItem3Icon} onSelect={v => updateTempSettings({ homeTrustItem3Icon: v })} />
                         </div>
                       </div>
-                      <SettingField label="Read Story Button" value={tempSettings.homeReadStoryBtn} onChange={v => updateTempSettings({ homeReadStoryBtn: v })} />
+                      <SettingField label="Read Story Button" value={tempSettings.homeReadStoryBtn} onChange={v => updateTempSettings({ homeReadStoryBtn: v })} description="Text for the button linking to the full story." />
                       <div className="grid grid-cols-2 gap-4 mt-4">
-                        <SettingField label="About Curator Label" value={tempSettings.homeAboutCuratorLabel} onChange={v => updateTempSettings({ homeAboutCuratorLabel: v })} />
-                        <SettingField label="About Narrative Label" value={tempSettings.homeAboutNarrativeLabel} onChange={v => updateTempSettings({ homeAboutNarrativeLabel: v })} />
-                        <SettingField label="Category Shop By Label" value={tempSettings.homeCategoryShopByLabel} onChange={v => updateTempSettings({ homeCategoryShopByLabel: v })} />
-                        <SettingField label="Category Portfolio Label" value={tempSettings.homeCategoryPortfolioLabel} onChange={v => updateTempSettings({ homeCategoryPortfolioLabel: v })} />
-                        <SettingField label="Category Discover Label" value={tempSettings.homeCategoryDiscoverLabel} onChange={v => updateTempSettings({ homeCategoryDiscoverLabel: v })} />
+                        <SettingField label="About Curator Label" value={tempSettings.homeAboutCuratorLabel} onChange={v => updateTempSettings({ homeAboutCuratorLabel: v })} description="Small label text above the curator section." />
+                        <SettingField label="About Narrative Label" value={tempSettings.homeAboutNarrativeLabel} onChange={v => updateTempSettings({ homeAboutNarrativeLabel: v })} description="Small label text above the narrative section." />
+                        <SettingField label="Category Shop By Label" value={tempSettings.homeCategoryShopByLabel} onChange={v => updateTempSettings({ homeCategoryShopByLabel: v })} description="Small label text above the 'Shop By' section." />
+                        <SettingField label="Category Portfolio Label" value={tempSettings.homeCategoryPortfolioLabel} onChange={v => updateTempSettings({ homeCategoryPortfolioLabel: v })} description="Small label text above the portfolio section." />
+                        <SettingField label="Category Discover Label" value={tempSettings.homeCategoryDiscoverLabel} onChange={v => updateTempSettings({ homeCategoryDiscoverLabel: v })} description="Small label text above the discover section." />
                       </div>
                     </div>
                   </>
@@ -5573,8 +5575,8 @@ const Admin: React.FC = () => {
                       Manage how products are displayed, including the hero section, layout style, and various labels used throughout the shopping experience.
                     </AdminTip>
                     {/* Collections Page: Hero Section */}
-                    <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} />
-                    <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" />
+                    <SettingField label="Hero Title" value={tempSettings.productsHeroTitle} onChange={v => updateTempSettings({ productsHeroTitle: v })} description="Main headline at the top of the Collections/Products page." />
+                    <SettingField label="Hero Subtitle" value={tempSettings.productsHeroSubtitle} onChange={v => updateTempSettings({ productsHeroSubtitle: v })} type="textarea" description="Text displayed below the headline on the Collections/Products page." />
                     
                     {/* Collections Page: Discovery Layout Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
@@ -5611,39 +5613,39 @@ const Admin: React.FC = () => {
 
                     {/* Collections Page: General Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
-                      <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} />
-                      <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} />
-                      <SettingField label="Department Label" value={tempSettings.productsDeptLabel} onChange={v => updateTempSettings({ productsDeptLabel: v })} />
-                      <SettingField label="All Collections Label" value={tempSettings.productsAllCollectionsLabel} onChange={v => updateTempSettings({ productsAllCollectionsLabel: v })} />
-                      <SettingField label="Browse Everything Label" value={tempSettings.productsBrowseEverythingLabel} onChange={v => updateTempSettings({ productsBrowseEverythingLabel: v })} />
-                      <SettingField label="Niches Label" value={tempSettings.productsNichesLabel} onChange={v => updateTempSettings({ productsNichesLabel: v })} />
-                      <SettingField label="Clear Filter Label" value={tempSettings.productsClearFilterLabel} onChange={v => updateTempSettings({ productsClearFilterLabel: v })} />
-                      <SettingField label="Show All Label" value={tempSettings.productsShowAllLabel} onChange={v => updateTempSettings({ productsShowAllLabel: v })} />
-                      <SettingField label="Selections Label" value={tempSettings.productsSelectionsLabel} onChange={v => updateTempSettings({ productsSelectionsLabel: v })} />
-                      <SettingField label="Product Ref Label" value={tempSettings.productRefLabel} onChange={v => updateTempSettings({ productRefLabel: v })} />
+                      <MultiImageUploader label="Hero Carousel Images" images={tempSettings.productsHeroImages || [tempSettings.productsHeroImage]} onChange={v => updateTempSettings({ productsHeroImages: v, productsHeroImage: (v[0] || '') })} description="Images that slide in the background of the Collections hero section." />
+                      <SettingField label="Search Placeholder" value={tempSettings.productsSearchPlaceholder} onChange={v => updateTempSettings({ productsSearchPlaceholder: v })} description="Placeholder text inside the search bar." />
+                      <SettingField label="Department Label" value={tempSettings.productsDeptLabel} onChange={v => updateTempSettings({ productsDeptLabel: v })} description="Label for the department/category filter." />
+                      <SettingField label="All Collections Label" value={tempSettings.productsAllCollectionsLabel} onChange={v => updateTempSettings({ productsAllCollectionsLabel: v })} description="Label for the 'All Collections' filter option." />
+                      <SettingField label="Browse Everything Label" value={tempSettings.productsBrowseEverythingLabel} onChange={v => updateTempSettings({ productsBrowseEverythingLabel: v })} description="Label for the 'Browse Everything' filter option." />
+                      <SettingField label="Niches Label" value={tempSettings.productsNichesLabel} onChange={v => updateTempSettings({ productsNichesLabel: v })} description="Label for the 'Niches' filter section." />
+                      <SettingField label="Clear Filter Label" value={tempSettings.productsClearFilterLabel} onChange={v => updateTempSettings({ productsClearFilterLabel: v })} description="Text for the button to clear active filters." />
+                      <SettingField label="Show All Label" value={tempSettings.productsShowAllLabel} onChange={v => updateTempSettings({ productsShowAllLabel: v })} description="Text for the button to show all items." />
+                      <SettingField label="Selections Label" value={tempSettings.productsSelectionsLabel} onChange={v => updateTempSettings({ productsSelectionsLabel: v })} description="Label for the 'Selections' filter section." />
+                      <SettingField label="Product Ref Label" value={tempSettings.productRefLabel} onChange={v => updateTempSettings({ productRefLabel: v })} description="Label for the product reference/ID." />
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Sort Latest Label" value={tempSettings.sortLatestLabel} onChange={v => updateTempSettings({ sortLatestLabel: v })} />
-                        <SettingField label="Sort Price Low Label" value={tempSettings.sortPriceLowLabel} onChange={v => updateTempSettings({ sortPriceLowLabel: v })} />
-                        <SettingField label="Sort Price High Label" value={tempSettings.sortPriceHighLabel} onChange={v => updateTempSettings({ sortPriceHighLabel: v })} />
-                        <SettingField label="Sort Name Label" value={tempSettings.sortNameLabel} onChange={v => updateTempSettings({ sortNameLabel: v })} />
+                        <SettingField label="Sort Latest Label" value={tempSettings.sortLatestLabel} onChange={v => updateTempSettings({ sortLatestLabel: v })} description="Label for sorting by newest items." />
+                        <SettingField label="Sort Price Low Label" value={tempSettings.sortPriceLowLabel} onChange={v => updateTempSettings({ sortPriceLowLabel: v })} description="Label for sorting by lowest price." />
+                        <SettingField label="Sort Price High Label" value={tempSettings.sortPriceHighLabel} onChange={v => updateTempSettings({ sortPriceHighLabel: v })} description="Label for sorting by highest price." />
+                        <SettingField label="Sort Name Label" value={tempSettings.sortNameLabel} onChange={v => updateTempSettings({ sortNameLabel: v })} description="Label for sorting alphabetically." />
                       </div>
-                      <SettingField label="Empty State Title" value={tempSettings.emptyProductsTitle} onChange={v => updateTempSettings({ emptyProductsTitle: v })} />
-                      <SettingField label="Empty State Message" value={tempSettings.productsEmptyMessage} onChange={v => updateTempSettings({ productsEmptyMessage: v })} />
-                      <SettingField label="Empty State Reset Label" value={tempSettings.emptyProductsResetLabel} onChange={v => updateTempSettings({ emptyProductsResetLabel: v })} />
+                      <SettingField label="Empty State Title" value={tempSettings.emptyProductsTitle} onChange={v => updateTempSettings({ emptyProductsTitle: v })} description="Headline shown when no products match the current filters." />
+                      <SettingField label="Empty State Message" value={tempSettings.productsEmptyMessage} onChange={v => updateTempSettings({ productsEmptyMessage: v })} description="Message shown when no products match the current filters." />
+                      <SettingField label="Empty State Reset Label" value={tempSettings.emptyProductsResetLabel} onChange={v => updateTempSettings({ emptyProductsResetLabel: v })} description="Text for the button to reset filters when empty." />
                     </div>
 
                     {/* Collections Page: Product Detail Labels Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Product Detail Labels</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Buy Button Label" value={tempSettings.productAcquisitionLabel} onChange={v => updateTempSettings({ productAcquisitionLabel: v })} />
-                        <SettingField label="Specs Title Label" value={tempSettings.productSpecsLabel} onChange={v => updateTempSettings({ productSpecsLabel: v })} />
-                        <SettingField label="Price Label" value={tempSettings.productPriceLabel} onChange={v => updateTempSettings({ productPriceLabel: v })} />
-                        <SettingField label="Last Updated Label" value={tempSettings.productLastUpdatedLabel} onChange={v => updateTempSettings({ productLastUpdatedLabel: v })} />
-                        <SettingField label="Merchant Verified Label" value={tempSettings.productMerchantVerifiedLabel} onChange={v => updateTempSettings({ productMerchantVerifiedLabel: v })} />
-                        <SettingField label="Not Found Title" value={tempSettings.productNotFoundTitle} onChange={v => updateTempSettings({ productNotFoundTitle: v })} />
-                        <SettingField label="Not Found CTA" value={tempSettings.productNotFoundCta} onChange={v => updateTempSettings({ productNotFoundCta: v })} />
-                        <SettingField label="Related Products Title" value={tempSettings.relatedProductsTitle} onChange={v => updateTempSettings({ relatedProductsTitle: v })} />
+                        <SettingField label="Buy Button Label" value={tempSettings.productAcquisitionLabel} onChange={v => updateTempSettings({ productAcquisitionLabel: v })} description="Text for the primary purchase/action button on product pages." />
+                        <SettingField label="Specs Title Label" value={tempSettings.productSpecsLabel} onChange={v => updateTempSettings({ productSpecsLabel: v })} description="Heading for the product specifications section." />
+                        <SettingField label="Price Label" value={tempSettings.productPriceLabel} onChange={v => updateTempSettings({ productPriceLabel: v })} description="Label displayed next to the product price." />
+                        <SettingField label="Last Updated Label" value={tempSettings.productLastUpdatedLabel} onChange={v => updateTempSettings({ productLastUpdatedLabel: v })} description="Label indicating when the product was last updated." />
+                        <SettingField label="Merchant Verified Label" value={tempSettings.productMerchantVerifiedLabel} onChange={v => updateTempSettings({ productMerchantVerifiedLabel: v })} description="Badge text indicating merchant verification." />
+                        <SettingField label="Not Found Title" value={tempSettings.productNotFoundTitle} onChange={v => updateTempSettings({ productNotFoundTitle: v })} description="Headline shown when a specific product cannot be found." />
+                        <SettingField label="Not Found CTA" value={tempSettings.productNotFoundCta} onChange={v => updateTempSettings({ productNotFoundCta: v })} description="Text for the button to return to collections when a product is not found." />
+                        <SettingField label="Related Products Title" value={tempSettings.relatedProductsTitle} onChange={v => updateTempSettings({ relatedProductsTitle: v })} description="Heading for the 'Related Products' section." />
                       </div>
                     </div>
 
@@ -5651,17 +5653,17 @@ const Admin: React.FC = () => {
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Review Section Labels</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Section Title" value={tempSettings.reviewSectionTitle} onChange={v => updateTempSettings({ reviewSectionTitle: v })} />
-                        <SettingField label="Write CTA" value={tempSettings.reviewWriteCta} onChange={v => updateTempSettings({ reviewWriteCta: v })} />
-                        <SettingField label="Count Label" value={tempSettings.reviewCountLabel} onChange={v => updateTempSettings({ reviewCountLabel: v })} />
-                        <SettingField label="Rating Label" value={tempSettings.reviewRatingLabel} onChange={v => updateTempSettings({ reviewRatingLabel: v })} />
-                        <SettingField label="Identity Label" value={tempSettings.reviewIdentityLabel} onChange={v => updateTempSettings({ reviewIdentityLabel: v })} />
-                        <SettingField label="Identity Placeholder" value={tempSettings.reviewIdentityPlaceholder} onChange={v => updateTempSettings({ reviewIdentityPlaceholder: v })} />
-                        <SettingField label="Comment Placeholder" value={tempSettings.reviewCommentPlaceholder} onChange={v => updateTempSettings({ reviewCommentPlaceholder: v })} />
-                        <SettingField label="Submit Label" value={tempSettings.reviewSubmitLabel} onChange={v => updateTempSettings({ reviewSubmitLabel: v })} />
-                        <SettingField label="Submitting Label" value={tempSettings.reviewSubmittingLabel} onChange={v => updateTempSettings({ reviewSubmittingLabel: v })} />
-                        <SettingField label="Empty Message" value={tempSettings.emptyReviewsMessage} onChange={v => updateTempSettings({ emptyReviewsMessage: v })} />
-                        <SettingField label="Default Name" value={tempSettings.reviewDefaultName} onChange={v => updateTempSettings({ reviewDefaultName: v })} />
+                        <SettingField label="Section Title" value={tempSettings.reviewSectionTitle} onChange={v => updateTempSettings({ reviewSectionTitle: v })} description="Heading for the product reviews section." />
+                        <SettingField label="Write CTA" value={tempSettings.reviewWriteCta} onChange={v => updateTempSettings({ reviewWriteCta: v })} description="Text for the button to write a new review." />
+                        <SettingField label="Count Label" value={tempSettings.reviewCountLabel} onChange={v => updateTempSettings({ reviewCountLabel: v })} description="Label for the total number of reviews." />
+                        <SettingField label="Rating Label" value={tempSettings.reviewRatingLabel} onChange={v => updateTempSettings({ reviewRatingLabel: v })} description="Label for the average rating." />
+                        <SettingField label="Identity Label" value={tempSettings.reviewIdentityLabel} onChange={v => updateTempSettings({ reviewIdentityLabel: v })} description="Label for the reviewer's name input field." />
+                        <SettingField label="Identity Placeholder" value={tempSettings.reviewIdentityPlaceholder} onChange={v => updateTempSettings({ reviewIdentityPlaceholder: v })} description="Placeholder text for the reviewer's name input." />
+                        <SettingField label="Comment Placeholder" value={tempSettings.reviewCommentPlaceholder} onChange={v => updateTempSettings({ reviewCommentPlaceholder: v })} description="Placeholder text for the review comment input." />
+                        <SettingField label="Submit Label" value={tempSettings.reviewSubmitLabel} onChange={v => updateTempSettings({ reviewSubmitLabel: v })} description="Text for the button to submit a review." />
+                        <SettingField label="Submitting Label" value={tempSettings.reviewSubmittingLabel} onChange={v => updateTempSettings({ reviewSubmittingLabel: v })} description="Text shown while a review is being submitted." />
+                        <SettingField label="Empty Message" value={tempSettings.emptyReviewsMessage} onChange={v => updateTempSettings({ emptyReviewsMessage: v })} description="Message shown when there are no reviews yet." />
+                        <SettingField label="Default Name" value={tempSettings.reviewDefaultName} onChange={v => updateTempSettings({ reviewDefaultName: v })} description="Default name used if a reviewer doesn't provide one." />
                       </div>
                     </div>
                   </>
@@ -5672,30 +5674,30 @@ const Admin: React.FC = () => {
                       Share your brand's history, mission, and values. Add a gallery to showcase your workspace or team.
                     </AdminTip>
                     {/* About Page: Hero Section */}
-                    <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} />
-                    <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" />
-                    <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} />
+                    <SettingField label="Hero Title" value={tempSettings.aboutHeroTitle} onChange={v => updateTempSettings({ aboutHeroTitle: v })} description="Main headline at the top of the About page." />
+                    <SettingField label="Hero Subtitle" value={tempSettings.aboutHeroSubtitle} onChange={v => updateTempSettings({ aboutHeroSubtitle: v })} type="textarea" description="Text displayed below the headline on the About page." />
+                    <SingleImageUploader label="Main Hero Image" value={tempSettings.aboutMainImage} onChange={v => updateTempSettings({ aboutMainImage: v })} description="Large image displayed at the top of the About page." />
                     <div className="grid grid-cols-3 gap-4">
-                      <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} />
-                      <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} />
-                      <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} />
+                      <SettingField label="Est. Year" value={tempSettings.aboutEstablishedYear} onChange={v => updateTempSettings({ aboutEstablishedYear: v })} description="Year the company was established." />
+                      <SettingField label="Founder" value={tempSettings.aboutFounderName} onChange={v => updateTempSettings({ aboutFounderName: v })} description="Name of the company founder." />
+                      <SettingField label="Location" value={tempSettings.aboutLocation} onChange={v => updateTempSettings({ aboutLocation: v })} description="Primary location of the company." />
                     </div>
 
                     {/* About Page: History & Manifesto Section */}
-                    <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} />
-                    <SettingField label="Manifesto Title" value={tempSettings.aboutManifestoTitle} onChange={v => updateTempSettings({ aboutManifestoTitle: v })} />
-                    <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} />
-                    <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" />
+                    <SettingField label="History Title" value={tempSettings.aboutHistoryTitle} onChange={v => updateTempSettings({ aboutHistoryTitle: v })} description="Heading for the company history section." />
+                    <SettingField label="Manifesto Title" value={tempSettings.aboutManifestoTitle} onChange={v => updateTempSettings({ aboutManifestoTitle: v })} description="Heading for the manifesto/mission statement section." />
+                    <SettingField label="History Body" value={tempSettings.aboutHistoryBody} onChange={v => updateTempSettings({ aboutHistoryBody: v })} type="textarea" rows={8} description="Detailed text describing the company's history and manifesto." />
+                    <SingleImageUploader label="Founder Signature (Transparent PNG)" value={tempSettings.aboutSignatureImage} onChange={v => updateTempSettings({ aboutSignatureImage: v })} className="h-24 w-full object-contain" description="Image of the founder's signature, displayed below the history text." />
                     
                     {/* About Page: Values & Gallery Section */}
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Values & Gallery</h4>
-                    <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} />
-                    <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" />
-                    <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} />
-                    <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" />
-                    <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} />
-                    <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" />
-                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} />
+                    <SettingField label="Mission Title" value={tempSettings.aboutMissionTitle} onChange={v => updateTempSettings({ aboutMissionTitle: v })} description="Heading for the first value/mission point." />
+                    <SettingField label="Mission Body" value={tempSettings.aboutMissionBody} onChange={v => updateTempSettings({ aboutMissionBody: v })} type="textarea" description="Description for the first value/mission point." />
+                    <SettingField label="Community Title" value={tempSettings.aboutCommunityTitle} onChange={v => updateTempSettings({ aboutCommunityTitle: v })} description="Heading for the second value/community point." />
+                    <SettingField label="Community Body" value={tempSettings.aboutCommunityBody} onChange={v => updateTempSettings({ aboutCommunityBody: v })} type="textarea" description="Description for the second value/community point." />
+                    <SettingField label="Integrity Title" value={tempSettings.aboutIntegrityTitle} onChange={v => updateTempSettings({ aboutIntegrityTitle: v })} description="Heading for the third value/integrity point." />
+                    <SettingField label="Integrity Body" value={tempSettings.aboutIntegrityBody} onChange={v => updateTempSettings({ aboutIntegrityBody: v })} type="textarea" description="Description for the third value/integrity point." />
+                    <MultiImageUploader label="Gallery Images" images={tempSettings.aboutGalleryImages} onChange={v => updateTempSettings({ aboutGalleryImages: v })} description="Collection of images displayed in a grid at the bottom of the About page." />
                   </>
                )}
                { (activeEditorSection === 'contact') && (
@@ -5704,26 +5706,26 @@ const Admin: React.FC = () => {
                       Update your contact information, business hours, FAQs, and social media links.
                     </AdminTip>
                     {/* Contact Page: Hero & Core Info Section */}
-                    <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} />
-                    <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" />
+                    <SettingField label="Hero Title" value={tempSettings.contactHeroTitle} onChange={v => updateTempSettings({ contactHeroTitle: v })} description="Main headline at the top of the Contact page." />
+                    <SettingField label="Hero Subtitle" value={tempSettings.contactHeroSubtitle} onChange={v => updateTempSettings({ contactHeroSubtitle: v })} type="textarea" description="Text displayed below the headline on the Contact page." />
                     <div className="grid grid-cols-2 gap-4">
-                      <SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} />
-                      <SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} />
+                      <SettingField label="Email" value={tempSettings.contactEmail} onChange={v => updateTempSettings({ contactEmail: v })} description="Primary contact email address displayed to users." />
+                      <SettingField label="Phone" value={tempSettings.contactPhone} onChange={v => updateTempSettings({ contactPhone: v })} description="Primary contact phone number displayed to users." />
                     </div>
-                    <SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} />
-                    <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" />
+                    <SettingField label="WhatsApp (No Spaces)" value={tempSettings.whatsappNumber} onChange={v => updateTempSettings({ whatsappNumber: v })} description="WhatsApp number for the floating chat widget (include country code, no spaces/symbols)." />
+                    <SettingField label="Physical Address" value={tempSettings.address} onChange={v => updateTempSettings({ address: v })} type="textarea" description="Physical location address displayed on the Contact page." />
                     
                     {/* Contact Page: Labels & Hours Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Contact Info Labels</h4>
-                      <SettingField label="Info Title" value={tempSettings.contactInfoTitle} onChange={v => updateTempSettings({ contactInfoTitle: v })} />
+                      <SettingField label="Info Title" value={tempSettings.contactInfoTitle} onChange={v => updateTempSettings({ contactInfoTitle: v })} description="Heading for the contact information section." />
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Address Label" value={tempSettings.contactAddressLabel} onChange={v => updateTempSettings({ contactAddressLabel: v })} />
-                        <SettingField label="Hours Label" value={tempSettings.contactHoursLabel} onChange={v => updateTempSettings({ contactHoursLabel: v })} />
+                        <SettingField label="Address Label" value={tempSettings.contactAddressLabel} onChange={v => updateTempSettings({ contactAddressLabel: v })} description="Label for the physical address." />
+                        <SettingField label="Hours Label" value={tempSettings.contactHoursLabel} onChange={v => updateTempSettings({ contactHoursLabel: v })} description="Label for the business hours section." />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Weekdays Hours" value={tempSettings.contactHoursWeekdays} onChange={v => updateTempSettings({ contactHoursWeekdays: v })} />
-                        <SettingField label="Weekends Hours" value={tempSettings.contactHoursWeekends} onChange={v => updateTempSettings({ contactHoursWeekends: v })} />
+                        <SettingField label="Weekdays Hours" value={tempSettings.contactHoursWeekdays} onChange={v => updateTempSettings({ contactHoursWeekdays: v })} description="Business hours for weekdays (e.g., 'Mon-Fri: 9am - 6pm')." />
+                        <SettingField label="Weekends Hours" value={tempSettings.contactHoursWeekends} onChange={v => updateTempSettings({ contactHoursWeekends: v })} description="Business hours for weekends (e.g., 'Sat-Sun: Closed')." />
                       </div>
                     </div>
 
@@ -5735,21 +5737,21 @@ const Admin: React.FC = () => {
                     {/* Contact Page: Form Labels Section */}
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Form Labels</h4>
                     <div className="grid grid-cols-2 gap-4">
-                      <SettingField label="Name Label" value={tempSettings.contactFormNameLabel} onChange={v => updateTempSettings({ contactFormNameLabel: v })} />
-                      <SettingField label="Email Label" value={tempSettings.contactFormEmailLabel} onChange={v => updateTempSettings({ contactFormEmailLabel: v })} />
-                      <SettingField label="Subject Label" value={tempSettings.contactFormSubjectLabel} onChange={v => updateTempSettings({ contactFormSubjectLabel: v })} />
-                      <SettingField label="Message Label" value={tempSettings.contactFormMessageLabel} onChange={v => updateTempSettings({ contactFormMessageLabel: v })} />
+                      <SettingField label="Name Label" value={tempSettings.contactFormNameLabel} onChange={v => updateTempSettings({ contactFormNameLabel: v })} description="Label for the name input field in the contact form." />
+                      <SettingField label="Email Label" value={tempSettings.contactFormEmailLabel} onChange={v => updateTempSettings({ contactFormEmailLabel: v })} description="Label for the email input field in the contact form." />
+                      <SettingField label="Subject Label" value={tempSettings.contactFormSubjectLabel} onChange={v => updateTempSettings({ contactFormSubjectLabel: v })} description="Label for the subject input field in the contact form." />
+                      <SettingField label="Message Label" value={tempSettings.contactFormMessageLabel} onChange={v => updateTempSettings({ contactFormMessageLabel: v })} description="Label for the message text area in the contact form." />
                     </div>
-                    <SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} />
-                    <SettingField label="Success Title" value={tempSettings.contactSuccessTitle} onChange={v => updateTempSettings({ contactSuccessTitle: v })} />
-                    <SettingField label="Success Message" value={tempSettings.contactSuccessMessage} onChange={v => updateTempSettings({ contactSuccessMessage: v })} />
-                    <SettingField label="Submit New Button" value={tempSettings.contactSubmitNewBtn} onChange={v => updateTempSettings({ contactSubmitNewBtn: v })} />
-                    <SettingField label="Verified Label" value={tempSettings.contactVerifiedLabel} onChange={v => updateTempSettings({ contactVerifiedLabel: v })} />
-                    <SettingField label="Concierge Label" value={tempSettings.contactConciergeLabel} onChange={v => updateTempSettings({ contactConciergeLabel: v })} />
-                    <SettingField label="WhatsApp Label" value={tempSettings.contactWhatsappLabel} onChange={v => updateTempSettings({ contactWhatsappLabel: v })} />
-                    <SettingField label="Follow Us Label" value={tempSettings.contactFollowUsLabel} onChange={v => updateTempSettings({ contactFollowUsLabel: v })} />
-                    <SettingField label="FAQ Title" value={tempSettings.contactFaqTitle} onChange={v => updateTempSettings({ contactFaqTitle: v })} />
-                    <SettingField label="Last Updated Label" value={tempSettings.contactLastUpdatedLabel} onChange={v => updateTempSettings({ contactLastUpdatedLabel: v })} />
+                    <SettingField label="Button Text" value={tempSettings.contactFormButtonText} onChange={v => updateTempSettings({ contactFormButtonText: v })} description="Text for the button to submit the contact form." />
+                    <SettingField label="Success Title" value={tempSettings.contactSuccessTitle} onChange={v => updateTempSettings({ contactSuccessTitle: v })} description="Headline shown after a successful form submission." />
+                    <SettingField label="Success Message" value={tempSettings.contactSuccessMessage} onChange={v => updateTempSettings({ contactSuccessMessage: v })} description="Message shown after a successful form submission." />
+                    <SettingField label="Submit New Button" value={tempSettings.contactSubmitNewBtn} onChange={v => updateTempSettings({ contactSubmitNewBtn: v })} description="Text for the button to submit another message." />
+                    <SettingField label="Verified Label" value={tempSettings.contactVerifiedLabel} onChange={v => updateTempSettings({ contactVerifiedLabel: v })} description="Badge text indicating verified contact info." />
+                    <SettingField label="Concierge Label" value={tempSettings.contactConciergeLabel} onChange={v => updateTempSettings({ contactConciergeLabel: v })} description="Label for concierge/support services." />
+                    <SettingField label="WhatsApp Label" value={tempSettings.contactWhatsappLabel} onChange={v => updateTempSettings({ contactWhatsappLabel: v })} description="Label for the WhatsApp contact option." />
+                    <SettingField label="Follow Us Label" value={tempSettings.contactFollowUsLabel} onChange={v => updateTempSettings({ contactFollowUsLabel: v })} description="Heading for the social media links section." />
+                    <SettingField label="FAQ Title" value={tempSettings.contactFaqTitle} onChange={v => updateTempSettings({ contactFaqTitle: v })} description="Heading for the Frequently Asked Questions section." />
+                    <SettingField label="Last Updated Label" value={tempSettings.contactLastUpdatedLabel} onChange={v => updateTempSettings({ contactLastUpdatedLabel: v })} description="Label indicating when the FAQs were last updated." />
                     
                     {/* Contact Page: Socials Section */}
                     <h4 className="text-white font-bold border-t border-slate-800 pt-6">Socials</h4>
@@ -5764,10 +5766,10 @@ const Admin: React.FC = () => {
                     {/* Admin Login Experience: Hero Content Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><ShieldCheck size={18} className="text-primary"/> Admin Hero Content</h4>
-                      <SettingField label="Hero Badge" value={tempSettings.adminLoginHeroBadge || ''} onChange={v => updateTempSettings({ adminLoginHeroBadge: v })} />
-                      <SettingField label="Login Title" value={tempSettings.adminLoginHeroTitle || ''} onChange={v => updateTempSettings({ adminLoginHeroTitle: v })} />
-                      <SettingField label="Login Description" value={tempSettings.adminLoginHeroDescription || ''} onChange={v => updateTempSettings({ adminLoginHeroDescription: v })} type="textarea" />
-                      <SingleImageUploader label="Login Hero Image" value={tempSettings.adminLoginHeroImage || ''} onChange={v => updateTempSettings({ adminLoginHeroImage: v })} />
+                      <SettingField label="Hero Badge" value={tempSettings.adminLoginHeroBadge || ''} onChange={v => updateTempSettings({ adminLoginHeroBadge: v })} description="Small badge text shown above the login title." />
+                      <SettingField label="Login Title" value={tempSettings.adminLoginHeroTitle || ''} onChange={v => updateTempSettings({ adminLoginHeroTitle: v })} description="Main headline for the admin login page." />
+                      <SettingField label="Login Description" value={tempSettings.adminLoginHeroDescription || ''} onChange={v => updateTempSettings({ adminLoginHeroDescription: v })} type="textarea" description="Text displayed below the login headline." />
+                      <SingleImageUploader label="Login Hero Image" value={tempSettings.adminLoginHeroImage || ''} onChange={v => updateTempSettings({ adminLoginHeroImage: v })} description="Background or feature image for the admin login page." />
                       
                       <div className="flex items-center gap-4 mt-6">
                          <input 
@@ -5785,16 +5787,16 @@ const Admin: React.FC = () => {
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Admin Form Labels & Placeholders</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Email Label" value={tempSettings.adminLoginEmailLabel || ''} onChange={v => updateTempSettings({ adminLoginEmailLabel: v })} />
-                        <SettingField label="Email Placeholder" value={tempSettings.adminLoginEmailPlaceholder || ''} onChange={v => updateTempSettings({ adminLoginEmailPlaceholder: v })} />
-                        <SettingField label="Password Label" value={tempSettings.adminLoginPasswordLabel || ''} onChange={v => updateTempSettings({ adminLoginPasswordLabel: v })} />
-                        <SettingField label="Password Placeholder" value={tempSettings.adminLoginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ adminLoginPasswordPlaceholder: v })} />
+                        <SettingField label="Email Label" value={tempSettings.adminLoginEmailLabel || ''} onChange={v => updateTempSettings({ adminLoginEmailLabel: v })} description="Label for the admin email input." />
+                        <SettingField label="Email Placeholder" value={tempSettings.adminLoginEmailPlaceholder || ''} onChange={v => updateTempSettings({ adminLoginEmailPlaceholder: v })} description="Placeholder text for the admin email input." />
+                        <SettingField label="Password Label" value={tempSettings.adminLoginPasswordLabel || ''} onChange={v => updateTempSettings({ adminLoginPasswordLabel: v })} description="Label for the admin password input." />
+                        <SettingField label="Password Placeholder" value={tempSettings.adminLoginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ adminLoginPasswordPlaceholder: v })} description="Placeholder text for the admin password input." />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Submit Button" value={tempSettings.adminLoginSubmitLabel || ''} onChange={v => updateTempSettings({ adminLoginSubmitLabel: v })} />
-                        <SettingField label="Google Button" value={tempSettings.adminLoginGoogleLabel || ''} onChange={v => updateTempSettings({ adminLoginGoogleLabel: v })} />
+                        <SettingField label="Submit Button" value={tempSettings.adminLoginSubmitLabel || ''} onChange={v => updateTempSettings({ adminLoginSubmitLabel: v })} description="Text for the admin login submit button." />
+                        <SettingField label="Google Button" value={tempSettings.adminLoginGoogleLabel || ''} onChange={v => updateTempSettings({ adminLoginGoogleLabel: v })} description="Text for the 'Sign in with Google' button." />
                       </div>
-                      <SettingField label="Back to Site Label" value={tempSettings.adminLoginBackToSite || ''} onChange={v => updateTempSettings({ adminLoginBackToSite: v })} />
+                      <SettingField label="Back to Site Label" value={tempSettings.adminLoginBackToSite || ''} onChange={v => updateTempSettings({ adminLoginBackToSite: v })} description="Text for the link to return to the public site." />
                     </div>
                   </>
                )}
@@ -5806,10 +5808,10 @@ const Admin: React.FC = () => {
                     {/* Client Login Experience: Hero Content Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold flex items-center gap-2"><Lock size={18} className="text-primary"/> Client Hero Content</h4>
-                      <SettingField label="Hero Badge" value={tempSettings.clientLoginHeroBadge || ''} onChange={v => updateTempSettings({ clientLoginHeroBadge: v })} />
-                      <SettingField label="Login Title" value={tempSettings.clientLoginHeroTitle || ''} onChange={v => updateTempSettings({ clientLoginHeroTitle: v })} />
-                      <SettingField label="Login Description" value={tempSettings.clientLoginHeroDescription || ''} onChange={v => updateTempSettings({ clientLoginHeroDescription: v })} type="textarea" />
-                      <SingleImageUploader label="Login Hero Image" value={tempSettings.clientLoginHeroImage || ''} onChange={v => updateTempSettings({ clientLoginHeroImage: v })} />
+                      <SettingField label="Hero Badge" value={tempSettings.clientLoginHeroBadge || ''} onChange={v => updateTempSettings({ clientLoginHeroBadge: v })} description="Small badge text shown above the client login title." />
+                      <SettingField label="Login Title" value={tempSettings.clientLoginHeroTitle || ''} onChange={v => updateTempSettings({ clientLoginHeroTitle: v })} description="Main headline for the client login page." />
+                      <SettingField label="Login Description" value={tempSettings.clientLoginHeroDescription || ''} onChange={v => updateTempSettings({ clientLoginHeroDescription: v })} type="textarea" description="Text displayed below the client login headline." />
+                      <SingleImageUploader label="Login Hero Image" value={tempSettings.clientLoginHeroImage || ''} onChange={v => updateTempSettings({ clientLoginHeroImage: v })} description="Background or feature image for the client login page." />
                     </div>
 
                     {/* Client Login Experience: Form Labels Section */}
@@ -5826,31 +5828,31 @@ const Admin: React.FC = () => {
                          <span className="text-white font-bold text-sm">Enable Client Registration</span>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Email Label" value={tempSettings.clientLoginEmailLabel || ''} onChange={v => updateTempSettings({ clientLoginEmailLabel: v })} />
-                        <SettingField label="Email Placeholder" value={tempSettings.clientLoginEmailPlaceholder || ''} onChange={v => updateTempSettings({ clientLoginEmailPlaceholder: v })} />
-                        <SettingField label="Password Label" value={tempSettings.clientLoginPasswordLabel || ''} onChange={v => updateTempSettings({ clientLoginPasswordLabel: v })} />
-                        <SettingField label="Password Placeholder" value={tempSettings.clientLoginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ clientLoginPasswordPlaceholder: v })} />
+                        <SettingField label="Email Label" value={tempSettings.clientLoginEmailLabel || ''} onChange={v => updateTempSettings({ clientLoginEmailLabel: v })} description="Label for the client email input." />
+                        <SettingField label="Email Placeholder" value={tempSettings.clientLoginEmailPlaceholder || ''} onChange={v => updateTempSettings({ clientLoginEmailPlaceholder: v })} description="Placeholder text for the client email input." />
+                        <SettingField label="Password Label" value={tempSettings.clientLoginPasswordLabel || ''} onChange={v => updateTempSettings({ clientLoginPasswordLabel: v })} description="Label for the client password input." />
+                        <SettingField label="Password Placeholder" value={tempSettings.clientLoginPasswordPlaceholder || ''} onChange={v => updateTempSettings({ clientLoginPasswordPlaceholder: v })} description="Placeholder text for the client password input." />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Submit Button" value={tempSettings.clientLoginSubmitLabel || ''} onChange={v => updateTempSettings({ clientLoginSubmitLabel: v })} />
-                        <SettingField label="Google Button" value={tempSettings.clientLoginGoogleLabel || ''} onChange={v => updateTempSettings({ clientLoginGoogleLabel: v })} />
+                        <SettingField label="Submit Button" value={tempSettings.clientLoginSubmitLabel || ''} onChange={v => updateTempSettings({ clientLoginSubmitLabel: v })} description="Text for the client login submit button." />
+                        <SettingField label="Google Button" value={tempSettings.clientLoginGoogleLabel || ''} onChange={v => updateTempSettings({ clientLoginGoogleLabel: v })} description="Text for the 'Sign in with Google' button." />
                       </div>
-                      <SettingField label="Divider Text" value={tempSettings.clientLoginDividerLabel || ''} onChange={v => updateTempSettings({ clientLoginDividerLabel: v })} />
-                      <SettingField label="Back to Site Label" value={tempSettings.clientLoginBackToSite || ''} onChange={v => updateTempSettings({ clientLoginBackToSite: v })} />
+                      <SettingField label="Divider Text" value={tempSettings.clientLoginDividerLabel || ''} onChange={v => updateTempSettings({ clientLoginDividerLabel: v })} description="Text for the divider between login methods (e.g., 'or')." />
+                      <SettingField label="Back to Site Label" value={tempSettings.clientLoginBackToSite || ''} onChange={v => updateTempSettings({ clientLoginBackToSite: v })} description="Text for the link to return to the public site." />
                     </div>
 
                     {/* Client Login Experience: Success State Section */}
                     <div className="pt-6 border-t border-slate-800 space-y-6">
                       <h4 className="text-white font-bold">Success State Content</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Success Badge" value={tempSettings.clientLoginSuccessBadge || ''} onChange={v => updateTempSettings({ clientLoginSuccessBadge: v })} />
-                        <SettingField label="Security Label" value={tempSettings.clientLoginSecurityLabel || ''} onChange={v => updateTempSettings({ clientLoginSecurityLabel: v })} />
+                        <SettingField label="Success Badge" value={tempSettings.clientLoginSuccessBadge || ''} onChange={v => updateTempSettings({ clientLoginSuccessBadge: v })} description="Badge text shown upon successful login." />
+                        <SettingField label="Security Label" value={tempSettings.clientLoginSecurityLabel || ''} onChange={v => updateTempSettings({ clientLoginSecurityLabel: v })} description="Label indicating a secure session." />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <SettingField label="Title Prefix" value={tempSettings.clientLoginSuccessTitlePrefix || ''} onChange={v => updateTempSettings({ clientLoginSuccessTitlePrefix: v })} />
-                        <SettingField label="Title Suffix" value={tempSettings.clientLoginSuccessTitleSuffix || ''} onChange={v => updateTempSettings({ clientLoginSuccessTitleSuffix: v })} />
+                        <SettingField label="Title Prefix" value={tempSettings.clientLoginSuccessTitlePrefix || ''} onChange={v => updateTempSettings({ clientLoginSuccessTitlePrefix: v })} description="Text before the user's name in the success title." />
+                        <SettingField label="Title Suffix" value={tempSettings.clientLoginSuccessTitleSuffix || ''} onChange={v => updateTempSettings({ clientLoginSuccessTitleSuffix: v })} description="Text after the user's name in the success title." />
                       </div>
-                      <SettingField label="Success Message" value={tempSettings.clientLoginSuccessMessage || ''} onChange={v => updateTempSettings({ clientLoginSuccessMessage: v })} type="textarea" />
+                      <SettingField label="Success Message" value={tempSettings.clientLoginSuccessMessage || ''} onChange={v => updateTempSettings({ clientLoginSuccessMessage: v })} type="textarea" description="Message shown after a successful login." />
                     </div>
                   </>
                )}
@@ -5862,20 +5864,20 @@ const Admin: React.FC = () => {
                     {/* Legal & Policy: Disclosure Section */}
                     <div className="space-y-6">
                       <h4 className="text-white font-bold">Disclosure</h4>
-                      <SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} />
-                      <SettingField label="Content" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="richtext" />
+                      <SettingField label="Title" value={tempSettings.disclosureTitle} onChange={v => updateTempSettings({ disclosureTitle: v })} description="Heading for the Disclosure page." />
+                      <SettingField label="Content" value={tempSettings.disclosureContent} onChange={v => updateTempSettings({ disclosureContent: v })} type="richtext" description="Full text content for the Disclosure page." />
                     </div>
                     {/* Legal & Policy: Privacy Policy Section */}
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                       <h4 className="text-white font-bold">Privacy Policy</h4>
-                      <SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} />
-                      <SettingField label="Content" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="richtext" />
+                      <SettingField label="Title" value={tempSettings.privacyTitle} onChange={v => updateTempSettings({ privacyTitle: v })} description="Heading for the Privacy Policy page." />
+                      <SettingField label="Content" value={tempSettings.privacyContent} onChange={v => updateTempSettings({ privacyContent: v })} type="richtext" description="Full text content for the Privacy Policy page." />
                     </div>
                     {/* Legal & Policy: Terms of Service Section */}
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                       <h4 className="text-white font-bold">Terms of Service</h4>
-                      <SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} />
-                      <SettingField label="Content" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="richtext" />
+                      <SettingField label="Title" value={tempSettings.termsTitle} onChange={v => updateTempSettings({ termsTitle: v })} description="Heading for the Terms of Service page." />
+                      <SettingField label="Content" value={tempSettings.termsContent} onChange={v => updateTempSettings({ termsContent: v })} type="richtext" description="Full text content for the Terms of Service page." />
                     </div>
                   </>
                )}
@@ -5889,17 +5891,18 @@ const Admin: React.FC = () => {
                     {/* Integrations: Analytics & Pixels Section */}
                     <div className="space-y-6">
                        <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Analytics & Pixels</h4>
-                       <SettingField label="Google Analytics 4 (G-XXXXXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} />
-                       <SettingField label="Meta Pixel ID (Dataset ID)" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} />
-                       <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} />
-                       <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} />
-                       <SettingField label="Webhook URL (Zapier/Make)" value={tempSettings.webhookUrl || ''} onChange={v => updateTempSettings({ webhookUrl: v })} />
+                       <SettingField label="Google Analytics 4 (G-XXXXXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} description="Your GA4 Measurement ID." />
+                       <SettingField label="Meta Pixel ID (Dataset ID)" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} description="Your Facebook/Meta Pixel ID." />
+                       <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} description="Your TikTok Pixel ID." />
+                       <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} description="Your Pinterest Tag ID." />
+                       <SettingField label="Webhook URL (Zapier/Make)" value={tempSettings.webhookUrl || ''} onChange={v => updateTempSettings({ webhookUrl: v })} description="URL to send data to (e.g., for Zapier or Make)." />
                     </div>
                     <div className="space-y-6 pt-6 border-t border-slate-800">
                        <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Communications</h4>
-                       <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl mb-4 text-xs text-yellow-500">
-                          <strong>Note:</strong> EmailJS is currently hardcoded for reliability. Update 'constants.tsx' for custom email logic if required.
-                       </div>
+                       <AdminTip title="EmailJS Setup" content="Configure your EmailJS credentials here to enable the contact form. See the Pilot tab for detailed setup instructions." />
+                       <SettingField label="EmailJS Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} description="Your EmailJS Service ID (e.g., service_xxxxx)." />
+                       <SettingField label="EmailJS Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} description="Your EmailJS Template ID (e.g., template_xxxxx)." />
+                       <SettingField label="EmailJS Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} description="Your EmailJS Public Key." />
                     </div>
                   </>
                )}

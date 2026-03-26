@@ -518,15 +518,15 @@ CREATE TRIGGER on_auth_user_created
   {
     id: 'email-protocol',
     title: '8. Email Server (EmailJS)',
-    description: 'Setup the automated communication bridge for client enquiries.',
+    description: 'Setup the automated communication bridge for client enquiries without hardcoding credentials.',
     illustrationId: 'forge',
     subSteps: [
       '1. SIGN UP: Go to https://www.emailjs.com and create a free account.',
       '2. ADD SERVICE: Click "Email Services" > "Add New Service". Select "Gmail" and connect your account.',
-      '3. SERVICE ID: Copy the "Service ID" (e.g., "service_xxxx"). You will need this for Step 11.',
-      '4. PUBLIC KEY: Click "Account" in the sidebar. Copy your "Public Key".',
-      '5. WHITELIST: In "Account" > "Security", add your Vercel domain (from Step 10) to the "Allowed Domains" list.',
-      '6. TEST: Click "Test Service" to ensure EmailJS can send emails through your Gmail account.'
+      '3. SERVICE ID: Copy the "Service ID" (e.g., "service_xxxx"). Go to the Admin Dashboard > Settings > Integrations and paste it into the "EmailJS Service ID" field.',
+      '4. PUBLIC KEY: Click "Account" in the sidebar. Copy your "Public Key". Paste it into the "EmailJS Public Key" field in your Admin Settings.',
+      '5. WHITELIST: In "Account" > "Security", add your live domain to the "Allowed Domains" list to prevent unauthorized use.',
+      '6. SAVE SETTINGS: Click "Save Changes" in your Admin Dashboard. Your site is now securely connected to EmailJS.'
     ]
   },
   {
@@ -536,12 +536,24 @@ CREATE TRIGGER on_auth_user_created
     illustrationId: 'rocket',
     subSteps: [
       '1. CREATE TEMPLATE: In EmailJS, click "Email Templates" > "Create New Template".',
-      '2. DESIGN: Use the editor to design your reply. Use {{to_name}} for the client name and {{message}} for your reply.',
-      '3. LOGO: Click the "Image" icon and paste your logo URL (from Supabase Storage) to brand the email.',
-      '4. SETTINGS: In the "Settings" tab of the template, set the "From Name" to your Brand Name.',
-      '5. TEMPLATE ID: Click "Save". Copy the "Template ID" (e.g., "template_xxxx").',
-      '6. AUTO-REPLY: (Optional) Create a second template for "Auto-Confirmation" to tell clients you received their message.'
-    ]
+      '2. TEMPLATE ID: Copy the "Template ID" (e.g., "template_xxxx") and paste it into the "EmailJS Template ID" field in your Admin Settings.',
+      '3. CONFIGURE TO/FROM: In the template settings, set "To Email" to your own email address (where you want to receive notifications).',
+      '4. CONFIGURE SUBJECT: Set the "Subject" field to: New Inquiry: {{subject}}',
+      '5. CONFIGURE CONTENT: Go to the "Content" tab. Click "Source Code" (<>) and paste the exact HTML template provided below.',
+      '6. AUTO-REPLY: (Optional) You can set up an auto-reply in the "Auto-Reply" tab of the same template to instantly email the client back.'
+    ],
+    code: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee;">
+  <h2 style="color: #333; border-bottom: 2px solid #B76E79; padding-bottom: 10px;">New Contact Inquiry</h2>
+  <p><strong>Name:</strong> {{name}}</p>
+  <p><strong>Email:</strong> {{email}}</p>
+  <p><strong>WhatsApp:</strong> {{whatsapp}}</p>
+  <p><strong>Subject:</strong> {{subject}}</p>
+  <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px;">
+    <p style="margin: 0; white-space: pre-wrap;">{{message}}</p>
+  </div>
+  <p style="font-size: 12px; color: #999; margin-top: 30px;">This email was sent from your website contact form.</p>
+</div>`,
+    codeLabel: 'EmailJS HTML Template (Copy & Paste)'
   },
   {
     id: 'production-launch',
@@ -565,10 +577,10 @@ CREATE TRIGGER on_auth_user_created
     subSteps: [
       '1. SETTINGS: In your Vercel project, click "Settings" > "Environment Variables".',
       '2. SUPABASE: Add "VITE_SUPABASE_URL" and "VITE_SUPABASE_ANON_KEY" with values from Step 2.',
-      '3. EMAILJS: Add "VITE_EMAILJS_SERVICE_ID", "VITE_EMAILJS_TEMPLATE_ID", and "VITE_EMAILJS_PUBLIC_KEY".',
-      '4. REDEPLOY: Go to the "Deployments" tab. Click the three dots on your latest build and select "Redeploy".',
-      '5. VERIFY: Once finished, click the "Visit" button. Your site should now load your products and settings.',
-      '6. CONSOLE: If the site is blank, right-click > Inspect > Console to see if any API keys are missing.'
+      '3. REDEPLOY: Go to the "Deployments" tab. Click the three dots on your latest build and select "Redeploy".',
+      '4. VERIFY: Once finished, click the "Visit" button. Your site should now load your products and settings.',
+      '5. CONSOLE: If the site is blank, right-click > Inspect > Console to see if any API keys are missing.',
+      '6. NOTE: EmailJS is configured directly in the Admin Dashboard > Settings > Integrations, not here.'
     ]
   },
   {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import emailjs from '@emailjs/browser';
 import { Mail, MessageCircle, Send, ArrowLeft, ArrowRight, Globe, MapPin, Clock, HelpCircle, Plus, Minus, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useSettings } from '../App';
 import { Enquiry } from '../types';
@@ -33,14 +34,24 @@ const Contact: React.FC = () => {
       // Exclusively synchronize with Supabase backend
       await updateData('enquiries', newEnquiry);
 
-      // Send email notification via API
-      await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formState),
-      });
+      // Send email notification via EmailJS if configured
+      if (settings.emailJsServiceId && settings.emailJsTemplateId && settings.emailJsPublicKey) {
+        await emailjs.send(
+          settings.emailJsServiceId,
+          settings.emailJsTemplateId,
+          {
+            name: formState.name,
+            email: formState.email,
+            whatsapp: formState.whatsapp || 'Not provided',
+            subject: formState.subject,
+            message: formState.message,
+            reply_to: formState.email,
+          },
+          settings.emailJsPublicKey
+        );
+      } else {
+        console.warn('EmailJS is not fully configured in settings. Skipping email notification.');
+      }
 
       setSubmitted(true);
       setFormState({ name: '', email: '', whatsapp: '', subject: 'Product Curation Inquiry', message: '' });
