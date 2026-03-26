@@ -576,6 +576,13 @@ export interface AppUser {
   profileImage?: string;
   phone?: string;
   address?: string;
+  buildingNumber?: string;
+  streetName?: string;
+  suburb?: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  country?: string;
   notes?: string;
   company?: string;
   status?: string;
