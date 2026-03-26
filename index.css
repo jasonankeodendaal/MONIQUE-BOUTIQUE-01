@@ -3,6 +3,8 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", serif;
+  --color-primary: #E5C1CD;
+  --color-primary-foreground: #1a1a1a;
 }
 
 :root {
