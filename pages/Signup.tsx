@@ -562,10 +562,10 @@ const Signup: React.FC = () => {
                           name="newsletter"
                           checked={formData.newsletter}
                           onChange={handleChange}
-                          className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
-                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all"></div>
-                        <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                        <div className={`w-5 h-5 border-2 rounded-md transition-all ${formData.newsletter ? 'bg-primary border-primary' : 'border-slate-800'}`}></div>
+                        <CheckCircle2 size={12} className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 transition-opacity pointer-events-none ${formData.newsletter ? 'opacity-100' : 'opacity-0'}`} />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs text-white font-bold group-hover:text-primary transition-colors">Newsletter Opt-in</span>
@@ -582,10 +582,10 @@ const Signup: React.FC = () => {
                           required
                           checked={formData.termsAccepted}
                           onChange={handleChange}
-                          className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
-                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all"></div>
-                        <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                        <div className={`w-5 h-5 border-2 rounded-md transition-all ${formData.termsAccepted ? 'bg-primary border-primary' : 'border-slate-800'}`}></div>
+                        <CheckCircle2 size={12} className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 transition-opacity pointer-events-none ${formData.termsAccepted ? 'opacity-100' : 'opacity-0'}`} />
                       </div>
                       <div className="flex flex-col">
                         <span className="text-xs text-white font-bold group-hover:text-primary transition-colors">
