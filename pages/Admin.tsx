@@ -1878,7 +1878,10 @@ const Admin: React.FC = () => {
       .slice(0, 50);
   }, [trafficEvents, minErrorTimestamp]);
 
-  const handleLogout = async () => { await logout(); };
+  const handleLogout = async () => { 
+    await logout(); 
+    navigate('/'); 
+  };
   const handleFactoryReset = async () => { if (window.confirm("⚠️ DANGER: Factory Reset? This will wipe LOCAL data.")) { localStorage.clear(); window.location.reload(); } };
   const handleBackup = () => { const data = { products, categories, subCategories, heroSlides, enquiries, admins, settings, stats }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup.json`; a.click(); };
   
@@ -5903,7 +5906,9 @@ const Admin: React.FC = () => {
                          Configure your EmailJS credentials here to enable the contact form. See the Pilot tab for detailed setup instructions.
                        </AdminTip>
                        <SettingField label="EmailJS Service ID" value={tempSettings.emailJsServiceId || ''} onChange={v => updateTempSettings({ emailJsServiceId: v })} description="Your EmailJS Service ID (e.g., service_xxxxx)." />
-                       <SettingField label="EmailJS Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} description="Your EmailJS Template ID (e.g., template_xxxxx)." />
+                       <SettingField label="EmailJS Contact Template ID" value={tempSettings.emailJsTemplateId || ''} onChange={v => updateTempSettings({ emailJsTemplateId: v })} description="Your EmailJS Template ID for contact form (e.g., template_xxxxx)." />
+                       <SettingField label="EmailJS Welcome Template ID" value={tempSettings.emailJsWelcomeTemplateId || ''} onChange={v => updateTempSettings({ emailJsWelcomeTemplateId: v })} description="Your EmailJS Template ID for new signups." />
+                       <SettingField label="EmailJS Order Template ID" value={tempSettings.emailJsOrderTemplateId || ''} onChange={v => updateTempSettings({ emailJsOrderTemplateId: v })} description="Your EmailJS Template ID for order confirmations." />
                        <SettingField label="EmailJS Public Key" value={tempSettings.emailJsPublicKey || ''} onChange={v => updateTempSettings({ emailJsPublicKey: v })} description="Your EmailJS Public Key." />
                     </div>
                   </>

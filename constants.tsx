@@ -91,6 +91,133 @@ export const EMAIL_TEMPLATE_HTML = `
 </html>
 `;
 
+// WELCOME_EMAIL_TEMPLATE_HTML used for new signups
+export const WELCOME_EMAIL_TEMPLATE_HTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to {{company_name}}</title>
+<style>
+    body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #FDFCFB; color: #1E293B; line-height: 1.6; }
+    .wrapper { width: 100%; background-color: #FDFCFB; padding: 40px 0; }
+    .container { max-width: 600px; background-color: #FFFFFF; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+    .header { background-color: #1E293B; padding: 50px 20px; text-align: center; }
+    .brand-title { color: #FFFFFF; font-family: 'Playfair Display', serif; font-size: 32px; letter-spacing: 3px; text-transform: uppercase; margin: 0; }
+    .brand-subtitle { color: #E5C1CD; font-size: 11px; text-transform: uppercase; letter-spacing: 5px; margin-top: 8px; font-weight: 700; display: block; }
+    .content { padding: 50px; text-align: center; }
+    .greeting { font-size: 24px; font-weight: 600; color: #1E293B; margin-bottom: 25px; font-family: 'Playfair Display', serif; }
+    .body-text { font-size: 16px; color: #475569; margin-bottom: 35px; }
+    .cta-container { margin: 40px 0; }
+    .cta-button { background-color: #E5C1CD; color: #FFFFFF; padding: 18px 40px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 50px; display: inline-block; }
+    .footer { background-color: #f8fafc; padding: 40px 20px; text-align: center; border-top: 1px solid #e2e8f0; }
+    .footer-text { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .social-links { margin-top: 25px; }
+    .social-link { color: #E5C1CD; font-size: 12px; text-decoration: none; margin: 0 15px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <div class="header">
+            <h1 class="brand-title">{{company_name}}</h1>
+            <span class="brand-subtitle">Welcome to the Inner Circle</span>
+        </div>
+        <div class="content">
+            <h2 class="greeting">Welcome, {{user_name}}</h2>
+            <p class="body-text">We are delighted to have you join our curated community. At {{company_name}}, we believe that style is a narrative, and we're honored to be part of yours.</p>
+            <p class="body-text">Your account is now active. You can now save your favorite pieces to your wishlist and receive early access to our most exclusive curations.</p>
+            <div class="cta-container">
+                <a href="{{company_website}}/products" class="cta-button">Explore the Collection</a>
+            </div>
+            <p style="font-size: 14px; color: #94a3b8; font-style: italic;">"The journey of a thousand styles begins with a single curation."</p>
+        </div>
+        <div class="footer">
+            <p class="footer-text">&copy; {{year}} {{company_name}}</p>
+            <div class="social-links">
+                <a href="{{company_website}}" class="social-link">Website</a>
+                <a href="mailto:{{contact_email}}" class="social-link">Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+`;
+
+// ORDER_CONFIRMATION_TEMPLATE_HTML used for new orders
+export const ORDER_CONFIRMATION_TEMPLATE_HTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Confirmation - {{order_number}}</title>
+<style>
+    body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #FDFCFB; color: #1E293B; line-height: 1.6; }
+    .wrapper { width: 100%; background-color: #FDFCFB; padding: 40px 0; }
+    .container { max-width: 600px; background-color: #FFFFFF; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+    .header { background-color: #1E293B; padding: 40px 20px; text-align: center; }
+    .brand-title { color: #FFFFFF; font-family: 'Playfair Display', serif; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
+    .content { padding: 40px; }
+    .order-status { text-align: center; margin-bottom: 30px; }
+    .status-badge { background-color: #E5C1CD; color: #FFFFFF; padding: 8px 20px; border-radius: 50px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+    .order-details { width: 100%; border-collapse: collapse; margin: 30px 0; }
+    .order-details th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
+    .order-details td { padding: 15px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    .total-row td { font-weight: 700; font-size: 18px; color: #1E293B; border-bottom: none; padding-top: 20px; }
+    .footer { background-color: #f8fafc; padding: 30px; text-align: center; font-size: 11px; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <div class="header">
+            <h1 class="brand-title">{{company_name}}</h1>
+        </div>
+        <div class="content">
+            <div class="order-status">
+                <span class="status-badge">Order Confirmed</span>
+                <h2 style="font-family: 'Playfair Display', serif; margin-top: 20px;">Thank you for your acquisition, {{user_name}}.</h2>
+                <p style="color: #64748b;">Order #{{order_number}} is being processed.</p>
+            </div>
+            
+            <table class="order-details">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th style="text-align: right;">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#items}}
+                    <tr>
+                        <td>{{name}} x {{quantity}}</td>
+                        <td style="text-align: right;">{{price}}</td>
+                    </tr>
+                    {{/items}}
+                    <tr class="total-row">
+                        <td>Total Acquisition Value</td>
+                        <td style="text-align: right;">{{total_amount}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-top: 30px;">
+                <h4 style="margin-top: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Shipping Destination</h4>
+                <p style="margin-bottom: 0; font-size: 14px; color: #475569;">{{shipping_address}}</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>&copy; {{year}} {{company_name}} | Secure Acquisition Protocol Verified</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+`;
+
 export const GUIDE_STEPS = [
   {
     id: 'mission-brief',
@@ -518,7 +645,7 @@ CREATE TRIGGER on_auth_user_created
   {
     id: 'email-protocol',
     title: '8. Email Server (EmailJS)',
-    description: 'Setup the automated communication bridge for client enquiries without hardcoding credentials.',
+    description: 'Setup the automated communication bridge for client enquiries and system notifications.',
     illustrationId: 'forge',
     subSteps: [
       '1. SIGN UP: Go to https://www.emailjs.com and create a free account.',
@@ -531,29 +658,26 @@ CREATE TRIGGER on_auth_user_created
   },
   {
     id: 'template-engineering',
-    title: '9. Response Engineering',
-    description: 'Design the luxury reply template your clients receive when you answer an enquiry.',
+    title: '9. Response Engineering (Templates)',
+    description: 'Design the luxury templates your clients receive for enquiries, signups, and orders.',
     illustrationId: 'rocket',
     subSteps: [
-      '1. CREATE TEMPLATE: In EmailJS, click "Email Templates" > "Create New Template".',
-      '2. TEMPLATE ID: Copy the "Template ID" (e.g., "template_xxxx") and paste it into the "EmailJS Template ID" field in your Admin Settings.',
-      '3. CONFIGURE TO/FROM: In the template settings, set "To Email" to your own email address (where you want to receive notifications).',
-      '4. CONFIGURE SUBJECT: Set the "Subject" field to: New Inquiry: {{subject}}',
-      '5. CONFIGURE CONTENT: Go to the "Content" tab. Click "Source Code" (<>) and paste the exact HTML template provided below.',
-      '6. AUTO-REPLY: (Optional) You can set up an auto-reply in the "Auto-Reply" tab of the same template to instantly email the client back.'
+      '1. CREATE TEMPLATES: In EmailJS, click "Email Templates" > "Create New Template". Create three separate templates: one for Contact Enquiries, one for Welcome Emails, and one for Order Confirmations.',
+      '2. TEMPLATE IDs: Copy the "Template ID" for each and paste them into their respective fields in Admin Settings > Integrations.',
+      '3. CONFIGURE TO/FROM: For the Contact template, set "To Email" to your own email. For Welcome/Order templates, use {{user_email}} or {{email}}.',
+      '4. CONFIGURE SUBJECTS: Use dynamic subjects like "Welcome to {{company_name}}" or "Order Confirmation: {{order_id}}".',
+      '5. CONFIGURE CONTENT: For each template, click "Source Code" (<>) and paste the corresponding professional HTML template provided below.',
+      '6. VARIABLES: Ensure you use the correct variables as defined in the templates (e.g., {{user_name}}, {{company_name}}, {{message}}).'
     ],
-    code: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee;">
-  <h2 style="color: #333; border-bottom: 2px solid #B76E79; padding-bottom: 10px;">New Contact Inquiry</h2>
-  <p><strong>Name:</strong> {{name}}</p>
-  <p><strong>Email:</strong> {{email}}</p>
-  <p><strong>WhatsApp:</strong> {{whatsapp}}</p>
-  <p><strong>Subject:</strong> {{subject}}</p>
-  <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px;">
-    <p style="margin: 0; white-space: pre-wrap;">{{message}}</p>
-  </div>
-  <p style="font-size: 12px; color: #999; margin-top: 30px;">This email was sent from your website contact form.</p>
-</div>`,
-    codeLabel: 'EmailJS HTML Template (Copy & Paste)'
+    code: `<!-- 1. CONTACT REPLY TEMPLATE (Professional & Minimal) -->
+${EMAIL_TEMPLATE_HTML}
+
+<!-- 2. WELCOME PROTOCOL (For New Members) -->
+${WELCOME_EMAIL_TEMPLATE_HTML}
+
+<!-- 3. ACQUISITION CONFIRMATION (For Orders) -->
+${ORDER_CONFIRMATION_TEMPLATE_HTML}`,
+    codeLabel: 'Professional EmailJS Templates (Select & Copy)'
   },
   {
     id: 'production-launch',
@@ -1261,6 +1385,8 @@ Address: Mokopane, Limpopo, 0601`,
   // Integrations
   emailJsServiceId: '',
   emailJsTemplateId: '',
+  emailJsWelcomeTemplateId: '',
+  emailJsOrderTemplateId: '',
   emailJsPublicKey: '',
   googleAnalyticsId: '',
   facebookPixelId: '',

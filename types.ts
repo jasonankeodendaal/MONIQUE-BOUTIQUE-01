@@ -300,7 +300,9 @@ export interface SiteSettings {
 
   // Integrations & Scripts
   emailJsServiceId?: string;
-  emailJsTemplateId?: string;
+  emailJsTemplateId?: string; // Default/Contact Template
+  emailJsWelcomeTemplateId?: string; // Welcome Email Template
+  emailJsOrderTemplateId?: string; // Order Confirmation Template
   emailJsPublicKey?: string;
   googleAnalyticsId?: string;
   googleTagManagerId?: string;

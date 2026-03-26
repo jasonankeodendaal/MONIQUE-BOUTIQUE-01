@@ -40,12 +40,17 @@ const Contact: React.FC = () => {
           settings.emailJsServiceId,
           settings.emailJsTemplateId,
           {
-            name: formState.name,
-            email: formState.email,
-            whatsapp: formState.whatsapp || 'Not provided',
+            from_name: formState.name,
+            from_email: formState.email,
+            from_whatsapp: formState.whatsapp || 'Not provided',
             subject: formState.subject,
             message: formState.message,
             reply_to: formState.email,
+            company_name: settings.companyName,
+            company_logo: settings.companyLogoUrl || '',
+            company_website: window.location.origin,
+            company_address: settings.address || '',
+            year: new Date().getFullYear().toString(),
           },
           settings.emailJsPublicKey
         );

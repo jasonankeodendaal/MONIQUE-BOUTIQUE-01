@@ -9,6 +9,7 @@ import {
   ShieldCheck, Info, Newspaper
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import emailjs from '@emailjs/browser';
 import { useSettings } from '../App';
 
 const PROVINCES = [
@@ -137,6 +138,29 @@ const Signup: React.FC = () => {
 
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         throw new Error('An account with this email already exists.');
+      }
+
+      // Send welcome email via EmailJS if configured
+      if (settings.emailJsServiceId && settings.emailJsWelcomeTemplateId && settings.emailJsPublicKey) {
+        try {
+          await emailjs.send(
+            settings.emailJsServiceId,
+            settings.emailJsWelcomeTemplateId,
+            {
+              user_name: formData.fullName,
+              user_email: formData.email,
+              company_name: settings.companyName,
+              company_website: window.location.origin,
+              contact_email: settings.contactEmail,
+              year: new Date().getFullYear().toString(),
+            },
+            settings.emailJsPublicKey
+          );
+          console.log('Welcome email sent successfully');
+        } catch (emailErr) {
+          console.error('Failed to send welcome email:', emailErr);
+          // We don't throw here to not block the user if email fails
+        }
       }
 
       setSuccess(true);
@@ -531,16 +555,16 @@ const Signup: React.FC = () => {
                   
                   <div className="space-y-4">
                     <label htmlFor="newsletter" className="flex items-start gap-3 cursor-pointer group">
-                      <div className="relative flex items-center mt-1">
+                      <div className="relative flex items-center mt-1 w-5 h-5">
                         <input 
                           type="checkbox" 
                           id="newsletter"
                           name="newsletter"
                           checked={formData.newsletter}
                           onChange={handleChange}
-                          className="peer sr-only"
+                          className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
-                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all pointer-events-none"></div>
+                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all"></div>
                         <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                       </div>
                       <div className="flex flex-col">
@@ -550,7 +574,7 @@ const Signup: React.FC = () => {
                     </label>
 
                     <label htmlFor="termsAccepted" className="flex items-start gap-3 cursor-pointer group">
-                      <div className="relative flex items-center mt-1">
+                      <div className="relative flex items-center mt-1 w-5 h-5">
                         <input 
                           type="checkbox" 
                           id="termsAccepted"
@@ -558,9 +582,9 @@ const Signup: React.FC = () => {
                           required
                           checked={formData.termsAccepted}
                           onChange={handleChange}
-                          className="peer sr-only"
+                          className="peer absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
-                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all pointer-events-none"></div>
+                        <div className="w-5 h-5 border-2 border-slate-800 rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all"></div>
                         <CheckCircle2 size={12} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-900 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
                       </div>
                       <div className="flex flex-col">

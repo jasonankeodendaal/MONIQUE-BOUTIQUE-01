@@ -947,11 +947,17 @@ const App: React.FC = () => {
   };
 
   const logout = async () => {
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
+    try {
+      if (isSupabaseConfigured) {
+        await supabase.auth.signOut();
+      }
+    } catch (e) {
+      console.error('Logout error:', e);
+    } finally {
+      setUser(null);
+      window.location.hash = '#/';
+      window.location.reload(); // Force reload to clear any stale state
     }
-    setUser(null);
-    window.location.hash = '#/';
   };
 
   const updateSettings = async (newSettings: Partial<SiteSettings>) => {
