@@ -3,33 +3,13 @@ import Hero from '../components/Hero';
 import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
 import ReviewCarousel from '../components/ReviewCarousel';
+import ProductMarquee from '../components/ProductMarquee';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { LayoutGrid, ShieldCheck, Globe, ArrowRight } from 'lucide-react';
 import { useSettings } from '../App';
 import { CustomIcons } from '../components/CustomIcons';
 import { IconRenderer } from '../components/IconRenderer';
-
-const SectionDivider: React.FC = () => (
-  <div className="relative w-full py-16 md:py-24 overflow-hidden">
-    {/* Bowtie Strip Background - Soft & Modern */}
-    <div 
-      className="absolute inset-x-0 inset-y-4 bg-white/60 backdrop-blur-md border-y border-white/40 shadow-sm"
-      style={{ clipPath: 'polygon(0 0, 50% 15%, 100% 0, 100% 100%, 50% 85%, 0 100%)' }}
-    ></div>
-    
-    {/* Content inside bowtie strip */}
-    <div className="max-w-xl mx-auto px-6 flex items-center justify-center gap-8 relative z-10">
-      <div className="h-[1px] flex-grow bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
-      <div className="flex-shrink-0 flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full bg-white border border-slate-100 shadow-lg flex items-center justify-center rotate-45 group hover:rotate-90 transition-transform duration-700">
-          <div className="w-3 h-3 bg-primary rounded-sm shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]"></div>
-        </div>
-      </div>
-      <div className="h-[1px] flex-grow bg-gradient-to-l from-transparent via-slate-300 to-transparent"></div>
-    </div>
-  </div>
-);
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -43,7 +23,7 @@ const Home: React.FC = () => {
   }, [categories]);
 
   return (
-    <main className="pt-0 bg-rose-50/20 min-h-screen relative">
+    <main className="pt-0">
       <Hero />
       
       {/* Editorial Story Preview */}
@@ -52,7 +32,8 @@ const Home: React.FC = () => {
         <AboutSection />
       </div>
 
-      <SectionDivider />
+      {/* Product Marquee Section */}
+      <ProductMarquee />
 
       {/* Review Carousel Section */}
       <ReviewCarousel />
