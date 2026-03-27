@@ -5255,7 +5255,7 @@ const Admin: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-24 md:pt-32 pb-32 w-full overflow-x-hidden print:bg-white print:pt-0 print:pb-0">
+    <div className="min-h-screen bg-slate-950 pt-12 md:pt-16 pb-32 w-full overflow-x-hidden print:bg-white print:pt-0 print:pb-0">
       <style>{` 
         @keyframes grow { from { height: 0; } to { height: 100%; } } 
         @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } 

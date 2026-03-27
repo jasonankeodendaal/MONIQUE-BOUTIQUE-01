@@ -688,6 +688,15 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 }
 
+const ConditionalHeader: React.FC = () => {
+  const location = useLocation();
+  const isAccountPage = location.pathname === '/account';
+  const isAdminPage = location.pathname.startsWith('/admin');
+  
+  if (isAccountPage || isAdminPage) return null;
+  return <Header />;
+};
+
 const App: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(INITIAL_SETTINGS);
   const [settingsId, setSettingsId] = useState<string>('global');
@@ -1130,7 +1139,7 @@ const App: React.FC = () => {
         <style>{` .text-primary { color: var(--primary-color); } .bg-primary { background-color: var(--primary-color); } .border-primary { border-color: var(--primary-color); } .hover\\:bg-primary:hover { background-color: var(--primary-color); } `}</style>
         <div className="min-h-screen flex flex-col relative shrink-to-fit-container overflow-x-hidden">
           <PlexusBackground />
-          <Header />
+          <ConditionalHeader />
           <main className="flex-grow z-10 w-full max-w-full overflow-x-hidden">
             <ErrorBoundary>
               <Routes>
