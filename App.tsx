@@ -14,10 +14,8 @@ import AdminLogin from './pages/AdminLogin';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Account from './pages/Account';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview, CartItem } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, TRAINING_MODULES as INITIAL_TRAINING } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, moveRecord } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -713,7 +711,6 @@ const App: React.FC = () => {
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
   const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(() => getLocalState('admin_training_modules', INITIAL_TRAINING));
   const [wishlist, setWishlist] = useState<WishlistItem[]>(() => getLocalState('user_wishlist', []));
-  const [cart, setCart] = useState<CartItem[]>(() => getLocalState('user_cart', []));
   const [siteReviews, setSiteReviews] = useState<SiteReview[]>(() => getLocalState('site_reviews', []));
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -800,16 +797,6 @@ const App: React.FC = () => {
           if (payload.eventType === 'INSERT') setAdmins(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as AdminUser, ...prev]);
           if (payload.eventType === 'UPDATE') setAdmins(prev => prev.map(a => a.id === payload.new.id ? payload.new as AdminUser : a));
           if (payload.eventType === 'DELETE') setAdmins(prev => prev.filter(a => a.id !== payload.old.id));
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist' }, (payload) => {
-          if (payload.eventType === 'INSERT') setWishlist(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as WishlistItem, ...prev]);
-          if (payload.eventType === 'UPDATE') setWishlist(prev => prev.map(w => w.id === payload.new.id ? payload.new as WishlistItem : w));
-          if (payload.eventType === 'DELETE') setWishlist(prev => prev.filter(w => w.id !== payload.old.id));
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cart' }, (payload) => {
-          if (payload.eventType === 'INSERT') setCart(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new as CartItem, ...prev]);
-          if (payload.eventType === 'UPDATE') setCart(prev => prev.map(c => c.id === payload.new.id ? payload.new as CartItem : c));
-          if (payload.eventType === 'DELETE') setCart(prev => prev.filter(c => c.id !== payload.old.id));
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -920,10 +907,9 @@ const App: React.FC = () => {
           fetchTableData('clients'),
           fetchTableData('orders'),
           fetchTableData('wishlist'),
-          fetchTableData('cart'),
           fetchTableData('site_reviews')
         ]);
-        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord, wl, crt, sr] = results;
+        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord, wl, sr] = results;
         if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
           // Prefer 'global' ID if it exists, otherwise take the first one
           const globalSettings = s.value.find((item: any) => item.id === 'global');
@@ -948,7 +934,6 @@ const App: React.FC = () => {
         if (cli.status === 'fulfilled' && cli.value !== null) { setClients(cli.value); localStorage.setItem('admin_clients', JSON.stringify(cli.value)); }
         if (ord.status === 'fulfilled' && ord.value !== null) { setOrders(ord.value); localStorage.setItem('admin_orders', JSON.stringify(ord.value)); }
         if (wl.status === 'fulfilled' && wl.value !== null) { setWishlist(wl.value); localStorage.setItem('user_wishlist', JSON.stringify(wl.value)); }
-        if (crt.status === 'fulfilled' && crt.value !== null) { setCart(crt.value); localStorage.setItem('user_cart', JSON.stringify(crt.value)); }
         if (sr.status === 'fulfilled' && sr.value !== null) { setSiteReviews(sr.value); localStorage.setItem('site_reviews', JSON.stringify(sr.value)); }
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
       } else {
@@ -964,7 +949,6 @@ const App: React.FC = () => {
         setClients(getLocalState('admin_clients', []));
         setOrders(getLocalState('admin_orders', []));
         setWishlist(getLocalState('user_wishlist', []));
-        setCart(getLocalState('user_cart', []));
         setSiteReviews(getLocalState('site_reviews', []));
       }
       setSaveStatus('saved');
@@ -1031,10 +1015,9 @@ const App: React.FC = () => {
         case 'clients': setClients(updateLocalState(clients)); break;
         case 'orders': setOrders(updateLocalState(orders)); break;
         case 'wishlist': setWishlist(updateLocalState(wishlist)); break;
-        case 'cart': setCart(updateLocalState(cart)); break;
         case 'site_reviews': setSiteReviews(updateLocalState(siteReviews)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'cart' ? 'user_cart' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? data : i) : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
@@ -1056,10 +1039,9 @@ const App: React.FC = () => {
         case 'clients': setClients(deleteLocalState(clients)); break;
         case 'orders': setOrders(deleteLocalState(orders)); break;
         case 'wishlist': setWishlist(deleteLocalState(wishlist)); break;
-        case 'cart': setCart(deleteLocalState(cart)); break;
         case 'site_reviews': setSiteReviews(deleteLocalState(siteReviews)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'cart' ? 'user_cart' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.filter((i: any) => i.id !== id);
     localStorage.setItem(key, JSON.stringify(updated));
@@ -1087,81 +1069,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
-    e.stopPropagation();
-    if (!user) {
-      window.location.hash = '#/login';
-      return;
-    }
-
-    const existingItem = wishlist.find(item => item.productId === productId && item.userId === user.id);
-    
-    if (existingItem) {
-      await deleteData('wishlist', existingItem.id);
-      logEvent('click', `Removed from Wishlist: ${productId}`);
-    } else {
-      const newItem: WishlistItem = {
-        id: crypto.randomUUID(),
-        userId: user.id,
-        productId,
-        createdAt: new Date().toISOString()
-      };
-      await updateData('wishlist', newItem);
-      logEvent('click', `Added to Wishlist: ${productId}`);
-    }
-  };
-
-  const addToCart = async (productId: string, quantity: number, variations?: Record<string, string>) => {
-    if (!user) {
-      window.location.hash = '#/login';
-      return;
-    }
-
-    const existingItem = cart.find(item => 
-      item.productId === productId && 
-      item.userId === user.id &&
-      JSON.stringify(item.variations) === JSON.stringify(variations)
-    );
-
-    if (existingItem) {
-      await updateData('cart', { ...existingItem, quantity: existingItem.quantity + quantity });
-    } else {
-      const newItem: CartItem = {
-        id: crypto.randomUUID(),
-        userId: user.id,
-        productId,
-        quantity,
-        variations,
-        createdAt: new Date().toISOString()
-      };
-      await updateData('cart', newItem);
-    }
-    logEvent('click', `Added to Cart: ${productId}`);
-  };
-
-  const removeFromCart = async (cartItemId: string) => {
-    await deleteData('cart', cartItemId);
-  };
-
-  const updateCartQuantity = async (cartItemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      await removeFromCart(cartItemId);
-      return;
-    }
-    const existingItem = cart.find(item => item.id === cartItemId);
-    if (existingItem) {
-      await updateData('cart', { ...existingItem, quantity });
-    }
-  };
-
-  const clearCart = async () => {
-    if (!user) return;
-    const userCartItems = cart.filter(item => item.userId === user.id);
-    for (const item of userCartItems) {
-      await deleteData('cart', item.id);
-    }
-  };
-
   useEffect(() => {
     const handleGlobalError = (event: ErrorEvent) => { try { logEvent('system', `[CRITICAL] Runtime Exception: ${event.message}`, event.filename || 'Script'); } catch (e) {} };
     const handleGlobalRejection = (event: PromiseRejectionEvent) => { try { const reason = event.reason instanceof Error ? event.reason.message : String(event.reason); logEvent('system', `[CRITICAL] Async Failure: ${reason}`, 'Promise'); } catch (e) {} };
@@ -1177,7 +1084,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, wishlist, cart, siteReviews, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, toggleWishlist, addToCart, removeFromCart, updateCartQuantity, clearCart, connectionHealth, systemLogs, storageStats }}>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, wishlist, siteReviews, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
           <title>{settings.seoTitle || settings.companyName}</title>
           <meta name="description" content={settings.seoDescription || settings.footerDescription} />
@@ -1242,8 +1149,6 @@ const App: React.FC = () => {
                 {/* Rebuild Trigger */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/account" element={<Account />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/products" element={<Products />} />

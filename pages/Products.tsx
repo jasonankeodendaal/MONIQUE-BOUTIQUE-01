@@ -6,7 +6,7 @@ import { useSettings } from '../App';
 import { Product, SubCategory, WishlistItem } from '../types';
 
 const Products: React.FC = () => {
-  const { settings, products, categories, subCategories, user, wishlist, updateData, deleteData, logEvent, toggleWishlist } = useSettings();
+  const { settings, products, categories, subCategories, user, wishlist, updateData, deleteData, logEvent } = useSettings();
   const navigate = useNavigate();
   const query = new URLSearchParams(useLocation().search);
   const initialCat = query.get('category');
@@ -170,6 +170,30 @@ const Products: React.FC = () => {
         <span className="text-[8px] uppercase font-black tracking-widest mt-2">{primary.type.split('/')[1]}</span>
       </div>
     );
+  };
+
+  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const existingItem = wishlist.find(item => item.productId === productId && item.userId === user.id);
+    
+    if (existingItem) {
+      await deleteData('wishlist', existingItem.id);
+      logEvent('click', `Removed from Wishlist: ${productId}`);
+    } else {
+      const newItem: WishlistItem = {
+        id: crypto.randomUUID(),
+        userId: user.id,
+        productId,
+        createdAt: Date.now()
+      };
+      await updateData('wishlist', newItem);
+      logEvent('click', `Added to Wishlist: ${productId}`);
+    }
   };
 
   return (

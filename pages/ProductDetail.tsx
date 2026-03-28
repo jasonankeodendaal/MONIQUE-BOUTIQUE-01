@@ -34,14 +34,6 @@ const ProductDetail: React.FC = () => {
     
     if (id && product) {
         logEvent('view', `Product: ${product.name}`);
-        
-        // Add to recently viewed
-        const stored = localStorage.getItem('recentlyViewed');
-        const viewed = stored ? JSON.parse(stored) : [];
-        if (!viewed.includes(id)) {
-            const updated = [id, ...viewed].slice(0, 8);
-            localStorage.setItem('recentlyViewed', JSON.stringify(updated));
-        }
     }
 
     return () => clearTimeout(timeout);

@@ -46,7 +46,7 @@ const Hero: React.FC = () => {
       const vid = videoRefs.current[activeSlide.id];
       if (vid) {
         vid.currentTime = 0;
-        vid.play().catch(err => console.warn("Video play interrupted", err));
+        vid.play().catch(err => console.debug("Video play interrupted", err));
       }
     }
 
@@ -54,23 +54,10 @@ const Hero: React.FC = () => {
     slides.forEach((slide, idx) => {
       if (idx !== current && slide.type === 'video') {
         const vid = videoRefs.current[slide.id];
-        if (vid) {
-          vid.pause();
-          vid.currentTime = 0;
-        }
+        if (vid) vid.pause();
       }
     });
   }, [current, slides]);
-
-  // Cleanup videoRefs for removed slides
-  useEffect(() => {
-    const slideIds = new Set(slides.map(s => s.id));
-    Object.keys(videoRefs.current).forEach(id => {
-      if (!slideIds.has(id)) {
-        delete videoRefs.current[id];
-      }
-    });
-  }, [slides]);
 
   if (slides.length === 0) {
     return (
@@ -98,8 +85,6 @@ const Hero: React.FC = () => {
               ref={(el) => { videoRefs.current[slide.id] = el; }}
               muted
               playsInline
-              loop
-              autoPlay
               onEnded={nextSlide}
               className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[12s] ease-linear ${index === current ? 'scale-110' : 'scale-100'}`}
               src={slide.image}
