@@ -295,6 +295,10 @@ CREATE TABLE IF NOT EXISTS settings (
   "homeTrustItem3Title" TEXT, "homeTrustItem3Desc" TEXT, "homeTrustItem3Icon" TEXT,
   "homeReadStoryBtn" TEXT, "homeAboutCuratorLabel" TEXT, "homeAboutNarrativeLabel" TEXT,
   "homeCategoryShopByLabel" TEXT, "homeCategoryPortfolioLabel" TEXT, "homeCategoryDiscoverLabel" TEXT,
+  "homeFeaturedTitle" TEXT, "homeFeaturedSubtitle" TEXT, "homeFeaturedCta" TEXT,
+  "homeNewsletterTitle" TEXT, "homeNewsletterSubtitle" TEXT, "homeNewsletterCta" TEXT,
+  "homeSocialTitle" TEXT, "homeSocialSubtitle" TEXT, "homeSocialCta" TEXT,
+  "homeShopAllTitle" TEXT, "homeShopAllCta" TEXT, "homeShopAllImage" TEXT,
   
   -- Collections Page
   "productsHeroBadge" TEXT, "productsHeroTitle" TEXT, "productsHeroSubtitle" TEXT, "productsHeroDescription" TEXT, "productsHeroImage" TEXT, "productsHeroImages" JSONB, "productsHeroImagesArray" JSONB,
@@ -372,7 +376,9 @@ CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, t
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT, "buildingNumber" TEXT, "streetName" TEXT, "suburb" TEXT, "city" TEXT, "province" TEXT, "postalCode" TEXT, "country" TEXT, "newsletter" BOOLEAN DEFAULT FALSE);
 CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
+CREATE TABLE IF NOT EXISTS cart (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, quantity NUMERIC, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
+CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, status TEXT DEFAULT 'pending', "createdAt" BIGINT);
 
 -- 2. INITIAL DATA & SEO DEFAULTS
 INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
@@ -381,6 +387,18 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Add missing columns to settings table if they don't exist (Safety Layer)
 ALTER TABLE settings 
+ADD COLUMN IF NOT EXISTS "homeFeaturedTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeFeaturedSubtitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeFeaturedCta" TEXT,
+ADD COLUMN IF NOT EXISTS "homeNewsletterTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeNewsletterSubtitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeNewsletterCta" TEXT,
+ADD COLUMN IF NOT EXISTS "homeSocialTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeSocialSubtitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeSocialCta" TEXT,
+ADD COLUMN IF NOT EXISTS "homeShopAllTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "homeShopAllCta" TEXT,
+ADD COLUMN IF NOT EXISTS "homeShopAllImage" TEXT,
 ADD COLUMN IF NOT EXISTS "seoTitle" TEXT,
 ADD COLUMN IF NOT EXISTS "seoDescription" TEXT,
 ADD COLUMN IF NOT EXISTS "seoOgImage" TEXT,

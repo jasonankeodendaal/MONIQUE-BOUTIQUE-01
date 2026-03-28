@@ -202,6 +202,18 @@ export interface SiteSettings {
   homeCategoryShopByLabel: string;
   homeCategoryPortfolioLabel: string;
   homeCategoryDiscoverLabel: string;
+  homeFeaturedTitle?: string;
+  homeFeaturedSubtitle?: string;
+  homeFeaturedCta?: string;
+  homeNewsletterTitle?: string;
+  homeNewsletterSubtitle?: string;
+  homeNewsletterCta?: string;
+  homeSocialTitle?: string;
+  homeSocialSubtitle?: string;
+  homeSocialCta?: string;
+  homeShopAllTitle?: string;
+  homeShopAllCta?: string;
+  homeShopAllImage?: string;
 
   // Products Page Content
   productsHeroTitle: string;
@@ -622,6 +634,15 @@ export interface WishlistItem {
   createdAt: number;
 }
 
+export interface CartItem {
+  id: string;
+  userId?: string;
+  productId: string;
+  quantity: number;
+  variations?: Record<string, string>;
+  createdAt: number;
+}
+
 export interface SiteReview {
   id: string;
   userName: string;
@@ -646,6 +667,7 @@ export interface SettingsContextType {
   stats: ProductStats[];
   trainingModules: TrainingModule[];
   wishlist: WishlistItem[];
+  cart: CartItem[];
   siteReviews: SiteReview[];
   // Actions
   refreshAllData: () => Promise<void>;
@@ -658,6 +680,11 @@ export interface SettingsContextType {
   setSaveStatus: (status: SaveStatus) => void;
   logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
   logout: () => Promise<void>;
+  toggleWishlist: (e: React.MouseEvent, productId: string) => Promise<void>;
+  addToCart: (productId: string, quantity: number, variations?: Record<string, string>) => Promise<void>;
+  removeFromCart: (cartItemId: string) => Promise<void>;
+  updateCartQuantity: (cartItemId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   
   // Monitoring
   connectionHealth: { status: 'online' | 'offline', latency: number, message: string } | null;
