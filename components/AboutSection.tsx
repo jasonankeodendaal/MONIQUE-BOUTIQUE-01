@@ -7,67 +7,64 @@ const AboutSection: React.FC = () => {
   const { settings } = useSettings();
 
   return (
-    <section className="py-12 md:py-36 bg-copper-wash overflow-hidden relative border-y border-slate-200/40 section-vignette">
-      <div className="max-w-7xl mx-auto px-4 md:px-20">
-        {/* Decorative Background Shadow with Rose gold hint */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/[0.04] blur-[150px] pointer-events-none"></div>
+    <section className="py-24 md:py-48 bg-white overflow-hidden relative border-y border-slate-100">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        {/* Decorative Background Shadow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] bg-primary/[0.02] blur-[150px] pointer-events-none"></div>
 
-        <div className="flex flex-row items-start gap-6 md:gap-24 relative z-10">
+        <div className="flex flex-col md:flex-row items-center gap-16 md:gap-32 relative z-10">
           
-          {/* Smaller Image Column with increased depth */}
-          <div className="w-1/3 md:w-4/12 relative">
+          {/* Image Column */}
+          <div className="w-full md:w-5/12 relative">
             <div className="relative z-10 group">
-              {/* Stacked Shadow Effect */}
-              <div className="absolute -inset-2 bg-[#B76E79]/5 rounded-[4.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-              
-              <div className="relative overflow-hidden rounded-2xl md:rounded-[4rem] shadow-2xl transition-all duration-1000 group-hover:-translate-y-4">
+              <div className="relative overflow-hidden rounded-[2.5rem] md:rounded-[4rem] shadow-2xl transition-all duration-1000 group-hover:-translate-y-2">
                 <img 
                   src={settings.homeAboutImage} 
                   alt={settings.aboutFounderName} 
                   loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
-                  className="w-full h-auto aspect-[3/4] object-cover relative z-10 transition-transform duration-[2s] group-hover:scale-105"
+                  className="w-full h-auto aspect-[4/5] object-cover relative z-10 transition-transform duration-[2s] group-hover:scale-105"
                 />
               </div>
               
-              {/* Founder Tag with Glassmorphism and Depth */}
-              <div className="absolute -bottom-4 -right-2 md:bottom-12 md:-right-10 z-30 glass-card p-3 md:p-8 rounded-xl md:rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(183,110,121,0.2)] border border-white/60 flex flex-col items-start min-w-[100px] md:min-w-[240px] transform group-hover:translate-x-2 transition-transform duration-700">
-                 <span className="text-[6px] md:text-[11px] font-black uppercase tracking-[0.3em] text-primary mb-1 md:mb-3 text-contrast-shadow">{settings.homeAboutCuratorLabel || 'The Curator'}</span>
-                 <h4 className="text-[10px] md:text-3xl font-serif text-slate-900 leading-tight">{settings.aboutFounderName}</h4>
+              {/* Founder Tag */}
+              <div className="absolute -bottom-6 -right-4 md:bottom-12 md:-right-12 z-30 bg-white/90 backdrop-blur-xl p-6 md:p-10 rounded-3xl shadow-2xl border border-slate-100 flex flex-col items-start min-w-[180px] md:min-w-[280px] transform group-hover:translate-x-2 transition-transform duration-700">
+                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-2 md:mb-4">{settings.homeAboutCuratorLabel || 'The Curator'}</span>
+                 <h4 className="text-xl md:text-4xl font-serif text-slate-900 leading-tight">{settings.aboutFounderName}</h4>
               </div>
             </div>
           </div>
 
-          {/* Smaller Text Column */}
-          <div className="w-2/3 md:w-8/12 text-left min-w-0 flex flex-col justify-center py-4">
-            <div className="flex items-center gap-3 mb-4 md:mb-10">
-              <div className="p-2 bg-[#B76E79]/10 rounded-full">
-                <Sparkles size={14} className="text-[#B76E79] md:w-6 md:h-6" />
+          {/* Text Column */}
+          <div className="w-full md:w-7/12 text-left">
+            <div className="flex items-center gap-4 mb-8 md:mb-12">
+              <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-primary border border-slate-100">
+                <Sparkles size={20} strokeWidth={1.5} />
               </div>
-              <span className="text-[8px] md:text-[13px] font-black uppercase tracking-[0.5em] text-slate-400">{settings.homeAboutNarrativeLabel || 'The Curation Narrative'}</span>
+              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.6em] text-slate-400">{settings.homeAboutNarrativeLabel || 'The Curation Narrative'}</span>
             </div>
             
-            <h2 className="font-serif text-slate-900 mb-4 md:mb-12 leading-[1.1] tracking-tighter text-pretty break-words drop-shadow-sm" style={{ fontSize: 'clamp(1.5rem, 5vw, 5.5rem)' }}>
+            <h2 className="font-serif text-slate-900 mb-8 md:mb-16 leading-[1.1] tracking-tighter text-pretty" style={{ fontSize: 'clamp(2.5rem, 5vw, 6rem)' }}>
               {settings.homeAboutTitle.split(' ').slice(0, -2).join(' ')} <br/>
-              <span className="italic font-light text-primary text-contrast-shadow">
+              <span className="italic font-light text-primary">
                 {settings.homeAboutTitle.split(' ').slice(-2).join(' ')}
               </span>
             </h2>
             
-            <div className="relative mb-6 md:mb-16">
-              <p className="text-sm md:text-2xl text-slate-500 font-light leading-relaxed text-pretty pr-2 md:pr-16 line-clamp-6 max-w-4xl break-words relative z-10">
-                {settings.homeAboutDescription}
+            <div className="relative mb-10 md:mb-20">
+              <p className="text-lg md:text-2xl text-slate-500 font-light leading-relaxed text-pretty max-w-3xl italic">
+                "{settings.homeAboutDescription}"
               </p>
             </div>
 
             <Link 
               to="/about" 
-              className="inline-flex items-center gap-3 md:gap-10 group self-start"
+              className="inline-flex items-center gap-6 md:gap-12 group"
             >
-              <span className="text-[9px] md:text-[16px] font-black uppercase tracking-[0.3em] text-slate-900 group-hover:text-primary transition-all border-b-2 border-slate-200 group-hover:border-primary pb-1">
+              <span className="text-xs md:text-sm font-black uppercase tracking-[0.4em] text-slate-900 group-hover:text-primary transition-all border-b border-slate-200 group-hover:border-primary pb-2">
                 {settings.homeAboutCta}
               </span>
-              <div className="w-8 h-8 md:w-20 md:h-20 bg-slate-900 rounded-full flex items-center justify-center text-white group-hover:bg-primary group-hover:text-slate-900 transition-all duration-700 shadow-[0_15px_30px_-10px_rgba(0,0,0,0.3)] group-hover:shadow-primary/40">
-                <ArrowRight size={14} className="md:w-8 md:h-8 group-hover:translate-x-2 transition-transform" />
+              <div className="w-12 h-12 md:w-20 md:h-20 bg-slate-900 rounded-full flex items-center justify-center text-white group-hover:bg-primary group-hover:text-slate-900 transition-all duration-700 shadow-xl group-hover:shadow-primary/20">
+                <ArrowRight size={20} className="md:w-8 md:h-8 group-hover:translate-x-2 transition-transform" />
               </div>
             </Link>
           </div>

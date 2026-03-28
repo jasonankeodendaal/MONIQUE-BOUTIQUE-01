@@ -197,30 +197,24 @@ const Products: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen pb-20 md:pb-32 bg-[#FDF5F2] max-w-full overflow-x-hidden pt-0">
+    <main className="min-h-screen pb-20 md:pb-32 bg-white max-w-full overflow-x-hidden pt-0">
       <style>{`
         .subcat-row-container {
           display: flex;
           flex-wrap: nowrap;
           gap: 0.75rem;
-          padding: 1.5rem 2rem;
+          padding: 1rem 2rem;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
-          scrollbar-width: thin;
-          scrollbar-color: var(--primary-color) transparent;
-          background: rgba(255, 255, 255, 0.4);
+          scrollbar-width: none;
+          background: rgba(248, 250, 252, 0.5);
           backdrop-filter: blur(10px);
-          border-radius: 2rem;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+          border-radius: 100px;
+          border: 1px solid rgba(241, 245, 249, 1);
         }
         .subcat-row-container::-webkit-scrollbar {
-          height: 3px;
-        }
-        .subcat-row-container::-webkit-scrollbar-thumb {
-          background: rgba(var(--primary-rgb), 0.2);
-          border-radius: 10px;
+          display: none;
         }
         .infinite-scroll-mask {
           mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
@@ -228,7 +222,7 @@ const Products: React.FC = () => {
         }
         @media (min-width: 1024px) {
            .subcat-row-container {
-              padding: 2rem 4rem;
+              padding: 1rem 4rem;
            }
         }
       `}</style>
@@ -236,42 +230,42 @@ const Products: React.FC = () => {
       {/* Persistent Fixed Back Button for catalog page */}
       <button 
         onClick={() => navigate('/')}
-        className="fixed top-8 left-6 md:top-12 md:left-12 z-[60] w-12 h-12 md:w-16 md:h-16 bg-white/60 backdrop-blur-2xl border border-primary/20 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-2xl group"
+        className="fixed top-8 left-6 md:top-12 md:left-12 z-[60] w-12 h-12 md:w-16 md:h-16 bg-white/80 backdrop-blur-2xl border border-slate-100 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-xl group"
       >
-        <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+        <ArrowLeft size={24} strokeWidth={1.5} className="group-hover:-translate-x-1 transition-transform" />
       </button>
 
       {/* --- HERO SECTION --- */}
-      <div className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden bg-black">
+      <div className="relative h-[50vh] md:h-[65vh] w-full overflow-hidden bg-slate-950">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
           style={{ 
             backgroundImage: `url(${heroContent.image})`,
             transform: `translateY(${scrollY * 0.4}px) scale(${1 + scrollY * 0.0005})`,
-            opacity: Math.max(0.4, 1 - scrollY / 800)
+            opacity: Math.max(0.5, 1 - scrollY / 800)
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
         
         <div 
-          className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-center items-center text-center pb-12 pt-24 md:pt-32"
+          className="relative h-full max-w-7xl mx-auto px-6 flex flex-col justify-center items-center text-center pb-12 pt-24 md:pt-32"
           style={{ 
             transform: `translateY(${scrollY * 0.15}px)`,
             opacity: 1 - scrollY / 700 
           }}
         >
           <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <div className="h-px w-8 md:w-12 bg-primary"></div>
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.6em] text-primary">
+            <div className="flex items-center justify-center gap-6 mb-6">
+              <div className="h-px w-12 bg-primary/50"></div>
+              <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary">
                 {heroContent.badge}
               </span>
-              <div className="h-px w-8 md:w-12 bg-primary"></div>
+              <div className="h-px w-12 bg-primary/50"></div>
             </div>
-            <h1 className="text-3xl md:text-[4.5rem] font-serif text-white mb-2 md:mb-4 tracking-tighter leading-[0.9] text-balance">
+            <h1 className="text-4xl md:text-7xl font-serif text-white mb-6 tracking-tighter leading-[0.9] text-balance">
               {heroContent.title}
             </h1>
-            <p className="text-white/70 text-xs md:text-lg font-light leading-relaxed max-w-2xl text-pretty mx-auto">
+            <p className="text-white/60 text-sm md:text-xl font-light leading-relaxed max-w-2xl text-pretty mx-auto">
               {heroContent.subtitle}
             </p>
           </div>
@@ -279,20 +273,19 @@ const Products: React.FC = () => {
       </div>
 
       {/* --- NAVIGATION & FILTERS --- */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-6 md:-mt-10 relative z-40">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 -mt-10 md:-mt-14 relative z-40">
         
         {/* Department Dropdown & Search Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-6 mb-12">
            <div className="relative flex-grow group">
-              <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-              <div className="relative flex items-center bg-white/80 backdrop-blur-md border border-[#B76E79]/10 rounded-2xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-primary/5 focus-within:-translate-y-1">
-                <Search className="ml-6 text-slate-300" size={20} />
+              <div className="relative flex items-center bg-white border border-slate-100 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 focus-within:-translate-y-1">
+                <Search className="ml-8 text-slate-300" size={20} strokeWidth={1.5} />
                 <input
                   type="text"
                   placeholder={settings.productsSearchPlaceholder}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full px-4 py-4 md:py-5 bg-transparent outline-none text-sm md:text-base font-light text-slate-900 placeholder:text-slate-300"
+                  className="w-full px-6 py-5 md:py-7 bg-transparent outline-none text-base font-light text-slate-900 placeholder:text-slate-300"
                 />
               </div>
             </div>
@@ -301,29 +294,29 @@ const Products: React.FC = () => {
               <div className="relative" ref={catRef}>
                 <button 
                   onClick={() => { setIsCatOpen(!isCatOpen); setIsSortOpen(false); }}
-                  className={`flex items-center gap-4 px-8 py-4 md:py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all shadow-lg ${
-                    isCatOpen || selectedCat !== 'all' ? 'bg-primary text-slate-900 border-primary' : 'bg-white text-slate-500 border-slate-200'
+                  className={`flex items-center gap-6 px-10 py-5 md:py-7 rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all shadow-2xl ${
+                    isCatOpen || selectedCat !== 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-100'
                   }`}
                 >
-                  <Layers size={14} className={isCatOpen || selectedCat !== 'all' ? 'text-slate-900' : 'text-primary'} />
-                  <span className="min-w-[120px] text-left">{settings.productsDeptLabel || 'Dept'}: {selectedCat === 'all' ? (settings.productsAllCollectionsLabel || 'All Collections') : categories.find(c => c.id === selectedCat)?.name}</span>
-                  <ChevronDown size={14} className={`transition-transform duration-300 ${isCatOpen ? 'rotate-180' : ''}`} />
+                  <Layers size={16} strokeWidth={1.5} className={isCatOpen || selectedCat !== 'all' ? 'text-primary' : 'text-slate-400'} />
+                  <span className="min-w-[140px] text-left">{settings.productsDeptLabel || 'Dept'}: {selectedCat === 'all' ? (settings.productsAllCollectionsLabel || 'All Collections') : categories.find(c => c.id === selectedCat)?.name}</span>
+                  <ChevronDown size={16} strokeWidth={1.5} className={`transition-transform duration-500 ${isCatOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {isCatOpen && (
-                  <div className="absolute top-full left-0 md:right-0 mt-3 w-72 bg-white border border-slate-100 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(183,110,121,0.2)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-2">
+                  <div className="absolute top-full left-0 md:right-0 mt-4 w-80 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-3">
                     <button 
                       onClick={() => { setSelectedCat('all'); setSelectedSub('all'); setIsCatOpen(false); }}
-                      className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${selectedCat === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
+                      className={`w-full text-left px-8 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all mb-1 ${selectedCat === 'all' ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
                     >
                       {settings.productsBrowseEverythingLabel || 'Browse Everything'}
                     </button>
-                    <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                    <div className="max-h-96 overflow-y-auto custom-scrollbar">
                       {categories.map(cat => (
                         <button
                           key={cat.id}
                           onClick={() => { setSelectedCat(cat.id); setSelectedSub('all'); setIsCatOpen(false); }}
-                          className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${selectedCat === cat.id ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
+                          className={`w-full text-left px-8 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all mb-1 ${selectedCat === cat.id ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'}`}
                         >
                           {cat.name}
                         </button>
@@ -336,48 +329,48 @@ const Products: React.FC = () => {
               <div className="relative" ref={filterRef}>
                 <button 
                   onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); setIsCatOpen(false); }}
-                  className={`flex items-center justify-center w-14 md:w-16 h-full rounded-2xl border transition-all shadow-lg ${
-                    isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'bg-primary text-slate-900 border-primary' : 'bg-white text-slate-400 border-slate-200'
+                  className={`flex items-center justify-center w-16 md:w-20 h-full rounded-3xl border transition-all shadow-2xl ${
+                    isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100'
                   }`}
                 >
-                  <Filter size={20} className={isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'text-slate-900' : 'text-slate-400'} />
+                  <Filter size={22} strokeWidth={1.5} className={isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'text-primary' : 'text-slate-400'} />
                 </button>
                 {isFilterOpen && (
-                  <div className="absolute top-full right-0 mt-3 w-64 bg-white border border-slate-100 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-5">
-                    <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-4">Price Range</h4>
-                    <div className="flex items-center gap-3 mb-4">
+                  <div className="absolute top-full right-0 mt-4 w-72 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-8">
+                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] mb-6">Price Range</h4>
+                    <div className="flex items-center gap-4 mb-8">
                       <div className="flex-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Min (R)</label>
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Min</label>
                         <input 
                           type="number" 
                           value={minPrice} 
                           onChange={e => setMinPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary transition-colors"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-primary transition-colors"
                           placeholder="0"
                         />
                       </div>
-                      <div className="text-slate-300 font-bold mt-4">-</div>
+                      <div className="text-slate-200 font-bold mt-6">-</div>
                       <div className="flex-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Max (R)</label>
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Max</label>
                         <input 
                           type="number" 
                           value={maxPrice} 
                           onChange={e => setMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-primary transition-colors"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-primary transition-colors"
                           placeholder="Any"
                         />
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       <button 
                         onClick={() => { setMinPrice(''); setMaxPrice(''); }}
-                        className="flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-colors"
+                        className="flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-colors"
                       >
                         Clear
                       </button>
                       <button 
                         onClick={() => setIsFilterOpen(false)}
-                        className="flex-1 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-primary transition-colors"
+                        className="flex-1 py-4 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all"
                       >
                         Apply
                       </button>
@@ -389,24 +382,24 @@ const Products: React.FC = () => {
               <div className="relative" ref={sortRef}>
                 <button 
                   onClick={() => { setIsSortOpen(!isSortOpen); setIsCatOpen(false); }}
-                  className={`flex items-center justify-center w-14 md:w-16 h-full rounded-2xl border transition-all shadow-lg ${
-                    isSortOpen ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-200'
+                  className={`flex items-center justify-center w-16 md:w-20 h-full rounded-3xl border transition-all shadow-2xl ${
+                    isSortOpen ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100'
                   }`}
                 >
-                  <ArrowUpDown size={20} />
+                  <ArrowUpDown size={22} strokeWidth={1.5} />
                 </button>
                 {isSortOpen && (
-                  <div className="absolute top-full right-0 mt-3 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-2">
+                  <div className="absolute top-full right-0 mt-4 w-56 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-3">
                       {[
-                        { id: 'newest', label: 'Latest' },
-                        { id: 'price-low', label: 'Price: Low' },
-                        { id: 'price-high', label: 'Price: High' },
-                        { id: 'name', label: 'Name' },
+                        { id: 'newest', label: 'Latest Arrivals' },
+                        { id: 'price-low', label: 'Price: Low to High' },
+                        { id: 'price-high', label: 'Price: High to Low' },
+                        { id: 'name', label: 'Alphabetical' },
                       ].map(option => (
                         <button
                           key={option.id}
                           onClick={() => { setSortBy(option.id); setIsSortOpen(false); }}
-                          className={`w-full text-left px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all mb-1 ${
+                          className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all mb-1 ${
                             sortBy === option.id ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:bg-slate-50'
                           }`}
                         >
@@ -420,18 +413,18 @@ const Products: React.FC = () => {
         </div>
 
         {/* --- HORIZONTAL SUB-CATEGORY SCROLL --- */}
-        <div className="relative mb-12">
-           <div className="flex items-center justify-between px-2 mb-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 flex items-center gap-2">
-                 <Tag size={12} className="text-primary" /> {settings.productsNichesLabel || 'Curated Niches'}
+        <div className="relative mb-20">
+           <div className="flex items-center justify-between px-4 mb-6">
+              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-400 flex items-center gap-3">
+                 <Tag size={14} strokeWidth={1.5} className="text-primary" /> {settings.productsNichesLabel || 'Curated Niches'}
               </span>
-              <div className="h-px flex-grow mx-6 bg-[#B76E79]/10"></div>
+              <div className="h-px flex-grow mx-8 bg-slate-100"></div>
               {selectedSub !== 'all' && (
                 <button 
                   onClick={() => setSelectedSub('all')}
-                  className="text-[9px] font-black uppercase text-primary hover:text-slate-900 transition-colors flex items-center gap-2"
+                  className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-slate-900 transition-colors flex items-center gap-2"
                 >
-                  {settings.productsClearFilterLabel || 'Clear Filter'} <Check size={10} />
+                  {settings.productsClearFilterLabel || 'Clear Filter'} <X size={12} strokeWidth={2} />
                 </button>
               )}
            </div>
@@ -444,8 +437,8 @@ const Products: React.FC = () => {
                 {/* Reset Option */}
                 <button
                   onClick={() => setSelectedSub('all')}
-                  className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
-                    selectedSub === 'all' ? 'bg-primary text-slate-900 border-primary scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                  className={`px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
+                    selectedSub === 'all' ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white text-slate-400 border border-slate-100 hover:border-primary/30'
                   }`}
                 >
                   {settings.productsFilterAll || 'Show All'}
@@ -455,115 +448,107 @@ const Products: React.FC = () => {
                   <button
                     key={sub.id}
                     onClick={() => setSelectedSub(sub.id)}
-                    className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
-                      selectedSub === sub.id ? 'bg-primary text-slate-900 border-primary scale-105' : 'bg-white text-slate-400 border-slate-100 hover:border-primary/30'
+                    className={`px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap scroll-snap-align-start h-fit flex-shrink-0 ${
+                      selectedSub === sub.id ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white text-slate-400 border border-slate-100 hover:border-primary/30'
                     }`}
                   >
                     {sub.name}
                   </button>
                 ))}
               </div>
-              <div className="absolute top-1/2 -translate-y-1/2 left-4 opacity-0 group-hover/scroll:opacity-20 pointer-events-none transition-opacity">
-                <ChevronDown className="rotate-90 text-slate-900" size={32} />
-              </div>
-              <div className="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover/scroll:opacity-20 pointer-events-none transition-opacity">
-                <ChevronDown className="-rotate-90 text-slate-900" size={32} />
-              </div>
            </div>
         </div>
 
         {/* --- GROUPED PRODUCT GRID --- */}
         {groupedProducts.length > 0 ? (
-          <div className="space-y-24 md:space-y-36">
+          <div className="space-y-32 md:space-y-48">
             {groupedProducts.map((group, gIdx) => (
               <section key={group.name} className="animate-in fade-in slide-in-from-bottom-12 duration-700" style={{ animationDelay: `${gIdx * 100}ms` }}>
-                <div className="flex items-center gap-6 mb-10 md:mb-16">
-                  <div className="flex-shrink-0 flex items-center gap-4">
-                    <span className="text-primary font-mono text-xl md:text-2xl font-black">
+                <div className="flex items-center gap-8 mb-12 md:mb-20">
+                  <div className="flex-shrink-0 flex items-center gap-6">
+                    <span className="text-primary font-serif italic text-2xl md:text-4xl">
                       {(gIdx + 1).toString().padStart(2, '0')}
                     </span>
-                    <h2 className="text-2xl md:text-5xl font-serif text-slate-900 tracking-tighter capitalize">
+                    <h2 className="text-3xl md:text-6xl font-serif text-slate-900 tracking-tighter">
                       {group.name}
                     </h2>
                   </div>
-                  <div className="h-px flex-grow bg-[#B76E79]/10 relative">
-                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-1 bg-primary rounded-full"></div>
+                  <div className="h-px flex-grow bg-slate-100 relative">
+                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-1 bg-primary rounded-full"></div>
                   </div>
                   <div className="hidden md:block">
-                     <span className="px-4 py-2 rounded-full bg-white/50 border border-white/80 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                     <span className="px-6 py-3 rounded-full bg-slate-50 border border-slate-100 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                         {group.items.length} {settings.productsSelectionsLabel || 'Selections'}
                      </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-12">
                   {group.items.map((product: Product) => (
                     <div 
                       key={product.id}
                       onClick={() => navigate(`/product/${product.id}`)}
-                      className="bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-[#B76E79]/10 shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(183,110,121,0.15)] transition-all duration-700 group hover:-translate-y-3 flex flex-col relative cursor-pointer"
+                      className="group flex flex-col relative cursor-pointer"
                     >
-                      {product.discountRules && product.discountRules.length > 0 && (
-                        <div className="absolute top-3 right-3 md:top-5 md:right-5 bg-red-600 text-white px-3 py-1 rounded-full font-black text-[7px] md:text-[9px] uppercase tracking-widest shadow-lg z-20">
-                          {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
-                        </div>
-                      )}
-
-                      {/* Stock Status */}
-                      <div className="absolute top-3 left-3 md:top-5 md:left-5 z-20 flex flex-col gap-1">
-                        {product.stock === 0 ? (
-                          <div className="bg-red-500 text-white px-2 py-1 md:px-3 md:py-1 rounded-full font-black text-[6px] md:text-[8px] uppercase tracking-widest shadow-lg backdrop-blur-md">
-                            Out of Stock
-                          </div>
-                        ) : product.stock && product.stock <= 5 ? (
-                          <div className="bg-amber-500 text-white px-2 py-1 md:px-3 md:py-1 rounded-full font-black text-[6px] md:text-[8px] uppercase tracking-widest shadow-lg backdrop-blur-md">
-                            Limited: {product.stock} Left
-                          </div>
-                        ) : null}
-                      </div>
-                      
-                      <div className="relative aspect-square overflow-hidden bg-slate-50">
+                      {/* Product Image Container */}
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-slate-50 mb-8 transition-all duration-700 group-hover:shadow-2xl group-hover:-translate-y-2">
                         {renderProductMedia(product)}
-                        <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 z-10 flex flex-col items-start gap-1">
-                          <div className="flex items-center gap-2">
-                            <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl text-[10px] md:text-sm font-black text-slate-900 shadow-xl border border-white/50">
-                              R {(product.price || 0).toLocaleString()}
+                        
+                        {/* Badges */}
+                        <div className="absolute top-6 left-6 z-20 flex flex-col gap-2">
+                          {product.discountRules && product.discountRules.length > 0 && (
+                            <div className="bg-red-500 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl">
+                              {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
                             </div>
-                            {product.wasPrice && product.wasPrice > 0 && (
-                              <div className="bg-slate-900/40 backdrop-blur-md px-2 py-1 md:px-3 md:py-1.5 rounded-lg text-[8px] md:text-[10px] font-bold text-slate-100 line-through decoration-primary decoration-1 shadow-lg border border-white/10">
-                                R {product.wasPrice.toLocaleString()}
-                              </div>
-                            )}
-                          </div>
+                          )}
+                          {product.stock === 0 ? (
+                            <div className="bg-slate-900 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl backdrop-blur-md">
+                              Sold Out
+                            </div>
+                          ) : product.stock && product.stock <= 5 ? (
+                            <div className="bg-amber-500 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl backdrop-blur-md">
+                              Only {product.stock} Left
+                            </div>
+                          ) : null}
                         </div>
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-center justify-center z-10 gap-4">
-                           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-900 shadow-2xl scale-50 group-hover:scale-100 transition-transform duration-500 delay-75">
-                              <ShoppingBag size={20} />
-                           </div>
-                           <button 
-                             onClick={(e) => toggleWishlist(e, product.id)}
-                             className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-900 shadow-2xl scale-50 group-hover:scale-100 transition-transform duration-500 hover:bg-red-50"
-                           >
-                              <Heart 
-                                size={20} 
-                                className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-500 transition-colors"} 
-                              />
-                           </button>
+
+                        {/* Wishlist Button */}
+                        <button 
+                          onClick={(e) => toggleWishlist(e, product.id)}
+                          className="absolute top-6 right-6 z-20 w-12 h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hover:bg-white"
+                        >
+                          <Heart 
+                            size={20} 
+                            strokeWidth={1.5}
+                            className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-500 transition-colors"} 
+                          />
+                        </button>
+
+                        {/* Quick View Overlay */}
+                        <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-center justify-center">
+                          <div className="px-8 py-4 bg-white text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500">
+                            View Details
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="p-4 md:p-6 flex-grow flex flex-col text-left">
-                        <span className="text-[7px] md:text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-2 block">
+                      {/* Product Info */}
+                      <div className="flex flex-col text-center px-4">
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-3">
                            {categories.find(c => c.id === product.categoryId)?.name}
                         </span>
-                        <h3 className="text-[12px] md:text-base font-serif text-slate-900 mb-3 group-hover:text-primary transition-colors duration-500 leading-snug line-clamp-2 min-h-[2.5em]">
+                        <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-4 group-hover:text-primary transition-colors duration-500 leading-tight">
                           {product.name}
                         </h3>
-                        <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-                          <span className="text-[7px] md:text-[8px] font-bold text-slate-300 font-mono tracking-tighter truncate max-w-[80px] uppercase">{settings.productRefLabel || 'Ref:'} {product.sku}</span>
-                          <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-primary/10 group-hover:text-primary transition-all">
-                             <Check size={12} />
-                          </div>
+                        <div className="flex items-center justify-center gap-4">
+                          <span className="text-lg font-light text-slate-900">
+                            R {(product.price || 0).toLocaleString()}
+                          </span>
+                          {product.wasPrice && product.wasPrice > 0 && (
+                            <span className="text-sm font-light text-slate-300 line-through">
+                              R {product.wasPrice.toLocaleString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -573,17 +558,17 @@ const Products: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-32 bg-white/40 rounded-[3rem] border border-dashed border-[#B76E79]/20">
-            <div className="w-24 h-24 bg-[#B76E79]/5 text-[#B76E79]/20 rounded-full flex items-center justify-center mx-auto mb-8">
-              <Filter size={40} />
+          <div className="text-center py-40 bg-slate-50 rounded-[4rem] border border-dashed border-slate-200">
+            <div className="w-24 h-24 bg-white text-slate-200 rounded-full flex items-center justify-center mx-auto mb-10 shadow-xl">
+              <Search size={40} strokeWidth={1} />
             </div>
-            <h3 className="text-2xl font-serif text-slate-900 mb-4 tracking-tight">{settings.emptyProductsTitle || 'Refinement Required'}</h3>
-            <p className="text-slate-400 max-w-sm mx-auto text-sm font-light leading-relaxed">{settings.productsEmptyMessage || 'We couldn\'t find any pieces matching these specific parameters. Try broadening your discovery.'}</p>
+            <h3 className="text-3xl font-serif text-slate-900 mb-6 tracking-tight">{settings.emptyProductsTitle || 'No Selections Found'}</h3>
+            <p className="text-slate-400 max-w-sm mx-auto text-base font-light leading-relaxed mb-12">{settings.productsEmptyMessage || 'We couldn\'t find any pieces matching your current filters. Try broadening your discovery.'}</p>
             <button 
               onClick={() => { setSelectedCat('all'); setSelectedSub('all'); setSearch(''); }} 
-              className="mt-10 px-8 py-4 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest text-[9px] hover:bg-primary hover:text-slate-900 transition-all shadow-xl"
+              className="px-12 py-5 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-primary hover:text-slate-900 transition-all shadow-2xl"
             >
-              {settings.emptyProductsResetLabel || 'Reset Discovery'}
+              {settings.emptyProductsResetLabel || 'Reset All Filters'}
             </button>
           </div>
         )}

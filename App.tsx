@@ -838,11 +838,21 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const manifest = {
-      name: settings.companyName, short_name: settings.companyName,
+      name: settings.companyName || "Maison", 
+      short_name: settings.companyName || "Maison",
       description: settings.slogan || "Personal Luxury Wardrobe and Affiliate Bridge",
-      id: "/", start_url: "/", document_url: "/", display: "standalone", orientation: "portrait-primary", background_color: "#FDFCFB",
+      id: window.location.origin + "/", 
+      start_url: window.location.origin + "/", 
+      display: "standalone", 
+      orientation: "portrait-primary", 
+      background_color: "#FDFCFB",
       theme_color: settings.primaryColor || "#D4AF37",
-      icons: [{ src: settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png", sizes: "512x512", type: "image/png", purpose: "any" }]
+      icons: [{ 
+        src: settings.companyLogoUrl || "https://i.ibb.co/FkCdTns2/bb5w9xpud5l.png", 
+        sizes: "512x512", 
+        type: "image/png", 
+        purpose: "any" 
+      }]
     };
     const stringManifest = JSON.stringify(manifest);
     const blob = new Blob([stringManifest], {type: 'application/json'});

@@ -557,7 +557,7 @@ const ProductDetail: React.FC = () => {
                 <div 
                   key={rp.id} 
                   className="group cursor-pointer"
-                  onClick={() => navigate(`/products/${rp.id}`)}
+                  onClick={() => navigate(`/product/${rp.id}`)}
                 >
                   <div className="aspect-[3/4] bg-slate-50 overflow-hidden mb-4 rounded-lg">
                     {rp.media?.[0]?.type?.startsWith('image/') ? (

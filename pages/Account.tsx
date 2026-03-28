@@ -240,7 +240,7 @@ const Account: React.FC = () => {
                         <Trash2 size={16} />
                       </button>
                       
-                      <Link to={`/products/${product.id}`} className="block aspect-square bg-slate-50 overflow-hidden">
+                      <Link to={`/product/${product.id}`} className="block aspect-square bg-slate-50 overflow-hidden">
                         {product.media?.[0]?.type?.startsWith('image/') ? (
                           <img 
                             src={product.media[0].url} 
@@ -255,7 +255,7 @@ const Account: React.FC = () => {
                       </Link>
                       
                       <div className="p-5 flex flex-col flex-grow">
-                        <Link to={`/products/${product.id}`} className="block mb-2">
+                        <Link to={`/product/${product.id}`} className="block mb-2">
                           <h3 className="text-lg font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{product.name}</h3>
                         </Link>
                         <p className="text-sm text-slate-500 mb-4 line-clamp-2 flex-grow">{product.description}</p>

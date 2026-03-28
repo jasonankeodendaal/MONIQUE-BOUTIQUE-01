@@ -32,14 +32,13 @@ const Hero: React.FC = () => {
     if (slides.length <= 1) return;
     
     const currentSlide = slides[current];
-    // Only set a timer if the current slide is an image
     if (currentSlide?.type === 'image') {
       const timer = setTimeout(nextSlide, 8000);
       return () => clearTimeout(timer);
     }
   }, [nextSlide, slides, current]);
 
-  // Manage Video Playback when slide becomes active
+  // Manage Video Playback
   useEffect(() => {
     const activeSlide = slides[current];
     if (activeSlide?.type === 'video') {
@@ -50,7 +49,6 @@ const Hero: React.FC = () => {
       }
     }
 
-    // Pause other videos
     slides.forEach((slide, idx) => {
       if (idx !== current && slide.type === 'video') {
         const vid = videoRefs.current[slide.id];
@@ -71,7 +69,7 @@ const Hero: React.FC = () => {
   }
 
   return (
-    <div className="relative h-[65vh] sm:h-[75vh] md:h-[85vh] lg:h-[90vh] min-h-[500px] md:min-h-[700px] w-full overflow-hidden bg-black">
+    <section className="relative h-screen w-full overflow-hidden bg-slate-900">
       {/* Hero Slides */}
       {slides.map((slide, index) => (
         <div
@@ -96,63 +94,75 @@ const Hero: React.FC = () => {
             />
           )}
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+          {/* Refined Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-transparent to-slate-900/80" />
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[2px]" />
           
-          <div className="relative h-full max-w-7xl mx-auto px-5 sm:px-8 flex flex-col justify-center items-center pt-24 md:pt-32 pb-12 md:pb-16">
-            <div className={`max-w-4xl flex flex-col items-center text-center transition-all duration-[1s] delay-500 transform ${
+          <div className="relative h-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-center items-center">
+            <div className={`max-w-5xl flex flex-col items-center text-center transition-all duration-[1.5s] delay-500 transform ${
               index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}>
-              <div className="flex items-center justify-center gap-3 mb-3 md:mb-5">
-                <div className="h-px w-6 md:w-10 bg-primary"></div>
-                <span className="text-[8px] md:text-[9px] font-black tracking-[0.4em] md:tracking-[0.5em] text-primary uppercase">
-                  {settings.homeHeroBadge}
-                </span>
-                <div className="h-px w-6 md:w-10 bg-primary"></div>
-              </div>
+              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.8em] text-white/70 mb-8 block">
+                {settings.homeHeroBadge}
+              </span>
               
-              <h1 className="font-serif text-white mb-4 md:mb-6 leading-[1.1] md:leading-[1] tracking-tighter text-balance capitalize"
-                  style={{ fontSize: 'clamp(1.6rem, 7vw, 4.8rem)' }}>
+              <h1 className="font-serif text-white mb-12 leading-[0.9] tracking-tighter text-balance"
+                  style={{ fontSize: 'clamp(2.5rem, 10vw, 10rem)' }}>
                 {(settings.homeHeroTitle || slide.title).split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
                 <span className="text-primary italic font-light">
                   {(settings.homeHeroTitle || slide.title).split(' ').slice(-1)}
                 </span>
               </h1>
               
-              <p className="text-xs md:text-lg text-white/70 md:text-white/60 mb-6 md:mb-8 max-w-xs md:max-w-md font-light leading-relaxed text-balance mx-auto">
+              <p className="text-sm md:text-xl text-white/60 mb-12 max-w-2xl font-light leading-relaxed text-pretty mx-auto">
                 {settings.homeHeroSubtitle || slide.subtitle}
               </p>
               
               <Link 
                 to="/products"
-                className="inline-flex items-center gap-3 md:gap-5 px-6 py-3 md:px-8 md:py-4 bg-primary text-slate-900 font-black uppercase tracking-widest text-[8px] md:text-[9px] rounded-full hover:bg-white transition-all hover:-translate-y-1 shadow-2xl active:scale-95 group"
+                className="group relative inline-flex items-center gap-6 bg-white text-slate-900 px-10 py-5 rounded-full text-xs md:text-sm font-black uppercase tracking-[0.4em] transition-all hover:bg-primary hover:text-white shadow-2xl hover:shadow-primary/40"
               >
                 {slide.cta}
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
               </Link>
             </div>
           </div>
         </div>
       ))}
 
-      {slides.length > 1 && (
-        <>
-          <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 z-20 flex flex-col gap-2 md:gap-3">
-             {slides.map((_, i) => (
-                <button 
-                  key={i}
-                  onClick={() => setCurrent(i)}
-                  className={`h-6 w-1 transition-all duration-500 rounded-full ${current === i ? 'bg-primary h-10 md:h-12' : 'bg-white/20'}`}
-                />
-             ))}
-          </div>
+      {/* Navigation Controls */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-12">
+        <button 
+          onClick={prevSlide}
+          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        
+        <div className="flex gap-4">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`h-1 transition-all duration-500 rounded-full ${current === i ? 'w-12 bg-primary' : 'w-4 bg-white/30'}`}
+            />
+          ))}
+        </div>
 
-          <div className="absolute bottom-6 md:bottom-10 right-6 md:right-10 z-20 flex gap-2 md:gap-3">
-            <button onClick={prevSlide} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all backdrop-blur-sm"><ChevronLeft size={14}/></button>
-            <button onClick={nextSlide} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all backdrop-blur-sm"><ChevronRight size={14}/></button>
-          </div>
-        </>
-      )}
-    </div>
+        <button 
+          onClick={nextSlide}
+          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-12 right-12 hidden md:flex flex-col items-center gap-4">
+        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 vertical-text rotate-180">Scroll to Explore</span>
+        <div className="w-px h-24 bg-gradient-to-b from-white/40 to-transparent" />
+      </div>
+    </section>
   );
 };
 

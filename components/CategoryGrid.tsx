@@ -20,70 +20,66 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
   };
 
   return (
-    <section className="py-16 md:py-48 bg-[#FDF5F2] relative overflow-hidden">
-      {/* Dynamic Background Pattern with subtle rose gold dot */}
-      <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#B76E79 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-6 md:gap-12">
-          <div className="max-w-3xl text-center md:text-left w-full">
-            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.6em] text-primary mb-4 md:mb-8 block text-contrast-shadow break-words">
+    <section className="py-24 md:py-48 bg-slate-50/50 relative overflow-hidden border-y border-slate-100">
+      {/* Decorative Background Element */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 md:mb-32">
+          <div className="max-w-2xl">
+            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400 block mb-6">
               {settings.homeNicheHeader}
             </span>
-            <h2 className="font-serif text-slate-900 leading-none tracking-tighter text-balance drop-shadow-sm break-words" style={{ fontSize: 'clamp(2rem, 6vw, 5rem)' }}>
-              {settings.homeCategoryShopByLabel || 'Shop by'} <br className="hidden md:block"/> <span className="italic font-light text-primary text-contrast-shadow">{settings.productsDeptLabel}</span>
+            <h2 className="text-4xl md:text-7xl font-serif text-slate-900 tracking-tighter leading-none">
+              {settings.homeCategoryShopByLabel || 'Shop by'} <span className="italic font-light text-primary">{settings.productsDeptLabel}</span>
             </h2>
           </div>
-          <div className="hidden md:block p-8 border-l border-[#B76E79]/20 max-w-xs shrink-0">
-            <p className="text-slate-500 font-light leading-relaxed text-sm md:text-lg italic">
+          <div className="max-w-sm">
+            <p className="text-slate-500 text-lg font-light leading-relaxed italic border-l-2 border-primary/20 pl-8">
               "{settings.homeNicheDescription}"
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-10">
-          {displayItems.map((cat, idx) => {
-            return (
-              <button
-                key={cat.id}
-                onClick={() => handleCategoryClick(cat.id)}
-                className="group relative h-[320px] md:h-[650px] w-full overflow-hidden rounded-[2rem] md:rounded-[4rem] transition-all duration-700 hover:shadow-[0_60px_100px_-20px_rgba(183,110,121,0.2)] border border-white/40 hover:border-primary/40 hover:-translate-y-6"
-              >
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-110"
-                  style={{ backgroundImage: `url(${cat.image || 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800'})` }}
-                />
-                
-                {/* Layered Overlays for better depth */}
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-90" />
-                <div className="absolute inset-0 border-[1px] border-white/10 rounded-[inherit] pointer-events-none group-hover:border-primary/20 transition-all duration-700"></div>
-                
-                <div className="absolute inset-0 p-5 md:p-12 flex flex-col justify-end items-start text-left z-10 w-full">
-                  <div className="w-10 h-10 md:w-16 md:h-16 glass-card rounded-2xl md:rounded-[1.5rem] flex items-center justify-center text-white mb-4 md:mb-8 border border-white/30 transform -translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 shadow-2xl">
-                    <IconRenderer icon={cat.icon} size={18} className="md:w-8 md:h-8 text-primary" strokeWidth={1} />
-                  </div>
-                  
-                  <span className="text-[8px] md:text-[10px] font-black text-white/50 uppercase tracking-[0.5em] mb-2 md:mb-4">
-                    {settings.homeCategoryPortfolioLabel || 'Portfolio'} {idx + 1}
-                  </span>
-                  
-                  <h3 className="text-lg md:text-2xl lg:text-3xl font-serif text-white mb-2 md:mb-6 leading-tight group-hover:text-primary transition-colors duration-500 break-words text-balance w-full line-clamp-2">
-                    {cat.name}
-                  </h3>
-                  
-                  <p className="hidden md:block text-xs md:text-base text-white/60 leading-relaxed font-light mb-6 md:mb-10 max-h-0 overflow-hidden group-hover:max-h-32 transition-all duration-1000 ease-in-out opacity-0 group-hover:opacity-100 pr-4 line-clamp-3">
-                    {cat.description}
-                  </p>
-                  
-                  <div className="flex items-center gap-3 md:gap-5 text-white text-[8px] md:text-[11px] font-black uppercase tracking-[0.4em] group-hover:gap-6 transition-all duration-700">
-                    {settings.homeCategoryDiscoverLabel || 'Discover Collection'}
-                    <div className="h-px w-4 md:w-12 bg-primary shadow-[0_0_15px_rgba(212,175,55,0.8)]"></div>
-                  </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+          {displayItems.map((cat, idx) => (
+            <button
+              key={cat.id}
+              onClick={() => handleCategoryClick(cat.id)}
+              className="group relative h-[450px] md:h-[650px] w-full overflow-hidden rounded-[2.5rem] md:rounded-[4rem] transition-all duration-1000 hover:shadow-2xl hover:-translate-y-4 bg-slate-200"
+            >
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-[3s] group-hover:scale-110"
+                style={{ backgroundImage: `url(${cat.image || 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&q=80&w=800'})` }}
+              />
+              
+              {/* Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-700" />
+              
+              <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-end items-start text-left z-10">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white mb-6 border border-white/20 transform -translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 shadow-2xl">
+                  <IconRenderer icon={cat.icon} size={24} className="md:w-8 md:h-8 text-white" strokeWidth={1.5} />
                 </div>
-              </button>
-            );
-          })}
+                
+                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em] mb-4">
+                  {settings.homeCategoryPortfolioLabel || 'Portfolio'} 0{idx + 1}
+                </span>
+                
+                <h3 className="text-2xl md:text-4xl font-serif text-white mb-6 tracking-tight leading-tight transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700 delay-75">
+                  {cat.name}
+                </h3>
+                
+                <p className="text-sm md:text-base text-white/70 leading-relaxed font-light mb-8 max-h-0 overflow-hidden group-hover:max-h-32 transition-all duration-1000 ease-in-out opacity-0 group-hover:opacity-100 pr-4 line-clamp-3 transform translate-y-4 group-hover:translate-y-0">
+                  {cat.description}
+                </p>
+                
+                <div className="flex items-center gap-4 text-white text-[10px] font-black uppercase tracking-[0.4em] group-hover:gap-6 transition-all duration-700 transform translate-y-4 group-hover:translate-y-0">
+                  {settings.homeCategoryDiscoverLabel || 'Discover Collection'}
+                  <div className="h-px w-8 md:w-12 bg-primary"></div>
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </section>
