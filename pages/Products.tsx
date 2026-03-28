@@ -508,6 +508,19 @@ const Products: React.FC = () => {
                           {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
                         </div>
                       )}
+
+                      {/* Stock Status */}
+                      <div className="absolute top-3 left-3 md:top-5 md:left-5 z-20 flex flex-col gap-1">
+                        {product.stock === 0 ? (
+                          <div className="bg-red-500 text-white px-2 py-1 md:px-3 md:py-1 rounded-full font-black text-[6px] md:text-[8px] uppercase tracking-widest shadow-lg backdrop-blur-md">
+                            Out of Stock
+                          </div>
+                        ) : product.stock && product.stock <= 5 ? (
+                          <div className="bg-amber-500 text-white px-2 py-1 md:px-3 md:py-1 rounded-full font-black text-[6px] md:text-[8px] uppercase tracking-widest shadow-lg backdrop-blur-md">
+                            Limited: {product.stock} Left
+                          </div>
+                        ) : null}
+                      </div>
                       
                       <div className="relative aspect-square overflow-hidden bg-slate-50">
                         {renderProductMedia(product)}

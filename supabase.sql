@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS settings (
   "faviconUrl" TEXT, "ogImageUrl" TEXT, "navStickyHeader" BOOLEAN DEFAULT TRUE, "homeHeroTitle" TEXT, "homeHeroSubtitle" TEXT, "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE, "adminLoginDividerLabel" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, stock NUMERIC, variations JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS categories (id TEXT PRIMARY KEY, name TEXT, icon TEXT, image TEXT, description TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS subcategories (id TEXT PRIMARY KEY, "categoryId" TEXT, name TEXT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS hero_slides (id TEXT PRIMARY KEY, image TEXT, type TEXT, title TEXT, subtitle TEXT, cta TEXT, "createdBy" TEXT);
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS admin_users (id TEXT PRIMARY KEY, name TEXT, email TE
 CREATE TABLE IF NOT EXISTS traffic_logs (id TEXT PRIMARY KEY, type TEXT, text TEXT, time TEXT, timestamp BIGINT, source TEXT);
 CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views INTEGER DEFAULT 0, clicks INTEGER DEFAULT 0, shares INTEGER DEFAULT 0, "totalViewTime" NUMERIC DEFAULT 0, "lastUpdated" BIGINT );
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies JSONB, "actionItems" JSONB, steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
-CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, stock NUMERIC, variations JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT, "buildingNumber" TEXT, "streetName" TEXT, "suburb" TEXT, "city" TEXT, "province" TEXT, "postalCode" TEXT, "country" TEXT, "newsletter" BOOLEAN DEFAULT FALSE);
@@ -294,6 +294,8 @@ ADD COLUMN IF NOT EXISTS media JSONB,
 ADD COLUMN IF NOT EXISTS "discountRules" JSONB,
 ADD COLUMN IF NOT EXISTS reviews JSONB,
 ADD COLUMN IF NOT EXISTS tags JSONB,
+ADD COLUMN IF NOT EXISTS stock NUMERIC,
+ADD COLUMN IF NOT EXISTS variations JSONB,
 ADD COLUMN IF NOT EXISTS "createdAt" BIGINT,
 ADD COLUMN IF NOT EXISTS "createdBy" TEXT,
 ADD COLUMN IF NOT EXISTS "archivedAt" BIGINT;
@@ -392,6 +394,8 @@ ADD COLUMN IF NOT EXISTS media JSONB,
 ADD COLUMN IF NOT EXISTS "discountRules" JSONB,
 ADD COLUMN IF NOT EXISTS reviews JSONB,
 ADD COLUMN IF NOT EXISTS tags JSONB,
+ADD COLUMN IF NOT EXISTS stock NUMERIC,
+ADD COLUMN IF NOT EXISTS variations JSONB,
 ADD COLUMN IF NOT EXISTS "createdAt" BIGINT,
 ADD COLUMN IF NOT EXISTS "createdBy" TEXT,
 ADD COLUMN IF NOT EXISTS "archivedAt" BIGINT;

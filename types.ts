@@ -51,6 +51,8 @@ export interface Product {
   description: string;
   features?: string[]; // Bullet points for "Why we love it"
   specifications?: Record<string, string>; // Key-value pairs like Material, Fit, etc.
+  stock?: number; // Added stock level
+  variations?: { name: string; options: string[] }[]; // Added variations (e.g., Size, Color)
   media: MediaFile[]; 
   discountRules?: DiscountRule[];
   reviews?: Review[];

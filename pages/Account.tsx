@@ -1,15 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSettings } from '../App';
-import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, LogOut, Heart, Trash2 } from 'lucide-react';
+import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, LogOut, Heart, Trash2, User, Save, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Order, Product, WishlistItem } from '../types';
 
 const Account: React.FC = () => {
-  const { user, orders, settings, wishlist, products, deleteData, logEvent } = useSettings();
+  const { user, orders, settings, wishlist, products, deleteData, updateData, logEvent } = useSettings();
   const navigate = useNavigate();
   const [clientOrders, setClientOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'orders' | 'wishlist'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'wishlist' | 'profile'>('orders');
+  
+  // Profile state
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: user?.user_metadata?.full_name || user?.name || '',
+    phone: user?.phone || '',
+    buildingNumber: user?.buildingNumber || '',
+    streetName: user?.streetName || '',
+    suburb: user?.suburb || '',
+    city: user?.city || '',
+    province: user?.province || '',
+    postalCode: user?.postalCode || '',
+    country: user?.country || ''
+  });
+  
+  // Order modal state
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const myWishlistItems = wishlist.filter(item => item.userId === user?.id);
   const wishlistProducts = myWishlistItems.map(item => {
@@ -62,6 +79,36 @@ const Account: React.FC = () => {
     logEvent('click', `Removed from Wishlist (Account): ${productId}`);
   };
 
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    
+    setIsSavingProfile(true);
+    try {
+      // Update Supabase auth metadata
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { full_name: profileData.name }
+      });
+      
+      if (authError) throw authError;
+      
+      // Update clients table
+      const success = await updateData('clients', {
+        id: user.id,
+        ...profileData
+      });
+      
+      if (success) {
+        logEvent('system', 'Profile updated successfully');
+        // Show success toast or message here if needed
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -100,6 +147,12 @@ const Account: React.FC = () => {
             >
               <Heart size={18} /> My Wishlist ({wishlistProducts.length})
             </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex-1 py-4 px-6 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${activeTab === 'profile' ? 'bg-white text-slate-900 border-b-2 border-primary' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+            >
+              <User size={18} /> Profile & Address
+            </button>
           </div>
           
           <div className="p-6">
@@ -136,7 +189,7 @@ const Account: React.FC = () => {
                           </p>
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className="text-right">
+                          <div className="text-right hidden sm:block">
                             <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Total</p>
                             <p className="text-sm text-slate-900 font-medium">${order.totalAmount.toFixed(2)}</p>
                           </div>
@@ -144,46 +197,14 @@ const Account: React.FC = () => {
                             {getStatusIcon(order.status)}
                             {order.status}
                           </div>
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="ml-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-slate-50 transition-colors"
+                          >
+                            View Details
+                          </button>
                         </div>
                       </div>
-                        <div className="p-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div>
-                              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shipping Information</h4>
-                              <p className="text-sm text-slate-700 whitespace-pre-wrap">{order.shippingAddress || 'No shipping address provided.'}</p>
-                            </div>
-                            <div>
-                              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Tracking Number</h4>
-                              {order.trackingNumber ? (
-                                <p className="text-sm font-mono font-medium text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg inline-block">{order.trackingNumber}</p>
-                              ) : (
-                                <p className="text-sm text-slate-500 italic">Not available yet</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="border-t border-slate-100 pt-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Items</h4>
-                            <div className="space-y-4">
-                              {order.items.map((item, index) => (
-                                <div key={index} className="flex items-center gap-4">
-                                  <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
-                                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                      <Package size={20} />
-                                    </div>
-                                  </div>
-                                  <div className="flex-grow">
-                                    <p className="text-sm font-medium text-slate-900">{item.name}</p>
-                                    <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-sm font-medium text-slate-900">${(item.price * item.quantity).toFixed(2)}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
                     </div>
                   ))}
                 </div>
@@ -250,9 +271,257 @@ const Account: React.FC = () => {
                 </div>
               )
             )}
+
+            {activeTab === 'profile' && (
+              <div className="max-w-2xl mx-auto">
+                <div className="mb-8">
+                  <h3 className="text-xl font-serif text-slate-900 mb-2">Profile & Address</h3>
+                  <p className="text-sm text-slate-500">
+                    Manage your personal information and default shipping address for faster checkout.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSaveProfile} className="space-y-8">
+                  <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <h4 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 flex items-center gap-2">
+                      <User size={16} /> Personal Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Full Name</label>
+                        <input
+                          type="text"
+                          value={profileData.name}
+                          onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="Your full name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="Your phone number"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <h4 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-4 flex items-center gap-2">
+                      <MapPin size={16} /> Default Shipping Address
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Building / Unit</label>
+                        <input
+                          type="text"
+                          value={profileData.buildingNumber}
+                          onChange={(e) => setProfileData({ ...profileData, buildingNumber: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="e.g. Apt 4B, Building Name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Street Name</label>
+                        <input
+                          type="text"
+                          value={profileData.streetName}
+                          onChange={(e) => setProfileData({ ...profileData, streetName: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="e.g. 123 Main St"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Suburb</label>
+                        <input
+                          type="text"
+                          value={profileData.suburb}
+                          onChange={(e) => setProfileData({ ...profileData, suburb: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="e.g. Sandton"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">City</label>
+                        <input
+                          type="text"
+                          value={profileData.city}
+                          onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="e.g. Johannesburg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Province / State</label>
+                        <input
+                          type="text"
+                          value={profileData.province}
+                          onChange={(e) => setProfileData({ ...profileData, province: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="e.g. Gauteng"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Postal Code</label>
+                        <input
+                          type="text"
+                          value={profileData.postalCode}
+                          onChange={(e) => setProfileData({ ...profileData, postalCode: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="e.g. 2000"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Country</label>
+                        <input
+                          type="text"
+                          value={profileData.country}
+                          onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="e.g. South Africa"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isSavingProfile}
+                      className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-slate-800 transition-all disabled:opacity-50"
+                    >
+                      {isSavingProfile ? (
+                        <>Saving...</>
+                      ) : (
+                        <><Save size={16} /> Save Profile</>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => setSelectedOrder(null)}
+          />
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <div>
+                <h3 className="text-xl font-serif text-slate-900">Order Details</h3>
+                <p className="text-sm text-slate-500 mt-1">Order #{selectedOrder.id.substring(0, 8)}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedOrder(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Date Placed</p>
+                  <p className="text-sm text-slate-900 font-medium">
+                    {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+                <div className={`px-4 py-2 rounded-full border text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${getStatusColor(selectedOrder.status)}`}>
+                  {getStatusIcon(selectedOrder.status)}
+                  {selectedOrder.status}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shipping Address</h4>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedOrder.shippingAddress || 'No shipping address provided.'}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Tracking Information</h4>
+                  {selectedOrder.trackingNumber ? (
+                    <div>
+                      <p className="text-sm font-mono font-medium text-slate-900 mb-2">{selectedOrder.trackingNumber}</p>
+                      <a 
+                        href={`https://www.google.com/search?q=${selectedOrder.trackingNumber}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                      >
+                        Track Package &rarr;
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500 italic">Tracking details will appear here once your order ships.</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Order Items</h4>
+                <div className="space-y-4">
+                  {selectedOrder.items.map((item, index) => (
+                    <div key={index} className="flex items-center gap-4 p-4 border border-slate-100 rounded-xl">
+                      <div className="w-16 h-16 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0 border border-slate-100">
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <Package size={20} />
+                        </div>
+                      </div>
+                      <div className="flex-grow">
+                        <p className="text-sm font-medium text-slate-900">{item.name}</p>
+                        <p className="text-xs text-slate-500 mt-1">SKU: {item.sku}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-slate-900">${item.price.toFixed(2)}</p>
+                        <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8 border-t border-slate-100 pt-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-slate-500">Subtotal</span>
+                  <span className="text-sm font-medium text-slate-900">${selectedOrder.totalAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-sm text-slate-500">Shipping</span>
+                  <span className="text-sm font-medium text-slate-900">Calculated at checkout</span>
+                </div>
+                <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                  <span className="text-base font-bold text-slate-900">Total</span>
+                  <span className="text-xl font-serif text-slate-900">${selectedOrder.totalAmount.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+              <button 
+                onClick={() => setSelectedOrder(null)}
+                className="px-6 py-3 bg-slate-900 text-white font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-slate-800 transition-all"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

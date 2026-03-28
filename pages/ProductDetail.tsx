@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2, Heart, XCircle, Clock, CheckCircle2 } from 'lucide-react';
 import { useSettings } from '../App';
 import { Review, Product, WishlistItem } from '../types';
 
@@ -373,6 +373,26 @@ const ProductDetail: React.FC = () => {
                 </div>
               </div>
 
+              {/* Stock Status Indicator */}
+              <div className="pt-4">
+                {product.stock === 0 ? (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-full border border-red-100">
+                    <XCircle size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Out of Stock</span>
+                  </div>
+                ) : product.stock && product.stock <= 5 ? (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-full border border-amber-100">
+                    <Clock size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Limited Edition - Only {product.stock} Left</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">
+                    <CheckCircle2 size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">In Stock</span>
+                  </div>
+                )}
+              </div>
+
               {/* Tiny Tags */}
               {product.tags && product.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 pt-2">
@@ -387,16 +407,29 @@ const ProductDetail: React.FC = () => {
 
             <div className="space-y-4 pt-10 border-t border-slate-50">
                <div className="flex gap-4">
-                  <a 
-                    href={`https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi Findara, I am interested in ${product.name} - ${product.sku}`)}`}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    onClick={() => logEvent('click', `Product: ${product.name}`)}
-                    className="flex-grow py-5 bg-slate-900 text-white font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-primary hover:text-slate-900 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"
-                  >
-                    <span>{settings.productAcquisitionLabel || 'Secure Acquisition'}</span>
-                    <ExternalLink size={16} />
-                  </a>
+                  {product.stock === 0 ? (
+                    <button 
+                      onClick={() => {
+                        logEvent('click', `Notify Me: ${product.name}`);
+                        alert('You will be notified when this item is back in stock.');
+                      }}
+                      className="flex-grow py-5 bg-slate-100 text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3"
+                    >
+                      <span>Notify Me When Available</span>
+                      <Mail size={16} />
+                    </button>
+                  ) : (
+                    <a 
+                      href={`https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi Findara, I am interested in ${product.name} - ${product.sku}`)}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      onClick={() => logEvent('click', `Product: ${product.name}`)}
+                      className="flex-grow py-5 bg-slate-900 text-white font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-primary hover:text-slate-900 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"
+                    >
+                      <span>{settings.productAcquisitionLabel || 'Secure Acquisition'}</span>
+                      <ExternalLink size={16} />
+                    </a>
+                  )}
                </div>
                <div className="flex items-center justify-center gap-2 text-[8px] font-black text-slate-300 uppercase tracking-widest">
                   <ShieldCheck size={12} className="text-green-500" />
