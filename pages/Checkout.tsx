@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSettings } from '../types';
+import { useSettings } from '../App';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 

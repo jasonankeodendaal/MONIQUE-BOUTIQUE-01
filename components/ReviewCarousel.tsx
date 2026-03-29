@@ -194,29 +194,29 @@ const ReviewCarousel: React.FC = () => {
                 <CardWrapper
                   key={`${review.id}-${idx}`}
                   {...wrapperProps as any}
-                  className={`flex-shrink-0 w-[320px] md:w-[450px] p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] bg-slate-50 border border-slate-100 shadow-xl transition-all duration-700 group/card relative overflow-hidden ${review.type === 'product' ? 'hover:bg-white hover:shadow-2xl hover:-translate-y-2 cursor-pointer' : ''}`}
+                  className={`flex-shrink-0 w-[260px] md:w-[300px] p-5 md:p-6 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all duration-500 group/card relative overflow-hidden ${review.type === 'product' ? 'hover:shadow-md hover:-translate-y-1 cursor-pointer' : ''}`}
                 >
-                  <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover/card:opacity-[0.08] transition-opacity text-slate-900">
-                    <Quote size={120} />
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover/card:opacity-[0.04] transition-opacity text-slate-900">
+                    <Quote size={60} />
                   </div>
                   
-                  <div className="flex items-center gap-6 mb-8 relative z-10">
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-sm flex-shrink-0">
+                  <div className="flex items-center gap-3 mb-4 relative z-10">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-50 border border-slate-100 shadow-sm flex-shrink-0">
                       {review.productImage ? (
                         <img src={review.productImage} alt={review.productName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-200 bg-slate-50">
-                          <Star size={24} />
+                        <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
+                          <Star size={14} />
                         </div>
                       )}
                     </div>
                     <div>
-                      <h4 className="text-slate-900 font-bold text-lg line-clamp-1 mb-1">{review.userName}</h4>
-                      <div className="flex gap-1">
+                      <h4 className="text-slate-900 font-medium text-sm line-clamp-1 mb-0.5">{review.userName}</h4>
+                      <div className="flex gap-0.5">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            size={12}
+                            size={10}
                             className={i < review.rating ? "fill-primary text-primary" : "text-slate-200"}
                           />
                         ))}
@@ -224,15 +224,15 @@ const ReviewCarousel: React.FC = () => {
                     </div>
                   </div>
 
-                  <p className="text-slate-500 text-lg md:text-xl font-light leading-relaxed mb-10 italic line-clamp-4 relative z-10">
+                  <p className="text-slate-600 text-sm font-light leading-relaxed mb-6 line-clamp-4 relative z-10">
                     "{review.comment}"
                   </p>
 
-                  <div className="flex items-center justify-between pt-8 border-t border-slate-200/50 relative z-10">
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-50 relative z-10">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 truncate max-w-[60%]">
                       {review.productName}
                     </span>
-                    <span className="text-[10px] font-medium text-slate-400">
+                    <span className="text-[10px] text-slate-400">
                       {new Date(review.createdAt).toLocaleDateString()}
                     </span>
                   </div>

@@ -102,13 +102,17 @@ const Hero: React.FC = () => {
             <div className={`max-w-5xl flex flex-col items-center text-center transition-all duration-[1.5s] delay-500 transform ${
               index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}>
-              <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.8em] text-white/70 mb-8 block">
-                {settings.homeHeroBadge}
-              </span>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-px w-8 bg-white/20" />
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.8em] text-white/70">
+                  {settings.homeHeroBadge || 'FINDARA'}
+                </span>
+                <div className="h-px w-8 bg-white/20" />
+              </div>
               
               <h1 className="font-serif text-white mb-12 leading-[0.9] tracking-tighter text-balance"
-                  style={{ fontSize: 'clamp(2.5rem, 10vw, 10rem)' }}>
-                {(settings.homeHeroTitle || slide.title).split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
+                  style={{ fontSize: 'clamp(3rem, 10vw, 10rem)' }}>
+                {(settings.homeHeroTitle || slide.title).split(' ').slice(0, -1).join(' ')}{' '}
                 <span className="text-primary italic font-light">
                   {(settings.homeHeroTitle || slide.title).split(' ').slice(-1)}
                 </span>
@@ -120,7 +124,7 @@ const Hero: React.FC = () => {
               
               <Link 
                 to="/products"
-                className="group relative inline-flex items-center gap-6 bg-white text-slate-900 px-10 py-5 rounded-full text-xs md:text-sm font-black uppercase tracking-[0.4em] transition-all hover:bg-primary hover:text-white shadow-2xl hover:shadow-primary/40"
+                className="group relative inline-flex items-center gap-6 bg-primary text-slate-900 px-12 py-6 rounded-full text-xs md:text-sm font-black uppercase tracking-[0.4em] transition-all hover:bg-white hover:scale-105 shadow-2xl"
               >
                 {slide.cta}
                 <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
@@ -130,37 +134,37 @@ const Hero: React.FC = () => {
         </div>
       ))}
 
-      {/* Navigation Controls */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-12">
+      {/* Vertical Progress Indicators (Left) */}
+      <div className="absolute left-8 top-1/2 -translate-y-1/2 z-30 hidden md:flex flex-col gap-4">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`w-1 transition-all duration-500 rounded-full ${current === i ? 'h-12 bg-primary' : 'h-4 bg-white/20'}`}
+          />
+        ))}
+      </div>
+
+      {/* Navigation Controls (Bottom Right) */}
+      <div className="absolute bottom-12 right-12 z-30 flex gap-4">
         <button 
           onClick={prevSlide}
-          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all backdrop-blur-md"
         >
           <ChevronLeft size={20} />
         </button>
         
-        <div className="flex gap-4">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`h-1 transition-all duration-500 rounded-full ${current === i ? 'w-12 bg-primary' : 'w-4 bg-white/30'}`}
-            />
-          ))}
-        </div>
-
         <button 
           onClick={nextSlide}
-          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all backdrop-blur-md"
         >
           <ChevronRight size={20} />
         </button>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-12 right-12 hidden md:flex flex-col items-center gap-4">
-        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 vertical-text rotate-180">Scroll to Explore</span>
-        <div className="w-px h-24 bg-gradient-to-b from-white/40 to-transparent" />
+      {/* Scroll Indicator (Bottom Center) */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-4">
+        <div className="w-px h-12 bg-gradient-to-b from-white/40 to-transparent" />
       </div>
     </section>
   );

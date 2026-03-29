@@ -52,18 +52,15 @@ const Header: React.FC = () => {
               <img 
                 src={settings.companyLogoUrl} 
                 alt={settings.companyName} 
-                className="h-12 md:h-16 w-auto object-contain transition-transform duration-500 group-hover:scale-105" 
+                className="h-10 md:h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-105" 
               />
             ) : (
-              <div className={`text-2xl md:text-3xl font-serif font-bold tracking-tighter transition-colors duration-500 ${!isDarkSection ? 'text-slate-900' : 'text-white'}`}>
-                {settings.companyLogo}
+              <div className={`text-xl md:text-2xl font-serif font-bold tracking-tighter transition-colors duration-500 ${!isDarkSection ? 'text-slate-900' : 'text-white'}`}>
+                {settings.companyName}
               </div>
             )}
-            <div className={`flex flex-col -space-y-1 ${settings.companyLogoUrl ? 'hidden lg:flex' : 'flex'}`}>
-              <span className={`text-lg font-serif font-bold tracking-tight transition-colors duration-500 ${!isDarkSection ? 'text-slate-900' : 'text-white'}`}>
-                {settings.companyName}
-              </span>
-              <span className={`text-[9px] font-black uppercase tracking-[0.4em] transition-colors duration-500 ${!isDarkSection ? 'text-primary' : 'text-primary'}`}>
+            <div className={`hidden lg:flex flex-col -space-y-1`}>
+              <span className={`text-[8px] font-black uppercase tracking-[0.4em] transition-colors duration-500 ${!isDarkSection ? 'text-primary' : 'text-primary'}`}>
                 {settings.slogan}
               </span>
             </div>
@@ -71,20 +68,20 @@ const Header: React.FC = () => {
 
           {/* Desktop Nav - Center */}
           {!isDashboard && (
-            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-12">
+            <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-10">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all relative group ${
+                  className={`text-[11px] font-bold uppercase tracking-[0.25em] transition-all relative group ${
                     location.pathname === link.path 
                       ? 'text-primary' 
-                      : (!isDarkSection ? 'text-slate-500 hover:text-slate-900' : 'text-white/70 hover:text-white')
+                      : (!isDarkSection ? 'text-slate-600 hover:text-slate-900' : 'text-white/70 hover:text-white')
                   }`}
                 >
                   {link.name}
-                  <span className={`absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary transition-all duration-500 ${
-                    location.pathname === link.path ? 'opacity-100 scale-100' : 'opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100'
+                  <span className={`absolute -bottom-2 left-0 w-0 h-px bg-primary transition-all duration-500 group-hover:w-full ${
+                    location.pathname === link.path ? 'w-full' : ''
                   }`}></span>
                 </Link>
               ))}
@@ -97,12 +94,12 @@ const Header: React.FC = () => {
               to="/products"
               className={`transition-all duration-500 hover:scale-110 ${!isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
             >
-              <ShoppingBag size={20} strokeWidth={1.5} />
+              <ShoppingBag size={18} strokeWidth={1.5} />
             </Link>
             {user ? (
               <Link
                 to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
-                className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.4em] transition-all shadow-xl hover:shadow-primary/20 ${
+                className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
                   !isDarkSection 
                     ? 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900' 
                     : 'bg-white text-slate-900 hover:bg-primary hover:text-slate-900'
@@ -111,10 +108,10 @@ const Header: React.FC = () => {
                 {user.user_metadata?.role === 'admin' ? 'Dashboard' : 'Account'}
               </Link>
             ) : (
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-6">
                 <Link
                   to="/login?view=login"
-                  className={`text-[10px] font-black uppercase tracking-[0.4em] transition-all ${
+                  className={`text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
                     !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white hover:text-primary'
                   }`}
                 >
@@ -123,7 +120,7 @@ const Header: React.FC = () => {
                 {settings.clientLoginRegistrationEnabled !== false && (
                   <Link
                     to="/signup"
-                    className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.4em] transition-all shadow-xl hover:shadow-primary/20 ${
+                    className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
                       !isDarkSection 
                         ? 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900' 
                         : 'bg-white text-slate-900 hover:bg-primary hover:text-slate-900'

@@ -4,6 +4,8 @@ import AboutSection from '../components/AboutSection';
 import CategoryGrid from '../components/CategoryGrid';
 import ReviewCarousel from '../components/ReviewCarousel';
 import ProductMarquee from '../components/ProductMarquee';
+import NewsletterSignup from '../components/NewsletterSignup';
+import SocialProofGrid from '../components/SocialProofGrid';
 import { useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { LayoutGrid, ShieldCheck, Globe, ArrowRight } from 'lucide-react';
@@ -15,11 +17,11 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const { settings, categories } = useSettings();
 
-  // Shuffle categories and pick exactly 4 to show on the home page
+  // Consistently pick exactly 4 categories to show on the home page
   const featuredCategories = useMemo(() => {
     if (!categories || categories.length === 0) return [];
-    const shuffled = [...categories].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 4);
+    const sorted = [...categories].sort((a, b) => a.name.localeCompare(b.name));
+    return sorted.slice(0, 4);
   }, [categories]);
 
   return (
@@ -83,6 +85,9 @@ const Home: React.FC = () => {
            </div>
         </div>
       </section>
+
+      <SocialProofGrid />
+      <NewsletterSignup />
     </main>
   );
 };

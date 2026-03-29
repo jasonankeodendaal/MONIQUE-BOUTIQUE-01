@@ -15,7 +15,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Account from './pages/Account';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview, CartItem } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, TRAINING_MODULES as INITIAL_TRAINING } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, moveRecord } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -711,6 +711,7 @@ const App: React.FC = () => {
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
   const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(() => getLocalState('admin_training_modules', INITIAL_TRAINING));
   const [wishlist, setWishlist] = useState<WishlistItem[]>(() => getLocalState('user_wishlist', []));
+  const [cart, setCart] = useState<CartItem[]>(() => getLocalState('user_cart', []));
   const [siteReviews, setSiteReviews] = useState<SiteReview[]>(() => getLocalState('site_reviews', []));
   const [user, setUser] = useState<User | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -917,9 +918,10 @@ const App: React.FC = () => {
           fetchTableData('clients'),
           fetchTableData('orders'),
           fetchTableData('wishlist'),
+          fetchTableData('cart'),
           fetchTableData('site_reviews')
         ]);
-        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord, wl, sr] = results;
+        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord, wl, cr, sr] = results;
         if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
           // Prefer 'global' ID if it exists, otherwise take the first one
           const globalSettings = s.value.find((item: any) => item.id === 'global');
@@ -944,6 +946,7 @@ const App: React.FC = () => {
         if (cli.status === 'fulfilled' && cli.value !== null) { setClients(cli.value); localStorage.setItem('admin_clients', JSON.stringify(cli.value)); }
         if (ord.status === 'fulfilled' && ord.value !== null) { setOrders(ord.value); localStorage.setItem('admin_orders', JSON.stringify(ord.value)); }
         if (wl.status === 'fulfilled' && wl.value !== null) { setWishlist(wl.value); localStorage.setItem('user_wishlist', JSON.stringify(wl.value)); }
+        if (cr.status === 'fulfilled' && cr.value !== null) { setCart(cr.value); localStorage.setItem('user_cart', JSON.stringify(cr.value)); }
         if (sr.status === 'fulfilled' && sr.value !== null) { setSiteReviews(sr.value); localStorage.setItem('site_reviews', JSON.stringify(sr.value)); }
         addSystemLog('SYNC', 'ALL', 'Full refresh completed successfully', 0);
       } else {
@@ -959,6 +962,7 @@ const App: React.FC = () => {
         setClients(getLocalState('admin_clients', []));
         setOrders(getLocalState('admin_orders', []));
         setWishlist(getLocalState('user_wishlist', []));
+        setCart(getLocalState('user_cart', []));
         setSiteReviews(getLocalState('site_reviews', []));
       }
       setSaveStatus('saved');
@@ -1025,9 +1029,10 @@ const App: React.FC = () => {
         case 'clients': setClients(updateLocalState(clients)); break;
         case 'orders': setOrders(updateLocalState(orders)); break;
         case 'wishlist': setWishlist(updateLocalState(wishlist)); break;
+        case 'cart': setCart(updateLocalState(cart)); break;
         case 'site_reviews': setSiteReviews(updateLocalState(siteReviews)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'cart' ? 'user_cart' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.some((i: any) => i.id === data.id) ? existing.map((i: any) => i.id === data.id ? data : i) : [data, ...existing];
     localStorage.setItem(key, JSON.stringify(updated));
@@ -1049,14 +1054,67 @@ const App: React.FC = () => {
         case 'clients': setClients(deleteLocalState(clients)); break;
         case 'orders': setOrders(deleteLocalState(orders)); break;
         case 'wishlist': setWishlist(deleteLocalState(wishlist)); break;
+        case 'cart': setCart(deleteLocalState(cart)); break;
         case 'site_reviews': setSiteReviews(deleteLocalState(siteReviews)); break;
     }
-    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
+    const key = table === 'hero_slides' ? 'admin_hero' : table === 'admin_users' ? 'admin_users' : table === 'wishlist' ? 'user_wishlist' : table === 'cart' ? 'user_cart' : table === 'site_reviews' ? 'site_reviews' : `admin_${table}`;
     const existing = JSON.parse(localStorage.getItem(key) || '[]');
     const updated = existing.filter((i: any) => i.id !== id);
     localStorage.setItem(key, JSON.stringify(updated));
     try { if (isSupabaseConfigured) { await deleteSupabaseData(table, id); addSystemLog('DELETE', table, `Deleted ID: ${id.substring(0,8)}`, 0); } setSaveStatus('saved'); return true; } 
     catch (e) { setSaveStatus('error'); refreshAllData(); return false; }
+  };
+
+  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    const existing = wishlist.find(w => w.productId === productId);
+    if (existing) {
+      await deleteData('wishlist', existing.id);
+    } else {
+      await updateData('wishlist', {
+        id: crypto.randomUUID(),
+        userId: user?.id || 'anonymous',
+        productId,
+        createdAt: Date.now()
+      });
+    }
+  };
+
+  const addToCart = async (productId: string, quantity: number, variations?: Record<string, string>) => {
+    const existing = cart.find(c => c.productId === productId && JSON.stringify(c.variations) === JSON.stringify(variations));
+    if (existing) {
+      await updateData('cart', { ...existing, quantity: existing.quantity + quantity });
+    } else {
+      await updateData('cart', {
+        id: crypto.randomUUID(),
+        userId: user?.id || 'anonymous',
+        productId,
+        quantity,
+        variations,
+        createdAt: Date.now()
+      });
+    }
+  };
+
+  const removeFromCart = async (cartItemId: string) => {
+    await deleteData('cart', cartItemId);
+  };
+
+  const updateCartQuantity = async (cartItemId: string, quantity: number) => {
+    const existing = cart.find(c => c.id === cartItemId);
+    if (existing) {
+      if (quantity <= 0) {
+        await deleteData('cart', cartItemId);
+      } else {
+        await updateData('cart', { ...existing, quantity });
+      }
+    }
+  };
+
+  const clearCart = async () => {
+    for (const item of cart) {
+      await deleteData('cart', item.id);
+    }
   };
 
   const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
@@ -1094,7 +1152,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, wishlist, siteReviews, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, connectionHealth, systemLogs, storageStats }}>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, wishlist, cart, siteReviews, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, toggleWishlist, addToCart, removeFromCart, updateCartQuantity, clearCart, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
           <title>{settings.seoTitle || settings.companyName}</title>
           <meta name="description" content={settings.seoDescription || settings.footerDescription} />

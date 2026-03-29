@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../types';
+import { motion } from 'motion/react';
+import { ArrowRight } from 'lucide-react';
 
 interface FeaturedProductsProps {
   products: Product[];
@@ -12,26 +14,69 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 4);
 
+  if (featured.length === 0) return null;
+
   return (
-    <section className="py-16 md:py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 md:px-6">
-        <h2 className="text-3xl md:text-5xl font-serif text-slate-900 mb-12 text-center">
-          Curated <span className="italic font-light text-primary">Arrivals</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {featured.map((product) => (
-            <Link to={`/product/${product.id}`} key={product.id} className="group">
-              <div className="aspect-square overflow-hidden rounded-2xl bg-slate-100 mb-4">
-                <img
-                  src={product.media[0]?.url || 'https://picsum.photos/seed/product/400/400'}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <h3 className="text-lg font-medium text-slate-900">{product.name}</h3>
-              <p className="text-slate-500">${product.price.toFixed(2)}</p>
-            </Link>
+    <section className="py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 md:px-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+          <div className="max-w-xl">
+            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tighter mb-4">
+              Curated <span className="italic font-light text-primary">Selections</span>
+            </h2>
+            <p className="text-slate-500 font-light leading-relaxed">
+              Discover our most sought-after pieces, meticulously crafted for the modern connoisseur.
+            </p>
+          </div>
+          <Link 
+            to="/products" 
+            className="group flex items-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-slate-900 hover:text-primary transition-colors shrink-0"
+          >
+            <span>View All</span>
+            <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-primary group-hover:bg-primary/5 transition-all">
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+          {featured.map((product, index) => (
+            <motion.div 
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="group"
+            >
+              <Link to={`/product/${product.id}`} className="block">
+                <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-slate-100 rounded-2xl">
+                  <img 
+                    src={product.media?.[0]?.url || 'https://picsum.photos/seed/product/600/800'} 
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
+                  
+                  {/* Quick View Button Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    <div className="w-full py-3 bg-white/90 backdrop-blur-md text-slate-900 text-center text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg">
+                      Discover
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 text-center">
+                  <h3 className="text-lg font-serif text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm font-light text-slate-500">
+                    R{product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
           ))}
         </div>
       </div>

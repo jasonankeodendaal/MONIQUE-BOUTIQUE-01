@@ -11,22 +11,24 @@ const NewsletterSignup: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-slate-900 text-white text-center">
-      <div className="max-w-2xl mx-auto px-4">
-        <h2 className="text-3xl md:text-5xl font-serif mb-6">Join the <span className="italic font-light text-primary">Inner Circle</span></h2>
-        <p className="text-slate-400 mb-10 text-lg">Unlock private sales, early access to new collections, and editorial insights.</p>
-        <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
+    <section className="py-32 bg-slate-50 relative overflow-hidden border-t border-slate-100">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/[0.04] rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="max-w-3xl mx-auto px-6 relative z-10 text-center">
+        <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400 block mb-6">VIP Access</span>
+        <h2 className="text-4xl md:text-6xl font-serif text-slate-900 mb-6 tracking-tight">Join the <span className="italic font-light text-primary">Inner Circle</span></h2>
+        <p className="text-slate-500 mb-12 text-lg md:text-xl font-light max-w-xl mx-auto">Unlock private sales, early access to new collections, and exclusive editorial insights.</p>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email address"
-            className="flex-grow px-6 py-4 rounded-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-primary"
+            className="flex-grow px-8 py-5 rounded-full bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
             required
           />
           <button
             type="submit"
-            className="px-10 py-4 bg-primary text-slate-900 rounded-full font-black uppercase tracking-widest hover:bg-white transition-all"
+            className="px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-xl hover:shadow-primary/20 whitespace-nowrap"
           >
             Subscribe
           </button>

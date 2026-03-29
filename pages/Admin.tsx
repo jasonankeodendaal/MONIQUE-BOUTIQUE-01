@@ -2414,9 +2414,32 @@ const Admin: React.FC = () => {
          </div>
       </div>
       <AdminTip title="Communication Hub">This is your central command for client interactions. All inquiries from your contact form are routed here. Use the reply button to open your device's email client, or archive messages to keep your inbox clean.</AdminTip>
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search sender, email, or subject..." value={enquirySearch} onChange={e => setEnquirySearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
-         <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'unread', 'read'].map(filter => (<button key={filter} onClick={() => setEnquiryFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${enquiryFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
+      <div className="flex flex-col md:flex-row gap-4 mb-10 items-stretch">
+         <div className="relative flex-grow group">
+            <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative flex items-center">
+              <Search className="absolute left-5 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search sender, email, or subject..." 
+                value={enquirySearch} 
+                onChange={e => setEnquirySearch(e.target.value)} 
+                className="w-full pl-14 pr-6 py-5 bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl text-white outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all text-sm placeholder:text-slate-600 font-medium" 
+              />
+            </div>
+         </div>
+         <div className="flex p-1.5 bg-slate-900/50 border border-slate-800 rounded-2xl gap-1 overflow-x-auto no-scrollbar">
+            {['all', 'unread', 'read'].map(filter => (
+              <button 
+                key={filter} 
+                onClick={() => setEnquiryFilter(filter as any)} 
+                className={`px-8 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center gap-2 ${enquiryFilter === filter ? 'bg-primary text-slate-900 shadow-lg shadow-primary/20' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}
+              >
+                {filter}
+                <span className={`w-1.5 h-1.5 rounded-full ${enquiryFilter === filter ? 'bg-slate-900' : 'bg-slate-700'}`}></span>
+              </button>
+            ))}
+         </div>
       </div>
       { (filteredEnquiries.length === 0) ? <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] md:rounded-[3rem] border border-dashed border-slate-800 text-slate-500">No enquiries found.</div> : 
         filteredEnquiries.map(e => (
@@ -2673,31 +2696,86 @@ const Admin: React.FC = () => {
            </div>
         </div>
 
-        <div className="bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3rem] border border-slate-800 shadow-2xl relative overflow-hidden group hover:border-white/10 transition-colors">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Activity size={120} className="text-primary"/></div>
-            <h3 className="text-white font-bold text-xl mb-12 flex items-center gap-3"><Clock size={24} className="text-primary"/> 24-Hour Traffic Distribution</h3>
-            <div className="flex items-end gap-1 h-64 w-full border-b border-slate-800 pb-2">
-               {hourlyDistribution.map((count, i) => (
-                 <div key={i} className="flex-1 group/bar relative h-full flex flex-col justify-end">
-                    <div 
-                      className={`w-full ${ (i === peakHour) ? 'bg-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]' : 'bg-slate-800 group-hover/bar:bg-slate-600' } transition-all duration-500 rounded-t-sm`} 
-                      style={{ height: `${ (count / maxHourly) * 100 }%` }}
-                    ></div>
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none shadow-xl z-20 whitespace-nowrap">
-                      {count} Hits @ {i}:00
-                    </div>
-                    <div className={`absolute -bottom-8 left-1/2 -translate-x-1/2 text-[9px] font-bold ${ (i % 3 === 0) ? 'text-slate-500' : 'text-transparent' }`}>
-                       {i}
-                    </div>
-                 </div>
-               ))}
+        <div className="bg-slate-900/40 backdrop-blur-md p-8 md:p-14 rounded-[3rem] border border-slate-800/50 shadow-2xl relative overflow-hidden group hover:border-primary/20 transition-all duration-700">
+            <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-all duration-700 group-hover:rotate-12 group-hover:scale-110">
+              <Activity size={160} className="text-primary"/>
             </div>
-            <div className="mt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
-               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Active Monitoring: Live Updates Every 5 Seconds</span>
-               <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded shadow-[0_0_8px_rgba(var(--primary-rgb),0.4)]"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Peak Traffic</span></div>
-                  <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-800 rounded"></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Average Load</span></div>
-               </div>
+            
+            <div className="relative z-10">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">
+                <div className="space-y-1">
+                  <h3 className="text-white font-serif italic text-2xl flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Clock size={20} className="text-primary animate-pulse"/>
+                    </div>
+                    Temporal Engagement Matrix
+                  </h3>
+                  <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] ml-14">24-Hour Node Distribution</p>
+                </div>
+                
+                <div className="flex items-center gap-8 bg-black/20 px-6 py-4 rounded-2xl border border-white/5 backdrop-blur-sm">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Peak Load</span>
+                    <span className="text-xl font-mono text-white font-bold">{maxHourly} <span className="text-[10px] text-primary">HITS</span></span>
+                  </div>
+                  <div className="w-px h-8 bg-white/10"></div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Active Window</span>
+                    <span className="text-xl font-mono text-white font-bold">{peakHour}:00 <span className="text-[10px] text-primary">UTC</span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative h-72 w-full flex items-end gap-1.5 md:gap-2 px-2">
+                {/* Background Grid Lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="w-full h-px border-t border-dashed border-slate-700"></div>
+                  ))}
+                </div>
+
+                {hourlyDistribution.map((count, i) => (
+                  <div key={i} className="flex-1 group/bar relative h-full flex flex-col justify-end z-10">
+                    <div 
+                      className={`w-full relative transition-all duration-1000 ease-out rounded-t-lg ${ (i === peakHour) ? 'bg-gradient-to-t from-primary to-white shadow-[0_0_30px_rgba(var(--primary-rgb),0.4)]' : 'bg-slate-800/50 group-hover/bar:bg-primary/40' }`} 
+                      style={{ height: `${ (count / maxHourly) * 100 }%` }}
+                    >
+                      {/* Bar Glow Effect */}
+                      {i === peakHour && <div className="absolute inset-0 bg-white/20 blur-sm rounded-t-lg"></div>}
+                    </div>
+                    
+                    {/* Tooltip */}
+                    <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-white text-slate-900 text-[10px] font-black px-4 py-2 rounded-xl opacity-0 group-hover/bar:opacity-100 transition-all duration-300 pointer-events-none shadow-2xl z-20 whitespace-nowrap translate-y-2 group-hover/bar:translate-y-0 border-4 border-primary/10">
+                      <div className="flex flex-col items-center">
+                        <span className="text-primary mb-0.5">{count} SESSIONS</span>
+                        <span className="opacity-50">AT {i}:00</span>
+                      </div>
+                    </div>
+
+                    {/* X-Axis Labels */}
+                    <div className={`absolute -bottom-10 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold transition-colors duration-300 ${ (i % 4 === 0 || i === peakHour) ? 'text-slate-400' : 'text-transparent' }`}>
+                       {i.toString().padStart(2, '0')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-20 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 px-4 pt-8 border-t border-white/5">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]"></div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Peak Engagement</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 bg-slate-800 rounded-full"></div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Baseline Load</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 px-5 py-2.5 bg-green-500/5 border border-green-500/20 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
+                  <span className="text-[10px] text-green-500 font-black uppercase tracking-widest">Live Stream Active</span>
+                </div>
+              </div>
             </div>
         </div>
         
@@ -4254,28 +4332,31 @@ const Admin: React.FC = () => {
               <AdminTip title="History Vault">This section contains items that have been cycled out of the main collection. You can view their performance or permanently remove them from the maison records.</AdminTip>
             )}
 
-            <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-[100px] z-30 bg-slate-950 py-2">
-               <div className="relative flex-grow">
-                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                 <input 
-                  type="text" 
-                  placeholder={`Search ${catalogView} collections...`} 
-                  value={productSearch} 
-                  onChange={e => setProductSearch(e.target.value)} 
-                  className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" 
-                 />
+            <div className="flex flex-col md:flex-row gap-4 mb-10 sticky top-[100px] z-30 bg-slate-950/80 backdrop-blur-md py-4 items-stretch">
+               <div className="relative flex-grow group">
+                 <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+                 <div className="relative flex items-center">
+                   <Search className="absolute left-5 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                   <input 
+                    type="text" 
+                    placeholder={`Search ${catalogView} collections...`} 
+                    value={productSearch} 
+                    onChange={e => setProductSearch(e.target.value)} 
+                    className="w-full pl-14 pr-6 py-5 bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl text-white outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all text-sm placeholder:text-slate-600 font-medium" 
+                   />
+                 </div>
                </div>
-               <div className="relative min-w-[200px]">
-                 <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+               <div className="relative min-w-[240px] group">
+                 <Filter className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                  <select 
                   value={productCatFilter} 
                   onChange={e => setProductCatFilter(e.target.value)} 
-                  className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm appearance-none cursor-pointer"
+                  className="w-full pl-14 pr-12 py-5 bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl text-white outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all text-sm appearance-none cursor-pointer font-medium"
                  >
                    <option value="all">All Departments</option>
                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                  </select>
-                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
+                 <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none group-hover:text-primary transition-colors" size={16} />
                </div>
             </div>
 

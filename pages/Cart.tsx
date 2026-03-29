@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSettings } from '../types';
+import { useSettings } from '../App';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

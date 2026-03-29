@@ -140,6 +140,7 @@ export interface SiteSettings {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  currencySymbol: string;
   navHomeLabel: string;
   navProductsLabel: string;
   navAboutLabel: string;

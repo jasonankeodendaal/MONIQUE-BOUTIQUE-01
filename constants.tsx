@@ -1253,6 +1253,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   primaryColor: '#E5C1CD',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
+  currencySymbol: '$',
   navHomeLabel: 'Home',
   navProductsLabel: 'Collections',
   navAboutLabel: 'My Journey',
