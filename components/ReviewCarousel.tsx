@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useSettings } from '../App';
-import { Star, Quote, MessageSquarePlus, X, Smile } from 'lucide-react';
+import { Star, Quote, MessageSquarePlus, X, Smile, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import EmojiPicker from 'emoji-picker-react';
 
@@ -47,6 +47,25 @@ const ReviewCarousel: React.FC = () => {
   }, [products, siteReviews]);
 
   const navigate = useNavigate();
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (allReviews.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setActiveIndex(prev => {
+        let next = Math.floor(Math.random() * allReviews.length);
+        while (next === prev && allReviews.length > 1) {
+          next = Math.floor(Math.random() * allReviews.length);
+        }
+        return next;
+      });
+    }, 7000); // Soft and slow cycle
+    
+    return () => clearInterval(interval);
+  }, [allReviews.length]);
+
+  const currentReview = allReviews[activeIndex];
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,22 +94,127 @@ const ReviewCarousel: React.FC = () => {
   };
 
   return (
-    <section className="py-24 md:py-48 bg-white overflow-hidden relative border-y border-slate-100">
-      {/* Decorative Background Element */}
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-[150px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+    <section className="py-20 md:py-32 bg-[#FAF9F6] overflow-hidden relative">
+      {/* Abstract Background Elements */}
+      <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -ml-48 -translate-y-1/2"></div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 mb-16 md:mb-32 text-center relative z-10">
-        <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400 block mb-6">Client Experiences</span>
-        <h2 className="text-4xl md:text-7xl font-serif text-slate-900 tracking-tighter leading-none mb-12">
-          Real feedback from our <span className="italic font-light text-primary">Curated Collection</span>
-        </h2>
-        
-        <button 
-          onClick={handleLeaveReviewClick}
-          className="inline-flex items-center gap-4 px-8 py-4 bg-slate-900 text-white rounded-full text-xs font-black uppercase tracking-[0.4em] hover:bg-primary hover:text-slate-900 transition-all shadow-xl hover:shadow-primary/20"
-        >
-          <MessageSquarePlus size={16} /> Leave a Review
-        </button>
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center gap-16 md:gap-24">
+          
+          {/* Carousel Column - Now a single flashing review (Moved to Left) */}
+          <div className="w-full lg:w-2/3 relative min-h-[400px] flex items-center justify-center order-2 lg:order-1">
+            <AnimatePresence mode="wait">
+              {currentReview && (
+                <motion.div
+                  key={currentReview.id}
+                  initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
+                  transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+                  className="w-full max-w-xl"
+                >
+                  <div className="relative p-10 md:p-16 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-primary/5 overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-primary">
+                      <Quote size={80} />
+                    </div>
+                    
+                    <div className="flex items-center gap-6 mb-10 relative z-10">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-50 border border-slate-100 shadow-inner flex-shrink-0">
+                        {currentReview.productImage ? (
+                          <img src={currentReview.productImage} alt={currentReview.productName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-500 bg-slate-50">
+                            <Star size={24} />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="text-slate-900 font-serif text-xl mb-1">{currentReview.userName}</h4>
+                        <div className="flex gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={14}
+                              className={i < currentReview.rating ? "fill-primary text-primary" : "text-slate-200"}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-slate-800 text-lg md:text-2xl font-light leading-relaxed mb-12 italic relative z-10 font-serif">
+                      "{currentReview.comment}"
+                    </p>
+
+                    <div className="flex items-center justify-between pt-8 border-t border-slate-50 relative z-10">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary/80 mb-1">
+                          {currentReview.type === 'product' ? 'Verified Purchase' : 'Community Voice'}
+                        </span>
+                        <span className="text-xs font-medium text-slate-800 truncate max-w-[200px]">
+                          {currentReview.productName}
+                        </span>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => setActiveIndex(prev => (prev === 0 ? allReviews.length - 1 : prev - 1))}
+                          className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-800 hover:text-primary hover:border-primary transition-all"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <button 
+                          onClick={() => setActiveIndex(prev => (prev === allReviews.length - 1 ? 0 : prev + 1))}
+                          className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-800 hover:text-primary hover:border-primary transition-all"
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Pagination Dots */}
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                      {allReviews.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setActiveIndex(i)}
+                          className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i === activeIndex ? 'bg-primary w-4' : 'bg-slate-200'}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Info Column (Moved to Right) */}
+          <div className="w-full lg:w-1/3 text-left order-1 lg:order-2">
+            <div className="inline-flex items-center gap-3 mb-6">
+              <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-primary/80">Client Experiences</span>
+              <div className="h-[1px] w-12 bg-primary/20"></div>
+            </div>
+            
+            <h2 className="text-3xl md:text-5xl font-serif text-slate-900 tracking-tighter leading-tight mb-8">
+              Voices of <br/>
+              <span className="italic font-light text-primary">Satisfaction</span>
+            </h2>
+            
+            <p className="text-slate-700 font-light leading-relaxed mb-10 text-sm md:text-base">
+              Discover what our community has to say about their journey with our curated collections.
+            </p>
+            
+            <button 
+              onClick={handleLeaveReviewClick}
+              className="group inline-flex items-center gap-4 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-900 hover:text-primary transition-colors"
+            >
+              <div className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-primary transition-colors">
+                <MessageSquarePlus size={14} />
+              </div>
+              Leave a Review
+            </button>
+          </div>
+        </div>
       </div>
 
       {showReviewForm && (
@@ -102,14 +226,14 @@ const ReviewCarousel: React.FC = () => {
           >
             <button 
               onClick={() => setShowReviewForm(false)}
-              className="absolute top-8 right-8 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all"
+              className="absolute top-8 right-8 p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all"
             >
               <X size={20} />
             </button>
             
             <div className="text-center mb-10">
               <h3 className="text-2xl md:text-3xl font-serif text-slate-900 mb-2 tracking-tight">Share Your Experience</h3>
-              <p className="text-sm text-slate-500 font-light">We value your feedback on our curated selection.</p>
+              <p className="text-sm text-slate-700 font-light">We value your feedback on our curated selection.</p>
             </div>
             
             <form onSubmit={handleSubmitReview} className="space-y-6">
@@ -151,7 +275,7 @@ const ReviewCarousel: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="absolute bottom-4 right-4 text-slate-400 hover:text-primary transition-colors"
+                  className="absolute bottom-4 right-4 text-slate-600 hover:text-primary transition-colors"
                 >
                   <Smile size={20} />
                 </button>
@@ -180,66 +304,6 @@ const ReviewCarousel: React.FC = () => {
               </button>
             </form>
           </motion.div>
-        </div>
-      )}
-
-      {allReviews.length > 0 && (
-        <div className="relative w-full overflow-x-auto pb-12 hide-scrollbar">
-          <div className="flex gap-8 px-6 md:px-12 w-max mx-auto">
-            {allReviews.map((review, idx) => {
-              const CardWrapper = review.type === 'product' ? Link : 'div';
-              const wrapperProps = review.type === 'product' ? { to: `/product/${review.productId}` } : {};
-              
-              return (
-                <CardWrapper
-                  key={`${review.id}-${idx}`}
-                  {...wrapperProps as any}
-                  className={`flex-shrink-0 w-[260px] md:w-[300px] p-5 md:p-6 rounded-2xl bg-white border border-slate-100 shadow-sm transition-all duration-500 group/card relative overflow-hidden ${review.type === 'product' ? 'hover:shadow-md hover:-translate-y-1 cursor-pointer' : ''}`}
-                >
-                  <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover/card:opacity-[0.04] transition-opacity text-slate-900">
-                    <Quote size={60} />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 mb-4 relative z-10">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-50 border border-slate-100 shadow-sm flex-shrink-0">
-                      {review.productImage ? (
-                        <img src={review.productImage} alt={review.productName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
-                          <Star size={14} />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="text-slate-900 font-medium text-sm line-clamp-1 mb-0.5">{review.userName}</h4>
-                      <div className="flex gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={10}
-                            className={i < review.rating ? "fill-primary text-primary" : "text-slate-200"}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-slate-600 text-sm font-light leading-relaxed mb-6 line-clamp-4 relative z-10">
-                    "{review.comment}"
-                  </p>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-50 relative z-10">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 truncate max-w-[60%]">
-                      {review.productName}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      {new Date(review.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </CardWrapper>
-              );
-            })}
-          </div>
         </div>
       )}
     </section>

@@ -36,7 +36,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       return (
         <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white">
           <VideoIcon size={32} className="mb-2 opacity-30" />
-          <span className="text-[8px] uppercase font-black tracking-widest text-white/50">Cinematic Preview</span>
+          <span className="text-[8px] uppercase font-black tracking-widest text-white/80">Cinematic Preview</span>
         </div>
       );
     }
@@ -111,8 +111,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {product.name}
         </h3>
         <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
-          <span className="text-[7px] md:text-[8px] font-bold text-slate-300 font-mono tracking-tighter truncate max-w-[80px] uppercase">{settings.productRefLabel || 'Ref:'} {product.sku}</span>
-          <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+          <span className="text-[7px] md:text-[8px] font-bold text-slate-500 font-mono tracking-tighter truncate max-w-[80px] uppercase">{settings.productRefLabel || 'Ref:'} {product.sku}</span>
+          <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-all">
              <Check size={12} />
           </div>
         </div>

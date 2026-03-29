@@ -382,7 +382,7 @@ CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, "userId" TEXT, "p
 
 -- 2. INITIAL DATA & SEO DEFAULTS
 INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
-VALUES ('global', 'My Store', 'Curated Collection', '#E5C1CD')
+VALUES ('global', 'My Store', 'Curated Collection', '#7a3d48')
 ON CONFLICT (id) DO NOTHING;
 
 -- Add missing columns to settings table if they don't exist (Safety Layer)
@@ -475,7 +475,8 @@ ADD COLUMN IF NOT EXISTS "navStickyHeader" BOOLEAN DEFAULT TRUE,
 ADD COLUMN IF NOT EXISTS "homeHeroTitle" TEXT,
 ADD COLUMN IF NOT EXISTS "homeHeroSubtitle" TEXT,
 ADD COLUMN IF NOT EXISTS "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE,
-ADD COLUMN IF NOT EXISTS "adminLoginDividerLabel" TEXT;
+ADD COLUMN IF NOT EXISTS "adminLoginDividerLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "currencySymbol" TEXT;
 
 ALTER TABLE settings
   ADD COLUMN IF NOT EXISTS "emailJsWelcomeTemplateId" TEXT,
@@ -701,6 +702,19 @@ ADD COLUMN IF NOT EXISTS comment TEXT,
 ADD COLUMN IF NOT EXISTS "createdAt" BIGINT,
 ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
 
+ALTER TABLE cart
+ADD COLUMN IF NOT EXISTS "userId" TEXT,
+ADD COLUMN IF NOT EXISTS "productId" TEXT,
+ADD COLUMN IF NOT EXISTS quantity NUMERIC,
+ADD COLUMN IF NOT EXISTS variations JSONB,
+ADD COLUMN IF NOT EXISTS "createdAt" BIGINT;
+
+ALTER TABLE notifications
+ADD COLUMN IF NOT EXISTS "userId" TEXT,
+ADD COLUMN IF NOT EXISTS "productId" TEXT,
+ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending',
+ADD COLUMN IF NOT EXISTS "createdAt" BIGINT;
+
 -- Update defaults without overwriting existing data
 UPDATE settings SET
   "seoTitle" = COALESCE("seoTitle", 'My Store'),
@@ -748,7 +762,9 @@ ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wishlist ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cart ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- 4. POLICIES (Idempotent)
 DO $$ 
@@ -776,7 +792,9 @@ BEGIN
     DROP POLICY IF EXISTS "Enable all for anon orders" ON orders;
     DROP POLICY IF EXISTS "Enable all for anon clients" ON clients;
     DROP POLICY IF EXISTS "Enable all for anon wishlist" ON wishlist;
+    DROP POLICY IF EXISTS "Enable all for anon cart" ON cart;
     DROP POLICY IF EXISTS "Enable all for anon site_reviews" ON site_reviews;
+    DROP POLICY IF EXISTS "Enable all for anon notifications" ON notifications;
 END $$;
 
 -- RECREATE POLICIES
@@ -803,7 +821,9 @@ CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (tr
 CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true);
 CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);
 CREATE POLICY "Enable all for anon wishlist" ON wishlist FOR ALL USING (true);
+CREATE POLICY "Enable all for anon cart" ON cart FOR ALL USING (true);
 CREATE POLICY "Enable all for anon site_reviews" ON site_reviews FOR ALL USING (true);
+CREATE POLICY "Enable all for anon notifications" ON notifications FOR ALL USING (true);
 
 -- 5. AUTH SYNC TRIGGER
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -1250,7 +1270,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   slogan: 'Curated Collection',
   companyLogo: 'M',
   companyLogoUrl: '',
-  primaryColor: '#E5C1CD',
+  primaryColor: '#7a3d48',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
   currencySymbol: '$',

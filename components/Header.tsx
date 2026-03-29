@@ -76,7 +76,7 @@ const Header: React.FC = () => {
                   className={`text-[11px] font-bold uppercase tracking-[0.25em] transition-all relative group ${
                     location.pathname === link.path 
                       ? 'text-primary' 
-                      : (!isDarkSection ? 'text-slate-600 hover:text-slate-900' : 'text-white/70 hover:text-white')
+                      : (!isDarkSection ? 'text-slate-700 hover:text-slate-900' : 'text-white/70 hover:text-white')
                   }`}
                 >
                   {link.name}
@@ -92,7 +92,7 @@ const Header: React.FC = () => {
           <div className="hidden md:flex items-center gap-8 z-10">
             <Link
               to="/products"
-              className={`transition-all duration-500 hover:scale-110 ${!isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white/80 hover:text-white'}`}
+              className={`transition-all duration-500 hover:scale-110 ${!isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white hover:text-white'}`}
             >
               <ShoppingBag size={18} strokeWidth={1.5} />
             </Link>

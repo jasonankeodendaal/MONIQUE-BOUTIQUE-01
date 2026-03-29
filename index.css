@@ -3,8 +3,8 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", serif;
-  --color-primary: #E5C1CD;
-  --color-primary-foreground: #1a1a1a;
+  --color-primary: #7a3d48;
+  --color-primary-foreground: #ffffff;
 }
 
 :root {
@@ -14,22 +14,22 @@
   --bg-sand: #F2E8E4;
   --bg-paper: #FCF8F7;
   --bg-accent: #F9EBE8;
-  --rose-gold-glow: rgba(229, 193, 205, 0.2);
+  --rose-gold-glow: rgba(122, 61, 72, 0.2);
   
   /* High-definition layered shadows */
   --soft-shadow: 
     0 2px 4px rgba(0,0,0,0.02),
-    0 10px 20px rgba(183, 110, 121, 0.04),
-    0 20px 40px rgba(183, 110, 121, 0.04);
+    0 10px 20px rgba(122, 61, 72, 0.04),
+    0 20px 40px rgba(122, 61, 72, 0.04);
   
   --deep-shadow: 
     0 10px 15px -3px rgba(0, 0, 0, 0.05), 
-    0 25px 50px -12px rgba(183, 110, 121, 0.1),
-    0 50px 100px -20px rgba(183, 110, 121, 0.1);
+    0 25px 50px -12px rgba(122, 61, 72, 0.1),
+    0 50px 100px -20px rgba(122, 61, 72, 0.1);
 
-  --primary-glow: 0 20px 40px -10px rgba(229, 193, 205, 0.2);
-  --primary-color: #E5C1CD;
-  --brand-pink: #E5C1CD;
+  --primary-glow: 0 20px 40px -10px rgba(122, 61, 72, 0.2);
+  --primary-color: #7a3d48;
+  --brand-pink: #7a3d48;
   --brand-green: #22c55e;
   
   --bg-copper-fade: linear-gradient(180deg, var(--bg-paper) 0%, var(--bg-sand) 100%);

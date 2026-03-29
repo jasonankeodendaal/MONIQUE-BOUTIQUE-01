@@ -15,7 +15,7 @@ const SocialProofGrid: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400 block mb-4">Social Proof</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-600 block mb-4">Social Proof</span>
             <h2 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight">Shop the <span className="italic font-light text-primary">Look</span></h2>
           </div>
           <a href="#" className="inline-flex items-center gap-3 px-6 py-3 border border-slate-200 rounded-full text-xs font-bold uppercase tracking-widest hover:border-slate-900 hover:bg-slate-900 hover:text-white transition-all">

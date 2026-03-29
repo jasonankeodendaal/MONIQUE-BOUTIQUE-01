@@ -95,76 +95,52 @@ const Hero: React.FC = () => {
           )}
           
           {/* Refined Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-transparent to-slate-900/80" />
-          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-black/20" />
           
           <div className="relative h-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-center items-center">
-            <div className={`max-w-5xl flex flex-col items-center text-center transition-all duration-[1.5s] delay-500 transform ${
+            <div className={`max-w-4xl flex flex-col items-center text-center transition-all duration-[1.5s] delay-500 transform ${
               index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}>
-              <div className="flex items-center gap-4 mb-8">
-                <div className="h-px w-8 bg-white/20" />
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.8em] text-white/70">
-                  {settings.homeHeroBadge || 'FINDARA'}
-                </span>
-                <div className="h-px w-8 bg-white/20" />
-              </div>
+              <span className="text-[10px] md:text-xs font-medium uppercase tracking-[0.4em] text-white mb-6">
+                {settings.homeHeroBadge || 'FINDARA'}
+              </span>
               
-              <h1 className="font-serif text-white mb-12 leading-[0.9] tracking-tighter text-balance"
-                  style={{ fontSize: 'clamp(3rem, 10vw, 10rem)' }}>
-                {(settings.homeHeroTitle || slide.title).split(' ').slice(0, -1).join(' ')}{' '}
-                <span className="text-primary italic font-light">
-                  {(settings.homeHeroTitle || slide.title).split(' ').slice(-1)}
-                </span>
+              <h1 className="font-serif text-white mb-10 leading-[0.9] tracking-tighter text-balance"
+                  style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}>
+                {(settings.homeHeroTitle || slide.title)}
               </h1>
               
-              <p className="text-sm md:text-xl text-white/60 mb-12 max-w-2xl font-light leading-relaxed text-pretty mx-auto">
+              <p className="text-sm md:text-lg text-white/90 mb-12 max-w-xl font-light leading-relaxed text-pretty mx-auto">
                 {settings.homeHeroSubtitle || slide.subtitle}
               </p>
               
               <Link 
                 to="/products"
-                className="group relative inline-flex items-center gap-6 bg-primary text-slate-900 px-12 py-6 rounded-full text-xs md:text-sm font-black uppercase tracking-[0.4em] transition-all hover:bg-white hover:scale-105 shadow-2xl"
+                className="group inline-flex items-center gap-4 bg-white text-slate-900 px-10 py-4 rounded-full text-[10px] font-medium uppercase tracking-[0.2em] transition-all hover:bg-white/90 hover:scale-105"
               >
                 {slide.cta}
-                <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
         </div>
       ))}
 
-      {/* Vertical Progress Indicators (Left) */}
-      <div className="absolute left-8 top-1/2 -translate-y-1/2 z-30 hidden md:flex flex-col gap-4">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`w-1 transition-all duration-500 rounded-full ${current === i ? 'h-12 bg-primary' : 'h-4 bg-white/20'}`}
-          />
-        ))}
-      </div>
-
       {/* Navigation Controls (Bottom Right) */}
-      <div className="absolute bottom-12 right-12 z-30 flex gap-4">
+      <div className="absolute bottom-12 right-12 z-30 flex gap-2">
         <button 
           onClick={prevSlide}
-          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all backdrop-blur-md"
+          className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={16} />
         </button>
         
         <button 
           onClick={nextSlide}
-          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all backdrop-blur-md"
+          className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={16} />
         </button>
-      </div>
-
-      {/* Scroll Indicator (Bottom Center) */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-4">
-        <div className="w-px h-12 bg-gradient-to-b from-white/40 to-transparent" />
       </div>
     </section>
   );

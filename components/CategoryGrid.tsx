@@ -20,22 +20,19 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
   };
 
   return (
-    <section className="py-24 md:py-48 bg-slate-50/50 relative overflow-hidden border-y border-slate-100">
-      {/* Decorative Background Element */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/[0.03] rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-
+    <section className="py-12 md:py-24 bg-slate-50/50 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 md:mb-32">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 md:mb-20">
           <div className="max-w-2xl">
-            <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400 block mb-6">
+            <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-slate-600 block mb-4">
               {settings.homeNicheHeader}
             </span>
-            <h2 className="text-4xl md:text-7xl font-serif text-slate-900 tracking-tighter leading-none">
+            <h2 className="text-2xl md:text-4xl font-serif text-slate-900 tracking-tighter leading-tight">
               {settings.homeCategoryShopByLabel || 'Shop by'} <span className="italic font-light text-primary">{settings.productsDeptLabel}</span>
             </h2>
           </div>
           <div className="max-w-sm">
-            <p className="text-slate-500 text-lg font-light leading-relaxed italic border-l-2 border-primary/20 pl-8">
+            <p className="text-slate-700 text-base font-light leading-relaxed italic border-l border-primary/20 pl-6">
               "{settings.homeNicheDescription}"
             </p>
           </div>

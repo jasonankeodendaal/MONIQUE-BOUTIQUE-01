@@ -29,10 +29,7 @@ const Home: React.FC = () => {
       <Hero />
       
       {/* Editorial Story Preview */}
-      <div className="bg-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
-        <AboutSection />
-      </div>
+      <AboutSection />
 
       {/* Product Marquee Section */}
       <ProductMarquee />
@@ -40,54 +37,48 @@ const Home: React.FC = () => {
       {/* Review Carousel Section */}
       <ReviewCarousel />
 
-      <div className="bg-slate-50/50">
-        <CategoryGrid items={featuredCategories} />
-      </div>
+      <CategoryGrid items={featuredCategories} />
 
       {/* Trust & Methodology Section */}
-      <section className="py-24 md:py-48 bg-white relative overflow-hidden border-t border-slate-100">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-primary/[0.03] rounded-full blur-[150px] pointer-events-none"></div>
-
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-           <div className="text-center mb-16 md:mb-32">
-              <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400 block mb-6">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
-              <h2 className="text-3xl md:text-6xl font-serif text-slate-900 tracking-tighter leading-none">
-                 {settings.homeTrustHeader?.split(' ').slice(0, -1).join(' ')} <span className="italic font-light text-primary">{settings.homeTrustHeader?.split(' ').slice(-1)}</span>
+      <section className="py-12 md:py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+           <div className="text-center mb-12">
+              <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-slate-400 block mb-4">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
+              <h2 className="text-2xl md:text-3xl font-serif text-slate-900 tracking-tighter">
+                 {settings.homeTrustHeader}
               </h2>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-24">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
                 { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
                 { iconName: settings.homeTrustItem3Icon || 'Globe', title: settings.homeTrustItem3Title, desc: settings.homeTrustItem3Desc }
               ].map((item, i) => {
                 return (
-                  <div key={i} className="flex flex-col items-center group">
-                    <div className="mb-8 w-20 h-20 md:w-32 md:h-32 bg-slate-50 rounded-[2.5rem] border border-slate-100 text-primary flex items-center justify-center group-hover:bg-white group-hover:shadow-2xl group-hover:-translate-y-2 transition-all duration-700">
-                      <IconRenderer icon={item.iconName} size={32} className="md:w-14 md:h-14" strokeWidth={1} />
+                  <div key={i} className="flex flex-col items-center">
+                    <div className="mb-4 w-12 h-12 bg-slate-50 rounded-xl border border-slate-100 text-slate-900 flex items-center justify-center">
+                      <IconRenderer icon={item.iconName} size={20} strokeWidth={1} />
                     </div>
-                    <h4 className="text-xl md:text-2xl font-bold mb-4 tracking-tight text-slate-900">{item.title}</h4>
-                    <p className="text-slate-500 font-light leading-relaxed max-w-xs text-sm md:text-lg text-balance">{item.desc}</p>
+                    <h4 className="text-base font-medium mb-2 tracking-tight text-slate-900">{item.title}</h4>
+                    <p className="text-slate-500 font-light leading-relaxed text-xs text-balance">{item.desc}</p>
                   </div>
                 );
               })}
            </div>
            
-           <div className="mt-20 md:mt-40">
+           <div className="mt-12">
               <button 
                 onClick={() => navigate('/about')}
-                className="inline-flex items-center gap-4 px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-xl hover:shadow-primary/20 group"
+                className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-900 hover:text-primary transition-all"
               >
                 {settings.homeReadStoryBtn || 'Read Full Story'}
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight size={14} />
               </button>
            </div>
         </div>
       </section>
 
-      <SocialProofGrid />
-      <NewsletterSignup />
     </main>
   );
 };

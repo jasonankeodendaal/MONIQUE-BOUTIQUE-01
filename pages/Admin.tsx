@@ -36,7 +36,7 @@ const AdminTip: React.FC<{ title: string; children: React.ReactNode }> = ({ titl
     </div>
     <div className="space-y-1 min-w-0 flex-1">
       <h4 className="text-[10px] font-black text-yellow-600 uppercase tracking-widest">{title}</h4>
-      <div className="text-slate-400 text-xs leading-relaxed font-medium break-words">
+      <div className="text-slate-300 text-xs leading-relaxed font-medium break-words">
         {children}
       </div>
     </div>
@@ -79,8 +79,8 @@ const SaveIndicator: React.FC<{ status: 'idle' | 'saving' | 'saved' | 'error' }>
  */
 const SettingField: React.FC<{ label: string; value: string; onChange: (v: string) => void; type?: 'text' | 'textarea' | 'color' | 'number' | 'password' | 'richtext'; placeholder?: string; rows?: number; description?: string }> = ({ label, value, onChange, type = 'text', placeholder, rows = 4, description }) => (
   <div className="space-y-2 text-left w-full min-w-0">
-    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
-    {description && <p className="text-[10px] text-slate-400 font-light leading-relaxed mb-2">{description}</p>}
+    <label className="text-[10px] font-black uppercase text-slate-300 tracking-widest truncate block">{label}</label>
+    {description && <p className="text-[10px] text-slate-200 font-light leading-relaxed mb-2">{description}</p>}
     {type === 'textarea' ? (
       <textarea rows={rows} className="w-full px-4 md:px-6 py-4 bg-slate-800 border border-slate-700 text-white rounded-xl outline-none focus:border-primary transition-all resize-none font-light text-sm" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
     ) : type === 'richtext' ? (
@@ -125,8 +125,8 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
 
   return (
     <div className="space-y-2 text-left w-full min-w-0">
-       {label && <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>}
-       {description && <p className="text-[10px] text-slate-400 font-light leading-relaxed mb-2">{description}</p>}
+       {label && <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest truncate block">{label}</label>}
+       {description && <p className="text-[10px] text-slate-300 font-light leading-relaxed mb-2">{description}</p>}
        <div 
         onClick={() => !uploading && inputRef.current?.click()}
         className={`relative ${className} overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 hover:border-primary/50 transition-all cursor-pointer group rounded-2xl flex-shrink-0 max-w-full`}
@@ -152,8 +152,8 @@ const SingleImageUploader: React.FC<{ value: string; onChange: (v: string) => vo
               </div>
             </>
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-               <Image size={24} className="mb-2 opacity-50" />
+            <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+               <Image size={24} className="mb-2 opacity-60" />
                <span className="text-[8px] font-black uppercase tracking-widest text-center px-2">Upload</span>
             </div>
           )}
@@ -217,7 +217,7 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
 
   return (
     <div className="space-y-4 text-left w-full min-w-0">
-      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest truncate block">{label}</label>
+      <label className="text-[10px] font-black uppercase text-slate-300 tracking-widest truncate block">{label}</label>
       
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
         {/* Upload Button */}
@@ -225,7 +225,7 @@ const MultiImageUploader: React.FC<{ images: string[]; onChange: (images: string
           {uploading ? (
              <Loader2 size={24} className="animate-spin text-primary" />
           ) : (
-             <Plus className="text-slate-400 group-hover:text-white" size={24} />
+             <Plus className="text-slate-200 group-hover:text-white" size={24} />
           )}
           <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={e => processFiles(e.target.files)} />
         </div>
@@ -264,7 +264,7 @@ const SocialLinksManager: React.FC<{ links: SocialLink[]; onChange: (links: Soci
   return (
     <div className="space-y-4 w-full min-w-0">
       <div className="flex justify-between items-center mb-4">
-        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Social Profiles</label>
+        <label className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Social Profiles</label>
         <button onClick={handleAdd} className="text-[10px] font-black uppercase text-primary hover:text-white flex items-center gap-1">
           <Plus size={12}/> Add
         </button>

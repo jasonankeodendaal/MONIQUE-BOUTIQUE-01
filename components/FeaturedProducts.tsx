@@ -24,7 +24,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
             <h2 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tighter mb-4">
               Curated <span className="italic font-light text-primary">Selections</span>
             </h2>
-            <p className="text-slate-500 font-light leading-relaxed">
+            <p className="text-slate-700 font-light leading-relaxed">
               Discover our most sought-after pieces, meticulously crafted for the modern connoisseur.
             </p>
           </div>
@@ -71,7 +71,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
                   <h3 className="text-lg font-serif text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
                     {product.name}
                   </h3>
-                  <p className="text-sm font-light text-slate-500">
+                  <p className="text-sm font-light text-slate-700">
                     R{product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
