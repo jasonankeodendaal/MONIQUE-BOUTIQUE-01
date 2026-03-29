@@ -14,32 +14,8 @@ const AboutSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
         <div className="flex flex-col md:flex-row items-center gap-16 md:gap-24">
           
-          {/* Image Column with Abstract Frame */}
-          <div className="w-full md:w-1/2 relative">
-            <div className="relative">
-              {/* Soft Abstract Shape behind image */}
-              <div className="absolute -top-8 -left-8 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-60"></div>
-              
-              <div className="relative z-10 overflow-hidden rounded-[3rem] shadow-2xl border-[12px] border-white">
-                <img 
-                  src={settings.homeAboutImage} 
-                  alt={settings.aboutFounderName} 
-                  loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
-                  className="w-full h-auto aspect-[4/5] object-cover transition-transform duration-[3s] hover:scale-105"
-                />
-              </div>
-              
-              {/* Floating Abstract Element */}
-              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/80 backdrop-blur-md rounded-full border border-slate-100 shadow-xl flex items-center justify-center p-8 text-center hidden md:flex">
-                <span className="text-[9px] font-serif italic text-slate-800 leading-tight">
-                  Est. 2024 <br/> Curation Excellence
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* Text Column */}
-          <div className="w-full md:w-1/2 text-left">
+          <div className="w-full md:w-1/2 text-left relative z-20">
             <div className="inline-flex items-center gap-3 mb-8">
               <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-primary/80">{settings.homeAboutNarrativeLabel || 'The Curation Narrative'}</span>
               <div className="h-[1px] w-16 bg-primary/20"></div>
@@ -70,6 +46,30 @@ const AboutSection: React.FC = () => {
                 {settings.homeAboutCta}
               </span>
             </Link>
+          </div>
+
+          {/* Image Column with Abstract Frame (Moved to Right and Faded) */}
+          <div className="w-full md:w-1/2 relative md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 md:opacity-20 md:scale-110 pointer-events-none z-10">
+            <div className="relative">
+              {/* Soft Abstract Shape behind image */}
+              <div className="absolute -top-8 -left-8 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-60"></div>
+              
+              <div className="relative z-10 overflow-hidden rounded-[3rem] shadow-2xl border-[12px] border-white">
+                <img 
+                  src={settings.homeAboutImage} 
+                  alt={settings.aboutFounderName} 
+                  loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
+                  className="w-full h-auto aspect-[4/5] object-cover transition-transform duration-[3s] hover:scale-105"
+                />
+              </div>
+              
+              {/* Floating Abstract Element */}
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/80 backdrop-blur-md rounded-full border border-slate-100 shadow-xl flex items-center justify-center p-8 text-center hidden md:flex">
+                <span className="text-[9px] font-serif italic text-slate-800 leading-tight">
+                  Est. 2024 <br/> Curation Excellence
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
