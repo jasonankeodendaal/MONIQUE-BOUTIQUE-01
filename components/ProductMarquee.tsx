@@ -18,10 +18,10 @@ const ProductMarquee: React.FC = () => {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -mr-48 -mb-48"></div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row-reverse items-center gap-16 md:gap-24">
+        <div className="flex flex-col lg:flex-row items-center gap-16 md:gap-24">
           
           {/* Static Info Column */}
-          <div className="w-full lg:w-1/3 text-left relative z-30 bg-white/50 backdrop-blur-sm p-6 md:p-0 rounded-3xl lg:bg-transparent lg:backdrop-blur-none lg:-ml-12">
+          <div className="w-full lg:w-1/3 text-left relative z-30 bg-white/50 backdrop-blur-sm p-6 md:p-0 rounded-3xl lg:bg-transparent lg:backdrop-blur-none lg:-mr-12">
             <div className="inline-flex items-center gap-3 mb-6">
               <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-primary/80">Curated Selection</span>
               <div className="h-[1px] w-12 bg-primary/20"></div>
@@ -46,14 +46,14 @@ const ProductMarquee: React.FC = () => {
           </div>
 
           {/* Marquee Column */}
-          <div className="w-full lg:w-2/3 relative lg:-mr-24">
+          <div className="w-full lg:w-2/3 relative lg:-ml-24">
             {/* Soft Fade Mask */}
-            <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-white via-white/90 to-transparent z-20 pointer-events-none hidden lg:block"></div>
+            <div className="absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-white via-white/90 to-transparent z-20 pointer-events-none hidden lg:block"></div>
             
             <div className="relative flex [perspective:1500px] overflow-visible"
                  style={{ 
-                   maskImage: 'linear-gradient(to left, transparent, black 25%)',
-                   WebkitMaskImage: 'linear-gradient(to left, transparent, black 25%)' 
+                   maskImage: 'linear-gradient(to right, transparent, black 25%)',
+                   WebkitMaskImage: 'linear-gradient(to right, transparent, black 25%)' 
                  }}>
               <motion.div
                 className="flex gap-8 md:gap-12 items-center py-10"
