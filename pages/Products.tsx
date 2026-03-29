@@ -236,7 +236,7 @@ const Products: React.FC = () => {
       </button>
 
       {/* --- HERO SECTION --- */}
-      <div className="relative h-[50vh] md:h-[65vh] w-full overflow-hidden bg-slate-950">
+      <div className="relative h-[40vh] md:h-[65vh] w-full overflow-hidden bg-slate-950">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
           style={{ 
@@ -248,24 +248,24 @@ const Products: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
         
         <div 
-          className="relative h-full max-w-7xl mx-auto px-6 flex flex-col justify-center items-center text-center pb-12 pt-24 md:pt-32"
+          className="relative h-full max-w-7xl mx-auto px-6 flex flex-row items-center justify-between text-left pb-12 pt-24 md:pt-32"
           style={{ 
             transform: `translateY(${scrollY * 0.15}px)`,
             opacity: 1 - scrollY / 700 
           }}
         >
-          <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="flex items-center justify-center gap-6 mb-6">
-              <div className="h-px w-12 bg-primary/50"></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.6em] text-primary">
+          <div className="max-w-[70%] md:max-w-4xl animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="flex items-center justify-start gap-3 md:gap-6 mb-4 md:mb-6">
+              <div className="h-px w-6 md:w-12 bg-primary/50"></div>
+              <span className="text-[6px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-primary">
                 {heroContent.badge}
               </span>
-              <div className="h-px w-12 bg-primary/50"></div>
+              <div className="h-px w-6 md:w-12 bg-primary/50"></div>
             </div>
-            <h1 className="text-4xl md:text-7xl font-serif text-white mb-6 tracking-tighter leading-[0.9] text-balance">
+            <h1 className="text-xl md:text-7xl font-serif text-white mb-4 md:mb-6 tracking-tighter leading-[0.9] text-balance">
               {heroContent.title}
             </h1>
-            <p className="text-white/60 text-sm md:text-xl font-light leading-relaxed max-w-2xl text-pretty mx-auto">
+            <p className="text-white/60 text-[8px] md:text-xl font-light leading-relaxed max-w-2xl text-pretty">
               {heroContent.subtitle}
             </p>
           </div>
@@ -273,34 +273,34 @@ const Products: React.FC = () => {
       </div>
 
       {/* --- NAVIGATION & FILTERS --- */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 -mt-10 md:-mt-14 relative z-40">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 -mt-8 md:-mt-14 relative z-40">
         
         {/* Department Dropdown & Search Bar */}
-        <div className="flex flex-col md:flex-row gap-6 mb-12">
+        <div className="flex flex-row gap-2 md:gap-6 mb-8 md:mb-12">
            <div className="relative flex-grow group">
-              <div className="relative flex items-center bg-white border border-slate-100 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 focus-within:-translate-y-1">
-                <Search className="ml-8 text-slate-300" size={20} strokeWidth={1.5} />
+              <div className="relative flex items-center bg-white border border-slate-100 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 focus-within:-translate-y-1">
+                <Search className="ml-4 md:ml-8 text-slate-300 w-3.5 h-3.5 md:w-5 md:h-5" strokeWidth={1.5} />
                 <input
                   type="text"
                   placeholder={settings.productsSearchPlaceholder}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full px-6 py-5 md:py-7 bg-transparent outline-none text-base font-light text-slate-900 placeholder:text-slate-300"
+                  className="w-full px-3 md:px-6 py-3 md:py-7 bg-transparent outline-none text-[10px] md:text-base font-light text-slate-900 placeholder:text-slate-300"
                 />
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-2 md:gap-4">
               <div className="relative" ref={catRef}>
                 <button 
                   onClick={() => { setIsCatOpen(!isCatOpen); setIsSortOpen(false); }}
-                  className={`flex items-center gap-6 px-10 py-5 md:py-7 rounded-3xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all shadow-2xl ${
+                  className={`flex items-center gap-2 md:gap-6 px-4 md:px-10 py-3 md:py-7 rounded-2xl md:rounded-3xl text-[6px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] border transition-all shadow-2xl ${
                     isCatOpen || selectedCat !== 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-100'
                   }`}
                 >
-                  <Layers size={16} strokeWidth={1.5} className={isCatOpen || selectedCat !== 'all' ? 'text-primary' : 'text-slate-400'} />
-                  <span className="min-w-[140px] text-left">{settings.productsDeptLabel || 'Dept'}: {selectedCat === 'all' ? (settings.productsAllCollectionsLabel || 'All Collections') : categories.find(c => c.id === selectedCat)?.name}</span>
-                  <ChevronDown size={16} strokeWidth={1.5} className={`transition-transform duration-500 ${isCatOpen ? 'rotate-180' : ''}`} />
+                  <Layers className={`w-3 h-3 md:w-4 md:h-4 ${isCatOpen || selectedCat !== 'all' ? 'text-primary' : 'text-slate-400'}`} strokeWidth={1.5} />
+                  <span className="min-w-[60px] md:min-w-[140px] text-left truncate">{selectedCat === 'all' ? (settings.productsAllCollectionsLabel || 'All') : categories.find(c => c.id === selectedCat)?.name}</span>
+                  <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 transition-transform duration-500 ${isCatOpen ? 'rotate-180' : ''}`} strokeWidth={1.5} />
                 </button>
                 
                 {isCatOpen && (
@@ -329,48 +329,48 @@ const Products: React.FC = () => {
               <div className="relative" ref={filterRef}>
                 <button 
                   onClick={() => { setIsFilterOpen(!isFilterOpen); setIsSortOpen(false); setIsCatOpen(false); }}
-                  className={`flex items-center justify-center w-16 md:w-20 h-full rounded-3xl border transition-all shadow-2xl ${
+                  className={`flex items-center justify-center w-10 md:w-20 h-full rounded-2xl md:rounded-3xl border transition-all shadow-2xl ${
                     isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100'
                   }`}
                 >
-                  <Filter size={22} strokeWidth={1.5} className={isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'text-primary' : 'text-slate-400'} />
+                  <Filter className={`w-4 h-4 md:w-5 md:h-5 ${isFilterOpen || minPrice !== '' || maxPrice !== '' ? 'text-primary' : 'text-slate-400'}`} strokeWidth={1.5} />
                 </button>
                 {isFilterOpen && (
-                  <div className="absolute top-full right-0 mt-4 w-72 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-8">
-                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] mb-6">Price Range</h4>
-                    <div className="flex items-center gap-4 mb-8">
+                  <div className="absolute top-full right-0 mt-4 w-64 md:w-72 bg-white border border-slate-100 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-6 md:p-8">
+                    <h4 className="text-[8px] md:text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] md:tracking-[0.3em] mb-4 md:mb-6">Price Range</h4>
+                    <div className="flex items-center gap-2 md:gap-4 mb-6 md:mb-8">
                       <div className="flex-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Min</label>
+                        <label className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1 md:mb-2 block">Min</label>
                         <input 
                           type="number" 
                           value={minPrice} 
                           onChange={e => setMinPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-primary transition-colors"
+                          className="w-full px-3 md:px-4 py-2 md:py-3 bg-slate-50 border border-slate-100 rounded-lg md:rounded-xl text-xs outline-none focus:border-primary transition-colors"
                           placeholder="0"
                         />
                       </div>
-                      <div className="text-slate-200 font-bold mt-6">-</div>
+                      <div className="text-slate-200 font-bold mt-4 md:mt-6">-</div>
                       <div className="flex-1">
-                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Max</label>
+                        <label className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1 md:mb-2 block">Max</label>
                         <input 
                           type="number" 
                           value={maxPrice} 
                           onChange={e => setMaxPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                          className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-primary transition-colors"
+                          className="w-full px-3 md:px-4 py-2 md:py-3 bg-slate-50 border border-slate-100 rounded-lg md:rounded-xl text-xs outline-none focus:border-primary transition-colors"
                           placeholder="Any"
                         />
                       </div>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-2 md:gap-3">
                       <button 
                         onClick={() => { setMinPrice(''); setMaxPrice(''); }}
-                        className="flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-colors"
+                        className="flex-1 py-3 md:py-4 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-colors"
                       >
                         Clear
                       </button>
                       <button 
                         onClick={() => setIsFilterOpen(false)}
-                        className="flex-1 py-4 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all"
+                        className="flex-1 py-3 md:py-4 bg-slate-900 text-white rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-slate-900 transition-all"
                       >
                         Apply
                       </button>
@@ -382,11 +382,11 @@ const Products: React.FC = () => {
               <div className="relative" ref={sortRef}>
                 <button 
                   onClick={() => { setIsSortOpen(!isSortOpen); setIsCatOpen(false); }}
-                  className={`flex items-center justify-center w-16 md:w-20 h-full rounded-3xl border transition-all shadow-2xl ${
+                  className={`flex items-center justify-center w-10 md:w-20 h-full rounded-2xl md:rounded-3xl border transition-all shadow-2xl ${
                     isSortOpen ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100'
                   }`}
                 >
-                  <ArrowUpDown size={22} strokeWidth={1.5} />
+                  <ArrowUpDown className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
                 </button>
                 {isSortOpen && (
                   <div className="absolute top-full right-0 mt-4 w-56 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-3">
@@ -483,7 +483,7 @@ const Products: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-12">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-12">
                   {group.items.map((product: Product) => (
                     <div 
                       key={product.id}
@@ -491,22 +491,22 @@ const Products: React.FC = () => {
                       className="group flex flex-col relative cursor-pointer"
                     >
                       {/* Product Image Container */}
-                      <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-slate-50 mb-8 transition-all duration-700 group-hover:shadow-2xl group-hover:-translate-y-2">
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] bg-slate-50 mb-4 md:mb-8 transition-all duration-700 group-hover:shadow-2xl group-hover:-translate-y-2">
                         {renderProductMedia(product)}
                         
                         {/* Badges */}
-                        <div className="absolute top-6 left-6 z-20 flex flex-col gap-2">
+                        <div className="absolute top-3 left-3 md:top-6 md:left-6 z-20 flex flex-col gap-1 md:gap-2">
                           {product.discountRules && product.discountRules.length > 0 && (
-                            <div className="bg-red-500 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl">
+                            <div className="bg-red-500 text-white px-2 py-0.5 md:px-4 md:py-1.5 rounded-full font-black text-[6px] md:text-[9px] uppercase tracking-widest shadow-xl">
                               {product.discountRules[0].type === 'percentage' ? `-${product.discountRules[0].value}%` : `-R${product.discountRules[0].value}`}
                             </div>
                           )}
                           {product.stock === 0 ? (
-                            <div className="bg-slate-900 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl backdrop-blur-md">
+                            <div className="bg-slate-900 text-white px-2 py-0.5 md:px-4 md:py-1.5 rounded-full font-black text-[6px] md:text-[9px] uppercase tracking-widest shadow-xl backdrop-blur-md">
                               Sold Out
                             </div>
                           ) : product.stock && product.stock <= 5 ? (
-                            <div className="bg-amber-500 text-white px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl backdrop-blur-md">
+                            <div className="bg-amber-500 text-white px-2 py-0.5 md:px-4 md:py-1.5 rounded-full font-black text-[6px] md:text-[9px] uppercase tracking-widest shadow-xl backdrop-blur-md">
                               Only {product.stock} Left
                             </div>
                           ) : null}
@@ -515,37 +515,36 @@ const Products: React.FC = () => {
                         {/* Wishlist Button */}
                         <button 
                           onClick={(e) => toggleWishlist(e, product.id)}
-                          className="absolute top-6 right-6 z-20 w-12 h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hover:bg-white"
+                          className="absolute top-3 right-3 md:top-6 md:right-6 z-20 w-8 h-8 md:w-12 md:h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 shadow-xl opacity-0 translate-y-2 md:translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 hover:bg-white"
                         >
                           <Heart 
-                            size={20} 
+                            className={`w-4 h-4 md:w-5 md:h-5 ${user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-500 transition-colors"}`} 
                             strokeWidth={1.5}
-                            className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : "text-slate-400 hover:text-red-500 transition-colors"} 
                           />
                         </button>
 
                         {/* Quick View Overlay */}
                         <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-center justify-center">
-                          <div className="px-8 py-4 bg-white text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500">
+                          <div className="px-4 py-2 md:px-8 md:py-4 bg-white text-slate-900 rounded-xl md:rounded-2xl text-[6px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] shadow-2xl scale-90 group-hover:scale-100 transition-transform duration-500">
                             View Details
                           </div>
                         </div>
                       </div>
                       
                       {/* Product Info */}
-                      <div className="flex flex-col text-center px-4">
-                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-3">
+                      <div className="flex flex-col text-center px-2 md:px-4">
+                        <span className="text-[6px] md:text-[10px] font-black text-primary uppercase tracking-[0.2em] md:tracking-[0.4em] mb-1 md:mb-3">
                            {categories.find(c => c.id === product.categoryId)?.name}
                         </span>
-                        <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-4 group-hover:text-primary transition-colors duration-500 leading-tight">
+                        <h3 className="text-[10px] md:text-2xl font-serif text-slate-900 mb-2 md:mb-4 group-hover:text-primary transition-colors duration-500 leading-tight line-clamp-2">
                           {product.name}
                         </h3>
-                        <div className="flex items-center justify-center gap-4">
-                          <span className="text-lg font-light text-slate-900">
+                        <div className="flex items-center justify-center gap-2 md:gap-4">
+                          <span className="text-[9px] md:text-lg font-light text-slate-900">
                             R {(product.price || 0).toLocaleString()}
                           </span>
                           {product.wasPrice && product.wasPrice > 0 && (
-                            <span className="text-sm font-light text-slate-300 line-through">
+                            <span className="text-[7px] md:text-sm font-light text-slate-300 line-through">
                               R {product.wasPrice.toLocaleString()}
                             </span>
                           )}

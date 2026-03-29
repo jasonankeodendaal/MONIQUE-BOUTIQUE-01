@@ -17,20 +17,20 @@ const NewsletterSignup: React.FC = () => {
         <span className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-600 block mb-6">VIP Access</span>
         <h2 className="text-4xl md:text-6xl font-serif text-slate-900 mb-6 tracking-tight">Join the <span className="italic font-light text-primary">Inner Circle</span></h2>
         <p className="text-slate-700 mb-12 text-lg md:text-xl font-light max-w-xl mx-auto">Unlock private sales, early access to new collections, and exclusive editorial insights.</p>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+        <form onSubmit={handleSubmit} className="flex flex-row gap-2 max-w-xl mx-auto">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email address"
-            className="flex-grow px-8 py-5 rounded-full bg-white border border-slate-200 text-slate-900 placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
+            placeholder="Email address"
+            className="flex-grow px-4 md:px-8 py-3 md:py-5 rounded-full bg-white border border-slate-200 text-xs md:text-base text-slate-900 placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
             required
           />
           <button
             type="submit"
-            className="px-10 py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-xl hover:shadow-primary/20 whitespace-nowrap"
+            className="px-6 md:px-10 py-3 md:py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[8px] md:text-[10px] tracking-widest hover:bg-primary hover:text-slate-900 transition-all shadow-xl hover:shadow-primary/20 whitespace-nowrap"
           >
-            Subscribe
+            Join
           </button>
         </form>
       </div>

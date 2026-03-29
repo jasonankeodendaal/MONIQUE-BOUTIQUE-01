@@ -89,38 +89,38 @@ const Contact: React.FC = () => {
         
         {/* Header Section */}
         <div className="mb-16 md:mb-24">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-[9px] font-black uppercase tracking-widest mb-6 border border-green-500/20">
-                <span className="relative flex h-2 w-2">
+          <div className="flex flex-row md:items-end justify-between gap-4 md:gap-8">
+            <div className="max-w-[70%] md:max-w-none">
+              <div className="inline-flex items-center gap-2 px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-green-500/10 text-green-600 text-[6px] md:text-[9px] font-black uppercase tracking-widest mb-4 md:mb-6 border border-green-500/20">
+                <span className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-green-500"></span>
                 </span>
                 {settings.contactConciergeLabel || 'Concierge Online'}
               </div>
-              <h1 className="font-serif text-slate-900 leading-[0.9] tracking-tighter mb-6 text-balance" style={{ fontSize: 'clamp(3rem, 10vw, 8rem)' }}>
+              <h1 className="font-serif text-slate-900 leading-[0.9] tracking-tighter mb-4 md:mb-6 text-balance" style={{ fontSize: 'clamp(1.5rem, 6vw, 8rem)' }}>
                 {settings.contactHeroTitle}
               </h1>
-              <p className="text-lg md:text-xl text-slate-500 font-light max-w-xl leading-relaxed text-pretty">
+              <p className="text-[10px] md:text-xl text-slate-500 font-light max-w-xl leading-relaxed text-pretty">
                 {settings.contactHeroSubtitle}
               </p>
             </div>
             
-            <div className="flex gap-4">
-               <a href={`mailto:${settings.contactEmail}`} className="w-16 h-16 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-slate-900 hover:text-white transition-all duration-300 group">
-                 <Mail size={24} className="group-hover:scale-110 transition-transform" />
+            <div className="flex flex-col md:flex-row gap-2 md:gap-4 shrink-0">
+               <a href={`mailto:${settings.contactEmail}`} className="w-10 h-10 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-slate-900 hover:text-white transition-all duration-300 group">
+                 <Mail className="w-4 h-4 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
                </a>
-               <a href={`https://wa.me/${settings.whatsappNumber}`} target="_blank" rel="noreferrer" className="w-16 h-16 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300 group">
-                 <MessageCircle size={24} className="group-hover:scale-110 transition-transform" />
+               <a href={`https://wa.me/${settings.whatsappNumber}`} target="_blank" rel="noreferrer" className="w-10 h-10 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300 group">
+                 <MessageCircle className="w-4 h-4 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
                </a>
             </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-20">
+        <div className="grid grid-cols-12 gap-6 md:gap-20">
           
-          <div className="lg:col-span-7 order-2 lg:order-1">
-            <div className="bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(183,110,121,0.1)] border border-white flex flex-col justify-center">
+          <div className="col-span-12 lg:col-span-7 order-2 lg:order-1">
+            <div className="bg-white/90 backdrop-blur-xl p-6 md:p-12 rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(183,110,121,0.1)] border border-white flex flex-col justify-center">
                
                {submitted ? (
                  <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in duration-700">
@@ -227,36 +227,36 @@ const Contact: React.FC = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-5 order-1 lg:order-2 space-y-10">
-             <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden">
+          <div className="col-span-12 lg:col-span-5 order-1 lg:order-2 space-y-6 md:space-y-10">
+             <div className="bg-slate-900 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-10 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#B76E79]/30 rounded-full blur-[50px] -mr-10 -mt-10"></div>
                 
-                <h3 className="text-2xl font-serif mb-8 flex items-center gap-3">
-                  <Globe size={20} className="text-primary"/> {settings.contactInfoTitle || 'Global HQ'}
+                <h3 className="text-lg md:text-2xl font-serif mb-6 md:mb-8 flex items-center gap-3">
+                  <Globe className="w-4 h-4 md:w-5 md:h-5 text-primary"/> {settings.contactInfoTitle || 'Global HQ'}
                 </h3>
                 
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                     <MapPin className="text-slate-500 mt-1 flex-shrink-0" size={20} />
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-6">
+                  <div className="flex gap-2 md:gap-4">
+                     <MapPin className="text-slate-500 mt-1 flex-shrink-0 w-4 h-4 md:w-5 md:h-5" />
                      <div>
-                       <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{settings.contactAddressLabel || 'Address'}</span>
-                       <p className="text-lg leading-snug font-medium">{settings.address || 'Johannesburg, South Africa'}</p>
+                       <span className="block text-[6px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{settings.contactAddressLabel || 'Address'}</span>
+                       <p className="text-[10px] md:text-lg leading-snug font-medium line-clamp-2">{settings.address || 'Johannesburg, South Africa'}</p>
                      </div>
                   </div>
                   
-                  <div className="flex gap-4">
-                     <Clock className="text-slate-500 mt-1 flex-shrink-0" size={20} />
+                  <div className="flex gap-2 md:gap-4">
+                     <Clock className="text-slate-500 mt-1 flex-shrink-0 w-4 h-4 md:w-5 md:h-5" />
                      <div>
-                       <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{settings.contactHoursLabel || 'Operating Hours'}</span>
-                       <p className="text-sm text-slate-300">{settings.contactHoursWeekdays}</p>
-                       <p className="text-sm text-slate-300">{settings.contactHoursWeekends}</p>
+                       <span className="block text-[6px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{settings.contactHoursLabel || 'Operating Hours'}</span>
+                       <p className="text-[8px] md:text-sm text-slate-300">{settings.contactHoursWeekdays}</p>
+                       <p className="text-[8px] md:text-sm text-slate-300">{settings.contactHoursWeekends}</p>
                      </div>
                   </div>
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-white/10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-6">{settings.contactFollowUsLabel || 'Follow us :'}</span>
-                  <div className="flex flex-wrap gap-8 items-center">
+                <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/10">
+                  <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-primary/70 block mb-4 md:mb-6">{settings.contactFollowUsLabel || 'Follow us :'}</span>
+                  <div className="flex flex-wrap gap-4 md:gap-8 items-center">
                     {(settings.socialLinks || []).map((link) => (
                       <a 
                         key={link.id} 
@@ -272,11 +272,11 @@ const Contact: React.FC = () => {
                         {link.iconUrl ? (
                           <img 
                             src={link.iconUrl} 
-                            className="w-10 h-10 object-contain transition-all duration-500 group-hover:scale-125 filter group-hover:brightness-125 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]" 
+                            className="w-6 h-6 md:w-10 md:h-10 object-contain transition-all duration-500 group-hover:scale-125 filter group-hover:brightness-125 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]" 
                             alt={link.name}
                           />
                         ) : (
-                          <ArrowRight size={24} className="-rotate-45 text-white group-hover:text-primary transition-colors" />
+                          <ArrowRight className="w-4 h-4 md:w-6 md:h-6 -rotate-45 text-white group-hover:text-primary transition-colors" />
                         )}
                       </a>
                     ))}

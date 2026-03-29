@@ -19,27 +19,27 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
   return (
     <section className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+        <div className="flex flex-row items-end justify-between mb-8 md:mb-16 gap-4 md:gap-6">
           <div className="max-w-xl">
-            <h2 className="text-4xl md:text-5xl font-serif text-slate-900 tracking-tighter mb-4">
+            <h2 className="text-xl md:text-5xl font-serif text-slate-900 tracking-tighter mb-2 md:mb-4">
               Curated <span className="italic font-light text-primary">Selections</span>
             </h2>
-            <p className="text-slate-700 font-light leading-relaxed">
+            <p className="text-[10px] md:text-base text-slate-700 font-light leading-relaxed">
               Discover our most sought-after pieces, meticulously crafted for the modern connoisseur.
             </p>
           </div>
           <Link 
             to="/products" 
-            className="group flex items-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-slate-900 hover:text-primary transition-colors shrink-0"
+            className="group flex items-center gap-2 md:gap-3 text-[8px] md:text-xs font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-slate-900 hover:text-primary transition-colors shrink-0"
           >
             <span>View All</span>
-            <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-primary group-hover:bg-primary/5 transition-all">
-              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-primary group-hover:bg-primary/5 transition-all">
+              <ArrowRight className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-12">
           {featured.map((product, index) => (
             <motion.div 
               key={product.id}
@@ -50,7 +50,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
               className="group"
             >
               <Link to={`/product/${product.id}`} className="block">
-                <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-slate-100 rounded-2xl">
+                <div className="relative aspect-[3/4] mb-3 md:mb-6 overflow-hidden bg-slate-100 rounded-xl md:rounded-2xl">
                   <img 
                     src={product.media?.[0]?.url || 'https://picsum.photos/seed/product/600/800'} 
                     alt={product.name}
@@ -60,18 +60,18 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ products }) => {
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
                   
                   {/* Quick View Button Overlay */}
-                  <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                    <div className="w-full py-3 bg-white/90 backdrop-blur-md text-slate-900 text-center text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg">
+                  <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 translate-y-2 md:translate-y-0 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    <div className="w-full py-1.5 md:py-3 bg-white/90 backdrop-blur-md text-slate-900 text-center text-[6px] md:text-[10px] font-black uppercase tracking-widest rounded-lg md:rounded-xl shadow-lg">
                       Discover
                     </div>
                   </div>
                 </div>
                 
-                <div className="space-y-2 text-center">
-                  <h3 className="text-lg font-serif text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
+                <div className="space-y-1 md:space-y-2 text-center">
+                  <h3 className="text-[10px] md:text-lg font-serif text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
                     {product.name}
                   </h3>
-                  <p className="text-sm font-light text-slate-700">
+                  <p className="text-[9px] md:text-sm font-light text-slate-700">
                     R{product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>

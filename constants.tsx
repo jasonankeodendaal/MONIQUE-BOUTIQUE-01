@@ -260,7 +260,7 @@ export const GUIDE_STEPS = [
       '5. VERIFY: Click the "Table Editor" icon (grid icon) in the sidebar. You should now see tables like "products", "settings", and "clients".',
       '6. INITIAL RECORD: Click the "settings" table. Ensure there is one row with the ID "global". If not, re-run the script.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v8.0 (SEO, Integrations & Security Ready)
+    code: `-- MASTER ARCHITECTURE SCRIPT v9.0 (SEO, Integrations & Security Ready)
 -- This script is IDEMPOTENT: You can run it multiple times without wiping your existing data.
 -- It uses "IF NOT EXISTS" and "ON CONFLICT DO NOTHING" to preserve your database state.
 
@@ -359,7 +359,12 @@ CREATE TABLE IF NOT EXISTS settings (
   
   -- System State
   "isMaintenanceMode" BOOLEAN DEFAULT FALSE, "maintenanceTitle" TEXT, "maintenanceMessage" TEXT, "loadingMessage" TEXT,
-  "faviconUrl" TEXT, "ogImageUrl" TEXT, "navStickyHeader" BOOLEAN DEFAULT TRUE, "homeHeroTitle" TEXT, "homeHeroSubtitle" TEXT, "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE, "adminLoginDividerLabel" TEXT
+  "faviconUrl" TEXT, "ogImageUrl" TEXT, "navStickyHeader" BOOLEAN DEFAULT TRUE, "homeHeroTitle" TEXT, "homeHeroSubtitle" TEXT, "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE, "adminLoginDividerLabel" TEXT,
+  "currencySymbol" TEXT DEFAULT '$', "currencyCode" TEXT DEFAULT 'USD',
+  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT, "emailJsWelcomeTemplateId" TEXT, "emailJsOrderTemplateId" TEXT,
+  "adminSaveIndicatorErrorTitle" TEXT, "adminSaveIndicatorErrorMessage" TEXT, "adminSaveIndicatorSuccessTitle" TEXT, "adminSaveIndicatorSuccessMessage" TEXT,
+  "adminUploadLabel" TEXT, "adminTrafficLiveLabel" TEXT, "adminTrafficLocationTitle" TEXT, "adminTrafficTotalHitsLabel" TEXT,
+  "loginHeroBadge" TEXT, "loginHeroTitle" TEXT, "loginHeroDescription" TEXT, "loginEmailLabel" TEXT, "loginPasswordLabel" TEXT, "loginEmailPlaceholder" TEXT, "loginPasswordPlaceholder" TEXT, "loginSubmitLabel" TEXT, "loginSubmittingLabel" TEXT, "loginGoogleLabel" TEXT, "loginBackToSite" TEXT, "loginSuccessBadge" TEXT, "loginSuccessTitlePrefix" TEXT, "loginSuccessTitleSuffix" TEXT, "loginSuccessMessage" TEXT, "loginSecurityLabel" TEXT, "loginDividerLabel" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, stock NUMERIC, variations JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
@@ -381,8 +386,8 @@ CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "us
 CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, status TEXT DEFAULT 'pending', "createdAt" BIGINT);
 
 -- 2. INITIAL DATA & SEO DEFAULTS
-INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
-VALUES ('global', 'My Store', 'Curated Collection', '#7a3d48')
+INSERT INTO settings (id, "companyName", slogan, "primaryColor", "navHomeLabel", "navProductsLabel", "navAboutLabel", "navContactLabel", "navDashboardLabel") 
+VALUES ('global', 'Findara', 'Curated Collection', '#7a3d48', 'Home', 'Collections', 'About', 'Contact', 'Dashboard')
 ON CONFLICT (id) DO NOTHING;
 
 -- Add missing columns to settings table if they don't exist (Safety Layer)
@@ -861,7 +866,7 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`,
-    codeLabel: 'Idempotent Master SQL Script v8.0'
+    codeLabel: 'Idempotent Master SQL Script v9.0'
   },
   {
     id: 'security-auth',

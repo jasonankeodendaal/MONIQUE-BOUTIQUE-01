@@ -18,37 +18,37 @@ const ProductMarquee: React.FC = () => {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -mr-48 -mb-48"></div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="flex flex-col lg:flex-row-reverse items-center gap-16 md:gap-24">
+        <div className="flex flex-row-reverse items-center gap-4 md:gap-24">
           
           {/* Static Info Column */}
-          <div className="w-full lg:w-1/3 text-left relative z-30 bg-white/50 backdrop-blur-sm p-6 md:p-0 rounded-3xl lg:bg-transparent lg:backdrop-blur-none lg:-ml-12">
-            <div className="inline-flex items-center gap-3 mb-6">
-              <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-primary/80">Curated Selection</span>
-              <div className="h-[1px] w-12 bg-primary/20"></div>
+          <div className="w-1/2 md:w-1/3 text-left relative z-30 bg-white/50 backdrop-blur-sm p-2 md:p-0 rounded-3xl lg:bg-transparent lg:backdrop-blur-none lg:-ml-12">
+            <div className="inline-flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+              <span className="text-[7px] md:text-[10px] font-medium uppercase tracking-[0.3em] md:tracking-[0.5em] text-primary/80">Curated Selection</span>
+              <div className="h-[1px] w-8 md:w-12 bg-primary/20"></div>
             </div>
             
-            <h2 className="text-3xl md:text-5xl font-serif text-slate-900 tracking-tighter leading-tight mb-8">
+            <h2 className="text-sm md:text-5xl font-serif text-slate-900 tracking-tighter leading-tight mb-4 md:mb-8">
               Handpicked <br/>
               <span className="italic font-light text-primary">Excellence</span>
             </h2>
             
-            <p className="text-slate-700 font-light leading-relaxed mb-10 text-sm md:text-base">
+            <p className="text-slate-700 font-light leading-relaxed mb-6 md:mb-10 text-[8px] md:text-base">
               Explore our meticulously chosen collection of premium products, each selected for its exceptional quality and timeless design.
             </p>
             
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-primary">
-                <span className="text-xs font-serif italic">01</span>
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-primary">
+                <span className="text-[8px] md:text-xs font-serif italic">01</span>
               </div>
-              <div className="h-px w-8 bg-slate-200"></div>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">Scroll to explore</span>
+              <div className="h-px w-4 md:w-8 bg-slate-200"></div>
+              <span className="text-[6px] md:text-[9px] font-bold uppercase tracking-widest text-slate-600">Scroll to explore</span>
             </div>
           </div>
 
           {/* Marquee Column */}
-          <div className="w-full lg:w-2/3 relative lg:-mr-24">
+          <div className="w-1/2 md:w-2/3 relative lg:-mr-24">
             {/* Soft Fade Mask */}
-            <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-white via-white/90 to-transparent z-20 pointer-events-none hidden lg:block"></div>
+            <div className="absolute inset-y-0 right-0 w-24 md:w-48 bg-gradient-to-l from-white via-white/90 to-transparent z-20 pointer-events-none hidden lg:block"></div>
             
             <div className="relative flex [perspective:1500px] overflow-visible"
                  style={{ 
@@ -56,7 +56,7 @@ const ProductMarquee: React.FC = () => {
                    WebkitMaskImage: 'linear-gradient(to left, transparent, black 25%)' 
                  }}>
               <motion.div
-                className="flex gap-8 md:gap-12 items-center py-10"
+                className="flex gap-4 md:gap-12 items-center py-6 md:py-10"
                 animate={{
                   x: [0, '-50%'],
                 }}
@@ -73,7 +73,7 @@ const ProductMarquee: React.FC = () => {
                     to={`/product/${product.id}`}
                     className="group relative flex-shrink-0 block"
                   >
-                    <div className="w-[200px] h-[280px] md:w-[280px] md:h-[400px] rounded-[3rem] overflow-hidden bg-white shadow-xl transition-all duration-700 group-hover:shadow-2xl group-hover:scale-105 [transform:rotateY(10deg)_rotateX(5deg)] group-hover:rotate-0 relative border border-white/50">
+                    <div className="w-[100px] h-[140px] md:w-[280px] md:h-[400px] rounded-[1.5rem] md:rounded-[3rem] overflow-hidden bg-white shadow-xl transition-all duration-700 group-hover:shadow-2xl group-hover:scale-105 [transform:rotateY(10deg)_rotateX(5deg)] group-hover:rotate-0 relative border border-white/50">
                       <img
                         src={product.media?.[0]?.url || 'https://picsum.photos/seed/product/400/500'}
                         alt={product.name}

@@ -49,7 +49,7 @@ const Home: React.FC = () => {
               </h2>
            </div>
            
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-8">
               {[
                 { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
                 { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
@@ -57,11 +57,11 @@ const Home: React.FC = () => {
               ].map((item, i) => {
                 return (
                   <div key={i} className="flex flex-col items-center">
-                    <div className="mb-4 w-12 h-12 bg-slate-50 rounded-xl border border-slate-100 text-slate-900 flex items-center justify-center">
-                      <IconRenderer icon={item.iconName} size={20} strokeWidth={1} />
+                    <div className="mb-2 md:mb-4 w-8 h-8 md:w-12 md:h-12 bg-slate-50 rounded-lg md:rounded-xl border border-slate-100 text-slate-900 flex items-center justify-center">
+                      <IconRenderer icon={item.iconName} className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1} />
                     </div>
-                    <h4 className="text-base font-medium mb-2 tracking-tight text-slate-900">{item.title}</h4>
-                    <p className="text-slate-500 font-light leading-relaxed text-xs text-balance">{item.desc}</p>
+                    <h4 className="text-[8px] md:text-base font-medium mb-1 md:mb-2 tracking-tight text-slate-900 line-clamp-1">{item.title}</h4>
+                    <p className="text-slate-500 font-light leading-relaxed text-[7px] md:text-xs text-balance line-clamp-2">{item.desc}</p>
                   </div>
                 );
               })}

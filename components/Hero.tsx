@@ -97,29 +97,29 @@ const Hero: React.FC = () => {
           {/* Refined Overlays */}
           <div className="absolute inset-0 bg-black/20" />
           
-          <div className="relative h-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-center items-center">
-            <div className={`max-w-4xl flex flex-col items-center text-center transition-all duration-[1.5s] delay-500 transform ${
+          <div className="relative h-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-center items-start">
+            <div className={`max-w-4xl flex flex-col items-start text-left transition-all duration-[1.5s] delay-500 transform ${
               index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
             }`}>
-              <span className="text-[10px] md:text-xs font-medium uppercase tracking-[0.4em] text-white mb-6">
+              <span className="text-[8px] md:text-xs font-medium uppercase tracking-[0.3em] md:tracking-[0.4em] text-white mb-4 md:mb-6">
                 {settings.homeHeroBadge || 'FINDARA'}
               </span>
               
-              <h1 className="font-serif text-white mb-10 leading-[0.9] tracking-tighter text-balance"
-                  style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}>
+              <h1 className="font-serif text-white mb-4 md:mb-10 leading-[0.9] tracking-tighter text-balance max-w-[70%] md:max-w-none"
+                  style={{ fontSize: 'clamp(2rem, 8vw, 7rem)' }}>
                 {(settings.homeHeroTitle || slide.title)}
               </h1>
               
-              <p className="text-sm md:text-lg text-white/90 mb-12 max-w-xl font-light leading-relaxed text-pretty mx-auto">
+              <p className="text-[10px] md:text-lg text-white/90 mb-6 md:mb-12 max-w-[60%] md:max-w-xl font-light leading-relaxed text-pretty">
                 {settings.homeHeroSubtitle || slide.subtitle}
               </p>
               
               <Link 
                 to="/products"
-                className="group inline-flex items-center gap-4 bg-white text-slate-900 px-10 py-4 rounded-full text-[10px] font-medium uppercase tracking-[0.2em] transition-all hover:bg-white/90 hover:scale-105"
+                className="group inline-flex items-center gap-2 md:gap-4 bg-white text-slate-900 px-6 md:px-10 py-2.5 md:py-4 rounded-full text-[8px] md:text-[10px] font-medium uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all hover:bg-white/90 hover:scale-105"
               >
                 {slide.cta}
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -127,19 +127,19 @@ const Hero: React.FC = () => {
       ))}
 
       {/* Navigation Controls (Bottom Right) */}
-      <div className="absolute bottom-12 right-12 z-30 flex gap-2">
+      <div className="absolute bottom-6 right-6 md:bottom-12 md:right-12 z-30 flex gap-2">
         <button 
           onClick={prevSlide}
-          className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+          className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
         </button>
         
         <button 
           onClick={nextSlide}
-          className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+          className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
         >
-          <ChevronRight size={16} />
+          <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
         </button>
       </div>
     </section>

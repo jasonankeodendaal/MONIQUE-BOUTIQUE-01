@@ -250,10 +250,10 @@ const ProductDetail: React.FC = () => {
         <ArrowLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
       </button>
 
-      <article className="flex flex-col lg:flex-row min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden">
+      <article className="flex flex-row lg:flex-row min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden">
         
         {/* Left Side: Poster Style Media Gallery */}
-        <div className="w-full lg:w-3/5 h-[65vh] md:h-[75vh] lg:h-full relative overflow-hidden group bg-slate-50/50">
+        <div className="w-[45%] lg:w-3/5 h-[50vh] md:h-[75vh] lg:h-full relative overflow-hidden group bg-slate-50/50">
           
           <div className="absolute inset-0 z-0">
              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[#E5C1CD]/10 blur-[150px] rounded-full"></div>
@@ -261,12 +261,12 @@ const ProductDetail: React.FC = () => {
              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
           </div>
 
-          <div className="relative h-full w-full z-10 flex items-center justify-center p-8 md:p-16 lg:p-24">
+          <div className="relative h-full w-full z-10 flex items-center justify-center p-2 md:p-16 lg:p-24">
             {currentMedia ? (
               <div className="relative w-full h-full flex items-center justify-center">
                 <div 
                   onClick={() => setIsImageModalOpen(true)}
-                  className="poster-lean relative bg-white rounded-lg p-2 md:p-4 overflow-hidden cursor-zoom-in group/poster"
+                  className="poster-lean relative bg-white rounded-lg p-1 md:p-4 overflow-hidden cursor-zoom-in group/poster"
                 >
                    {currentMedia.type.startsWith('video') ? (
                     <video 
@@ -276,7 +276,7 @@ const ProductDetail: React.FC = () => {
                       loop 
                       muted 
                       playsInline
-                      className="w-auto h-auto max-w-full max-h-[70vh] object-contain rounded shadow-inner"
+                      className="w-auto h-auto max-w-full max-h-[40vh] lg:max-h-[70vh] object-contain rounded shadow-inner"
                     />
                   ) : (
                     <img 
@@ -284,7 +284,7 @@ const ProductDetail: React.FC = () => {
                       src={currentMedia.url} 
                       alt={currentMedia.altText || product.name} 
                       loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined}
-                      className="w-auto h-auto max-w-full max-h-[70vh] object-contain rounded shadow-inner"
+                      className="w-auto h-auto max-w-full max-h-[40vh] lg:max-h-[70vh] object-contain rounded shadow-inner"
                     />
                   )}
                   {/* Subtle paper reflection */}
@@ -292,27 +292,27 @@ const ProductDetail: React.FC = () => {
                   
                   {/* Maximize Icon Overlay */}
                   <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/poster:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 shadow-xl transform scale-75 group-hover/poster:scale-100 transition-transform duration-500">
-                      <Maximize2 size={20} />
+                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 shadow-xl transform scale-75 group-hover/poster:scale-100 transition-transform duration-500">
+                      <Maximize2 size={14} className="md:w-5 md:h-5" />
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="text-slate-200"><Package size={80} className="md:w-32 md:h-32"/></div>
+              <div className="text-slate-200"><Package size={40} className="md:w-32 md:h-32"/></div>
             )}
           </div>
 
           {media.length > 1 && (
             <>
-              <div className="absolute inset-y-0 left-0 w-20 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={prevMedia} className="w-10 h-10 bg-white/40 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-slate-900 hover:bg-white transition-all">
-                  <ChevronLeft size={20} />
+              <div className="absolute inset-y-0 left-0 w-8 md:w-20 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={prevMedia} className="w-6 h-6 md:w-10 md:h-10 bg-white/40 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-slate-900 hover:bg-white transition-all">
+                  <ChevronLeft size={12} className="md:w-5 md:h-5" />
                 </button>
               </div>
-              <div className="absolute inset-y-0 right-0 w-20 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={nextMedia} className="w-10 h-10 bg-white/40 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-slate-900 hover:bg-white transition-all">
-                  <ChevronRight size={20} />
+              <div className="absolute inset-y-0 right-0 w-8 md:w-20 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={nextMedia} className="w-6 h-6 md:w-10 md:h-10 bg-white/40 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-slate-900 hover:bg-white transition-all">
+                  <ChevronRight size={12} className="md:w-5 md:h-5" />
                 </button>
               </div>
             </>
@@ -320,53 +320,48 @@ const ProductDetail: React.FC = () => {
         </div>
 
         {/* Right Side: Product Information */}
-        <div className="w-full lg:w-2/5 lg:h-full lg:overflow-y-auto bg-white p-6 md:p-12 border-l border-slate-100 custom-scrollbar">
-          <div className="max-w-xl mx-auto space-y-10">
+        <div className="w-[55%] lg:w-2/5 h-[50vh] lg:h-full overflow-y-auto bg-white p-3 md:p-12 border-l border-slate-100 custom-scrollbar">
+          <div className="max-w-xl mx-auto space-y-4 md:space-y-10">
             
-            <div className="space-y-4">
+            <div className="space-y-2 md:space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 md:gap-2">
                   <div className="flex gap-0.5 text-primary">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} size={14} fill={star <= averageRating ? "currentColor" : "none"} />
+                      <Star key={star} size={8} className="md:w-3.5 md:h-3.5" fill={star <= averageRating ? "currentColor" : "none"} />
                     ))}
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">({product.reviews?.length || 0} {settings.reviewCountLabel || 'Appraisals'})</span>
+                  <span className="text-[6px] md:text-[10px] font-black uppercase text-slate-400 tracking-[0.1em] md:tracking-[0.2em]">({product.reviews?.length || 0})</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={toggleWishlist} className="p-3 rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all duration-300 flex items-center justify-center">
-                    <Heart size={20} className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : ""} />
+                <div className="flex items-center gap-1 md:gap-2">
+                  <button onClick={toggleWishlist} className="p-1.5 md:p-3 rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all duration-300 flex items-center justify-center">
+                    <Heart size={12} className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : "md:w-5 md:h-5"} />
                   </button>
-                  <button onClick={handleShareTrigger} className="p-3 rounded-full bg-slate-50 hover:bg-primary/20 text-slate-400 hover:text-primary transition-all duration-300 flex items-center justify-center">
-                    <Share2 size={20} />
+                  <button onClick={handleShareTrigger} className="p-1.5 md:p-3 rounded-full bg-slate-50 hover:bg-primary/20 text-slate-400 hover:text-primary transition-all duration-300 flex items-center justify-center">
+                    <Share2 size={12} className="md:w-5 md:h-5" />
                   </button>
                 </div>
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-serif text-slate-900 leading-[0.9] tracking-tighter text-balance">
+              <h1 className="text-lg md:text-6xl font-serif text-slate-900 leading-[1.1] md:leading-[0.9] tracking-tighter text-balance">
                 {product.name.split(' ').slice(0, -1).join(' ')} <br className="hidden md:block"/>
                 <span className="italic font-light text-primary">{product.name.split(' ').slice(-1)}</span>
               </h1>
               
               {settings.seoShowLastUpdated !== false && product.createdAt && (
-                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
-                  {settings.productLastUpdatedLabel || 'Last Updated'}: {new Date(product.createdAt).toLocaleDateString()}
+                <div className="text-[6px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 md:mt-2">
+                  {new Date(product.createdAt).toLocaleDateString()}
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-6 pt-4">
+              <div className="flex flex-wrap items-center gap-2 md:gap-6 pt-1 md:pt-4">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">{settings.productPriceLabel || 'Acquisition Value'}</span>
-                  <div className="flex items-end gap-4 flex-wrap">
-                    <span className="text-3xl md:text-4xl font-black text-slate-900">R {(product.price || 0).toLocaleString()}</span>
+                  <span className="text-[6px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest mb-0.5 md:mb-1">{settings.productPriceLabel || 'Value'}</span>
+                  <div className="flex items-end gap-2 md:gap-4 flex-wrap">
+                    <span className="text-sm md:text-4xl font-black text-slate-900">R {(product.price || 0).toLocaleString()}</span>
                     {product.wasPrice && product.wasPrice > 0 && (
-                      <span className="text-lg md:text-xl font-bold text-slate-300 line-through decoration-primary/40 mb-1.5">
+                      <span className="text-[10px] md:text-xl font-bold text-slate-300 line-through decoration-primary/40 mb-0.5 md:mb-1.5">
                         R {product.wasPrice.toLocaleString()}
-                      </span>
-                    )}
-                    {product.discountRules && product.discountRules.length > 0 && (
-                      <span className="px-3 py-1 bg-red-500 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 mb-1.5">
-                        {product.discountRules[0].type === 'percentage' ? `${product.discountRules[0].value}% OFF` : `R${product.discountRules[0].value} OFF`}
                       </span>
                     )}
                   </div>
@@ -374,21 +369,21 @@ const ProductDetail: React.FC = () => {
               </div>
 
               {/* Stock Status Indicator */}
-              <div className="pt-4">
+              <div className="pt-1 md:pt-4">
                 {product.stock === 0 ? (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-full border border-red-100">
-                    <XCircle size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Out of Stock</span>
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded-full border border-red-100">
+                    <XCircle size={8} className="md:w-3.5 md:h-3.5" />
+                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">Out of Stock</span>
                   </div>
                 ) : product.stock && product.stock <= 5 ? (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-full border border-amber-100">
-                    <Clock size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Limited Edition - Only {product.stock} Left</span>
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full border border-amber-100">
+                    <Clock size={8} className="md:w-3.5 md:h-3.5" />
+                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">Only {product.stock} Left</span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">
-                    <CheckCircle2 size={14} />
-                    <span className="text-[10px] font-black uppercase tracking-widest">In Stock</span>
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">
+                    <CheckCircle2 size={8} className="md:w-3.5 md:h-3.5" />
+                    <span className="text-[6px] md:text-[10px] font-black uppercase tracking-widest">In Stock</span>
                   </div>
                 )}
               </div>
@@ -405,18 +400,18 @@ const ProductDetail: React.FC = () => {
               )}
             </div>
 
-            <div className="space-y-4 pt-10 border-t border-slate-50">
-               <div className="flex gap-4">
+            <div className="space-y-2 md:space-y-4 pt-4 md:pt-10 border-t border-slate-50">
+               <div className="flex gap-2 md:gap-4">
                   {product.stock === 0 ? (
                     <button 
                       onClick={() => {
                         logEvent('click', `Notify Me: ${product.name}`);
                         alert('You will be notified when this item is back in stock.');
                       }}
-                      className="flex-grow py-5 bg-slate-100 text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-3"
+                      className="flex-grow py-2 md:py-5 bg-slate-100 text-slate-500 font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl hover:bg-slate-200 transition-all flex items-center justify-center gap-1.5 md:gap-3"
                     >
-                      <span>Notify Me When Available</span>
-                      <Mail size={16} />
+                      <span>Notify Me</span>
+                      <Mail size={12} className="md:w-4 md:h-4" />
                     </button>
                   ) : (
                     <a 
@@ -424,33 +419,29 @@ const ProductDetail: React.FC = () => {
                       target="_blank" 
                       rel="noopener noreferrer"
                       onClick={() => logEvent('click', `Product: ${product.name}`)}
-                      className="flex-grow py-5 bg-slate-900 text-white font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:bg-primary hover:text-slate-900 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"
+                      className="flex-grow py-2 md:py-5 bg-slate-900 text-white font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl hover:bg-primary hover:text-slate-900 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-1.5 md:gap-3"
                     >
-                      <span>{settings.productAcquisitionLabel || 'Secure Acquisition'}</span>
-                      <ExternalLink size={16} />
+                      <span>{settings.productAcquisitionLabel || 'Secure'}</span>
+                      <ExternalLink size={12} className="md:w-4 md:h-4" />
                     </a>
                   )}
                </div>
-               <div className="flex items-center justify-center gap-2 text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                  <ShieldCheck size={12} className="text-green-500" />
-                  {settings.productMerchantVerifiedLabel || 'Direct Merchant Link Verified'}
-               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div 
-                className="text-lg text-slate-600 leading-relaxed font-light italic [&>p]:mb-4 last:[&>p]:mb-0"
+                className="text-[10px] md:text-lg text-slate-600 leading-relaxed font-light italic [&>p]:mb-2 last:[&>p]:mb-0"
                 dangerouslySetInnerHTML={{ __html: product.description || '' }}
               />
               
               {product.features && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {product.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
-                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                         <Check size={10} strokeWidth={3} />
+                <div className="grid grid-cols-1 gap-2 md:gap-4">
+                  {product.features.slice(0, 3).map((feature, idx) => (
+                    <div key={idx} className="flex items-center gap-2 p-2 md:p-4 bg-slate-50 rounded-xl md:rounded-2xl border border-slate-100/50">
+                      <div className="w-3 h-3 md:w-5 md:h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                         <Check size={6} strokeWidth={3} className="md:w-2.5 md:h-2.5" />
                       </div>
-                      <span className="text-xs font-bold text-slate-700 tracking-tight">{feature}</span>
+                      <span className="text-[8px] md:text-xs font-bold text-slate-700 tracking-tight">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -458,20 +449,20 @@ const ProductDetail: React.FC = () => {
             </div>
 
             {product.specifications && Object.keys(product.specifications).length > 0 && (
-               <div className="border border-slate-100 rounded-3xl overflow-hidden">
+               <div className="border border-slate-100 rounded-xl md:rounded-3xl overflow-hidden">
                   <button 
                     onClick={() => setOpenAccordion(openAccordion === 'specs' ? null : 'specs')}
-                    className="w-full px-8 py-4 flex items-center justify-between bg-slate-50/50 hover:bg-slate-50 transition-colors"
+                    className="w-full px-4 py-2 md:px-8 md:py-4 flex items-center justify-between bg-slate-50/50 hover:bg-slate-50 transition-colors"
                   >
-                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">{settings.productSpecsLabel || 'Specifications'}</span>
-                     <ChevronDown size={16} className={`transition-transform duration-500 ${openAccordion === 'specs' ? 'rotate-180' : ''}`} />
+                     <span className="text-[7px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-slate-900">{settings.productSpecsLabel || 'Specs'}</span>
+                     <ChevronDown size={12} className={`md:w-4 md:h-4 transition-transform duration-500 ${openAccordion === 'specs' ? 'rotate-180' : ''}`} />
                   </button>
                   <div className={`transition-all duration-700 overflow-hidden ${openAccordion === 'specs' ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-8 py-6 bg-white grid grid-cols-2 gap-x-12 gap-y-4">
+                    <div className="px-4 py-3 md:px-8 md:py-6 bg-white grid grid-cols-1 gap-y-2">
                        {Object.entries(product.specifications).map(([key, value]) => (
-                          <div key={key} className="space-y-1">
-                             <span className="block text-[8px] font-black uppercase text-slate-400">{key}</span>
-                             <span className="text-xs text-slate-700 font-medium">{value}</span>
+                          <div key={key} className="flex justify-between items-center border-b border-slate-50 pb-1">
+                             <span className="text-[7px] md:text-[8px] font-black uppercase text-slate-400">{key}</span>
+                             <span className="text-[8px] md:text-xs text-slate-700 font-medium">{value}</span>
                           </div>
                        ))}
                     </div>

@@ -34,7 +34,7 @@ const About: React.FC = () => {
     <main className={`min-h-screen bg-sand overflow-x-hidden transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
       
       {/* Editorial Hero Spread - Optimised for perfect fit */}
-      <div className="relative h-screen lg:h-screen w-full flex flex-col lg:flex-row overflow-hidden bg-slate-950">
+      <div className="relative h-screen lg:h-screen w-full flex flex-row overflow-hidden bg-slate-950">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.05)_0%,transparent_70%)]"></div>
         
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none hidden lg:block overflow-hidden w-full text-center">
@@ -42,7 +42,7 @@ const About: React.FC = () => {
         </div>
 
         {/* Image Column - Shrinks to fit */}
-        <div className="w-full lg:w-1/2 h-1/2 lg:h-full relative overflow-hidden flex-shrink-0 lg:flex-shrink">
+        <div className="w-1/2 lg:w-1/2 h-full lg:h-full relative overflow-hidden flex-shrink-0 lg:flex-shrink">
            <div 
              className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out"
              style={{ 
@@ -50,26 +50,26 @@ const About: React.FC = () => {
                transform: `translateY(${scrollY * 0.15}px) scale(${1.15 + scrollY * 0.0001})`
              }}
            />
-           <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-r from-transparent via-slate-950/20 to-slate-950"></div>
+           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-950/20 to-slate-950"></div>
            <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]"></div>
         </div>
         
         {/* Content Column - Shrinks to fit */}
-        <div className="w-full lg:w-1/2 h-1/2 lg:h-full flex items-center p-6 md:p-12 lg:p-24 xl:p-32 relative z-10 bg-slate-950 lg:bg-transparent overflow-hidden">
+        <div className="w-1/2 lg:w-1/2 h-full lg:h-full flex items-center p-4 md:p-12 lg:p-24 xl:p-32 relative z-10 bg-transparent overflow-hidden">
            <div className="max-w-2xl text-left h-full flex flex-col justify-center">
-              <div className="inline-flex items-center gap-3 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary/10 text-primary text-[8px] md:text-[11px] font-black uppercase tracking-[0.5em] mb-4 md:mb-8 lg:mb-12 border border-primary/20 shadow-lg w-fit">
-                  <Sparkles size={12} className="animate-pulse"/> {settings.aboutHeroBadge}
+              <div className="inline-flex items-center gap-2 px-2 py-1 md:px-4 md:py-2 rounded-full bg-primary/10 text-primary text-[6px] md:text-[11px] font-black uppercase tracking-[0.5em] mb-4 md:mb-8 lg:mb-12 border border-primary/20 shadow-lg w-fit">
+                  <Sparkles size={8} className="animate-pulse md:w-3 md:h-3"/> {settings.aboutHeroBadge}
               </div>
               
-              <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-4 md:mb-8 lg:mb-12 text-balance animate-in slide-in-from-bottom-16 duration-1000" style={{ fontSize: 'clamp(2.5rem, 8vw, 6.5rem)' }}>
+              <h1 className="font-serif text-white leading-[0.85] tracking-tighter mb-4 md:mb-8 lg:mb-12 text-balance animate-in slide-in-from-bottom-16 duration-1000" style={{ fontSize: 'clamp(1.2rem, 5vw, 6.5rem)' }}>
                   {settings.aboutHeroTitle.split(' ').map((word, i) => (
                       <span key={i} className={i % 2 !== 0 ? "italic font-light text-primary block drop-shadow-2xl" : "block"}>{word}</span>
                   ))}
               </h1>
 
-              <div className="relative pl-6 lg:pl-12">
+              <div className="relative pl-3 md:pl-12">
                 <div className="absolute left-0 top-0 bottom-0 w-0.5 md:w-1 bg-gradient-to-b from-primary via-primary/50 to-transparent rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)]"></div>
-                <p className="text-sm md:text-xl lg:text-2xl text-slate-300 font-light leading-relaxed italic text-pretty line-clamp-4 lg:line-clamp-none">
+                <p className="text-[8px] md:text-xl lg:text-2xl text-slate-300 font-light leading-relaxed italic text-pretty line-clamp-6 lg:line-clamp-none">
                   {settings.aboutHeroSubtitle}
                 </p>
               </div>
@@ -82,67 +82,67 @@ const About: React.FC = () => {
         <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
         
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-16 lg:gap-24">
+          <div className="grid grid-cols-12 gap-6 md:gap-24">
               
               {/* Sidebar Column with enhanced glassmorphism */}
-              <div className="w-full lg:col-span-4 h-fit lg:sticky lg:top-40">
-                  <div className="glass-card p-10 lg:p-16 rounded-[2.5rem] lg:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] space-y-12 lg:space-y-20 relative overflow-hidden">
+              <div className="col-span-12 md:col-span-4 h-fit md:sticky md:top-40">
+                  <div className="glass-card p-6 md:p-16 rounded-[1.5rem] md:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] space-y-8 md:space-y-20 relative overflow-hidden">
                       
-                      <div className="space-y-6 text-left relative z-10">
-                          <div className="flex items-center gap-4 text-primary">
-                             <div className="p-3 lg:p-5 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutMissionIcon, <Target size={24}/>)}</div>
-                             <h4 className="text-xl lg:text-3xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
+                      <div className="space-y-4 md:space-y-6 text-left relative z-10">
+                          <div className="flex items-center gap-2 md:gap-4 text-primary">
+                             <div className="p-2 md:p-5 bg-white shadow-xl rounded-xl md:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutMissionIcon, <Target className="w-4 h-4 md:w-6 md:h-6"/>)}</div>
+                             <h4 className="text-sm md:text-3xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
                           </div>
-                          <p className="text-base lg:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutMissionBody}</p>
+                          <p className="text-[10px] md:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutMissionBody}</p>
                       </div>
 
-                      <div className="space-y-6 text-left relative z-10">
-                          <div className="flex items-center gap-4 text-primary">
-                             <div className="p-3 lg:p-5 bg-white shadow-xl rounded-2xl lg:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutCommunityIcon, <Users size={24}/>)}</div>
-                             <h4 className="text-xl lg:text-3xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
+                      <div className="space-y-4 md:space-y-6 text-left relative z-10">
+                          <div className="flex items-center gap-2 md:gap-4 text-primary">
+                             <div className="p-2 md:p-5 bg-white shadow-xl rounded-xl md:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutCommunityIcon, <Users className="w-4 h-4 md:w-6 md:h-6"/>)}</div>
+                             <h4 className="text-sm md:text-3xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
                           </div>
-                          <p className="text-base lg:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutCommunityBody}</p>
+                          <p className="text-[10px] md:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutCommunityBody}</p>
                       </div>
 
                       {settings.aboutSignatureImage && (
-                         <div className="pt-12 lg:pt-20 border-t border-slate-200/60 flex flex-col items-center">
-                            <img src={settings.aboutSignatureImage} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="h-16 lg:h-28 w-auto object-contain opacity-60 mix-blend-multiply" alt="Signature" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-4">Verified Narrative</span>
+                         <div className="pt-6 md:pt-20 border-t border-slate-200/60 flex flex-col items-center">
+                            <img src={settings.aboutSignatureImage} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="h-10 md:h-28 w-auto object-contain opacity-60 mix-blend-multiply" alt="Signature" />
+                            <span className="text-[6px] md:text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-2 md:mt-4">Verified Narrative</span>
                          </div>
                       )}
                   </div>
               </div>
 
               {/* Main Story Column */}
-              <div className="w-full lg:col-span-8 text-left min-w-0">
-                  <div className="flex items-center gap-6 lg:gap-10 mb-10 lg:mb-20">
-                     <div className="h-[3px] w-16 lg:w-32 bg-primary shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
-                     <span className="text-[12px] lg:text-[15px] font-black uppercase tracking-[0.6em] text-primary text-contrast-shadow">{settings.aboutManifestoTitle || 'The Curation Manifesto'}</span>
+              <div className="col-span-12 md:col-span-8 text-left min-w-0">
+                  <div className="flex items-center gap-4 md:gap-10 mb-6 md:mb-20">
+                     <div className="h-[2px] md:h-[3px] w-8 md:w-32 bg-primary shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
+                     <span className="text-[8px] md:text-[15px] font-black uppercase tracking-[0.6em] text-primary text-contrast-shadow">{settings.aboutManifestoTitle || 'The Curation Manifesto'}</span>
                   </div>
                   
-                  <h3 className="text-4xl md:text-6xl lg:text-8xl font-serif text-slate-900 mb-12 lg:mb-24 leading-[1] tracking-tighter break-words drop-shadow-sm">
+                  <h3 className="text-2xl md:text-8xl font-serif text-slate-900 mb-6 md:mb-24 leading-[1] tracking-tighter break-words drop-shadow-sm">
                      {settings.aboutHistoryTitle}
                   </h3>
                   
-                  <div className="text-slate-600 font-light leading-relaxed text-lg lg:text-2xl break-words max-w-4xl">
+                  <div className="text-slate-600 font-light leading-relaxed text-sm md:text-2xl break-words max-w-4xl">
                       <div className="whitespace-pre-wrap 
-                        first-letter:text-7xl lg:first-letter:text-10xl 
+                        first-letter:text-4xl md:first-letter:text-10xl 
                         first-letter:font-serif 
                         first-letter:font-black 
                         first-letter:text-slate-900 
                         first-letter:float-left 
-                        first-letter:mr-6 lg:first-letter:mr-10 
+                        first-letter:mr-4 md:first-letter:mr-10 
                         first-letter:leading-[0.8]
-                        first-letter:mt-2
+                        first-letter:mt-1 md:first-letter:mt-2
                       ">
                           {settings.aboutHistoryBody}
                       </div>
                   </div>
 
                   {settings.aboutGalleryImages && (
-                    <div className="mt-24 lg:mt-48 grid grid-cols-2 md:grid-cols-3 gap-6 lg:gap-12">
+                    <div className="mt-12 md:mt-48 grid grid-cols-3 gap-4 md:gap-12">
                       {settings.aboutGalleryImages.slice(0,3).map((img, i) => (
-                        <div key={i} className={`rounded-[2.5rem] lg:rounded-[5rem] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] aspect-[3/4] ${i === 1 ? 'mt-10 lg:mt-24' : ''} ${i === 2 ? 'hidden md:block' : ''} transform transition-all duration-1000 hover:scale-105 hover:-translate-y-4`}>
+                        <div key={i} className={`rounded-[1.5rem] md:rounded-[5rem] overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] aspect-[3/4] ${i === 1 ? 'mt-4 md:mt-24' : ''} transform transition-all duration-1000 hover:scale-105 hover:-translate-y-4`}>
                           <img src={img} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="w-full h-full object-cover" alt="Gallery" />
                         </div>
                       ))}
@@ -217,33 +217,33 @@ const About: React.FC = () => {
       </section>
 
       {/* Transparency Section with Dark Depth */}
-      <section className="py-32 lg:py-56 bg-slate-950 text-white relative overflow-hidden">
+       <section className="py-16 md:py-56 bg-slate-950 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(212,175,55,0.1)_0%,transparent_50%)]"></div>
         
         <div className="max-w-6xl mx-auto px-6 relative z-10">
-           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-16 lg:gap-32 text-left">
+           <div className="flex flex-row items-center gap-8 md:gap-32 text-left">
               
-              <div className="w-full lg:w-1/3 flex flex-row lg:flex-col items-center lg:items-start gap-8 lg:gap-10">
-                 <div className="p-6 lg:p-10 bg-white/5 rounded-[2rem] lg:rounded-[3.5rem] border border-white/10 text-primary shadow-2xl animate-soft-flicker shrink-0">
-                    {renderIcon(settings.aboutIntegrityIcon, <Award size={48} strokeWidth={1}/>)}
+              <div className="w-1/3 flex flex-col items-start gap-4 md:gap-10">
+                 <div className="p-4 md:p-10 bg-white/5 rounded-2xl md:rounded-[3.5rem] border border-white/10 text-primary shadow-2xl animate-soft-flicker shrink-0">
+                    {renderIcon(settings.aboutIntegrityIcon, <Award className="w-6 h-6 md:w-12 md:h-12" strokeWidth={1}/>)}
                  </div>
-                 <h2 className="text-4xl lg:text-7xl font-serif tracking-tight leading-none text-balance">
+                 <h2 className="text-lg md:text-7xl font-serif tracking-tight leading-none text-balance">
                     {settings.aboutIntegrityTitle}
                  </h2>
               </div>
 
-              <div className="w-full lg:w-2/3 border-l-4 border-primary/20 pl-10 lg:pl-24">
-                 <p className="text-2xl lg:text-5xl font-light text-slate-300 leading-tight italic drop-shadow-xl">
+              <div className="w-2/3 border-l-2 md:border-l-4 border-primary/20 pl-6 md:pl-24">
+                 <p className="text-sm md:text-5xl font-light text-slate-300 leading-tight italic drop-shadow-xl">
                     {settings.aboutIntegrityBody}
                  </p>
-                 <div className="mt-16 flex flex-wrap gap-12 lg:gap-20 opacity-40">
-                    <div className="flex items-center gap-4">
-                       <Heart size={20} className="text-primary"/>
-                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">{settings.aboutIntegrityBadge1}</span>
+                 <div className="mt-6 md:mt-16 flex flex-wrap gap-4 md:gap-20 opacity-40">
+                    <div className="flex items-center gap-2 md:gap-4">
+                       <Heart className="w-3 h-3 md:w-5 md:h-5 text-primary"/>
+                       <span className="text-[6px] md:text-[12px] font-black uppercase tracking-[0.4em]">{settings.aboutIntegrityBadge1}</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                       <Calendar size={20} className="text-primary"/>
-                       <span className="text-[12px] font-black uppercase tracking-[0.4em]">{settings.aboutIntegrityBadge2}</span>
+                    <div className="flex items-center gap-2 md:gap-4">
+                       <Calendar className="w-3 h-3 md:w-5 md:h-5 text-primary"/>
+                       <span className="text-[6px] md:text-[12px] font-black uppercase tracking-[0.4em]">{settings.aboutIntegrityBadge2}</span>
                     </div>
                  </div>
               </div>

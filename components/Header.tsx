@@ -7,8 +7,8 @@ import { useSettings } from '../App';
 
 const Header: React.FC = () => {
   const { settings, user } = useSettings();
-  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -16,6 +16,11 @@ const Header: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
 
   // Hide header entirely on admin, login, signup, and account pages
   if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/account') {
@@ -33,7 +38,7 @@ const Header: React.FC = () => {
 
   // Logic: Header is solid if we are scrolled OR if we are NOT on the home page
   const isHomePage = location.pathname === '/';
-  const shouldBeSolid = scrolled || !isHomePage || isOpen;
+  const shouldBeSolid = scrolled || !isHomePage;
   
   // Enable dark section text (white text) ONLY on Home page when NOT scrolled/solid
   const isDarkSection = !shouldBeSolid && isHomePage;
@@ -76,12 +81,12 @@ const Header: React.FC = () => {
                   className={`text-[11px] font-bold uppercase tracking-[0.25em] transition-all relative group ${
                     location.pathname === link.path 
                       ? 'text-primary' 
-                      : (!isDarkSection ? 'text-slate-700 hover:text-slate-900' : 'text-white/70 hover:text-white')
+                      : (!isDarkSection ? 'text-slate-500 hover:text-slate-900' : 'text-white/70 hover:text-white')
                   }`}
                 >
                   {link.name}
-                  <span className={`absolute -bottom-2 left-0 w-0 h-px bg-primary transition-all duration-500 group-hover:w-full ${
-                    location.pathname === link.path ? 'w-full' : ''
+                  <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary transition-all duration-500 opacity-0 ${
+                    location.pathname === link.path ? 'opacity-100' : 'group-hover:opacity-50'
                   }`}></span>
                 </Link>
               ))}
@@ -89,118 +94,76 @@ const Header: React.FC = () => {
           )}
           
           {/* Actions - Right */}
-          <div className="hidden md:flex items-center gap-8 z-10">
+          <div className="flex items-center gap-3 md:gap-8 z-10">
             <Link
               to="/products"
               className={`transition-all duration-500 hover:scale-110 ${!isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white hover:text-white'}`}
             >
-              <ShoppingBag size={18} strokeWidth={1.5} />
+              <ShoppingBag className="w-4 h-4 md:w-[18px] md:h-[18px]" strokeWidth={1.5} />
             </Link>
             {user ? (
               <Link
                 to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
-                className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
+                className={`px-4 py-2 md:px-6 md:py-2.5 rounded-full flex items-center justify-center text-[8px] md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
                   !isDarkSection 
                     ? 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900' 
                     : 'bg-white text-slate-900 hover:bg-primary hover:text-slate-900'
                 }`}
               >
-                {user.user_metadata?.role === 'admin' ? 'Dashboard' : 'Account'}
+                <span>{user.user_metadata?.role === 'admin' ? 'Portal' : 'Account'}</span>
               </Link>
             ) : (
-              <div className="flex items-center gap-6">
-                <Link
-                  to="/login?view=login"
-                  className={`text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
-                    !isDarkSection ? 'text-slate-900 hover:text-primary' : 'text-white hover:text-primary'
-                  }`}
-                >
-                  Log In
-                </Link>
-                {settings.clientLoginRegistrationEnabled !== false && (
-                  <Link
-                    to="/signup"
-                    className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
-                      !isDarkSection 
-                        ? 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900' 
-                        : 'bg-white text-slate-900 hover:bg-primary hover:text-slate-900'
-                    }`}
-                  >
-                    Sign Up
-                  </Link>
-                )}
-              </div>
+              <Link
+                to="/login?view=login"
+                className={`px-4 py-2 md:px-6 md:py-2.5 rounded-full flex items-center justify-center text-[8px] md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
+                  !isDarkSection 
+                    ? 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900' 
+                    : 'bg-white text-slate-900 hover:bg-primary hover:text-slate-900'
+                }`}
+              >
+                <span>Log In</span>
+              </Link>
             )}
-          </div>
 
-          {/* Mobile Toggle */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className={`p-2 transition-colors ${!isDarkSection ? 'text-slate-900' : 'text-white'}`}
+            {/* Mobile Menu Toggle */}
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className={`md:hidden p-2 rounded-full transition-colors ${
+                !isDarkSection ? 'text-slate-900 hover:bg-slate-100' : 'text-white hover:bg-white/10'
+              }`}
             >
-              {isOpen ? <X size={28} strokeWidth={1.5} /> : <Menu size={28} strokeWidth={1.5} />}
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="md:hidden absolute left-0 right-0 top-full bg-white border-b border-slate-100 shadow-2xl py-12 px-8"
-            >
-              <div className="flex flex-col gap-10">
-                {!isDashboard && navLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    to={link.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`text-4xl font-serif tracking-tighter ${
-                      location.pathname === link.path ? 'text-primary' : 'text-slate-900'
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-                <div className="pt-10 border-t border-slate-100 flex flex-col gap-6">
-                  {user ? (
-                    <Link
-                      to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
-                      onClick={() => setIsOpen(false)}
-                      className="text-2xl font-serif text-slate-900"
-                    >
-                      {user.user_metadata?.role === 'admin' ? 'Dashboard' : 'My Account'}
-                    </Link>
-                  ) : (
-                    <>
-                      <Link
-                        to="/login?view=login"
-                        onClick={() => setIsOpen(false)}
-                        className="text-2xl font-serif text-slate-900"
-                      >
-                        Log In
-                      </Link>
-                      {settings.clientLoginRegistrationEnabled !== false && (
-                        <Link
-                          to="/signup"
-                          onClick={() => setIsOpen(false)}
-                          className="text-2xl font-serif text-primary"
-                        >
-                          Sign Up
-                        </Link>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </nav>
+
+      {/* Mobile Dropdown Menu */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b border-slate-100 shadow-2xl md:hidden overflow-hidden"
+          >
+            <div className="flex flex-col p-6 gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`text-[10px] font-black uppercase tracking-[0.3em] py-3 border-b border-slate-50 last:border-none transition-colors ${
+                    location.pathname === link.path ? 'text-primary' : 'text-slate-600'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

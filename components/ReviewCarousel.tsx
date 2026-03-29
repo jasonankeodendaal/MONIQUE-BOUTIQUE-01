@@ -99,10 +99,10 @@ const ReviewCarousel: React.FC = () => {
       <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -ml-48 -translate-y-1/2"></div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center gap-16 md:gap-24">
+        <div className="flex flex-row items-center gap-4 md:gap-24">
           
           {/* Carousel Column - Now a single flashing review (Moved to Left) */}
-          <div className="w-full lg:w-2/3 relative min-h-[400px] flex items-center justify-center order-2 lg:order-1">
+          <div className="w-1/2 md:w-2/3 relative min-h-[200px] md:min-h-[400px] flex items-center justify-center order-2 lg:order-1">
             <AnimatePresence mode="wait">
               {currentReview && (
                 <motion.div
@@ -113,72 +113,71 @@ const ReviewCarousel: React.FC = () => {
                   transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
                   className="w-full max-w-xl"
                 >
-                  <div className="relative p-10 md:p-16 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-primary/5 overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-primary">
-                      <Quote size={80} />
+                  <div className="relative p-4 md:p-16 rounded-[1.5rem] md:rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-primary/5 overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 md:p-10 opacity-[0.05] text-primary">
+                      <Quote className="w-10 h-10 md:w-20 md:h-20" />
                     </div>
                     
-                    <div className="flex items-center gap-6 mb-10 relative z-10">
-                      <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-50 border border-slate-100 shadow-inner flex-shrink-0">
+                    <div className="flex items-center gap-3 md:gap-6 mb-4 md:mb-10 relative z-10">
+                      <div className="w-8 h-8 md:w-16 md:h-16 rounded-full overflow-hidden bg-slate-50 border border-slate-100 shadow-inner flex-shrink-0">
                         {currentReview.productImage ? (
                           <img src={currentReview.productImage} alt={currentReview.productName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-500 bg-slate-50">
-                            <Star size={24} />
+                            <Star className="w-3 h-3 md:w-6 md:h-6" />
                           </div>
                         )}
                       </div>
                       <div>
-                        <h4 className="text-slate-900 font-serif text-xl mb-1">{currentReview.userName}</h4>
-                        <div className="flex gap-1">
+                        <h4 className="text-slate-900 font-serif text-[10px] md:text-xl mb-0.5 md:mb-1">{currentReview.userName}</h4>
+                        <div className="flex gap-0.5 md:gap-1">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              size={14}
-                              className={i < currentReview.rating ? "fill-primary text-primary" : "text-slate-200"}
+                              className={`w-2 h-2 md:w-3.5 md:h-3.5 ${i < currentReview.rating ? "fill-primary text-primary" : "text-slate-200"}`}
                             />
                           ))}
                         </div>
                       </div>
                     </div>
 
-                    <p className="text-slate-800 text-lg md:text-2xl font-light leading-relaxed mb-12 italic relative z-10 font-serif">
+                    <p className="text-slate-800 text-[9px] md:text-2xl font-light leading-relaxed mb-4 md:mb-12 italic relative z-10 font-serif">
                       "{currentReview.comment}"
                     </p>
 
-                    <div className="flex items-center justify-between pt-8 border-t border-slate-50 relative z-10">
+                    <div className="flex items-center justify-between pt-4 md:pt-8 border-t border-slate-50 relative z-10">
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary/80 mb-1">
+                        <span className="text-[6px] md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.3em] text-primary/80 mb-0.5 md:mb-1">
                           {currentReview.type === 'product' ? 'Verified Purchase' : 'Community Voice'}
                         </span>
-                        <span className="text-xs font-medium text-slate-800 truncate max-w-[200px]">
+                        <span className="text-[7px] md:text-xs font-medium text-slate-800 truncate max-w-[80px] md:max-w-[200px]">
                           {currentReview.productName}
                         </span>
                       </div>
                       
-                      <div className="flex gap-3">
+                      <div className="flex gap-1.5 md:gap-3">
                         <button 
                           onClick={() => setActiveIndex(prev => (prev === 0 ? allReviews.length - 1 : prev - 1))}
-                          className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-800 hover:text-primary hover:border-primary transition-all"
+                          className="w-6 h-6 md:w-10 md:h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-800 hover:text-primary hover:border-primary transition-all"
                         >
-                          <ChevronLeft size={18} />
+                          <ChevronLeft className="w-3 h-3 md:w-[18px] md:h-[18px]" />
                         </button>
                         <button 
                           onClick={() => setActiveIndex(prev => (prev === allReviews.length - 1 ? 0 : prev + 1))}
-                          className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-800 hover:text-primary hover:border-primary transition-all"
+                          className="w-6 h-6 md:w-10 md:h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-800 hover:text-primary hover:border-primary transition-all"
                         >
-                          <ChevronRight size={18} />
+                          <ChevronRight className="w-3 h-3 md:w-[18px] md:h-[18px]" />
                         </button>
                       </div>
                     </div>
 
                     {/* Pagination Dots */}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                    <div className="absolute bottom-2 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1 md:gap-2">
                       {allReviews.map((_, i) => (
                         <button
                           key={i}
                           onClick={() => setActiveIndex(i)}
-                          className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${i === activeIndex ? 'bg-primary w-4' : 'bg-slate-200'}`}
+                          className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full transition-all duration-500 ${i === activeIndex ? 'bg-primary w-3 md:w-4' : 'bg-slate-200'}`}
                         />
                       ))}
                     </div>
@@ -189,27 +188,27 @@ const ReviewCarousel: React.FC = () => {
           </div>
 
           {/* Info Column (Moved to Right) */}
-          <div className="w-full lg:w-1/3 text-left order-1 lg:order-2">
-            <div className="inline-flex items-center gap-3 mb-6">
-              <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-primary/80">Client Experiences</span>
-              <div className="h-[1px] w-12 bg-primary/20"></div>
+          <div className="w-1/2 md:w-1/3 text-left order-1 lg:order-2">
+            <div className="inline-flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+              <span className="text-[7px] md:text-[10px] font-medium uppercase tracking-[0.3em] md:tracking-[0.5em] text-primary/80">Client Experiences</span>
+              <div className="h-[1px] w-8 md:w-12 bg-primary/20"></div>
             </div>
             
-            <h2 className="text-3xl md:text-5xl font-serif text-slate-900 tracking-tighter leading-tight mb-8">
+            <h2 className="text-sm md:text-5xl font-serif text-slate-900 tracking-tighter leading-tight mb-4 md:mb-8">
               Voices of <br/>
               <span className="italic font-light text-primary">Satisfaction</span>
             </h2>
             
-            <p className="text-slate-700 font-light leading-relaxed mb-10 text-sm md:text-base">
+            <p className="text-slate-700 font-light leading-relaxed mb-6 md:mb-10 text-[8px] md:text-base">
               Discover what our community has to say about their journey with our curated collections.
             </p>
             
             <button 
               onClick={handleLeaveReviewClick}
-              className="group inline-flex items-center gap-4 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-900 hover:text-primary transition-colors"
+              className="group inline-flex items-center gap-2 md:gap-4 text-[7px] md:text-[11px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] text-slate-900 hover:text-primary transition-colors"
             >
-              <div className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-primary transition-colors">
-                <MessageSquarePlus size={14} />
+              <div className="w-6 h-6 md:w-10 md:h-10 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-primary transition-colors">
+                <MessageSquarePlus className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" />
               </div>
               Leave a Review
             </button>
@@ -246,8 +245,7 @@ const ReviewCarousel: React.FC = () => {
                     className="focus:outline-none p-1 hover:scale-110 transition-transform"
                   >
                     <Star 
-                      size={32} 
-                      className={`${star <= newReview.rating ? 'fill-primary text-primary' : 'text-slate-200'} transition-colors`} 
+                      className={`w-8 h-8 ${star <= newReview.rating ? 'fill-primary text-primary' : 'text-slate-200'} transition-colors`} 
                     />
                   </button>
                 ))}
