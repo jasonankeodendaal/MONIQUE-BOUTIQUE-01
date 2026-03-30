@@ -189,25 +189,43 @@ const AdminLogin: React.FC = () => {
               </div>
 
               <form onSubmit={handleEmailLogin} className="space-y-6">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.adminLoginEmailLabel}</label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
-                  <input 
-                    type="email" 
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder={settings.adminLoginEmailPlaceholder}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.adminLoginEmailLabel}</label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                      <input 
+                        type="email" 
+                        required
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full pl-10 pr-2 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
+                        placeholder="Email"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center ml-1">
+                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.adminLoginPasswordLabel}</label>
+                    </div>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                      <input 
+                        type="password" 
+                        required
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-10 pr-2 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
+                        placeholder="Password"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-1">
-                <div className="flex justify-between items-center ml-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.adminLoginPasswordLabel}</label>
+
+                <div className="flex justify-end">
                   <button 
                     type="button" 
                     onClick={() => { setView('forgot-password'); setError(null); setSuccessMessage(null); }}
@@ -216,19 +234,6 @@ const AdminLogin: React.FC = () => {
                     Forgot?
                   </button>
                 </div>
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
-                  <input 
-                    type="password" 
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                    placeholder={settings.adminLoginPasswordPlaceholder}
-                  />
-                </div>
-              </div>
  
               <button 
                 type="submit" 

@@ -81,27 +81,27 @@ const About: React.FC = () => {
       <section className="py-24 lg:py-56 bg-copper-wash relative overflow-hidden section-vignette">
         <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
         
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-          <div className="grid grid-cols-12 gap-6 md:gap-24">
+        <div className="max-w-7xl mx-auto px-4 md:px-12 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-12 gap-4 md:gap-24">
               
               {/* Sidebar Column with enhanced glassmorphism */}
-              <div className="col-span-12 md:col-span-4 h-fit md:sticky md:top-40">
-                  <div className="glass-card p-6 md:p-16 rounded-[1.5rem] md:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] space-y-8 md:space-y-20 relative overflow-hidden">
+              <div className="col-span-1 md:col-span-4 h-fit md:sticky md:top-40">
+                  <div className="glass-card p-4 md:p-16 rounded-3xl md:rounded-[4.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] space-y-6 md:space-y-20 relative overflow-hidden h-full">
                       
-                      <div className="space-y-4 md:space-y-6 text-left relative z-10">
-                          <div className="flex items-center gap-2 md:gap-4 text-primary">
-                             <div className="p-2 md:p-5 bg-white shadow-xl rounded-xl md:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutMissionIcon, <Target className="w-4 h-4 md:w-6 md:h-6"/>)}</div>
-                             <h4 className="text-sm md:text-3xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
+                      <div className="space-y-3 md:space-y-6 text-left relative z-10">
+                          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-primary">
+                             <div className="p-2 md:p-5 bg-white shadow-lg rounded-xl md:rounded-[2rem] border border-slate-100 w-fit">{renderIcon(settings.aboutMissionIcon, <Target className="w-3 h-3 md:w-6 md:h-6"/>)}</div>
+                             <h4 className="text-[10px] md:text-3xl font-serif text-slate-900">{settings.aboutMissionTitle}</h4>
                           </div>
-                          <p className="text-[10px] md:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutMissionBody}</p>
+                          <p className="text-[8px] md:text-lg text-slate-600 leading-relaxed font-light line-clamp-4 md:line-clamp-none">{settings.aboutMissionBody}</p>
                       </div>
 
-                      <div className="space-y-4 md:space-y-6 text-left relative z-10">
-                          <div className="flex items-center gap-2 md:gap-4 text-primary">
-                             <div className="p-2 md:p-5 bg-white shadow-xl rounded-xl md:rounded-[2rem] border border-slate-100">{renderIcon(settings.aboutCommunityIcon, <Users className="w-4 h-4 md:w-6 md:h-6"/>)}</div>
-                             <h4 className="text-sm md:text-3xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
+                      <div className="space-y-3 md:space-y-6 text-left relative z-10">
+                          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-primary">
+                             <div className="p-2 md:p-5 bg-white shadow-lg rounded-xl md:rounded-[2rem] border border-slate-100 w-fit">{renderIcon(settings.aboutCommunityIcon, <Users className="w-3 h-3 md:w-6 md:h-6"/>)}</div>
+                             <h4 className="text-[10px] md:text-3xl font-serif text-slate-900">{settings.aboutCommunityTitle}</h4>
                           </div>
-                          <p className="text-[10px] md:text-lg text-slate-600 leading-relaxed font-light">{settings.aboutCommunityBody}</p>
+                          <p className="text-[8px] md:text-lg text-slate-600 leading-relaxed font-light line-clamp-4 md:line-clamp-none">{settings.aboutCommunityBody}</p>
                       </div>
 
                       {settings.aboutSignatureImage && (
@@ -114,26 +114,26 @@ const About: React.FC = () => {
               </div>
 
               {/* Main Story Column */}
-              <div className="col-span-12 md:col-span-8 text-left min-w-0">
-                  <div className="flex items-center gap-4 md:gap-10 mb-6 md:mb-20">
-                     <div className="h-[2px] md:h-[3px] w-8 md:w-32 bg-primary shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
-                     <span className="text-[8px] md:text-[15px] font-black uppercase tracking-[0.6em] text-primary text-contrast-shadow">{settings.aboutManifestoTitle || 'The Curation Manifesto'}</span>
+              <div className="col-span-1 md:col-span-8 text-left min-w-0">
+                  <div className="flex items-center gap-3 md:gap-10 mb-4 md:mb-20">
+                     <div className="h-[1px] md:h-[3px] w-4 md:w-32 bg-primary shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
+                     <span className="text-[6px] md:text-[15px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-primary text-contrast-shadow">{settings.aboutManifestoTitle || 'The Curation Manifesto'}</span>
                   </div>
                   
-                  <h3 className="text-2xl md:text-8xl font-serif text-slate-900 mb-6 md:mb-24 leading-[1] tracking-tighter break-words drop-shadow-sm">
+                  <h3 className="text-sm md:text-8xl font-serif text-slate-900 mb-4 md:mb-24 leading-tight md:leading-[1] tracking-tighter break-words drop-shadow-sm">
                      {settings.aboutHistoryTitle}
                   </h3>
                   
-                  <div className="text-slate-600 font-light leading-relaxed text-sm md:text-2xl break-words max-w-4xl">
+                  <div className="text-slate-600 font-light leading-relaxed text-[10px] md:text-2xl break-words max-w-4xl">
                       <div className="whitespace-pre-wrap 
-                        first-letter:text-4xl md:first-letter:text-10xl 
+                        first-letter:text-2xl md:first-letter:text-10xl 
                         first-letter:font-serif 
                         first-letter:font-black 
                         first-letter:text-slate-900 
                         first-letter:float-left 
-                        first-letter:mr-4 md:first-letter:mr-10 
+                        first-letter:mr-2 md:first-letter:mr-10 
                         first-letter:leading-[0.8]
-                        first-letter:mt-1 md:first-letter:mt-2
+                        first-letter:mt-0.5 md:first-letter:mt-2
                       ">
                           {settings.aboutHistoryBody}
                       </div>

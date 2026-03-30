@@ -1065,9 +1065,9 @@ const App: React.FC = () => {
     catch (e) { setSaveStatus('error'); refreshAllData(); return false; }
   };
 
-  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+  const toggleWishlist = async (e: React.MouseEvent, productId: string, variations?: Record<string, string>) => {
     e.preventDefault();
-    const existing = wishlist.find(w => w.productId === productId);
+    const existing = wishlist.find(w => w.productId === productId && JSON.stringify(w.variations) === JSON.stringify(variations));
     if (existing) {
       await deleteData('wishlist', existing.id);
     } else {
@@ -1075,6 +1075,7 @@ const App: React.FC = () => {
         id: crypto.randomUUID(),
         userId: user?.id || 'anonymous',
         productId,
+        variations,
         createdAt: Date.now()
       });
     }

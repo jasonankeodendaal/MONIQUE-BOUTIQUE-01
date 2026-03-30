@@ -288,20 +288,20 @@ const Contact: React.FC = () => {
                 <h3 className="text-xl font-serif text-slate-900 px-4 flex items-center gap-2">
                   <HelpCircle size={18} className="text-primary"/> {settings.contactFaqTitle || 'Common Enquiries'}
                 </h3>
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-2">
                    {faqs.map((faq, idx) => (
-                     <div key={idx} className="bg-white/60 backdrop-blur-md border border-[#B76E79]/10 rounded-2xl overflow-hidden transition-all duration-300">
+                     <div key={idx} className="bg-white/60 backdrop-blur-md border border-[#B76E79]/10 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 h-full">
                         <button 
                           onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                          className="w-full px-6 py-4 flex items-center justify-between text-left"
+                          className="w-full px-3 py-3 md:px-6 md:py-4 flex flex-col md:flex-row md:items-center justify-between text-left gap-2"
                         >
-                          <span className="text-sm font-bold text-slate-900 pr-4">{faq.question}</span>
-                          <div className={`w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300 ${openFaq === idx ? 'rotate-180 bg-slate-900 text-white' : 'text-slate-400'}`}>
-                             {openFaq === idx ? <Minus size={12}/> : <Plus size={12}/>}
+                          <span className="text-[8px] md:text-sm font-bold text-slate-900 pr-0 md:pr-4 line-clamp-2 md:line-clamp-none">{faq.question}</span>
+                          <div className={`w-4 h-4 md:w-6 md:h-6 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300 shrink-0 ${openFaq === idx ? 'rotate-180 bg-slate-900 text-white' : 'text-slate-400'}`}>
+                             {openFaq === idx ? <Minus size={8}/> : <Plus size={8}/>}
                           </div>
                         </button>
-                        <div className={`px-6 overflow-hidden transition-all duration-300 ${openFaq === idx ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 pb-0 opacity-0'}`}>
-                           <p className="text-xs text-slate-500 leading-relaxed font-light">{faq.answer}</p>
+                        <div className={`px-3 md:px-6 overflow-hidden transition-all duration-300 ${openFaq === idx ? 'max-h-40 pb-4 md:pb-6 opacity-100' : 'max-h-0 pb-0 opacity-0'}`}>
+                           <p className="text-[7px] md:text-xs text-slate-500 leading-relaxed font-light">{faq.answer}</p>
                         </div>
                      </div>
                    ))}

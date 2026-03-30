@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2, Heart, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2, Heart, XCircle, Clock, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react';
 import { useSettings } from '../App';
-import { Review, Product, WishlistItem } from '../types';
+import { Review, Product, WishlistItem, Order } from '../types';
+import { generateWhatsAppLink, formatSingleItemMessage } from '../src/lib/whatsapp';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { settings, products, categories, updateData, deleteData, logEvent, user, wishlist } = useSettings();
+  const { settings, products, categories, updateData, deleteData, logEvent, user, wishlist, addToCart, toggleWishlist } = useSettings();
   
   const product = products.find((p: Product) => p.id === id);
   const category = categories.find(c => c.id === product?.categoryId);
@@ -22,6 +23,9 @@ const ProductDetail: React.FC = () => {
 
   // Accordion State
   const [openAccordion, setOpenAccordion] = useState<string | null>('specs');
+  const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>({});
+  const [showVariationError, setShowVariationError] = useState(false);
+  const [isLoggingInquiry, setIsLoggingInquiry] = useState(false);
 
   // Share State
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -156,26 +160,77 @@ const ProductDetail: React.FC = () => {
     return Math.round(sum / product.reviews.length);
   }, [product?.reviews]);
 
-  const toggleWishlist = async () => {
-    if (!user || !product) {
-      navigate('/login');
+  const toggleWishlistWithVariations = async () => {
+    if (!product) return;
+    
+    // Enforce variation selection
+    if (product.variations && product.variations.length > 0) {
+      const allSelected = product.variations.every(v => selectedVariations[v.name]);
+      if (!allSelected) {
+        setShowVariationError(true);
+        return;
+      }
+    }
+
+    await toggleWishlist(null as any, product.id, selectedVariations);
+  };
+
+  const handleWhatsAppInquiry = async () => {
+    if (!product) return;
+
+    // Enforce variation selection
+    if (product.variations && product.variations.length > 0) {
+      const allSelected = product.variations.every(v => selectedVariations[v.name]);
+      if (!allSelected) {
+        setShowVariationError(true);
+        return;
+      }
+    }
+
+    if (!settings.whatsappNumber) {
+      alert("WhatsApp inquiry is currently unavailable. Please contact us via the contact page.");
       return;
     }
 
-    const existingItem = wishlist.find(item => item.productId === product.id && item.userId === user.id);
-    
-    if (existingItem) {
-      await deleteData('wishlist', existingItem.id);
-      logEvent('click', `Removed from Wishlist: ${product.id}`);
-    } else {
-      const newItem: WishlistItem = {
+    setIsLoggingInquiry(true);
+    try {
+      const variantStr = Object.values(selectedVariations).join('/');
+      
+      // Shadow Order Logging
+      const shadowOrder: Order = {
         id: crypto.randomUUID(),
-        userId: user.id,
-        productId: product.id,
+        orderNumber: `INQ-${Date.now().toString().slice(-6)}`,
+        clientId: user?.id || 'guest',
+        items: [{
+          productId: product.id,
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          quantity: 1
+        }],
+        totalAmount: product.price,
+        status: 'Pending WhatsApp Inquiry',
+        notes: variantStr ? `Variant: ${variantStr}` : undefined,
         createdAt: Date.now()
       };
-      await updateData('wishlist', newItem);
-      logEvent('click', `Added to Wishlist: ${product.id}`);
+
+      await updateData('orders', shadowOrder);
+      logEvent('click', `WhatsApp Inquiry: ${product.name}`);
+
+      // Format message and redirect
+      const message = formatSingleItemMessage({
+        name: product.name,
+        variant: variantStr,
+        price: product.price,
+        quantity: 1
+      });
+
+      const link = generateWhatsAppLink(settings.whatsappNumber, message);
+      window.open(link, '_blank');
+    } catch (error) {
+      console.error("Failed to log inquiry:", error);
+    } finally {
+      setIsLoggingInquiry(false);
     }
   };
 
@@ -334,8 +389,11 @@ const ProductDetail: React.FC = () => {
                   <span className="text-[6px] md:text-[10px] font-black uppercase text-slate-400 tracking-[0.1em] md:tracking-[0.2em]">({product.reviews?.length || 0})</span>
                 </div>
                 <div className="flex items-center gap-1 md:gap-2">
-                  <button onClick={toggleWishlist} className="p-1.5 md:p-3 rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all duration-300 flex items-center justify-center">
-                    <Heart size={12} className={user && wishlist.some(w => w.productId === product.id && w.userId === user.id) ? "fill-red-500 text-red-500" : "md:w-5 md:h-5"} />
+                  <button 
+                    onClick={toggleWishlistWithVariations} 
+                    className="p-1.5 md:p-3 rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all duration-300 flex items-center justify-center"
+                  >
+                    <Heart size={12} className={wishlist.some(w => w.productId === product.id && JSON.stringify(w.variations) === JSON.stringify(selectedVariations)) ? "fill-red-500 text-red-500" : "md:w-5 md:h-5"} />
                   </button>
                   <button onClick={handleShareTrigger} className="p-1.5 md:p-3 rounded-full bg-slate-50 hover:bg-primary/20 text-slate-400 hover:text-primary transition-all duration-300 flex items-center justify-center">
                     <Share2 size={12} className="md:w-5 md:h-5" />
@@ -367,6 +425,43 @@ const ProductDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Variations Selection */}
+              {product.variations && product.variations.length > 0 && (
+                <div className="space-y-4 pt-4">
+                  {product.variations.map((variation) => (
+                    <div key={variation.name} className="space-y-2">
+                      <label className="text-[8px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                        Select {variation.name}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {variation.options.map((option) => (
+                          <button
+                            key={option}
+                            onClick={() => {
+                              setSelectedVariations(prev => ({ ...prev, [variation.name]: option }));
+                              setShowVariationError(false);
+                            }}
+                            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-[8px] md:text-[10px] font-bold uppercase tracking-wider transition-all border ${
+                              selectedVariations[variation.name] === option
+                                ? 'bg-slate-900 text-white border-slate-900'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-primary'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {showVariationError && (
+                    <div className="flex items-center gap-2 text-red-500 animate-pulse">
+                      <AlertCircle size={14} />
+                      <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest">Please select all options</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Stock Status Indicator */}
               <div className="pt-1 md:pt-4">
@@ -414,16 +509,39 @@ const ProductDetail: React.FC = () => {
                       <Mail size={12} className="md:w-4 md:h-4" />
                     </button>
                   ) : (
-                    <a 
-                      href={`https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi Findara, I am interested in ${product.name} - ${product.sku}`)}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      onClick={() => logEvent('click', `Product: ${product.name}`)}
-                      className="flex-grow py-2 md:py-5 bg-slate-900 text-white font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl hover:bg-primary hover:text-slate-900 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-1.5 md:gap-3"
-                    >
-                      <span>{settings.productAcquisitionLabel || 'Secure'}</span>
-                      <ExternalLink size={12} className="md:w-4 md:h-4" />
-                    </a>
+                    <div className="flex flex-col gap-2 flex-grow">
+                      <button 
+                        onClick={handleWhatsAppInquiry}
+                        disabled={isLoggingInquiry || !settings.whatsappNumber}
+                        className={`w-full py-2 md:py-5 font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-1.5 md:gap-3 ${
+                          !settings.whatsappNumber 
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                            : 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900'
+                        }`}
+                        title={!settings.whatsappNumber ? "WhatsApp number not configured" : ""}
+                      >
+                        <span>{isLoggingInquiry ? 'Processing...' : (settings.productAcquisitionLabel || 'Inquire on WhatsApp')}</span>
+                        <MessageCircle size={12} className="md:w-4 md:h-4" />
+                      </button>
+                      
+                      <button 
+                        onClick={() => {
+                          if (product.variations && product.variations.length > 0) {
+                            const allSelected = product.variations.every(v => selectedVariations[v.name]);
+                            if (!allSelected) {
+                              setShowVariationError(true);
+                              return;
+                            }
+                          }
+                          addToCart(product.id, 1, selectedVariations);
+                          logEvent('click', `Added to Inquiry List: ${product.name}`);
+                        }}
+                        className="w-full py-2 md:py-5 bg-white border border-slate-200 text-slate-900 font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 md:gap-3"
+                      >
+                        <span>Add to Inquiry List</span>
+                        <ShoppingBag size={12} className="md:w-4 md:h-4" />
+                      </button>
+                    </div>
                   )}
                </div>
             </div>

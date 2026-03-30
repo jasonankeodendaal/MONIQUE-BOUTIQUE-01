@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ArrowRight, LayoutPanelTop } from 'lucide-re
 import { CarouselSlide } from '../types';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../App';
+import { motion } from 'motion/react';
 
 const Hero: React.FC = () => {
   const { settings, heroSlides } = useSettings();
@@ -69,7 +70,7 @@ const Hero: React.FC = () => {
   }
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-slate-900">
+    <section className="relative h-screen w-full overflow-hidden bg-white">
       {/* Hero Slides */}
       {slides.map((slide, index) => (
         <div
@@ -78,68 +79,90 @@ const Hero: React.FC = () => {
             index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
           }`}
         >
-          {slide.type === 'video' ? (
-            <video
-              ref={(el) => { videoRefs.current[slide.id] = el; }}
-              muted
-              playsInline
-              onEnded={nextSlide}
-              className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[12s] ease-linear ${index === current ? 'scale-110' : 'scale-100'}`}
-              src={slide.image}
-            />
-          ) : (
-            <div 
-              className={`absolute inset-0 bg-cover bg-center transition-transform duration-[12s] ease-linear ${index === current ? 'scale-110 animate-kenburns' : 'scale-100'}`}
-              style={{ backgroundImage: `url(${slide.image})` }}
-            />
-          )}
-          
-          {/* Refined Overlays */}
-          <div className="absolute inset-0 bg-black/20" />
-          
-          <div className="relative h-full max-w-7xl mx-auto px-6 md:px-12 flex flex-col justify-center items-start">
-            <div className={`max-w-4xl flex flex-col items-start text-left transition-all duration-[1.5s] delay-500 transform ${
-              index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
-            }`}>
-              <span className="text-[8px] md:text-xs font-medium uppercase tracking-[0.3em] md:tracking-[0.4em] text-white mb-4 md:mb-6">
-                {settings.homeHeroBadge || 'FINDARA'}
-              </span>
-              
-              <h1 className="font-serif text-white mb-4 md:mb-10 leading-[0.9] tracking-tighter text-balance max-w-[70%] md:max-w-none"
-                  style={{ fontSize: 'clamp(2rem, 8vw, 7rem)' }}>
-                {(settings.homeHeroTitle || slide.title)}
-              </h1>
-              
-              <p className="text-[10px] md:text-lg text-white/90 mb-6 md:mb-12 max-w-[60%] md:max-w-xl font-light leading-relaxed text-pretty">
-                {settings.homeHeroSubtitle || slide.subtitle}
-              </p>
-              
-              <Link 
-                to="/products"
-                className="group inline-flex items-center gap-2 md:gap-4 bg-white text-slate-900 px-6 md:px-10 py-2.5 md:py-4 rounded-full text-[8px] md:text-[10px] font-medium uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all hover:bg-white/90 hover:scale-105"
-              >
-                {slide.cta}
-                <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
+          <div className="flex flex-col md:flex-row h-full w-full">
+            {/* Content Side (Left on Tablet) */}
+            <div className="relative w-full md:w-1/2 h-1/2 md:h-full flex flex-col justify-center items-start px-6 md:px-20 lg:px-32 bg-white z-20 order-2 md:order-1">
+              <div className={`max-w-xl transition-all duration-[1.5s] delay-500 transform ${
+                index === current ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+              }`}>
+                <div className="inline-flex items-center gap-3 mb-6 md:mb-10">
+                  <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.4em] text-primary">
+                    {settings.homeHeroBadge || 'FINDARA'}
+                  </span>
+                  <div className="h-px w-8 bg-primary/30"></div>
+                </div>
+                
+                <h1 className="font-serif text-slate-900 mb-6 md:mb-12 leading-[0.9] tracking-tighter"
+                    style={{ fontSize: 'clamp(2.5rem, 6vw, 6.5rem)' }}>
+                  {(settings.homeHeroTitle || slide.title)}
+                </h1>
+                
+                <p className="text-xs md:text-xl text-slate-600 mb-8 md:mb-16 max-w-md font-light leading-relaxed italic">
+                  "{settings.homeHeroSubtitle || slide.subtitle}"
+                </p>
+                
+                <Link 
+                  to="/products"
+                  className="group inline-flex items-center gap-4 bg-slate-900 text-white px-8 md:px-12 py-3 md:py-5 rounded-full text-[9px] md:text-[11px] font-bold uppercase tracking-[0.2em] transition-all hover:bg-primary hover:text-slate-900 hover:scale-105 shadow-2xl shadow-slate-900/20"
+                >
+                  {slide.cta}
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+
+              {/* Progress Indicator (Desktop Only) */}
+              <div className="hidden md:flex absolute bottom-12 left-20 lg:left-32 items-center gap-4">
+                <span className="text-[10px] font-black text-slate-400">0{current + 1}</span>
+                <div className="w-24 h-px bg-slate-100 relative overflow-hidden">
+                  <motion.div 
+                    key={current}
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '0%' }}
+                    transition={{ duration: 8, ease: 'linear' }}
+                    className="absolute inset-0 bg-primary"
+                  />
+                </div>
+                <span className="text-[10px] font-black text-slate-400">0{slides.length}</span>
+              </div>
+            </div>
+
+            {/* Media Side (Right on Tablet) */}
+            <div className="relative w-full md:w-1/2 h-1/2 md:h-full overflow-hidden order-1 md:order-2">
+              {slide.type === 'video' ? (
+                <video
+                  ref={(el) => { videoRefs.current[slide.id] = el; }}
+                  muted
+                  playsInline
+                  onEnded={nextSlide}
+                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[12s] ease-linear ${index === current ? 'scale-110' : 'scale-100'}`}
+                  src={slide.image}
+                />
+              ) : (
+                <div 
+                  className={`absolute inset-0 bg-cover bg-center transition-transform duration-[12s] ease-linear ${index === current ? 'scale-110 animate-kenburns' : 'scale-100'}`}
+                  style={{ backgroundImage: `url(${slide.image})` }}
+                />
+              )}
+              <div className="absolute inset-0 bg-slate-900/10" />
             </div>
           </div>
         </div>
       ))}
 
       {/* Navigation Controls (Bottom Right) */}
-      <div className="absolute bottom-6 right-6 md:bottom-12 md:right-12 z-30 flex gap-2">
+      <div className="absolute bottom-6 right-6 md:bottom-12 md:right-12 z-30 flex gap-3">
         <button 
           onClick={prevSlide}
-          className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-slate-200 bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 hover:bg-primary hover:border-primary hover:text-slate-900 transition-all shadow-xl"
         >
-          <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
         </button>
         
         <button 
           onClick={nextSlide}
-          className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-slate-900 transition-all"
+          className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-slate-200 bg-white/80 backdrop-blur-md flex items-center justify-center text-slate-900 hover:bg-primary hover:border-primary hover:text-slate-900 transition-all shadow-xl"
         >
-          <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
         </button>
       </div>
     </section>

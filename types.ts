@@ -620,7 +620,7 @@ export interface Order {
   clientId: string;
   items: OrderItem[];
   totalAmount: number;
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled' | 'Pending WhatsApp Inquiry';
   shippingAddress?: string;
   trackingNumber?: string;
   notes?: string;
@@ -632,6 +632,7 @@ export interface WishlistItem {
   id: string;
   userId: string;
   productId: string;
+  variations?: Record<string, string>;
   createdAt: number;
 }
 
@@ -681,7 +682,7 @@ export interface SettingsContextType {
   setSaveStatus: (status: SaveStatus) => void;
   logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
   logout: () => Promise<void>;
-  toggleWishlist: (e: React.MouseEvent, productId: string) => Promise<void>;
+  toggleWishlist: (e: React.MouseEvent, productId: string, variations?: Record<string, string>) => Promise<void>;
   addToCart: (productId: string, quantity: number, variations?: Record<string, string>) => Promise<void>;
   removeFromCart: (cartItemId: string) => Promise<void>;
   updateCartQuantity: (cartItemId: string, quantity: number) => Promise<void>;

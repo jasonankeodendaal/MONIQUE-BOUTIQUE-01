@@ -483,7 +483,7 @@ const Products: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-12">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-12">
                   {group.items.map((product: Product) => (
                     <div 
                       key={product.id}
@@ -491,7 +491,7 @@ const Products: React.FC = () => {
                       className="group flex flex-col relative cursor-pointer"
                     >
                       {/* Product Image Container */}
-                      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] bg-slate-50 mb-4 md:mb-8 transition-all duration-700 group-hover:shadow-2xl group-hover:-translate-y-2">
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-slate-50 mb-3 md:mb-8 transition-all duration-700 group-hover:shadow-2xl group-hover:-translate-y-2">
                         {renderProductMedia(product)}
                         
                         {/* Badges */}
