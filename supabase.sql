@@ -1,6 +1,9 @@
--- MASTER ARCHITECTURE SCRIPT v8.0 (SEO, Integrations & Security Ready)
--- This script is IDEMPOTENT: You can run it multiple times without wiping your existing data.
--- It uses "IF NOT EXISTS" and "ON CONFLICT DO NOTHING" to preserve your database state.
+-- ==============================================================================
+-- SAFETY WARNING: This script is designed to be IDEMPOTENT.
+-- It will NOT wipe your database. It uses "IF NOT EXISTS" and 
+-- "ON CONFLICT DO NOTHING" to safely add missing tables or columns 
+-- while preserving all your existing data.
+-- ==============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
