@@ -167,7 +167,7 @@ const Contact: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-4 md:gap-8">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactWhatsappLabel || 'WhatsApp (Optional)'}</label>
                         <input 
