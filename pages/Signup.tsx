@@ -215,18 +215,10 @@ const Signup: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-      <div className="w-full max-w-4xl">
-        <button 
-          onClick={() => navigate('/login')}
-          className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest group mb-8"
-        >
-          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-          <span>Back to Login</span>
-        </button>
-
-        <div className="bg-slate-900 rounded-[3rem] shadow-2xl overflow-hidden border border-slate-800">
-          <div className="flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center">
+      <div className="w-full h-full">
+        <div className="bg-slate-900 shadow-2xl overflow-hidden border border-slate-800 h-full">
+          <div className="flex flex-col lg:flex-row h-full">
             {/* Left Side: Info */}
             <div className="lg:w-1/3 bg-slate-800/50 p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-700">
               <div>
@@ -285,7 +277,7 @@ const Signup: React.FC = () => {
                 {/* Section: Personal Info */}
                 <div className="space-y-6">
                   <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Personal Information</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
                       <div className="relative group">
@@ -320,7 +312,7 @@ const Signup: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Email Address</label>
                       <div className="relative group">
@@ -357,7 +349,7 @@ const Signup: React.FC = () => {
                 {/* Section: Security */}
                 <div className="space-y-6">
                   <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Security</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Password</label>
                       <div className="relative group">
@@ -431,7 +423,7 @@ const Signup: React.FC = () => {
                 {/* Section: Address */}
                 <div className="space-y-6">
                   <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Address Details</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Building / Unit (Optional)</label>
                       <div className="relative group">
@@ -463,7 +455,7 @@ const Signup: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Suburb</label>
                       <div className="relative group">
@@ -516,7 +508,7 @@ const Signup: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Postal Code</label>
                       <div className="relative group">
