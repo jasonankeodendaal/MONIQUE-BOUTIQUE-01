@@ -121,47 +121,45 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 overflow-hidden">
-      <div className="w-full h-full flex bg-slate-900 overflow-hidden border border-transparent">
+    <div className="min-h-screen w-full flex flex-col md:flex-row bg-slate-950">
+      {/* Left Side: Visual / Brand */}
+      <div className="hidden md:flex md:w-1/2 relative overflow-hidden">
+        <div className="absolute inset-0 bg-slate-900">
+          <img 
+            src={settings.clientLoginHeroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000"} 
+            alt="Editorial Fashion" 
+            className="w-full h-full object-cover opacity-60"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
         
-        {/* Left Side: Visual / Brand */}
-        <div className="hidden md:block md:w-1/2 relative overflow-hidden">
-          <div className="absolute inset-0 bg-slate-900">
-            <img 
-              src={settings.clientLoginHeroImage || "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=2000"} 
-              alt="Editorial Fashion" 
-              className="w-full h-full object-cover opacity-60"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-          
-          <div className="absolute bottom-0 left-0 p-16 w-full">
-             <div className="mb-6">
-               <span className="inline-block px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                  {settings.clientLoginHeroBadge}
-               </span>
-               <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
-                  {settings.clientLoginHeroTitle}
-               </h1>
-               <p className="text-xl text-primary font-serif italic mt-2">
-                  {settings.clientLoginHeroDescription}
-               </p>
-             </div>
-             <div className="h-px w-24 bg-primary/50 mb-6"></div>
-             <p className="text-slate-400 max-w-md font-light leading-relaxed">
-               Join our community of fashion enthusiasts. Track your orders, manage your preferences, and stay updated with our latest collections.
+        <div className="absolute bottom-0 left-0 p-16 w-full">
+           <div className="mb-6">
+             <span className="inline-block px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white font-black uppercase text-[10px] tracking-[0.3em] mb-4">
+                {settings.clientLoginHeroBadge}
+             </span>
+             <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
+                {settings.clientLoginHeroTitle}
+             </h1>
+             <p className="text-xl text-primary font-serif italic mt-2">
+                {settings.clientLoginHeroDescription}
              </p>
-          </div>
+           </div>
+           <div className="h-px w-24 bg-primary/50 mb-6"></div>
+           <p className="text-slate-400 max-w-md font-light leading-relaxed">
+             Join our community of fashion enthusiasts. Track your orders, manage your preferences, and stay updated with our latest collections.
+           </p>
+        </div>
+      </div>
+
+      {/* Right Side: Form */}
+      <div className="flex-1 flex items-center justify-center p-6 md:p-16 relative bg-slate-950">
+        <div className="absolute inset-0 md:hidden overflow-hidden z-0">
+           <div className="absolute top-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-primary/10 rounded-full blur-[100px]"></div>
         </div>
 
-        {/* Right Side: Form */}
-        <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative bg-slate-950/50">
-          <div className="absolute inset-0 md:hidden overflow-hidden z-0">
-             <div className="absolute top-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-primary/10 rounded-full blur-[100px]"></div>
-          </div>
-
-          <div className="w-full max-w-md space-y-12 relative z-10">
+        <div className="w-full max-w-md space-y-8 relative z-10">
           <button 
             onClick={() => navigate('/')}
             className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest group"
@@ -321,7 +319,7 @@ const Login: React.FC = () => {
             </div>
           )}
           
-          <div className="text-center">
+          <div className="text-center pt-8">
             <p className="text-slate-600 text-[10px] uppercase tracking-widest">
               Secure Environment • v2.0.1
             </p>
@@ -329,7 +327,6 @@ const Login: React.FC = () => {
         </div>
       </div>
     </div>
-  </div>
   );
 };
 
