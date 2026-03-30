@@ -1117,7 +1117,7 @@ const App: React.FC = () => {
     }
   };
 
-  const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system' | 'checkout', label: string, source: string = 'Direct') => {
+  const logEvent = useCallback(async (type: 'view' | 'click' | 'share' | 'system', label: string, source: string = 'Direct') => {
     const eventId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newEvent = { id: eventId, type: type || 'system', text: type === 'view' ? `Page View: ${label}` : label, time: new Date().toLocaleTimeString(), timestamp: Date.now(), source: source || 'Direct' };
     if (isSupabaseConfigured) { try { await supabase.from('traffic_logs').insert([newEvent]); } catch (err) {} } 

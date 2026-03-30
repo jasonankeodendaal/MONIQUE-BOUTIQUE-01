@@ -633,7 +633,6 @@ export interface WishlistItem {
   userId: string;
   productId: string;
   createdAt: number;
-  variations?: Record<string, string>;
 }
 
 export interface CartItem {
@@ -680,7 +679,7 @@ export interface SettingsContextType {
   loadingAuth: boolean;
   saveStatus: SaveStatus;
   setSaveStatus: (status: SaveStatus) => void;
-  logEvent: (type: 'view' | 'click' | 'share' | 'system' | 'checkout', label: string, source?: string) => void;
+  logEvent: (type: 'view' | 'click' | 'share' | 'system', label: string, source?: string) => void;
   logout: () => Promise<void>;
   toggleWishlist: (e: React.MouseEvent, productId: string) => Promise<void>;
   addToCart: (productId: string, quantity: number, variations?: Record<string, string>) => Promise<void>;

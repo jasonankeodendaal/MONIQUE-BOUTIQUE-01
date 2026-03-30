@@ -1,15 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSettings } from '../App';
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, MessageCircle, X, Loader2 } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { generateWhatsAppMessage } from '../lib/whatsapp';
 
 const Cart = () => {
-  const { cart, products, updateCartQuantity, removeFromCart, settings, user, updateData, logEvent } = useSettings();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [guestName, setGuestName] = useState('');
-  const [guestEmail, setGuestEmail] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { cart, products, updateCartQuantity, removeFromCart, settings } = useSettings();
 
   const cartItems = cart.map(item => {
     const product = products.find(p => p.id === item.productId);
@@ -19,57 +14,6 @@ const Cart = () => {
   const subtotal = cartItems.reduce((sum, item) => {
     return sum + (item.product?.price || 0) * item.quantity;
   }, 0);
-
-  const handleWhatsAppInquiry = async () => {
-    if (!user && (!guestName || !guestEmail)) {
-      setIsModalOpen(true);
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      const orderId = crypto.randomUUID();
-      const orderData = {
-        id: orderId,
-        userId: user?.id || 'guest',
-        status: 'Pending WhatsApp Inquiry',
-        totalAmount: subtotal,
-        shippingAddress: { name: user?.user_metadata?.full_name || guestName, email: user?.email || guestEmail },
-        createdAt: Date.now()
-      };
-
-      // Shadow Order Logging
-      await updateData('orders', orderData);
-      
-      // Log items
-      for (const item of cartItems) {
-        await updateData('order_items', {
-          id: crypto.randomUUID(),
-          orderId: orderId,
-          productId: item.productId,
-          quantity: item.quantity,
-          priceAtTime: item.product?.price || 0,
-          variations: item.variations
-        });
-      }
-
-      logEvent('checkout', `WhatsApp Inquiry - Total: ${subtotal}`);
-
-      const message = generateWhatsAppMessage(cartItems, subtotal, settings.currencySymbol);
-      const whatsappUrl = `https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${message}`;
-      
-      window.open(whatsappUrl, '_blank');
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error('Error logging shadow order:', error);
-      // Fallback to just opening WhatsApp if DB fails
-      const message = generateWhatsAppMessage(cartItems, subtotal, settings.currencySymbol);
-      const whatsappUrl = `https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${message}`;
-      window.open(whatsappUrl, '_blank');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   if (cartItems.length === 0) {
     return (
@@ -188,64 +132,16 @@ const Cart = () => {
           </dl>
 
           <div className="mt-6">
-            <button
-              onClick={handleWhatsAppInquiry}
-              disabled={isProcessing}
-              className="w-full rounded-none border border-transparent bg-[#25D366] px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-[#128C7E] focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center gap-2 transition-colors"
+            <Link
+              to="/checkout"
+              className="w-full rounded-none border border-transparent bg-black px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center gap-2"
             >
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
-              Send Inquiry via WhatsApp
-            </button>
+              Proceed to Checkout
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </section>
       </div>
-
-      {/* Lead Capture Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-white p-8 rounded-2xl w-full max-w-md relative shadow-2xl">
-            <button 
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X size={20} />
-            </button>
-            <h3 className="text-2xl font-serif text-gray-900 mb-2">Almost there!</h3>
-            <p className="text-sm text-gray-500 mb-6">Please provide your details so we can assist you better on WhatsApp.</p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-1">Name</label>
-                <input 
-                  type="text" 
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                  placeholder="Your full name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-1">Email</label>
-                <input 
-                  type="email" 
-                  value={guestEmail}
-                  onChange={(e) => setGuestEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-                  placeholder="your@email.com"
-                />
-              </div>
-              <button 
-                onClick={handleWhatsAppInquiry}
-                disabled={!guestName || !guestEmail || isProcessing}
-                className="w-full mt-4 py-3 bg-[#25D366] text-white rounded-xl font-bold uppercase tracking-widest hover:bg-[#128C7E] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
-                Continue to WhatsApp
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
