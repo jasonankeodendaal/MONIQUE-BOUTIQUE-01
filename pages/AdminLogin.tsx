@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, Info, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader2, ArrowLeft, Rocket, Shield } from 'lucide-react';
+import { Mail, Lock, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader2, ArrowLeft, Shield, Sparkles } from 'lucide-react';
 import { useSettings } from '../App';
+import { motion, AnimatePresence } from 'motion/react';
 
 const AdminLogin: React.FC = () => {
   const { settings, user } = useSettings();
@@ -32,7 +32,6 @@ const AdminLogin: React.FC = () => {
       if (user.user_metadata?.role !== 'client') {
         navigate('/admin', { replace: true });
       } else {
-        // If a client tries to access admin login, maybe sign them out or redirect to account
         navigate('/account', { replace: true });
       }
     }
@@ -101,204 +100,305 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] w-full flex items-center justify-center bg-slate-950 p-4 lg:p-8 xl:p-12 overflow-hidden">
-      <div className="w-full h-full lg:h-auto lg:max-w-5xl flex bg-slate-900 lg:rounded-[3rem] lg:shadow-2xl overflow-hidden border border-transparent lg:border-slate-800">
+    <div className="min-h-screen w-full flex bg-slate-950 overflow-hidden selection:bg-primary/30 selection:text-primary">
+      {/* Left Side: Immersive Brand Visual (Desktop Only) */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden h-screen sticky top-0">
+        <motion.div 
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="absolute inset-0"
+        >
+          <img 
+            src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000"} 
+            alt="Admin Portal" 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px]"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-950/20 to-slate-950"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+        </motion.div>
         
-        {/* Left Side: Visual / Brand */}
-        <div className="hidden md:block md:w-1/2 relative overflow-hidden">
-          <div className="absolute inset-0 bg-slate-900">
-            <img 
-              src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000"} 
-              alt="Admin Portal" 
-              className="w-full h-full object-cover opacity-40"
-              referrerPolicy="no-referrer"
-            />
+        <div className="relative z-10 flex flex-col justify-between p-16 w-full h-full">
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-primary/20 backdrop-blur-xl rounded-xl flex items-center justify-center border border-primary/30 shadow-[0_0_30px_rgba(var(--primary-rgb),0.2)]">
+                <Shield className="text-primary" size={24} />
+              </div>
+              <span className="text-white font-serif text-2xl tracking-tight">{settings.companyName || 'Admin Portal'}</span>
+            </div>
+          </motion.div>
+
+          <div className="max-w-xl">
+            <motion.div
+              initial={{ x: -30, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.8 }}
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/10 backdrop-blur-md text-primary font-black uppercase text-[10px] tracking-[0.4em] mb-6 shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]">
+                <Sparkles size={12} className="animate-pulse" />
+                {settings.adminLoginHeroBadge || 'Secure Access'}
+              </span>
+              <h1 className="text-7xl font-serif text-white leading-[0.9] tracking-tighter mb-6">
+                {settings.adminLoginHeroTitle || 'Management Infrastructure'}
+              </h1>
+              <p className="text-2xl text-slate-300 font-serif italic leading-relaxed opacity-80">
+                {settings.adminLoginHeroDescription || 'Oversee operations with precision and security.'}
+              </p>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="h-px w-32 bg-gradient-to-r from-primary to-transparent my-10 origin-left"
+            ></motion.div>
+            
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              transition={{ delay: 1.2, duration: 1 }}
+              className="text-slate-400 font-light leading-relaxed text-lg"
+            >
+              Authorized personnel only. This environment is protected by multi-layered encryption and continuous monitoring.
+            </motion.p>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
-          
-          <div className="absolute bottom-0 left-0 p-16 w-full">
-             <div className="mb-6">
-               <span className="inline-block px-3 py-1 rounded-full border border-primary/20 bg-primary/10 backdrop-blur-md text-primary font-black uppercase text-[10px] tracking-[0.3em] mb-4">
-                  {settings.adminLoginHeroBadge}
-               </span>
-               <h1 className="text-6xl font-serif text-white leading-none tracking-tighter">
-                  {settings.adminLoginHeroTitle}
-               </h1>
-               <p className="text-xl text-slate-400 font-serif italic mt-2">
-                  {settings.adminLoginHeroDescription}
-               </p>
-             </div>
-             <div className="h-px w-24 bg-primary/50 mb-6"></div>
-             <p className="text-slate-500 max-w-md font-light leading-relaxed">
-               Secure access to the global luxury bridge infrastructure. Manage inventory, process orders, and oversee system operations.
-             </p>
-          </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5 }}
+            className="flex items-center gap-8 text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              System Online
+            </div>
+            <div>v2.4.0-Stable</div>
+            <div>Encrypted Session</div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Right Side: Login Form */}
+      <div className="w-full lg:w-1/2 flex flex-col min-h-screen relative">
+        {/* Mobile Background Visual */}
+        <div className="lg:hidden absolute inset-0 z-0">
+          <img 
+            src={settings.adminLoginHeroImage || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000"} 
+            alt="Admin Portal" 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"></div>
         </div>
 
-        {/* Right Side: Form */}
-        <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-16 relative bg-slate-950/50">
-          <div className="w-full max-w-md space-y-12 relative z-10">
-          <button 
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest group"
+        <div className="flex-1 flex items-center justify-center p-6 md:p-12 lg:p-24 relative z-10">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="w-full max-w-md space-y-10"
           >
-            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-            <span>{settings.adminLoginBackToSite}</span>
-          </button>
-          <div className="text-center md:text-left">
-            <div className={`w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 mx-auto md:mx-0 border border-primary/20 ${settings.adminLoginAccentEnabled ? 'shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]' : ''}`}>
-              <Shield size={32} />
-            </div>
-            <h2 className="text-3xl font-serif text-white mb-2">
-              {view === 'login' ? 'Admin Login' : 'Reset Password'}
-            </h2>
-            <p className="text-slate-500">Authorized personnel only. All access is logged and monitored.</p>
-          </div>
-
-          {error && (
-            <div className="p-4 bg-red-500/10 border-l-4 border-red-500 text-red-400 text-sm animate-in slide-in-from-left">
-              {error}
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="p-4 bg-green-500/10 border-l-4 border-green-500 text-green-400 text-sm animate-in slide-in-from-left flex items-center gap-2">
-              <CheckCircle2 size={16} />
-              {successMessage}
-            </div>
-          )}
-
-          {view === 'login' ? (
-            <div className="space-y-6">
-              <button
-                onClick={handleGoogleLogin}
-                disabled={loading}
-                className="w-full h-16 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-2xl flex items-center justify-center gap-4 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
+            <div className="flex justify-between items-center">
+              <button 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 text-slate-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest group"
               >
-                <Chrome size={24} className="text-primary group-hover:rotate-12 transition-transform" />
-                <span className="font-serif text-lg">{settings.adminLoginGoogleLabel}</span>
+                <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                <span>{settings.adminLoginBackToSite || 'Back to Site'}</span>
               </button>
-
-              <div className="relative py-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-800"></div>
-                </div>
-                <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.3em]">
-                  <span className="bg-slate-950 px-4 text-slate-500">{settings.adminLoginDividerLabel}</span>
-                </div>
+              
+              <div className="lg:hidden flex items-center gap-2">
+                <Shield className="text-primary" size={16} />
+                <span className="text-white font-serif text-sm tracking-tight">{settings.companyName}</span>
               </div>
+            </div>
 
-              <form onSubmit={handleEmailLogin} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.adminLoginEmailLabel}</label>
+            <div className="space-y-4">
+              <div className={`w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_40px_rgba(var(--primary-rgb),0.15)] mb-8`}>
+                <Shield size={40} />
+              </div>
+              <h2 className="text-4xl font-serif text-white tracking-tight">
+                {view === 'login' ? (settings.adminLoginHeroTitle || 'Admin Login') : 'Reset Password'}
+              </h2>
+              <p className="text-slate-400 text-lg font-light leading-relaxed">
+                {view === 'login' 
+                  ? 'Access the central command interface. Your session is monitored for security.' 
+                  : 'Enter your email to receive recovery instructions.'}
+              </p>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="p-5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm flex items-start gap-3"
+                >
+                  <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="font-bold text-xs">!</span>
+                  </div>
+                  {error}
+                </motion.div>
+              )}
+
+              {successMessage && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="p-5 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-400 text-sm flex items-start gap-3"
+                >
+                  <CheckCircle2 size={20} className="shrink-0 mt-0.5" />
+                  {successMessage}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {view === 'login' ? (
+              <div className="space-y-8">
+                <button
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full h-16 bg-slate-900/50 hover:bg-slate-900 border border-slate-800 hover:border-primary/30 text-white rounded-2xl flex items-center justify-center gap-4 transition-all hover:shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)] group disabled:opacity-50"
+                >
+                  <Chrome size={24} className="text-primary group-hover:rotate-12 transition-transform" />
+                  <span className="font-serif text-lg">{settings.adminLoginGoogleLabel || 'Continue with Google'}</span>
+                </button>
+
+                <div className="relative flex items-center">
+                  <div className="flex-grow border-t border-slate-800"></div>
+                  <span className="px-6 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600">
+                    {settings.adminLoginDividerLabel || 'Secure Protocol'}
+                  </span>
+                  <div className="flex-grow border-t border-slate-800"></div>
+                </div>
+
+                <form onSubmit={handleEmailLogin} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-1">
+                      {settings.adminLoginEmailLabel || 'Email Address'}
+                    </label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-primary transition-colors" size={20} />
                       <input 
                         type="email" 
                         required
                         autoComplete="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-10 pr-2 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                        placeholder="Email"
+                        className="w-full pl-14 pr-6 py-5 bg-slate-900/40 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary/50 focus:bg-slate-900 transition-all placeholder:text-slate-700 text-base"
+                        placeholder={settings.adminLoginEmailPlaceholder || 'admin@infrastructure.com'}
                       />
                     </div>
                   </div>
                   
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <div className="flex justify-between items-center ml-1">
-                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.adminLoginPasswordLabel}</label>
+                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
+                        {settings.adminLoginPasswordLabel || 'Security Key'}
+                      </label>
+                      <button 
+                        type="button" 
+                        onClick={() => { setView('forgot-password'); setError(null); setSuccessMessage(null); }}
+                        className="text-[10px] text-primary font-black uppercase tracking-widest hover:text-white transition-colors"
+                      >
+                        Recovery
+                      </button>
                     </div>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
+                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-primary transition-colors" size={20} />
                       <input 
                         type="password" 
                         required
                         autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-10 pr-2 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                        placeholder="Password"
+                        className="w-full pl-14 pr-6 py-5 bg-slate-900/40 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary/50 focus:bg-slate-900 transition-all placeholder:text-slate-700 text-base"
+                        placeholder={settings.adminLoginPasswordPlaceholder || '••••••••'}
                       />
                     </div>
                   </div>
-                </div>
+    
+                  <button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full py-6 bg-primary text-slate-950 font-black uppercase tracking-[0.4em] text-[11px] rounded-2xl hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 shadow-[0_10px_40px_rgba(var(--primary-rgb),0.2)] disabled:opacity-50 mt-4"
+                  >
+                    {loading ? (
+                      <Loader2 size={20} className="animate-spin" />
+                    ) : (
+                      <>
+                        <span>{settings.adminLoginSubmitLabel || 'Initialize Session'}</span>
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                <form onSubmit={handleForgotPassword} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-1">
+                      {settings.adminLoginEmailLabel || 'Email Address'}
+                    </label>
+                    <div className="relative group">
+                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-primary transition-colors" size={20} />
+                      <input 
+                        type="email" 
+                        required
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full pl-14 pr-6 py-5 bg-slate-900/40 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary/50 focus:bg-slate-900 transition-all placeholder:text-slate-700 text-base"
+                        placeholder={settings.adminLoginEmailPlaceholder || 'admin@infrastructure.com'}
+                      />
+                    </div>
+                  </div>
 
-                <div className="flex justify-end">
+                  <button 
+                    type="submit" 
+                    disabled={loading}
+                    className="w-full py-6 bg-primary text-slate-950 font-black uppercase tracking-[0.4em] text-[11px] rounded-2xl hover:bg-white transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+                  >
+                    {loading ? <Loader2 size={20} className="animate-spin" /> : <span>Request Access Link</span>}
+                  </button>
+
                   <button 
                     type="button" 
-                    onClick={() => { setView('forgot-password'); setError(null); setSuccessMessage(null); }}
-                    className="text-[10px] text-primary hover:text-white transition-colors"
+                    onClick={() => { setView('login'); setError(null); setSuccessMessage(null); }}
+                    className="w-full py-4 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-3"
                   >
-                    Forgot?
+                    <ArrowLeft size={16} />
+                    <span>Return to Authentication</span>
                   </button>
-                </div>
- 
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full py-4 bg-primary text-slate-900 font-black uppercase tracking-[0.3em] text-[10px] rounded-xl hover:bg-white transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4"
-              >
-                {loading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <>
-                    <span>{settings.adminLoginSubmitLabel}</span>
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-          ) : (
-            <div className="space-y-6">
-              <form onSubmit={handleForgotPassword} className="space-y-6">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.adminLoginEmailLabel}</label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
-                    <input 
-                      type="email" 
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-slate-800 rounded-xl text-white outline-none focus:border-primary focus:bg-slate-900 transition-all placeholder:text-slate-700 text-sm"
-                      placeholder={settings.adminLoginEmailPlaceholder}
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full py-5 bg-primary text-slate-900 font-black uppercase tracking-[0.2em] text-xs rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                >
-                  {loading ? <Loader2 size={16} className="animate-spin" /> : <span>Send Recovery Link</span>}
-                </button>
-
-                <button 
-                  type="button" 
-                  onClick={() => { setView('login'); setError(null); setSuccessMessage(null); }}
-                  className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-white transition-all flex items-center justify-center gap-2"
-                >
-                  <ArrowLeft size={16} />
-                  <span>Return to Login</span>
-                </button>
-              </form>
+                </form>
+              </div>
+            )}
+            
+            <div className="pt-12 border-t border-slate-900 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3 text-slate-600 text-[10px] uppercase tracking-widest">
+                <ShieldCheck size={14} className="text-primary/50"/> 
+                <span>Secure Environment</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <a href="#" className="text-slate-600 hover:text-slate-400 transition-colors text-[10px] uppercase tracking-widest">Privacy</a>
+                <a href="#" className="text-slate-600 hover:text-slate-400 transition-colors text-[10px] uppercase tracking-widest">Terms</a>
+                <a href="#" className="text-slate-600 hover:text-slate-400 transition-colors text-[10px] uppercase tracking-widest">Support</a>
+              </div>
             </div>
-          )}
-          
-          <div className="text-center">
-            <p className="text-slate-600 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
-              <ShieldCheck size={12}/> Secure Admin Environment
-            </p>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
-  </div>
   );
 };
 
