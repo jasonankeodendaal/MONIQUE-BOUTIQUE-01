@@ -285,7 +285,7 @@ const Signup: React.FC = () => {
                 {/* Section: Personal Info */}
                 <div className="space-y-6">
                   <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Personal Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
                       <div className="relative group">
@@ -320,7 +320,7 @@ const Signup: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Email Address</label>
                       <div className="relative group">
@@ -357,7 +357,7 @@ const Signup: React.FC = () => {
                 {/* Section: Security */}
                 <div className="space-y-6">
                   <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Security</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Password</label>
                       <div className="relative group">
@@ -431,7 +431,7 @@ const Signup: React.FC = () => {
                 {/* Section: Address */}
                 <div className="space-y-6">
                   <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Address Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Building / Unit (Optional)</label>
                       <div className="relative group">
@@ -463,7 +463,7 @@ const Signup: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Suburb</label>
                       <div className="relative group">
@@ -516,7 +516,7 @@ const Signup: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Postal Code</label>
                       <div className="relative group">

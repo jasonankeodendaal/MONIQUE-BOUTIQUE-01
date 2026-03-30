@@ -106,7 +106,7 @@ const Contact: React.FC = () => {
               </p>
             </div>
             
-            <div className="flex flex-col md:flex-row gap-2 md:gap-4 shrink-0">
+            <div className="flex flex-row gap-2 md:gap-4 shrink-0">
                <a href={`mailto:${settings.contactEmail}`} className="w-10 h-10 md:w-20 md:h-20 bg-white/80 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center text-slate-900 border border-[#B76E79]/10 shadow-sm hover:bg-slate-900 hover:text-white transition-all duration-300 group">
                  <Mail className="w-4 h-4 md:w-6 md:h-6 group-hover:scale-110 transition-transform" />
                </a>
@@ -117,10 +117,10 @@ const Contact: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-6 md:gap-20">
+        <div className="grid grid-cols-12 gap-4 md:gap-20">
           
-          <div className="col-span-12 lg:col-span-7 order-2 lg:order-1">
-            <div className="bg-white/90 backdrop-blur-xl p-6 md:p-12 rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(183,110,121,0.1)] border border-white flex flex-col justify-center">
+          <div className="col-span-7 lg:col-span-7 order-2 lg:order-1">
+            <div className="bg-white/90 backdrop-blur-xl p-4 md:p-12 rounded-[1.5rem] md:rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(183,110,121,0.1)] border border-white flex flex-col justify-center">
                
                {submitted ? (
                  <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in duration-700">
@@ -141,8 +141,8 @@ const Contact: React.FC = () => {
                     </div>
                  </div>
                ) : (
-                 <form className="space-y-8" onSubmit={handleSubmit}>
-                    <div className="grid md:grid-cols-2 gap-6">
+                 <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-2 gap-4 md:gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormNameLabel}</label>
                         <input 
@@ -227,8 +227,8 @@ const Contact: React.FC = () => {
             </div>
           </div>
 
-          <div className="col-span-12 lg:col-span-5 order-1 lg:order-2 space-y-6 md:space-y-10">
-             <div className="bg-slate-900 rounded-[1.5rem] md:rounded-[2.5rem] p-6 md:p-10 text-white relative overflow-hidden">
+          <div className="col-span-5 lg:col-span-5 order-1 lg:order-2 space-y-4 md:space-y-10">
+             <div className="bg-slate-900 rounded-[1.5rem] md:rounded-[2.5rem] p-4 md:p-10 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#B76E79]/30 rounded-full blur-[50px] -mr-10 -mt-10"></div>
                 
                 <h3 className="text-lg md:text-2xl font-serif mb-6 md:mb-8 flex items-center gap-3">

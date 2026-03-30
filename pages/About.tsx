@@ -81,12 +81,12 @@ const About: React.FC = () => {
       <section className="py-24 lg:py-56 bg-copper-wash relative overflow-hidden section-vignette">
         <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
         
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-          <div className="grid grid-cols-12 gap-6 md:gap-24">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-12 relative z-10">
+          <div className="grid grid-cols-12 gap-4 md:gap-24">
               
               {/* Sidebar Column with enhanced glassmorphism */}
-              <div className="col-span-12 md:col-span-4 h-fit md:sticky md:top-40">
-                  <div className="glass-card p-6 md:p-16 rounded-[1.5rem] md:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] space-y-8 md:space-y-20 relative overflow-hidden">
+              <div className="col-span-5 md:col-span-4 h-fit md:sticky md:top-40">
+                  <div className="glass-card p-4 md:p-16 rounded-[1.5rem] md:rounded-[4.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] space-y-6 md:space-y-20 relative overflow-hidden">
                       
                       <div className="space-y-4 md:space-y-6 text-left relative z-10">
                           <div className="flex items-center gap-2 md:gap-4 text-primary">
@@ -114,8 +114,8 @@ const About: React.FC = () => {
               </div>
 
               {/* Main Story Column */}
-              <div className="col-span-12 md:col-span-8 text-left min-w-0">
-                  <div className="flex items-center gap-4 md:gap-10 mb-6 md:mb-20">
+              <div className="col-span-7 md:col-span-8 text-left min-w-0">
+                  <div className="flex items-center gap-2 md:gap-10 mb-6 md:mb-20">
                      <div className="h-[2px] md:h-[3px] w-8 md:w-32 bg-primary shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
                      <span className="text-[8px] md:text-[15px] font-black uppercase tracking-[0.6em] text-primary text-contrast-shadow">{settings.aboutManifestoTitle || 'The Curation Manifesto'}</span>
                   </div>
@@ -158,7 +158,7 @@ const About: React.FC = () => {
          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
          
          <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+            <div className="flex flex-row justify-between items-end mb-20 gap-8">
                <div className="text-left">
                   <span className="text-[11px] font-black uppercase tracking-[0.5em] text-primary mb-5 block flex items-center gap-3 text-contrast-shadow">
                     <Heart size={14} className="fill-current animate-pulse" /> {settings.aboutHeroBadge}
@@ -254,7 +254,7 @@ const About: React.FC = () => {
 
       {/* Final Editorial Footer */}
       <div className="py-16 border-t border-slate-200/40 text-center bg-[#FDFBF7] relative">
-         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 opacity-30">
+         <div className="max-w-7xl mx-auto px-6 flex flex-row justify-between items-center gap-6 opacity-30">
             <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.5em]">Digital Portfolio Verified: {lastUpdatedDate}</p>
             <div className="flex items-center gap-8">
               <span className="font-mono text-[10px] text-slate-500 tracking-widest">NR-990-2025-JS</span>

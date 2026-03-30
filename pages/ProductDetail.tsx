@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2, Heart, XCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, ArrowLeft, Package, Share2, Star, MessageCircle, ChevronDown, Minus, Plus, X, Facebook, Twitter, Mail, Copy, CheckCircle, Check, Send, RefreshCcw, Sparkles, Instagram, Linkedin, Rocket, ShieldCheck, Tag, Maximize2, Heart, XCircle, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { useSettings } from '../App';
 import { Review, Product, WishlistItem } from '../types';
+import { generateSingleItemWhatsAppMessage } from '../lib/whatsapp';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
@@ -27,6 +28,13 @@ const ProductDetail: React.FC = () => {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isPreparingBundle, setIsPreparingBundle] = useState(false);
+
+  // Variations & Inquiry State
+  const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -157,8 +165,38 @@ const ProductDetail: React.FC = () => {
   }, [product?.reviews]);
 
   const toggleWishlist = async () => {
-    if (!user || !product) {
-      navigate('/login');
+    if (!product) return;
+    
+    // Check if variations are fully selected
+    if (product.variations && product.variations.length > 0) {
+      const missingVariations = product.variations.filter(v => !selectedVariations[v.name]);
+      if (missingVariations.length > 0) {
+        alert(`Please select: ${missingVariations.map(v => v.name).join(', ')}`);
+        return;
+      }
+    }
+
+    if (!user) {
+      // Guest Wishlist using localStorage
+      const guestWishlist = JSON.parse(localStorage.getItem('guest_wishlist') || '[]');
+      const existingItem = guestWishlist.find((item: any) => item.productId === product.id && JSON.stringify(item.variations) === JSON.stringify(selectedVariations));
+      
+      if (existingItem) {
+        const newWishlist = guestWishlist.filter((item: any) => item.id !== existingItem.id);
+        localStorage.setItem('guest_wishlist', JSON.stringify(newWishlist));
+        logEvent('click', `Removed from Guest Wishlist: ${product.id}`);
+        alert('Removed from wishlist');
+      } else {
+        const newItem = {
+          id: crypto.randomUUID(),
+          productId: product.id,
+          variations: selectedVariations,
+          createdAt: Date.now()
+        };
+        localStorage.setItem('guest_wishlist', JSON.stringify([...guestWishlist, newItem]));
+        logEvent('click', `Added to Guest Wishlist: ${product.id}`);
+        alert('Added to wishlist');
+      }
       return;
     }
 
@@ -176,6 +214,63 @@ const ProductDetail: React.FC = () => {
       };
       await updateData('wishlist', newItem);
       logEvent('click', `Added to Wishlist: ${product.id}`);
+    }
+  };
+
+  const handleWhatsAppInquiry = async () => {
+    if (!product) return;
+
+    if (product.variations && product.variations.length > 0) {
+      const missingVariations = product.variations.filter(v => !selectedVariations[v.name]);
+      if (missingVariations.length > 0) {
+        alert(`Please select: ${missingVariations.map(v => v.name).join(', ')}`);
+        return;
+      }
+    }
+
+    if (!user && (!guestName || !guestEmail)) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const orderId = crypto.randomUUID();
+      const orderData = {
+        id: orderId,
+        userId: user?.id || 'guest',
+        status: 'Pending WhatsApp Inquiry',
+        totalAmount: product.price,
+        shippingAddress: { name: user?.user_metadata?.full_name || guestName, email: user?.email || guestEmail },
+        createdAt: Date.now()
+      };
+
+      // Shadow Order Logging
+      await updateData('orders', orderData);
+      
+      await updateData('order_items', {
+        id: crypto.randomUUID(),
+        orderId: orderId,
+        productId: product.id,
+        quantity: 1,
+        priceAtTime: product.price,
+        variations: selectedVariations
+      });
+
+      logEvent('checkout', `WhatsApp Inquiry Single - ${product.name}`);
+
+      const message = generateSingleItemWhatsAppMessage(product, selectedVariations, settings.currencySymbol);
+      const whatsappUrl = `https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${message}`;
+      
+      window.open(whatsappUrl, '_blank');
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error logging shadow order:', error);
+      const message = generateSingleItemWhatsAppMessage(product, selectedVariations, settings.currencySymbol);
+      const whatsappUrl = `https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${message}`;
+      window.open(whatsappUrl, '_blank');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -398,6 +493,32 @@ const ProductDetail: React.FC = () => {
                   ))}
                 </div>
               )}
+
+              {/* Variations */}
+              {product.variations && product.variations.length > 0 && (
+                <div className="pt-4 space-y-4">
+                  {product.variations.map((variation, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{variation.name}</label>
+                      <div className="flex flex-wrap gap-2">
+                        {variation.options.map((option, optIdx) => (
+                          <button
+                            key={optIdx}
+                            onClick={() => setSelectedVariations(prev => ({ ...prev, [variation.name]: option }))}
+                            className={`px-4 py-2 text-xs font-bold rounded-lg border transition-all ${
+                              selectedVariations[variation.name] === option
+                                ? 'bg-slate-900 text-white border-slate-900'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2 md:space-y-4 pt-4 md:pt-10 border-t border-slate-50">
@@ -414,16 +535,14 @@ const ProductDetail: React.FC = () => {
                       <Mail size={12} className="md:w-4 md:h-4" />
                     </button>
                   ) : (
-                    <a 
-                      href={`https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi Findara, I am interested in ${product.name} - ${product.sku}`)}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      onClick={() => logEvent('click', `Product: ${product.name}`)}
-                      className="flex-grow py-2 md:py-5 bg-slate-900 text-white font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl hover:bg-primary hover:text-slate-900 transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-1.5 md:gap-3"
+                    <button 
+                      onClick={handleWhatsAppInquiry}
+                      disabled={isProcessing}
+                      className="flex-grow py-2 md:py-5 bg-[#25D366] text-white font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl hover:bg-[#128C7E] transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-1.5 md:gap-3 disabled:opacity-50"
                     >
-                      <span>{settings.productAcquisitionLabel || 'Secure'}</span>
-                      <ExternalLink size={12} className="md:w-4 md:h-4" />
-                    </a>
+                      {isProcessing ? <Loader2 size={12} className="md:w-4 md:h-4 animate-spin" /> : <MessageCircle size={12} className="md:w-4 md:h-4" />}
+                      <span>Inquire on WhatsApp</span>
+                    </button>
                   )}
                </div>
             </div>
@@ -725,6 +844,52 @@ const ProductDetail: React.FC = () => {
 
             </div>
          </div>
+      )}
+      {/* Lead Capture Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white p-8 rounded-2xl w-full max-w-md relative shadow-2xl">
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-2xl font-serif text-gray-900 mb-2">Almost there!</h3>
+            <p className="text-sm text-gray-500 mb-6">Please provide your details so we can assist you better on WhatsApp.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-1">Name</label>
+                <input 
+                  type="text" 
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                  placeholder="Your full name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-widest mb-1">Email</label>
+                <input 
+                  type="email" 
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                  placeholder="your@email.com"
+                />
+              </div>
+              <button 
+                onClick={handleWhatsAppInquiry}
+                disabled={!guestName || !guestEmail || isProcessing}
+                className="w-full mt-4 py-3 bg-[#25D366] text-white rounded-xl font-bold uppercase tracking-widest hover:bg-[#128C7E] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
+                Continue to WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
