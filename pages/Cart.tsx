@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { useSettings } from '../App';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { generateWhatsAppLink, formatInquiryMessage } from '../src/lib/whatsapp';
-import LeadCaptureModal from '../src/components/LeadCaptureModal';
-import { Order } from '../types';
+import LeadCaptureModal from '../components/LeadCaptureModal';
+import { generateWhatsAppLink } from '../lib/utils';
 
 const Cart = () => {
-  const { cart, products, updateCartQuantity, removeFromCart, settings, user, updateData, logEvent, clearCart } = useSettings();
+  const { cart, products, updateCartQuantity, removeFromCart, settings, user, updateData } = useSettings();
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const cartItems = cart.map(item => {
     const product = products.find(p => p.id === item.productId);
@@ -20,64 +18,59 @@ const Cart = () => {
     return sum + (item.product?.price || 0) * item.quantity;
   }, 0);
 
-  const handleInquiryClick = () => {
-    if (!user) {
-      setIsLeadModalOpen(true);
-    } else {
-      processInquiry({ name: user.user_metadata?.full_name || user.email, email: user.email });
-    }
-  };
+  const handleInquire = () => {
+    if (cartItems.length === 0) return;
 
-  const processInquiry = async (leadData: { name: string; email: string }) => {
     if (!settings.whatsappNumber) {
-      alert("WhatsApp inquiry is currently unavailable.");
+      alert('WhatsApp inquiry is currently unavailable.');
       return;
     }
 
-    setIsProcessing(true);
-    try {
-      // Shadow Order Logging
-      const shadowOrder: Order = {
-        id: crypto.randomUUID(),
-        orderNumber: `CRT-${Date.now().toString().slice(-6)}`,
-        clientId: user?.id || 'guest',
-        items: cartItems.map(item => ({
-          productId: item.productId,
-          name: item.product!.name,
-          sku: item.product!.sku,
-          price: item.product!.price,
-          quantity: item.quantity
-        })),
-        totalAmount: subtotal,
-        status: 'Pending WhatsApp Inquiry',
-        notes: `Inquiry from ${leadData.name} (${leadData.email})`,
-        createdAt: Date.now()
-      };
-
-      await updateData('orders', shadowOrder);
-      logEvent('click', 'Cart WhatsApp Inquiry');
-
-      // Format message and redirect
-      const inquiryItems = cartItems.map(item => ({
-        name: item.product!.name,
-        variant: item.variations ? Object.values(item.variations).join('/') : undefined,
-        price: item.product!.price,
-        quantity: item.quantity
-      }));
-
-      const message = formatInquiryMessage(inquiryItems);
-      const link = generateWhatsAppLink(settings.whatsappNumber, message);
-      
-      // Clear cart after successful logging
-      await clearCart();
-      
-      window.open(link, '_blank');
-    } catch (error) {
-      console.error("Failed to process inquiry:", error);
-    } finally {
-      setIsProcessing(false);
-      setIsLeadModalOpen(false);
+    if (!user) {
+      setIsLeadModalOpen(true);
+    } else {
+      proceedToWhatsApp(user.name || 'User', user.email || '');
     }
+  };
+
+  const proceedToWhatsApp = async (name: string, email: string) => {
+    // Shadow Order Logging
+    const shadowOrder = {
+      id: crypto.randomUUID(),
+      userId: user?.id || 'guest',
+      customerName: name,
+      customerEmail: email,
+      status: 'Pending WhatsApp Inquiry',
+      total: subtotal,
+      items: cartItems.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        variations: item.variations,
+        price: item.product?.price || 0
+      })),
+      createdAt: Date.now()
+    };
+    await updateData('orders', shadowOrder);
+
+    const whatsappItems = cartItems.map(item => {
+      const variantString = item.variations ? Object.entries(item.variations).map(([k, v]) => `${k}: ${v}`).join(', ') : '';
+      return {
+        name: item.product?.name || 'Unknown Product',
+        variant: variantString,
+        price: item.product?.price || 0,
+        quantity: item.quantity
+      };
+    });
+
+    const link = generateWhatsAppLink(
+      settings.whatsappNumber || '',
+      whatsappItems,
+      subtotal,
+      settings.currencySymbol || '$'
+    );
+    
+    window.open(link, '_blank');
+    setIsLeadModalOpen(false);
   };
 
   if (cartItems.length === 0) {
@@ -198,25 +191,22 @@ const Cart = () => {
 
           <div className="mt-6">
             <button
-              onClick={handleInquiryClick}
-              disabled={isProcessing || !settings.whatsappNumber}
-              className={`w-full rounded-none border border-transparent px-4 py-3 text-base font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center gap-2 transition-all ${
-                !settings.whatsappNumber 
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                  : 'bg-black text-white hover:bg-gray-900'
-              }`}
-              title={!settings.whatsappNumber ? "WhatsApp number not configured" : ""}
+              onClick={handleInquire}
+              disabled={!settings.whatsappNumber}
+              title={!settings.whatsappNumber ? "WhatsApp inquiry is currently unavailable" : ""}
+              className="w-full rounded-none border border-transparent bg-[#25D366] px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-[#20bd5a] focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2 focus:ring-offset-gray-50 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isProcessing ? 'Processing Inquiry...' : 'Send Inquiry via WhatsApp'}
-              <MessageCircle className="w-4 h-4" />
+              Send Inquiry via WhatsApp
+              <MessageCircle className="w-5 h-5" />
             </button>
           </div>
         </section>
       </div>
+
       <LeadCaptureModal 
         isOpen={isLeadModalOpen}
         onClose={() => setIsLeadModalOpen(false)}
-        onConfirm={processInquiry}
+        onSubmit={proceedToWhatsApp}
       />
     </div>
   );

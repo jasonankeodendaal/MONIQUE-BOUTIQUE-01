@@ -378,8 +378,50 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views I
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies JSONB, "actionItems" JSONB, steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, stock NUMERIC, variations JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
-CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
-CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT, "buildingNumber" TEXT, "streetName" TEXT, "suburb" TEXT, "city" TEXT, "province" TEXT, "postalCode" TEXT, "country" TEXT, "newsletter" BOOLEAN DEFAULT FALSE);
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  "orderNumber" TEXT,
+  "clientId" TEXT,
+  "customerName" TEXT,
+  "customerEmail" TEXT,
+  "customerPhone" TEXT,
+  "customerWhatsapp" TEXT,
+  status TEXT DEFAULT 'Pending WhatsApp Inquiry',
+  items JSONB,
+  "totalAmount" NUMERIC,
+  total NUMERIC,
+  "shippingAddress" TEXT,
+  "trackingNumber" TEXT,
+  notes TEXT,
+  "createdAt" BIGINT,
+  "updatedAt" BIGINT
+);
+CREATE TABLE IF NOT EXISTS clients (
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  whatsapp TEXT,
+  address TEXT,
+  company TEXT,
+  status TEXT,
+  "profileImage" TEXT,
+  "createdAt" BIGINT,
+  "lastActive" BIGINT,
+  notes TEXT,
+  "buildingNumber" TEXT,
+  "streetName" TEXT,
+  "suburb" TEXT,
+  "city" TEXT,
+  "province" TEXT,
+  "postalCode" TEXT,
+  "country" TEXT,
+  "newsletter" BOOLEAN DEFAULT FALSE,
+  "role" TEXT,
+  "permissions" JSONB,
+  "password" TEXT,
+  "autoWipeExempt" BOOLEAN
+);
 CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS cart (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, quantity NUMERIC, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
@@ -565,7 +607,8 @@ ADD COLUMN IF NOT EXISTS "newsletter" BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS "role" TEXT,
 ADD COLUMN IF NOT EXISTS "permissions" JSONB,
 ADD COLUMN IF NOT EXISTS "password" TEXT,
-ADD COLUMN IF NOT EXISTS "autoWipeExempt" BOOLEAN;
+ADD COLUMN IF NOT EXISTS "autoWipeExempt" BOOLEAN,
+ADD COLUMN IF NOT EXISTS "whatsapp" TEXT;
 
 ALTER TABLE products
 ADD COLUMN IF NOT EXISTS sku TEXT,
@@ -589,9 +632,14 @@ ADD COLUMN IF NOT EXISTS "archivedAt" BIGINT;
 ALTER TABLE orders
 ADD COLUMN IF NOT EXISTS "orderNumber" TEXT,
 ADD COLUMN IF NOT EXISTS "clientId" TEXT,
-ADD COLUMN IF NOT EXISTS status TEXT,
+ADD COLUMN IF NOT EXISTS "customerName" TEXT,
+ADD COLUMN IF NOT EXISTS "customerEmail" TEXT,
+ADD COLUMN IF NOT EXISTS "customerPhone" TEXT,
+ADD COLUMN IF NOT EXISTS "customerWhatsapp" TEXT,
+ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pending WhatsApp Inquiry',
 ADD COLUMN IF NOT EXISTS items JSONB,
 ADD COLUMN IF NOT EXISTS "totalAmount" NUMERIC,
+ADD COLUMN IF NOT EXISTS total NUMERIC,
 ADD COLUMN IF NOT EXISTS "shippingAddress" TEXT,
 ADD COLUMN IF NOT EXISTS "trackingNumber" TEXT,
 ADD COLUMN IF NOT EXISTS notes TEXT,

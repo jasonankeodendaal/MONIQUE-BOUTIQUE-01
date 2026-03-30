@@ -1712,7 +1712,7 @@ const Admin: React.FC = () => {
   const [enquirySearch, setEnquirySearch] = useState('');
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [orderSearch, setOrderSearch] = useState('');
-  const [orderFilter, setOrderFilter] = useState<'all' | 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled'>('all');
+  const [orderFilter, setOrderFilter] = useState<'all' | 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled' | 'Pending WhatsApp Inquiry'>('all');
   const [clientSearch, setClientSearch] = useState('');
   const [newsletterSearch, setNewsletterSearch] = useState('');
   const [showOrderForm, setShowOrderForm] = useState(false);
@@ -2128,7 +2128,7 @@ const Admin: React.FC = () => {
       </div>
       <div className="flex flex-col md:flex-row gap-4 mb-6">
          <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search order ID or client name..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
-         <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(filter => (<button key={filter} onClick={() => setOrderFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${orderFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
+         <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'Pending WhatsApp Inquiry', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(filter => (<button key={filter} onClick={() => setOrderFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${orderFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
       </div>
       
       {showOrderForm && (
@@ -2149,13 +2149,14 @@ const Admin: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Status</label>
-                  <select value={orderData.status || 'Pending'} onChange={e => setOrderData({...orderData, status: e.target.value as any})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary">
-                    <option value="Pending">Pending</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
+                    <select value={orderData.status || 'Pending'} onChange={e => setOrderData({...orderData, status: e.target.value as any})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary">
+                      <option value="Pending WhatsApp Inquiry">Pending WhatsApp Inquiry</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Shipping Address</label>
@@ -2221,7 +2222,7 @@ const Admin: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 gap-8">
-        {['Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(status => {
+        {['Pending WhatsApp Inquiry', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(status => {
           const statusOrders = filteredOrders.filter(o => o.status === status);
           if (statusOrders.length === 0 && orderFilter !== 'all') return null;
           if (statusOrders.length === 0 && orderFilter === 'all') return null;
@@ -2240,7 +2241,7 @@ const Admin: React.FC = () => {
                       <div className="flex-grow">
                         <div className="flex items-center gap-3 mb-3">
                           <span className="text-primary font-mono text-xs font-bold">#{order.orderNumber || order.id.substring(0, 8)}</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500' : order.status === 'Shipped' ? 'bg-indigo-500/10 text-indigo-500' : order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{order.status}</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${order.status === 'Pending WhatsApp Inquiry' ? 'bg-pink-500/10 text-pink-500' : order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500' : order.status === 'Shipped' ? 'bg-indigo-500/10 text-indigo-500' : order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{order.status}</span>
                           <span className="text-slate-500 text-xs">{new Date(order.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -4405,7 +4406,7 @@ const Admin: React.FC = () => {
                     
                     <div className="grid gap-4">
                       {group.items.map(p => (
-                        <div key={p.id} className={`bg-slate-900 p-4 md:p-6 rounded-[2rem] border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between hover:border-primary/30 transition-colors group gap-4 ${ (catalogView === 'history') ? 'opacity-70 grayscale-[0.5]' : '' }`}>
+                        <div key={p.id} className={`bg-transparent p-4 md:p-6 border-b border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between hover:bg-white/5 transition-all group gap-4 ${ (catalogView === 'history') ? 'opacity-70 grayscale-[0.5]' : '' }`}>
                           <div className="flex items-center gap-6 min-w-0 text-left">
                             <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 relative flex-shrink-0">
                               {p.media?.[0]?.url && <img src={p.media[0].url} className="w-full h-full object-cover" />}
@@ -5237,6 +5238,16 @@ const Admin: React.FC = () => {
                 onClick={() => window.print()}
                 className="flex items-center gap-2 px-8 py-4 bg-white text-slate-950 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-2xl"
               >
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('step-database');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="flex items-center gap-2 px-8 py-4 bg-primary text-slate-950 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all shadow-2xl"
+                >
+                  <Database size={16} />
+                  Execute SQL Update
+                </button>
                 <Printer size={16} />
                 Generate PDF Report
               </button>
@@ -5246,7 +5257,7 @@ const Admin: React.FC = () => {
         {/* Side-by-Side Steps */}
         <div className="space-y-32 md:space-y-64 print:space-y-12">
             {GUIDE_STEPS.map((step, idx) => (
-                <div key={step.id} className="group print-break-inside-avoid">
+                <div key={step.id} id={`step-${step.id}`} className="group print-break-inside-avoid">
                     <div className="grid md:grid-cols-12 gap-12 md:gap-24 items-start">
                         {/* Left Side: Number & Title */}
                         <div className="md:col-span-5 space-y-8 md:sticky md:top-40 print:static print:col-span-12 print:mb-4">
@@ -5336,7 +5347,7 @@ const Admin: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-12 md:pt-16 pb-32 w-full overflow-x-hidden print:bg-white print:pt-0 print:pb-0">
+    <div className="min-h-screen bg-slate-950 pt-32 md:pt-40 pb-32 w-full overflow-x-hidden print:bg-white print:pt-0 print:pb-0">
       <style>{` 
         @keyframes grow { from { height: 0; } to { height: 100%; } } 
         @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } 
@@ -5351,52 +5362,53 @@ const Admin: React.FC = () => {
       <SaveIndicator status={saveStatus} />
       { (selectedAdProduct) && <AdGeneratorModal product={selectedAdProduct} onClose={() => setSelectedAdProduct(null)} /> }
 
-      <header className="max-w-7xl mx-auto px-4 md:px-6 mb-12 flex flex-col xl:flex-row xl:items-end justify-between gap-8 text-left w-full">
-        <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-3xl md:text-6xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR'}</div></div></div>
-        <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
-          <div className="relative">
-            <button 
-              onClick={() => setIsNavOpen(!isNavOpen)}
-              className="flex items-center gap-3 px-6 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white hover:bg-slate-800 transition-all shadow-xl group w-full md:w-64"
-            >
-              <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-900 transition-colors">
-                <Menu size={18} />
-              </div>
-              <div className="flex flex-col items-start flex-1">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active View</span>
-                <span className="text-sm font-bold uppercase tracking-widest">{visibleTabs.find(t => t.id === activeTab)?.label}</span>
-              </div>
-              <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isNavOpen && (
-              <>
-                <div className="fixed inset-0 z-[80]" onClick={() => setIsNavOpen(false)} />
-                <div className="absolute top-full left-0 mt-2 w-full md:w-72 bg-white/80 backdrop-blur-2xl border border-slate-100 rounded-3xl shadow-2xl z-[90] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="p-2 grid gap-1 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                    {visibleTabs.map(tab => {
-                      const TabIcon = tab.icon;
-                      const isActive = activeTab === tab.id;
-                      return (
-                        <button 
-                          key={tab.id} 
-                          onClick={() => { setActiveTab(tab.id); setIsNavOpen(false); }} 
-                          className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all text-left group ${isActive ? 'bg-primary text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
-                        >
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-slate-900/5' : 'bg-slate-100 group-hover:bg-slate-200'}`}>
-                            <TabIcon size={18} />
-                          </div>
-                          <span className="text-[11px] font-bold uppercase tracking-widest">{tab.label}</span>
-                          {isActive && <Check size={14} className="ml-auto" />}
-                        </button>
-                      );
-                    })}
-                  </div>
+      <header className="fixed top-0 left-0 right-0 z-[100] bg-slate-950/80 backdrop-blur-xl border-b border-slate-800 py-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 flex flex-col xl:flex-row xl:items-center justify-between gap-8 text-left w-full">
+          <div className="flex flex-col gap-6 text-left"><div className="flex items-center gap-4"><h1 className="text-2xl md:text-4xl font-serif text-white tracking-tighter">Maison <span className="text-primary italic font-light">Portal</span></h1><div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[9px] font-black text-primary uppercase tracking-[0.2em]">{isOwner ? 'SYSTEM OWNER' : 'ADMINISTRATOR'}</div></div></div>
+          <div className="flex flex-col xl:flex-row gap-4 w-full xl:w-auto">
+            <div className="relative">
+              <button 
+                onClick={() => setIsNavOpen(!isNavOpen)}
+                className="flex items-center gap-3 px-6 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white hover:bg-slate-800 transition-all shadow-xl group w-full md:w-64"
+              >
+                <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-slate-900 transition-colors">
+                  <Menu size={18} />
                 </div>
-              </>
-            )}
-          </div>
-          <div className="flex flex-col gap-2 w-full md:w-fit">
+                <div className="flex flex-col items-start flex-1">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active View</span>
+                  <span className="text-sm font-bold uppercase tracking-widest">{visibleTabs.find(t => t.id === activeTab)?.label}</span>
+                </div>
+                <ChevronDown size={16} className={`text-slate-500 transition-transform duration-300 ${isNavOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isNavOpen && (
+                <>
+                  <div className="fixed inset-0 z-[80]" onClick={() => setIsNavOpen(false)} />
+                  <div className="absolute top-full left-0 mt-2 w-full md:w-72 bg-white/80 backdrop-blur-2xl border border-slate-100 rounded-3xl shadow-2xl z-[90] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="p-2 grid gap-1 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                      {visibleTabs.map(tab => {
+                        const TabIcon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                          <button 
+                            key={tab.id} 
+                            onClick={() => { setActiveTab(tab.id); setIsNavOpen(false); }} 
+                            className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all text-left group ${isActive ? 'bg-primary text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
+                          >
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-slate-900/5' : 'bg-slate-100 group-hover:bg-slate-200'}`}>
+                              <TabIcon size={18} />
+                            </div>
+                            <span className="text-[11px] font-bold uppercase tracking-widest">{tab.label}</span>
+                            {isActive && <Check size={14} className="ml-auto" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex flex-col gap-2 w-full md:w-fit">
             <div className="flex gap-2">
               <Link 
                 to="/" 

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSettings } from '../App';
-import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, LogOut, Heart, Trash2, User, Save, MapPin, MessageCircle, Loader2 } from 'lucide-react';
+import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, LogOut, Heart, Trash2, User, Save, MapPin, MessageCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Order, Product, WishlistItem } from '../types';
-import { generateWhatsAppMessage } from '../lib/whatsapp';
+import LeadCaptureModal from '../components/LeadCaptureModal';
+import { generateWhatsAppLink } from '../lib/utils';
 
 const Account: React.FC = () => {
   const { user, orders, settings, wishlist, products, deleteData, updateData, logEvent } = useSettings();
@@ -14,7 +15,6 @@ const Account: React.FC = () => {
   
   // Profile state
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.user_metadata?.full_name || user?.name || '',
     phone: user?.phone || '',
@@ -29,12 +29,65 @@ const Account: React.FC = () => {
   
   // Order modal state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
 
   const myWishlistItems = wishlist.filter(item => item.userId === user?.id);
   const wishlistProducts = myWishlistItems.map(item => {
     const product = products.find(p => p.id === item.productId);
     return { item, product };
   }).filter(wp => wp.product !== undefined) as { item: WishlistItem, product: Product }[];
+
+  const handleInquireWishlist = () => {
+    if (wishlistProducts.length === 0) return;
+
+    if (!settings.whatsappNumber) {
+      alert('WhatsApp inquiry is currently unavailable.');
+      return;
+    }
+
+    if (!user) {
+      setIsLeadModalOpen(true);
+    } else {
+      proceedToWhatsApp(user.name || 'User', user.email || '');
+    }
+  };
+
+  const proceedToWhatsApp = async (name: string, email: string) => {
+    const total = wishlistProducts.reduce((sum, { product }) => sum + (product.price || 0), 0);
+
+    // Shadow Order Logging
+    const shadowOrder = {
+      id: crypto.randomUUID(),
+      userId: user?.id || 'guest',
+      customerName: name,
+      customerEmail: email,
+      status: 'Pending WhatsApp Inquiry',
+      total: total,
+      items: wishlistProducts.map(({ product }) => ({
+        productId: product.id,
+        quantity: 1,
+        price: product.price || 0
+      })),
+      createdAt: Date.now()
+    };
+    await updateData('orders', shadowOrder);
+
+    const whatsappItems = wishlistProducts.map(({ product }) => ({
+      name: product.name || 'Unknown Product',
+      price: product.price || 0,
+      quantity: 1
+    }));
+
+    const link = generateWhatsAppLink(
+      settings.whatsappNumber || '',
+      whatsappItems,
+      total,
+      settings.currencySymbol || '$'
+    );
+    
+    window.open(link, '_blank');
+    setIsLeadModalOpen(false);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -108,67 +161,6 @@ const Account: React.FC = () => {
       console.error('Error saving profile:', error);
     } finally {
       setIsSavingProfile(false);
-    }
-  };
-
-  const handleWhatsAppInquiry = async () => {
-    if (!user || wishlistProducts.length === 0) return;
-
-    setIsProcessing(true);
-    try {
-      const orderId = crypto.randomUUID();
-      
-      const subtotal = wishlistProducts.reduce((sum, wp) => sum + wp.product.price, 0);
-
-      const orderData = {
-        id: orderId,
-        userId: user.id,
-        status: 'Pending WhatsApp Inquiry',
-        totalAmount: subtotal,
-        shippingAddress: { name: user.user_metadata?.full_name, email: user.email },
-        createdAt: Date.now()
-      };
-
-      // Shadow Order Logging
-      await updateData('orders', orderData);
-      
-      // Log items
-      for (const wp of wishlistProducts) {
-        await updateData('order_items', {
-          id: crypto.randomUUID(),
-          orderId: orderId,
-          productId: wp.product.id,
-          quantity: 1,
-          priceAtTime: wp.product.price,
-          variations: wp.item.variations
-        });
-      }
-
-      logEvent('checkout', `WhatsApp Inquiry Wishlist - Total: ${subtotal}`);
-
-      const itemsForMessage = wishlistProducts.map(wp => ({
-        product: wp.product,
-        quantity: 1,
-        variations: wp.item.variations
-      }));
-
-      const message = generateWhatsAppMessage(itemsForMessage, subtotal, settings.currencySymbol);
-      const whatsappUrl = `https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${message}`;
-      
-      window.open(whatsappUrl, '_blank');
-    } catch (error) {
-      console.error('Error logging shadow order:', error);
-      const subtotal = wishlistProducts.reduce((sum, wp) => sum + wp.product.price, 0);
-      const itemsForMessage = wishlistProducts.map(wp => ({
-        product: wp.product,
-        quantity: 1,
-        variations: wp.item.variations
-      }));
-      const message = generateWhatsAppMessage(itemsForMessage, subtotal, settings.currencySymbol);
-      const whatsappUrl = `https://wa.me/${settings.whatsappNumber?.replace(/\D/g, '')}?text=${message}`;
-      window.open(whatsappUrl, '_blank');
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -292,69 +284,61 @@ const Account: React.FC = () => {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-8">
-                  <div className="flex justify-end">
+                <div className="space-y-6">
+                  <div className="flex justify-end mb-6">
                     <button
-                      onClick={handleWhatsAppInquiry}
-                      disabled={isProcessing}
-                      className="px-6 py-3 bg-[#25D366] text-white font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-[#128C7E] transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm"
+                      onClick={handleInquireWishlist}
+                      disabled={!settings.whatsappNumber}
+                      title={!settings.whatsappNumber ? "WhatsApp inquiry is currently unavailable" : ""}
+                      className="px-6 py-3 bg-[#25D366] text-white font-bold uppercase tracking-widest text-xs rounded-xl hover:bg-[#20bd5a] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} />}
+                      <MessageCircle size={16} />
                       Send Inquiry via WhatsApp
                     </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {wishlistProducts.map(({ item, product }) => (
-                      <div key={item.id} className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 flex flex-col">
-                        <button 
-                          onClick={(e) => { e.preventDefault(); handleRemoveWishlist(item.id, product.id); }}
-                          className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur-md hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all shadow-sm"
-                          title="Remove from Wishlist"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                        
-                        <Link to={`/product/${product.id}`} className="block aspect-square bg-slate-50 overflow-hidden">
-                          {product.media?.[0]?.type?.startsWith('image/') ? (
-                            <img 
-                              src={product.media[0].url} 
-                              alt={product.media[0].altText || product.name}
-                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                              <Package size={48} strokeWidth={1} />
-                            </div>
-                          )}
-                        </Link>
-                        
-                        <div className="p-5 flex flex-col flex-grow">
-                          <Link to={`/product/${product.id}`} className="block mb-2">
-                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{product.name}</h3>
-                          </Link>
-                          <p className="text-sm text-slate-500 mb-4 line-clamp-2 flex-grow">{product.description}</p>
-                          
-                          {item.variations && Object.keys(item.variations).length > 0 && (
-                            <div className="mb-4 text-xs text-slate-500">
-                              {Object.entries(item.variations).map(([k, v]) => (
-                                <span key={k} className="inline-block bg-slate-100 px-2 py-1 rounded mr-2 mb-1">{k}: {v as string}</span>
-                              ))}
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center justify-between mt-auto">
-                            <span className="text-lg font-serif text-slate-900">{settings.currencySymbol}{product.price.toFixed(2)}</span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                              Added {new Date(item.createdAt).toLocaleDateString()}
-                            </span>
+                    <div key={item.id} className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 flex flex-col">
+                      <button 
+                        onClick={(e) => { e.preventDefault(); handleRemoveWishlist(item.id, product.id); }}
+                        className="absolute top-4 right-4 z-10 p-2 bg-white/80 backdrop-blur-md hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-all shadow-sm"
+                        title="Remove from Wishlist"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      
+                      <Link to={`/product/${product.id}`} className="block aspect-square bg-slate-50 overflow-hidden">
+                        {product.media?.[0]?.type?.startsWith('image/') ? (
+                          <img 
+                            src={product.media[0].url} 
+                            alt={product.media[0].altText || product.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-300">
+                            <Package size={48} strokeWidth={1} />
                           </div>
+                        )}
+                      </Link>
+                      
+                      <div className="p-5 flex flex-col flex-grow">
+                        <Link to={`/product/${product.id}`} className="block mb-2">
+                          <h3 className="text-lg font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{product.name}</h3>
+                        </Link>
+                        <p className="text-sm text-slate-500 mb-4 line-clamp-2 flex-grow">{product.description}</p>
+                        <div className="flex items-center justify-between mt-auto">
+                          <span className="text-lg font-serif text-slate-900">R{product.price.toFixed(2)}</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            Added {new Date(item.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              )
-            )}
+              </div>
+            )
+          )}
 
             {activeTab === 'profile' && (
               <div className="max-w-2xl mx-auto">
@@ -606,6 +590,12 @@ const Account: React.FC = () => {
           </div>
         </div>
       )}
+
+      <LeadCaptureModal 
+        isOpen={isLeadModalOpen}
+        onClose={() => setIsLeadModalOpen(false)}
+        onSubmit={proceedToWhatsApp}
+      />
     </div>
   );
 };

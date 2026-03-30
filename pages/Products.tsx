@@ -483,7 +483,7 @@ const Products: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-12">
+                <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-1 md:gap-12">
                   {group.items.map((product: Product) => (
                     <div 
                       key={product.id}
@@ -491,7 +491,7 @@ const Products: React.FC = () => {
                       className="group flex flex-col relative cursor-pointer"
                     >
                       {/* Product Image Container */}
-                      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl md:rounded-[2.5rem] bg-slate-50 mb-3 md:mb-8 transition-all duration-700 group-hover:shadow-2xl group-hover:-translate-y-2">
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-none bg-transparent mb-1 md:mb-8 transition-all duration-700 md:group-hover:-translate-y-2">
                         {renderProductMedia(product)}
                         
                         {/* Badges */}
@@ -532,19 +532,19 @@ const Products: React.FC = () => {
                       </div>
                       
                       {/* Product Info */}
-                      <div className="flex flex-col text-center px-2 md:px-4">
+                      <div className="flex flex-col text-center px-1 md:px-4">
                         <span className="text-[6px] md:text-[10px] font-black text-primary uppercase tracking-[0.2em] md:tracking-[0.4em] mb-1 md:mb-3">
                            {categories.find(c => c.id === product.categoryId)?.name}
                         </span>
-                        <h3 className="text-[10px] md:text-2xl font-serif text-slate-900 mb-2 md:mb-4 group-hover:text-primary transition-colors duration-500 leading-tight line-clamp-2">
+                        <h3 className="text-[7px] md:text-2xl font-serif text-slate-900 mb-0.5 md:mb-4 group-hover:text-primary transition-colors duration-500 leading-tight line-clamp-2">
                           {product.name}
                         </h3>
-                        <div className="flex items-center justify-center gap-2 md:gap-4">
-                          <span className="text-[9px] md:text-lg font-light text-slate-900">
+                        <div className="flex items-center justify-center gap-1 md:gap-4">
+                          <span className="text-[7px] md:text-lg font-light text-slate-900">
                             R {(product.price || 0).toLocaleString()}
                           </span>
                           {product.wasPrice && product.wasPrice > 0 && (
-                            <span className="text-[7px] md:text-sm font-light text-slate-300 line-through">
+                            <span className="text-[6px] md:text-sm font-light text-slate-300 line-through">
                               R {product.wasPrice.toLocaleString()}
                             </span>
                           )}
