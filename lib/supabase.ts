@@ -83,6 +83,7 @@ export async function upsertData(table: string, item: any) {
   }
 
   const cleanItem = JSON.parse(JSON.stringify(item));
+  console.log(`Upserting to ${table}:`, cleanItem);
   const { error } = await supabase.from(table).upsert(cleanItem);
   if (error) {
     console.error(`Upsert error for ${table}:`, error.message, error.details, error.hint);

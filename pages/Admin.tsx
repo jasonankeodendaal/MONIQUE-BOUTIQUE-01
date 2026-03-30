@@ -6011,7 +6011,7 @@ const Admin: React.FC = () => {
                )}
              </div>
              <div className="flex flex-col md:flex-row gap-4 pt-12 border-t border-slate-800 mt-8">
-                <button onClick={() => { updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Publish Changes</button>
+                <button onClick={() => { console.log('Saving settings:', tempSettings); updateSettings(tempSettings); setEditorDrawerOpen(false); }} className="flex-1 py-5 bg-primary text-slate-900 font-black uppercase text-xs rounded-xl hover:brightness-110 transition-all shadow-xl shadow-primary/20">Publish Changes</button>
                 <button onClick={() => setEditorDrawerOpen(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 font-black uppercase text-xs rounded-xl hover:text-white transition-all">Discard</button>
              </div>
           </div>
