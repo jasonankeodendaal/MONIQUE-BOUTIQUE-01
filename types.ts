@@ -633,6 +633,7 @@ export interface WishlistItem {
   id: string;
   userId: string;
   productId: string;
+  variations?: Record<string, string>;
   createdAt: number;
 }
 
