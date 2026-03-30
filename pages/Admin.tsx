@@ -5234,10 +5234,7 @@ const Admin: React.FC = () => {
               <p className="text-slate-500 text-sm md:text-lg max-w-md md:text-right leading-relaxed font-light">
                  A sequential roadmap for transitioning from local prototype to a fully-synced global luxury bridge page.
               </p>
-              <button 
-                onClick={() => window.print()}
-                className="flex items-center gap-2 px-8 py-4 bg-white text-slate-950 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-2xl"
-              >
+              <div className="flex flex-wrap gap-4 md:justify-end">
                 <button 
                   onClick={() => {
                     const el = document.getElementById('step-database');
@@ -5248,9 +5245,14 @@ const Admin: React.FC = () => {
                   <Database size={16} />
                   Execute SQL Update
                 </button>
-                <Printer size={16} />
-                Generate PDF Report
-              </button>
+                <button 
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 px-8 py-4 bg-white text-slate-950 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-2xl"
+                >
+                  <Printer size={16} />
+                  Generate PDF Report
+                </button>
+              </div>
            </div>
         </div>
 
@@ -5439,7 +5441,8 @@ const Admin: React.FC = () => {
             </button>
           </div>
         </div>
-      </header>
+      </div>
+    </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
         { (activeTab === 'enquiries') && renderEnquiries() }
