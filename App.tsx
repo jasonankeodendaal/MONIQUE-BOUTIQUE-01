@@ -728,6 +728,8 @@ const App: React.FC = () => {
   const performLogout = useCallback(async () => {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
+    } else {
+      localStorage.removeItem('fake_admin_user');
     }
     setUser(null);
     if (window.location.hash.includes('admin')) {
@@ -866,7 +868,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     refreshAllData();
-    if (!isSupabaseConfigured) { setLoadingAuth(false); return; }
+    if (!isSupabaseConfigured) { 
+      const fakeUser = localStorage.getItem('fake_admin_user');
+      if (fakeUser) {
+        try {
+          setUser(JSON.parse(fakeUser));
+        } catch (e) {}
+      }
+      setLoadingAuth(false); 
+      return; 
+    }
     const setupAuth = async () => {
       try {
          const { data: { session }, error } = await supabase.auth.getSession();
@@ -973,6 +984,8 @@ const App: React.FC = () => {
     try {
       if (isSupabaseConfigured) {
         await supabase.auth.signOut();
+      } else {
+        localStorage.removeItem('fake_admin_user');
       }
     } catch (e) {
       console.error('Logout error:', e);

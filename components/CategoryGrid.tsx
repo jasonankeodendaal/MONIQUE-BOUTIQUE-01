@@ -25,15 +25,15 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ items }) => {
         <div className="flex flex-row items-end justify-between gap-4 md:gap-8 mb-8 md:mb-20">
           <div className="max-w-2xl">
             <span className="text-[7px] md:text-[10px] font-medium uppercase tracking-[0.2em] md:tracking-[0.3em] text-slate-600 block mb-2 md:mb-4">
-              {settings.homeNicheHeader}
+              {settings.homeNicheHeader || 'Curated Departments'}
             </span>
             <h2 className="text-sm md:text-4xl font-serif text-slate-900 tracking-tighter leading-tight">
-              {settings.homeCategoryShopByLabel || 'Shop by'} <span className="italic font-light text-primary">{settings.productsDeptLabel}</span>
+              {settings.homeCategoryShopByLabel || 'Shop by'} <span className="italic font-light text-primary">{settings.productsDeptLabel || 'Department'}</span>
             </h2>
           </div>
           <div className="max-w-[120px] md:max-w-sm">
             <p className="text-[8px] md:text-base text-slate-700 font-light leading-relaxed italic border-l border-primary/20 pl-3 md:pl-6">
-              "{settings.homeNicheDescription}"
+              "{settings.homeNicheDescription || 'Explore our meticulously categorized collections, designed for the discerning eye.'}"
             </p>
           </div>
         </div>

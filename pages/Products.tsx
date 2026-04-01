@@ -64,16 +64,16 @@ const Products: React.FC = () => {
       if (cat) {
         return {
           title: cat.name,
-          subtitle: cat.description || settings.productsHeroSubtitle,
-          image: cat.image || settings.productsHeroImage,
+          subtitle: cat.description || settings.productsHeroSubtitle || 'Explore our curated collections.',
+          image: cat.image || settings.productsHeroImage || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000',
           badge: 'Department Focus'
         };
       }
     }
     return {
-      title: settings.productsHeroTitle,
-      subtitle: settings.productsHeroSubtitle,
-      image: settings.productsHeroImage,
+      title: settings.productsHeroTitle || 'The Collection',
+      subtitle: settings.productsHeroSubtitle || 'Explore our curated collections.',
+      image: settings.productsHeroImage || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000',
       badge: 'The Collective Catalog'
     };
   }, [selectedCat, categories, settings]);
@@ -282,7 +282,7 @@ const Products: React.FC = () => {
                 <Search className="ml-4 md:ml-8 text-slate-300 w-3.5 h-3.5 md:w-5 md:h-5" strokeWidth={1.5} />
                 <input
                   type="text"
-                  placeholder={settings.productsSearchPlaceholder}
+                  placeholder={settings.productsSearchPlaceholder || 'Search...'}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full px-3 md:px-6 py-3 md:py-7 bg-transparent outline-none text-[10px] md:text-base font-light text-slate-900 placeholder:text-slate-300"
@@ -391,10 +391,10 @@ const Products: React.FC = () => {
                 {isSortOpen && (
                   <div className="absolute top-full right-0 mt-4 w-56 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 p-3">
                       {[
-                        { id: 'newest', label: 'Latest Arrivals' },
-                        { id: 'price-low', label: 'Price: Low to High' },
-                        { id: 'price-high', label: 'Price: High to Low' },
-                        { id: 'name', label: 'Alphabetical' },
+                        { id: 'newest', label: settings.sortLatestLabel || 'Latest Arrivals' },
+                        { id: 'price-low', label: settings.sortPriceLowLabel || 'Price: Low to High' },
+                        { id: 'price-high', label: settings.sortPriceHighLabel || 'Price: High to Low' },
+                        { id: 'name', label: settings.sortNameLabel || 'Alphabetical' },
                       ].map(option => (
                         <button
                           key={option.id}
@@ -441,7 +441,7 @@ const Products: React.FC = () => {
                     selectedSub === 'all' ? 'bg-slate-900 text-white shadow-xl scale-105' : 'bg-white text-slate-400 border border-slate-100 hover:border-primary/30'
                   }`}
                 >
-                  {settings.productsFilterAll || 'Show All'}
+                  {settings.productsShowAllLabel || 'Show All'}
                 </button>
 
                 {currentSubCategories.map((sub: SubCategory) => (

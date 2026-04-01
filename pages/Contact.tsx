@@ -99,10 +99,10 @@ const Contact: React.FC = () => {
                 {settings.contactConciergeLabel || 'Concierge Online'}
               </div>
               <h1 className="font-serif text-slate-900 leading-[0.9] tracking-tighter mb-4 md:mb-6 text-balance" style={{ fontSize: 'clamp(1.5rem, 6vw, 8rem)' }}>
-                {settings.contactHeroTitle}
+                {settings.contactHeroTitle || 'Get in Touch'}
               </h1>
               <p className="text-[10px] md:text-xl text-slate-500 font-light max-w-xl leading-relaxed text-pretty">
-                {settings.contactHeroSubtitle}
+                {settings.contactHeroSubtitle || 'We would love to hear from you. Reach out to us for any inquiries or assistance.'}
               </p>
             </div>
             
@@ -144,7 +144,7 @@ const Contact: React.FC = () => {
                  <form className="space-y-8" onSubmit={handleSubmit}>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormNameLabel}</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormNameLabel || 'Name'}</label>
                         <input 
                           type="text" 
                           required
@@ -155,7 +155,7 @@ const Contact: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormEmailLabel}</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormEmailLabel || 'Email'}</label>
                         <input 
                           type="email" 
                           required
@@ -179,7 +179,7 @@ const Contact: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormSubjectLabel}</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormSubjectLabel || 'Subject'}</label>
                         <div className="relative">
                           <select 
                             value={formState.subject}
@@ -197,7 +197,7 @@ const Contact: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormMessageLabel}</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">{settings.contactFormMessageLabel || 'Message'}</label>
                       <textarea 
                         rows={5} 
                         required
@@ -217,7 +217,7 @@ const Contact: React.FC = () => {
                         <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                       ) : (
                         <>
-                          <span>{settings.contactFormButtonText}</span>
+                          <span>{settings.contactFormButtonText || 'Send Message'}</span>
                           <Send size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </>
                       )}
@@ -248,8 +248,8 @@ const Contact: React.FC = () => {
                      <Clock className="text-slate-500 mt-1 flex-shrink-0 w-4 h-4 md:w-5 md:h-5" />
                      <div>
                        <span className="block text-[6px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{settings.contactHoursLabel || 'Operating Hours'}</span>
-                       <p className="text-[8px] md:text-sm text-slate-300">{settings.contactHoursWeekdays}</p>
-                       <p className="text-[8px] md:text-sm text-slate-300">{settings.contactHoursWeekends}</p>
+                       <p className="text-[8px] md:text-sm text-slate-300">{settings.contactHoursWeekdays || 'Mon-Fri: 9am - 6pm'}</p>
+                       <p className="text-[8px] md:text-sm text-slate-300">{settings.contactHoursWeekends || 'Sat-Sun: 10am - 4pm'}</p>
                      </div>
                   </div>
                 </div>

@@ -38,7 +38,7 @@ const About: React.FC = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.05)_0%,transparent_70%)]"></div>
         
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none hidden lg:block overflow-hidden w-full text-center">
-           <span className="text-[20vw] font-serif font-black text-white/[0.02] leading-none select-none tracking-tighter whitespace-nowrap inline-block animate-kenburns">EST. {settings.aboutEstablishedYear}</span>
+           <span className="text-[20vw] font-serif font-black text-white/[0.02] leading-none select-none tracking-tighter whitespace-nowrap inline-block animate-kenburns">{settings.aboutEstLabel || 'EST.'} {settings.aboutEstablishedYear}</span>
         </div>
 
         {/* Image Column - Shrinks to fit */}
@@ -109,7 +109,7 @@ const About: React.FC = () => {
                       {settings.aboutSignatureImage && (
                          <div className="pt-6 md:pt-20 border-t border-slate-200/60 flex flex-col items-center">
                             <img src={settings.aboutSignatureImage} loading={settings.seoEnableLazyLoading !== false ? "lazy" : undefined} className="h-10 md:h-28 w-auto object-contain opacity-60 mix-blend-multiply" alt="Signature" />
-                            <span className="text-[6px] md:text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-2 md:mt-4">Verified Narrative</span>
+                            <span className="text-[6px] md:text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-2 md:mt-4">{settings.aboutVerifiedNarrativeLabel || 'Verified Narrative'}</span>
                          </div>
                       )}
                   </div>
@@ -163,18 +163,18 @@ const About: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
                <div className="text-left">
                   <span className="text-[11px] font-black uppercase tracking-[0.5em] text-primary mb-5 block flex items-center gap-3 text-contrast-shadow">
-                    <Heart size={14} className="fill-current animate-pulse" /> {settings.aboutHeroBadge}
+                    <Heart size={14} className="fill-current animate-pulse" /> {settings.aboutHeroBadge || 'Curator Exclusive'}
                   </span>
-                  <h3 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight">The Curator's Edit</h3>
+                  <h3 className="text-4xl md:text-6xl font-serif text-slate-900 tracking-tight">{settings.aboutCuratorsEditTitle || "The Curator's Edit"}</h3>
                   <p className="text-slate-500 font-light mt-6 max-w-lg text-lg md:text-xl leading-relaxed">
-                    Exclusive selections defined by authenticity and global trend analysis.
+                    {settings.aboutCuratorsEditDesc || "Exclusive selections defined by authenticity and global trend analysis."}
                   </p>
                </div>
                <Link 
                  to="/products" 
                  className="hidden md:inline-flex items-center gap-4 px-10 py-5 bg-slate-900 shadow-2xl rounded-full text-xs font-black uppercase tracking-widest text-white hover:bg-primary hover:text-slate-900 transition-all group"
                >
-                  Explore Entire Collection <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform"/>
+                  {settings.aboutExploreCollectionBtn || "Explore Entire Collection"} <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform"/>
                </Link>
             </div>
 
@@ -257,7 +257,7 @@ const About: React.FC = () => {
       {/* Final Editorial Footer */}
       <div className="py-16 border-t border-slate-200/40 text-center bg-[#FDFBF7] relative">
          <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 opacity-30">
-            <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.5em]">Digital Portfolio Verified: {lastUpdatedDate}</p>
+            <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.5em]">{settings.aboutPortfolioVerifiedLabel || 'Digital Portfolio Verified'}: {lastUpdatedDate}</p>
             <div className="flex items-center gap-8">
               <span className="font-mono text-[10px] text-slate-500 tracking-widest">NR-990-2025-JS</span>
               <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(212,175,55,1)]"></div>

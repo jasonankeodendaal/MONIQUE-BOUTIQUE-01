@@ -543,7 +543,7 @@ const ProductDetail: React.FC = () => {
                         onClick={handleAddToCart}
                         className="w-full py-3 md:py-5 bg-white border border-slate-900 text-slate-900 font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[7px] md:text-[10px] rounded-lg md:rounded-2xl hover:bg-slate-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 md:gap-3"
                       >
-                        <span>Add to Cart</span>
+                        <span>{settings.productAcquisitionLabel || 'Secure Acquisition'}</span>
                         <ShoppingBag size={12} className="md:w-4 md:h-4" />
                       </button>
                       <button 

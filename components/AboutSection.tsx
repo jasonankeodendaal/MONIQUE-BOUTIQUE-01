@@ -35,7 +35,7 @@ const AboutSection: React.FC = () => {
             </div>
             
             <h2 className="font-serif text-slate-900 mb-6 md:mb-10 leading-[0.88] tracking-tighter" style={{ fontSize: 'clamp(2rem, 6vw, 6.5rem)' }}>
-              {settings.homeAboutTitle.split(' ').map((word, i) => (
+              {(settings.homeAboutTitle || 'A Legacy of Refined Taste').split(' ').map((word, i) => (
                 <span key={i} className={i % 3 === 2 ? "italic font-light text-primary/80 block" : "block"}>
                   {word}
                 </span>
@@ -44,7 +44,7 @@ const AboutSection: React.FC = () => {
             
             <div className="relative mb-8 md:mb-12 pl-4 md:pl-8 border-l border-primary/10 max-w-2xl">
               <p className="text-[10px] md:text-2xl text-slate-900 font-light leading-relaxed italic line-clamp-3 md:line-clamp-none">
-                "{settings.homeAboutDescription}"
+                "{settings.homeAboutDescription || 'We curate objects of exceptional quality and provenance, connecting discerning collectors with pieces that transcend time.'}"
               </p>
               <Link to="/about" className="md:hidden text-[8px] font-bold uppercase tracking-widest text-primary mt-2 inline-block">
                 Read More +
@@ -59,7 +59,7 @@ const AboutSection: React.FC = () => {
                 <ArrowRight className="w-3.5 h-3.5 md:w-6 md:h-6 text-slate-900 group-hover:text-white transition-colors" />
               </div>
               <span className="text-[8px] md:text-[12px] font-bold uppercase tracking-[0.2em] md:tracking-[0.4em] text-slate-900 group-hover:text-primary transition-colors">
-                {settings.homeAboutCta}
+                {settings.homeAboutCta || 'Explore Our Heritage'}
               </span>
             </Link>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Mail, Lock, Chrome, ArrowRight, CheckCircle2, ShieldCheck, Loader2, ArrowLeft, Shield, Sparkles } from 'lucide-react';
 import { useSettings } from '../App';
 import { motion, AnimatePresence } from 'motion/react';
@@ -44,6 +44,26 @@ const AdminLogin: React.FC = () => {
     setSuccessMessage(null);
 
     try {
+      if (!isSupabaseConfigured) {
+        if (email === 'admin@login.com' && password === '12345678') {
+          const fakeUser = {
+            id: 'fake-admin-id',
+            email: 'admin@login.com',
+            user_metadata: { role: 'admin' },
+            app_metadata: {},
+            aud: 'authenticated',
+            created_at: new Date().toISOString()
+          };
+          localStorage.setItem('fake_admin_user', JSON.stringify(fakeUser));
+          // Force reload to apply the fake user in App.tsx
+          window.location.href = '#/admin';
+          window.location.reload();
+          return;
+        } else {
+          throw new Error('Invalid login credentials');
+        }
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       

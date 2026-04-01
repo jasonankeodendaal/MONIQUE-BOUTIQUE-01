@@ -45,15 +45,15 @@ const Home: React.FC = () => {
            <div className="text-center mb-12">
               <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-slate-400 block mb-4">{settings.homeTrustSubheader || 'Curation Integrity'}</span>
               <h2 className="text-2xl md:text-3xl font-serif text-slate-900 tracking-tighter">
-                 {settings.homeTrustHeader}
+                 {settings.homeTrustHeader || 'The Standard of Excellence'}
               </h2>
            </div>
            
            <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-8">
               {[
-                { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title, desc: settings.homeTrustItem1Desc },
-                { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title, desc: settings.homeTrustItem2Desc },
-                { iconName: settings.homeTrustItem3Icon || 'Globe', title: settings.homeTrustItem3Title, desc: settings.homeTrustItem3Desc }
+                { iconName: settings.homeTrustItem1Icon || 'ShieldCheck', title: settings.homeTrustItem1Title || 'Verified Authenticity', desc: settings.homeTrustItem1Desc || 'Every piece is rigorously authenticated by our experts.' },
+                { iconName: settings.homeTrustItem2Icon || 'Sparkles', title: settings.homeTrustItem2Title || 'Curated Selection', desc: settings.homeTrustItem2Desc || 'Only the finest items make it into our collection.' },
+                { iconName: settings.homeTrustItem3Icon || 'Globe', title: settings.homeTrustItem3Title || 'Global Reach', desc: settings.homeTrustItem3Desc || 'Sourced from the most exclusive locations worldwide.' }
               ].map((item, i) => {
                 return (
                   <div key={i} className="flex flex-col items-center">
