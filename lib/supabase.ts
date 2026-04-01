@@ -8,7 +8,13 @@ const rawKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const supabaseUrl = rawUrl.trim();
 const supabaseAnonKey = rawKey.trim();
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseUrl.includes('supabase.co'));
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && 
+  supabaseUrl.includes('supabase.co') && 
+  !supabaseUrl.includes('placeholder') &&
+  supabaseAnonKey &&
+  supabaseAnonKey !== 'placeholder'
+);
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
@@ -50,12 +56,17 @@ export async function fetchTableData(table: string) {
     }
     return local ? JSON.parse(local) : [];
   }
-  const { data, error } = await supabase.from(table).select('*');
-  if (error) {
-    console.error(`Fetch error for ${table}:`, error.message, error.details, error.hint);
+  try {
+    const { data, error } = await supabase.from(table).select('*');
+    if (error) {
+      console.warn(`Fetch error for ${table}:`, error.message);
+      return null;
+    }
+    return data || [];
+  } catch (err) {
+    console.warn(`Network error fetching ${table}:`, err);
     return null;
   }
-  return data || [];
 }
 
 /**

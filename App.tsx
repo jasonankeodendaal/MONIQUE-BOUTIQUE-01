@@ -521,7 +521,7 @@ const TrafficTracker = ({ logEvent }: { logEvent: (t: any, l: string, s?: string
   return null;
 };
 
-const useInactivityTimer = (logout: () => void, timeoutMs = 300000) => {
+const useInactivityTimer = (logout: () => void, timeoutMs = 3600000) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const logoutRef = useRef(logout);
   const lastWriteRef = useRef(0);
@@ -742,7 +742,7 @@ const App: React.FC = () => {
     if (user && isAdminRoute && !window.location.hash.includes('login')) {
       performLogout();
     }
-  }, 300000);
+  }, 3600000);
 
   const calculateStorage = useCallback(() => {
       const dataSet = [settings, products, categories, subCategories, heroSlides, enquiries, admins, stats, trainingModules];
