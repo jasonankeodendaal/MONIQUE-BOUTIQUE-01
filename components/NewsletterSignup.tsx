@@ -18,8 +18,12 @@ const NewsletterSignup: React.FC = () => {
         <h2 className="text-4xl md:text-6xl font-serif text-slate-900 mb-6 tracking-tight">Join the <span className="italic font-light text-primary">Inner Circle</span></h2>
         <p className="text-slate-700 mb-12 text-lg md:text-xl font-light max-w-xl mx-auto">Unlock private sales, early access to new collections, and exclusive editorial insights.</p>
         <form onSubmit={handleSubmit} className="flex flex-row gap-2 max-w-xl mx-auto">
+          <label htmlFor="newsletter-email" className="sr-only">Email address</label>
           <input
+            id="newsletter-email"
+            name="email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email address"

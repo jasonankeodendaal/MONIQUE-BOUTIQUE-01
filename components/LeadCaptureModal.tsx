@@ -37,9 +37,12 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Name</label>
+            <label htmlFor="lead-name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Name</label>
             <input 
+              id="lead-name"
+              name="name"
               type="text" 
+              autoComplete="name"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -48,9 +51,12 @@ const LeadCaptureModal: React.FC<LeadCaptureModalProps> = ({ isOpen, onClose, on
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email</label>
+            <label htmlFor="lead-email" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email</label>
             <input 
+              id="lead-email"
+              name="email"
               type="email" 
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

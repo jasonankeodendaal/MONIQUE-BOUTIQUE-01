@@ -206,10 +206,12 @@ const Login: React.FC = () => {
 
               <form onSubmit={handleEmailLogin} className="space-y-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.clientLoginEmailLabel || 'Email'}</label>
+                  <label htmlFor="login-email" className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">{settings.clientLoginEmailLabel || 'Email'}</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
+                      id="login-email"
+                      name="email"
                       type="email" 
                       required
                       autoComplete="email"
@@ -223,7 +225,7 @@ const Login: React.FC = () => {
                 
                 <div className="space-y-1">
                   <div className="flex justify-between items-center ml-1">
-                    <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.clientLoginPasswordLabel || 'Password'}</label>
+                    <label htmlFor="login-password" className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{settings.clientLoginPasswordLabel || 'Password'}</label>
                     <button 
                       type="button" 
                       onClick={() => { navigate('/login?view=forgot-password', { replace: true }); setError(null); setSuccessMessage(null); }}
@@ -235,6 +237,8 @@ const Login: React.FC = () => {
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
+                      id="login-password"
+                      name="password"
                       type="password" 
                       required
                       autoComplete="current-password"

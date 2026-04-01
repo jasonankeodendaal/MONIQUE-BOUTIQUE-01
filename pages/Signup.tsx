@@ -287,12 +287,14 @@ const Signup: React.FC = () => {
               <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
+                  <label htmlFor="signup-fullName" className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Full Name</label>
                   <div className="relative group">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
-                      type="text" 
+                      id="signup-fullName"
                       name="fullName"
+                      type="text" 
+                      autoComplete="name"
                       required
                       value={formData.fullName}
                       onChange={handleChange}
@@ -302,14 +304,16 @@ const Signup: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Phone Number</label>
+                  <label htmlFor="signup-phone" className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Phone Number</label>
                   <div className="relative group flex">
                     <div className="flex items-center px-4 bg-slate-800 border border-slate-800 border-r-0 rounded-l-xl text-slate-400 text-sm font-bold">
                       +27
                     </div>
                     <input 
-                      type="tel" 
+                      id="signup-phone"
                       name="phone"
+                      type="tel" 
+                      autoComplete="tel"
                       required
                       value={formData.phone}
                       onChange={handleChange}
@@ -322,12 +326,14 @@ const Signup: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Email Address</label>
+                  <label htmlFor="signup-email" className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Email Address</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
-                      type="email" 
+                      id="signup-email"
                       name="email"
+                      type="email" 
+                      autoComplete="email"
                       required
                       value={formData.email}
                       onChange={handleChange}
@@ -337,12 +343,14 @@ const Signup: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Confirm Email</label>
+                  <label htmlFor="signup-confirmEmail" className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Confirm Email</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
-                      type="email" 
+                      id="signup-confirmEmail"
                       name="confirmEmail"
+                      type="email" 
+                      autoComplete="email"
                       required
                       value={formData.confirmEmail}
                       onChange={handleChange}
@@ -359,12 +367,14 @@ const Signup: React.FC = () => {
               <h3 className="text-primary font-black uppercase text-[10px] tracking-[0.3em] border-b border-slate-800 pb-2">Security</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Password</label>
+                  <label htmlFor="signup-password" className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Password</label>
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
-                      type={showPassword ? "text" : "password"} 
+                      id="signup-password"
                       name="password"
+                      type={showPassword ? "text" : "password"} 
+                      autoComplete="new-password"
                       required
                       value={formData.password}
                       onChange={handleChange}
@@ -404,12 +414,14 @@ const Signup: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Confirm Password</label>
+                  <label htmlFor="signup-confirmPassword" className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Confirm Password</label>
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={18} />
                     <input 
-                      type={showConfirmPassword ? "text" : "password"} 
+                      id="signup-confirmPassword"
                       name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"} 
+                      autoComplete="new-password"
                       required
                       value={formData.confirmPassword}
                       onChange={handleChange}
