@@ -1833,12 +1833,6 @@ const Admin: React.FC = () => {
     }
   }, [visibleTabs, activeTab]);
 
-  const simulateSystemError = () => {
-    setTimeout(() => {
-       throw new Error("Simulation: Database Handshake Timeout (504 Gateway)");
-    }, 100);
-  };
-
   useEffect(() => {
     const fetchTraffic = async () => {
        try {
@@ -4116,9 +4110,6 @@ const Admin: React.FC = () => {
                  Global Exception Trace
               </h3>
               <div className="flex gap-2">
-                 <button onClick={simulateSystemError} className="px-3 py-1.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-colors">
-                    Trigger Failure
-                 </button>
                  <button onClick={() => setMinErrorTimestamp(Date.now())} className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-colors">
                     Clear View
                  </button>

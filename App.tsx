@@ -903,6 +903,20 @@ const App: React.FC = () => {
     setupAuth();
   }, []);
 
+  useEffect(() => {
+    // Handle Supabase OAuth redirect fragment with HashRouter
+    if (window.location.hash.includes('access_token=')) {
+      // Supabase will pick up the session automatically.
+      // We just need to clean up the URL to avoid React Router "No routes matched" error.
+      const timer = setTimeout(() => {
+        if (window.location.hash.includes('access_token=')) {
+          window.location.hash = '#/';
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const addSystemLog = async (type: SystemLog['type'], target: string, message: string, sizeBytes?: number, status: 'success' | 'failed' = 'success') => {
     const newLog: SystemLog = { id: Math.random().toString(36).substr(2, 9), timestamp: Date.now(), type, target, message, sizeBytes, status };
     setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
@@ -1235,6 +1249,7 @@ const App: React.FC = () => {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/access_token=/*" element={<Navigate to="/" replace />} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="/disclosure" element={<Legal />} />
                 <Route path="/privacy" element={<Legal />} />
