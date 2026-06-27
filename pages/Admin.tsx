@@ -1759,6 +1759,21 @@ const Admin: React.FC = () => {
   };
 
   useEffect(() => {
+    // Make entire admin dashboard and popups shrink to fit (75% scale)
+    const originalFontSize = document.documentElement.style.fontSize;
+    document.documentElement.style.fontSize = '75%';
+    
+    // Ensure body scrolling is active
+    const originalBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'auto';
+
+    return () => {
+      document.documentElement.style.fontSize = originalFontSize;
+      document.body.style.overflow = originalBodyOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
     if (catalogView === 'history') {
       loadHistory();
     }
@@ -5340,7 +5355,7 @@ const Admin: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 pt-32 md:pt-40 pb-32 w-full overflow-x-hidden print:bg-white print:pt-0 print:pb-0">
+    <div className="min-h-screen bg-slate-950 pt-32 md:pt-40 pb-32 w-full overflow-x-clip print:bg-white print:pt-0 print:pb-0">
       <style>{` 
         @keyframes grow { from { height: 0; } to { height: 100%; } } 
         @keyframes shimmer { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } } 
@@ -5497,7 +5512,6 @@ const Admin: React.FC = () => {
                      </div>
                      <div className="grid grid-cols-2 gap-6">
                        <SingleImageUploader label="Favicon (ICO/PNG)" value={tempSettings.faviconUrl || ''} onChange={v => updateTempSettings({ faviconUrl: v })} className="h-24 w-24" description="Small icon shown in the browser tab." />
-                       <SingleImageUploader label="OG Image (SEO)" value={tempSettings.ogImageUrl || ''} onChange={v => updateTempSettings({ ogImageUrl: v })} className="h-24 w-full" description="Image shown when your site is shared on social media." />
                      </div>
                    </div>
 
@@ -5981,7 +5995,6 @@ const Admin: React.FC = () => {
                     {/* Integrations: Analytics & Pixels Section */}
                     <div className="space-y-6">
                        <h4 className="text-white font-bold text-lg border-b border-slate-800 pb-2">Analytics & Pixels</h4>
-                       <SettingField label="Google Analytics 4 (G-XXXXXXXX)" value={tempSettings.googleAnalyticsId || ''} onChange={v => updateTempSettings({ googleAnalyticsId: v })} description="Your GA4 Measurement ID." />
                        <SettingField label="Meta Pixel ID (Dataset ID)" value={tempSettings.facebookPixelId || ''} onChange={v => updateTempSettings({ facebookPixelId: v })} description="Your Facebook/Meta Pixel ID." />
                        <SettingField label="TikTok Pixel ID" value={tempSettings.tiktokPixelId || ''} onChange={v => updateTempSettings({ tiktokPixelId: v })} description="Your TikTok Pixel ID." />
                        <SettingField label="Pinterest Tag ID" value={tempSettings.pinterestTagId || ''} onChange={v => updateTempSettings({ pinterestTagId: v })} description="Your Pinterest Tag ID." />

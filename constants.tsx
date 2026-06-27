@@ -260,9 +260,13 @@ export const GUIDE_STEPS = [
       '5. VERIFY: Click the "Table Editor" icon (grid icon) in the sidebar. You should now see tables like "products", "settings", and "clients".',
       '6. INITIAL RECORD: Click the "settings" table. Ensure there is one row with the ID "global". If not, re-run the script.'
     ],
-    code: `-- MASTER ARCHITECTURE SCRIPT v9.0 (SEO, Integrations & Security Ready)
--- This script is IDEMPOTENT: You can run it multiple times without wiping your existing data.
--- It uses "IF NOT EXISTS" and "ON CONFLICT DO NOTHING" to preserve your database state.
+    code: `/* SQL_START */
+-- ==============================================================================
+-- SAFETY WARNING: This script is designed to be IDEMPOTENT.
+-- It will NOT wipe your database. It uses "IF NOT EXISTS" and 
+-- "ON CONFLICT DO NOTHING" to safely add missing tables or columns 
+-- while preserving all your existing data.
+-- ==============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -347,7 +351,7 @@ CREATE TABLE IF NOT EXISTS settings (
   "disclosureTitle" TEXT, "disclosureContent" TEXT, "privacyTitle" TEXT, "privacyContent" TEXT, "termsTitle" TEXT, "termsContent" TEXT,
   
   -- Integrations & SEO
-  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT,
+  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsWelcomeTemplateId" TEXT, "emailJsOrderTemplateId" TEXT, "emailJsPublicKey" TEXT,
   "googleAnalyticsId" TEXT, "googleTagManagerId" TEXT, "facebookPixelId" TEXT, "tiktokPixelId" TEXT, "pinterestTagId" TEXT, "amazonAssociateId" TEXT, "webhookUrl" TEXT, "gscVerificationId" TEXT,
   "customHeaderScripts" TEXT, "customFooterScripts" TEXT, "seoTitle" TEXT, "seoDescription" TEXT, "seoOgImage" TEXT,
   "enableSchemaMarkup" BOOLEAN DEFAULT FALSE, "schemaType" TEXT, "customSchemaJson" TEXT,
@@ -359,11 +363,17 @@ CREATE TABLE IF NOT EXISTS settings (
   
   -- System State
   "isMaintenanceMode" BOOLEAN DEFAULT FALSE, "maintenanceTitle" TEXT, "maintenanceMessage" TEXT, "loadingMessage" TEXT,
-  "faviconUrl" TEXT, "ogImageUrl" TEXT, "navStickyHeader" BOOLEAN DEFAULT TRUE, "homeHeroTitle" TEXT, "homeHeroSubtitle" TEXT, "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE, "adminLoginDividerLabel" TEXT,
-  "currencySymbol" TEXT DEFAULT '$', "currencyCode" TEXT DEFAULT 'USD',
-  "emailJsServiceId" TEXT, "emailJsTemplateId" TEXT, "emailJsPublicKey" TEXT, "emailJsWelcomeTemplateId" TEXT, "emailJsOrderTemplateId" TEXT,
+  "currencySymbol" TEXT,
+  
+  -- Admin Experience Additional
   "adminSaveIndicatorErrorTitle" TEXT, "adminSaveIndicatorErrorMessage" TEXT, "adminSaveIndicatorSuccessTitle" TEXT, "adminSaveIndicatorSuccessMessage" TEXT,
-  "adminUploadLabel" TEXT, "adminTrafficLiveLabel" TEXT, "adminTrafficLocationTitle" TEXT, "adminTrafficTotalHitsLabel" TEXT,
+  "adminUploadLabel" TEXT, "adminSocialNewPlatform" TEXT, "adminSocialProfilesLabel" TEXT, "adminSocialAddLabel" TEXT, "adminSocialPlatformPlaceholder" TEXT, "adminSocialUrlPlaceholder" TEXT, "adminSocialEmptyMessage" TEXT,
+  "adminFaqNewQuestion" TEXT, "adminFaqNewAnswer" TEXT, "adminFaqLabel" TEXT, "adminFaqAddLabel" TEXT, "adminFaqQuestionLabel" TEXT, "adminFaqAnswerLabel" TEXT, "adminFaqQuestionPlaceholder" TEXT, "adminFaqAnswerPlaceholder" TEXT, "adminFaqEmptyMessage" TEXT,
+  "adminTrafficLiveLabel" TEXT, "adminTrafficLocationTitle" TEXT, "adminTrafficTotalHitsLabel" TEXT, "adminTrafficMapEnlargeLabel" TEXT, "adminTrafficMapModalTitle" TEXT, "adminTrafficMapModalSubtitle" TEXT, "adminTrafficMapModalActiveNode" TEXT, "adminTrafficMapModalNodeDescription" TEXT, "adminTrafficMapModalCategorizedLabel" TEXT, "adminTrafficMapModalSortedLabel" TEXT, "adminTrafficMapModalInstructions" TEXT, "adminTrafficMapModalVisitorNode" TEXT, "adminTrafficMapModalInactiveZone" TEXT, "adminTrafficTableLocationHeader" TEXT, "adminTrafficTableHitsHeader" TEXT, "adminTrafficTableDeviceHeader" TEXT, "adminTrafficStatusOnline" TEXT, "adminTrafficEmptyMessage" TEXT, "adminTrafficEmptyDescription" TEXT,
+  "adminDeviceBreakdownTitle" TEXT, "adminDeviceBreakdownSubtitle" TEXT, "adminDeviceShareLabel" TEXT, "adminPermissionOwnerMessage" TEXT, "adminPermissionDeselectAll" TEXT, "adminPermissionSelectAll" TEXT,
+  "reviewDefaultName" TEXT, "shareCopySuccessMessage" TEXT,
+  
+  -- Legacy/Compatibility
   "loginHeroBadge" TEXT, "loginHeroTitle" TEXT, "loginHeroDescription" TEXT, "loginEmailLabel" TEXT, "loginPasswordLabel" TEXT, "loginEmailPlaceholder" TEXT, "loginPasswordPlaceholder" TEXT, "loginSubmitLabel" TEXT, "loginSubmittingLabel" TEXT, "loginGoogleLabel" TEXT, "loginBackToSite" TEXT, "loginSuccessBadge" TEXT, "loginSuccessTitlePrefix" TEXT, "loginSuccessTitleSuffix" TEXT, "loginSuccessMessage" TEXT, "loginSecurityLabel" TEXT, "loginDividerLabel" TEXT
 );
 
@@ -378,58 +388,16 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views I
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies JSONB, "actionItems" JSONB, steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, stock NUMERIC, variations JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
-CREATE TABLE IF NOT EXISTS orders (
-  id TEXT PRIMARY KEY,
-  "orderNumber" TEXT,
-  "clientId" TEXT,
-  "customerName" TEXT,
-  "customerEmail" TEXT,
-  "customerPhone" TEXT,
-  "customerWhatsapp" TEXT,
-  status TEXT DEFAULT 'Pending WhatsApp Inquiry',
-  items JSONB,
-  "totalAmount" NUMERIC,
-  total NUMERIC,
-  "shippingAddress" TEXT,
-  "trackingNumber" TEXT,
-  notes TEXT,
-  "createdAt" BIGINT,
-  "updatedAt" BIGINT
-);
-CREATE TABLE IF NOT EXISTS clients (
-  id TEXT PRIMARY KEY,
-  name TEXT,
-  email TEXT,
-  phone TEXT,
-  whatsapp TEXT,
-  address TEXT,
-  company TEXT,
-  status TEXT,
-  "profileImage" TEXT,
-  "createdAt" BIGINT,
-  "lastActive" BIGINT,
-  notes TEXT,
-  "buildingNumber" TEXT,
-  "streetName" TEXT,
-  "suburb" TEXT,
-  "city" TEXT,
-  "province" TEXT,
-  "postalCode" TEXT,
-  "country" TEXT,
-  "newsletter" BOOLEAN DEFAULT FALSE,
-  "role" TEXT,
-  "permissions" JSONB,
-  "password" TEXT,
-  "autoWipeExempt" BOOLEAN
-);
-CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
+CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
+CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT, "buildingNumber" TEXT, "streetName" TEXT, "suburb" TEXT, "city" TEXT, "province" TEXT, "postalCode" TEXT, "country" TEXT, "newsletter" BOOLEAN DEFAULT FALSE);
+CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS cart (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, quantity NUMERIC, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
 CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, status TEXT DEFAULT 'pending', "createdAt" BIGINT);
 
 -- 2. INITIAL DATA & SEO DEFAULTS
-INSERT INTO settings (id, "companyName", slogan, "primaryColor", "navHomeLabel", "navProductsLabel", "navAboutLabel", "navContactLabel", "navDashboardLabel") 
-VALUES ('global', 'Findara', 'Curated Collection', '#7a3d48', 'Home', 'Collections', 'About', 'Contact', 'Dashboard')
+INSERT INTO settings (id, "companyName", slogan, "primaryColor") 
+VALUES ('global', 'My Store', 'Curated Collection', '#E5C1CD')
 ON CONFLICT (id) DO NOTHING;
 
 -- Add missing columns to settings table if they don't exist (Safety Layer)
@@ -523,76 +491,99 @@ ADD COLUMN IF NOT EXISTS "homeHeroTitle" TEXT,
 ADD COLUMN IF NOT EXISTS "homeHeroSubtitle" TEXT,
 ADD COLUMN IF NOT EXISTS "clientLoginRegistrationEnabled" BOOLEAN DEFAULT TRUE,
 ADD COLUMN IF NOT EXISTS "adminLoginDividerLabel" TEXT,
-ADD COLUMN IF NOT EXISTS "currencySymbol" TEXT;
-
-ALTER TABLE settings
-  ADD COLUMN IF NOT EXISTS "emailJsWelcomeTemplateId" TEXT,
-  ADD COLUMN IF NOT EXISTS "emailJsOrderTemplateId" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSaveIndicatorErrorTitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSaveIndicatorErrorMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSaveIndicatorSuccessTitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSaveIndicatorSuccessMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminUploadLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSocialNewPlatform" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSocialProfilesLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSocialAddLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSocialPlatformPlaceholder" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSocialUrlPlaceholder" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminSocialEmptyMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqNewQuestion" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqNewAnswer" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqAddLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqQuestionLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqAnswerLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqQuestionPlaceholder" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqAnswerPlaceholder" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminFaqEmptyMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficLiveLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficLocationTitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficTotalHitsLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapEnlargeLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalTitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalSubtitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalActiveNode" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalNodeDescription" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalCategorizedLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalSortedLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalInstructions" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalVisitorNode" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficMapModalInactiveZone" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficTableLocationHeader" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficTableHitsHeader" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficTableDeviceHeader" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficStatusOnline" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficEmptyMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminTrafficEmptyDescription" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminDeviceBreakdownTitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminDeviceBreakdownSubtitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminDeviceShareLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminPermissionOwnerMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminPermissionDeselectAll" TEXT,
-  ADD COLUMN IF NOT EXISTS "adminPermissionSelectAll" TEXT,
-  ADD COLUMN IF NOT EXISTS "reviewDefaultName" TEXT,
-  ADD COLUMN IF NOT EXISTS "shareCopySuccessMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginHeroBadge" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginHeroTitle" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginHeroDescription" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginEmailLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginPasswordLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginEmailPlaceholder" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginPasswordPlaceholder" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginSubmitLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginSubmittingLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginGoogleLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginBackToSite" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginSuccessBadge" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginSuccessTitlePrefix" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginSuccessTitleSuffix" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginSuccessMessage" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginSecurityLabel" TEXT,
-  ADD COLUMN IF NOT EXISTS "loginDividerLabel" TEXT;
-
+ADD COLUMN IF NOT EXISTS "currencySymbol" TEXT,
+ADD COLUMN IF NOT EXISTS "footerSocialsLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "emailJsWelcomeTemplateId" TEXT,
+ADD COLUMN IF NOT EXISTS "emailJsOrderTemplateId" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSaveIndicatorErrorTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSaveIndicatorErrorMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSaveIndicatorSuccessTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSaveIndicatorSuccessMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "adminUploadLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSocialNewPlatform" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSocialProfilesLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSocialAddLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSocialPlatformPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSocialUrlPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "adminSocialEmptyMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqNewQuestion" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqNewAnswer" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqAddLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqAnswerLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqQuestionPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqAnswerPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "adminFaqEmptyMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficLiveLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficLocationTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficTotalHitsLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapEnlargeLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalSubtitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalActiveNode" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalNodeDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalCategorizedLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalSortedLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalInstructions" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalVisitorNode" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficMapModalInactiveZone" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficTableLocationHeader" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficTableHitsHeader" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficTableDeviceHeader" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficStatusOnline" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficEmptyMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "adminTrafficEmptyDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "adminDeviceBreakdownTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminDeviceBreakdownSubtitle" TEXT,
+ADD COLUMN IF NOT EXISTS "adminDeviceShareLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "adminPermissionOwnerMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "adminPermissionDeselectAll" TEXT,
+ADD COLUMN IF NOT EXISTS "adminPermissionSelectAll" TEXT,
+ADD COLUMN IF NOT EXISTS "reviewDefaultName" TEXT,
+ADD COLUMN IF NOT EXISTS "shareCopySuccessMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "loginHeroBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "loginHeroTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "loginHeroDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "loginEmailLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "loginPasswordLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "loginEmailPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "loginPasswordPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "loginSubmitLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "loginSubmittingLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "loginGoogleLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "loginBackToSite" TEXT,
+ADD COLUMN IF NOT EXISTS "loginSuccessBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "loginSuccessTitlePrefix" TEXT,
+ADD COLUMN IF NOT EXISTS "loginSuccessTitleSuffix" TEXT,
+ADD COLUMN IF NOT EXISTS "loginSuccessMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "loginSecurityLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "loginDividerLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "aboutHeroBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "aboutHeroDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "aboutIntegrityBadge1" TEXT,
+ADD COLUMN IF NOT EXISTS "aboutIntegrityBadge2" TEXT,
+ADD COLUMN IF NOT EXISTS "contactHeroBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "contactHeroDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "contactFormNamePlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "contactFormEmailPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "contactFormSubjectPlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "contactFormMessagePlaceholder" TEXT,
+ADD COLUMN IF NOT EXISTS "contactFormSubmitLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "contactFormSubmittingLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "contactFormSuccessMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "contactSocialTitle" TEXT,
+ADD COLUMN IF NOT EXISTS "productsHeroBadge" TEXT,
+ADD COLUMN IF NOT EXISTS "productsHeroDescription" TEXT,
+ADD COLUMN IF NOT EXISTS "productsFilterAll" TEXT,
+ADD COLUMN IF NOT EXISTS "productsEmptyMessage" TEXT,
+ADD COLUMN IF NOT EXISTS "productsDeptLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "productsAllCollectionsLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "productsBrowseEverythingLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "productsNichesLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "productsClearFilterLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "productsShowAllLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "productsSelectionsLabel" TEXT,
+ADD COLUMN IF NOT EXISTS "productRefLabel" TEXT;
 ALTER TABLE clients 
 ADD COLUMN IF NOT EXISTS status TEXT,
 ADD COLUMN IF NOT EXISTS notes TEXT,
@@ -607,8 +598,7 @@ ADD COLUMN IF NOT EXISTS "newsletter" BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS "role" TEXT,
 ADD COLUMN IF NOT EXISTS "permissions" JSONB,
 ADD COLUMN IF NOT EXISTS "password" TEXT,
-ADD COLUMN IF NOT EXISTS "autoWipeExempt" BOOLEAN,
-ADD COLUMN IF NOT EXISTS "whatsapp" TEXT;
+ADD COLUMN IF NOT EXISTS "autoWipeExempt" BOOLEAN;
 
 ALTER TABLE products
 ADD COLUMN IF NOT EXISTS sku TEXT,
@@ -632,14 +622,9 @@ ADD COLUMN IF NOT EXISTS "archivedAt" BIGINT;
 ALTER TABLE orders
 ADD COLUMN IF NOT EXISTS "orderNumber" TEXT,
 ADD COLUMN IF NOT EXISTS "clientId" TEXT,
-ADD COLUMN IF NOT EXISTS "customerName" TEXT,
-ADD COLUMN IF NOT EXISTS "customerEmail" TEXT,
-ADD COLUMN IF NOT EXISTS "customerPhone" TEXT,
-ADD COLUMN IF NOT EXISTS "customerWhatsapp" TEXT,
-ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Pending WhatsApp Inquiry',
+ADD COLUMN IF NOT EXISTS status TEXT,
 ADD COLUMN IF NOT EXISTS items JSONB,
 ADD COLUMN IF NOT EXISTS "totalAmount" NUMERIC,
-ADD COLUMN IF NOT EXISTS total NUMERIC,
 ADD COLUMN IF NOT EXISTS "shippingAddress" TEXT,
 ADD COLUMN IF NOT EXISTS "trackingNumber" TEXT,
 ADD COLUMN IF NOT EXISTS notes TEXT,
@@ -745,6 +730,7 @@ ADD COLUMN IF NOT EXISTS status TEXT;
 ALTER TABLE wishlist
 ADD COLUMN IF NOT EXISTS "userId" TEXT,
 ADD COLUMN IF NOT EXISTS "productId" TEXT,
+ADD COLUMN IF NOT EXISTS variations JSONB,
 ADD COLUMN IF NOT EXISTS "createdAt" BIGINT;
 
 ALTER TABLE site_reviews
@@ -913,7 +899,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`,
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+/* SQL_END */`,
     codeLabel: 'Idempotent Master SQL Script v9.0'
   },
   {

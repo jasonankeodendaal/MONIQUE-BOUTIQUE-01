@@ -42,7 +42,7 @@
     background-image: var(--bg-copper-fade);
     background-attachment: fixed;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     /* Firefox Scrollbar Support */
     scrollbar-width: auto;
     scrollbar-color: var(--primary-color, #E5C1CD) transparent;

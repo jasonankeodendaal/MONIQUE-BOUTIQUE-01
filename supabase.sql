@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku 
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
 CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT, "buildingNumber" TEXT, "streetName" TEXT, "suburb" TEXT, "city" TEXT, "province" TEXT, "postalCode" TEXT, "country" TEXT, "newsletter" BOOLEAN DEFAULT FALSE);
-CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, "createdAt" BIGINT);
+CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS cart (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, quantity NUMERIC, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
 CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, status TEXT DEFAULT 'pending', "createdAt" BIGINT);
@@ -467,6 +467,7 @@ ADD COLUMN IF NOT EXISTS status TEXT;
 ALTER TABLE wishlist
 ADD COLUMN IF NOT EXISTS "userId" TEXT,
 ADD COLUMN IF NOT EXISTS "productId" TEXT,
+ADD COLUMN IF NOT EXISTS variations JSONB,
 ADD COLUMN IF NOT EXISTS "createdAt" BIGINT;
 
 ALTER TABLE site_reviews
