@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useSettings } from '../App';
 
 const Header: React.FC = () => {
-  const { settings, user } = useSettings();
+  const { settings } = useSettings();
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
@@ -22,8 +22,8 @@ const Header: React.FC = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Hide header entirely on admin, login, signup, and account pages
-  if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/account') {
+  // Hide header entirely on admin, login, signup pages
+  if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/signup') {
     return null;
   }
 
@@ -57,7 +57,7 @@ const Header: React.FC = () => {
               <img 
                 src={settings.companyLogoUrl} 
                 alt={settings.companyName} 
-                className="h-10 md:h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-105" 
+                className="h-24 md:h-32 w-auto object-contain transition-transform duration-500 group-hover:scale-105" 
               />
             ) : (
               <div className={`text-xl md:text-2xl font-serif font-bold tracking-tighter transition-colors duration-500 ${!isDarkSection ? 'text-slate-900' : 'text-white'}`}>
@@ -101,29 +101,7 @@ const Header: React.FC = () => {
             >
               <ShoppingBag className="w-4 h-4 md:w-[18px] md:h-[18px]" strokeWidth={1.5} />
             </Link>
-            {user ? (
-              <Link
-                to={user.user_metadata?.role === 'admin' ? '/admin' : '/account'}
-                className={`px-4 py-2 md:px-6 md:py-2.5 rounded-full flex items-center justify-center text-[8px] md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
-                  !isDarkSection 
-                    ? 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900' 
-                    : 'bg-white text-slate-900 hover:bg-primary hover:text-slate-900'
-                }`}
-              >
-                <span>{user.user_metadata?.role === 'admin' ? 'Portal' : 'Account'}</span>
-              </Link>
-            ) : (
-              <Link
-                to="/login?view=login"
-                className={`px-4 py-2 md:px-6 md:py-2.5 rounded-full flex items-center justify-center text-[8px] md:text-[10px] font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all shadow-xl hover:shadow-primary/20 ${
-                  !isDarkSection 
-                    ? 'bg-slate-900 text-white hover:bg-primary hover:text-slate-900' 
-                    : 'bg-white text-slate-900 hover:bg-primary hover:text-slate-900'
-                }`}
-              >
-                <span>Log In</span>
-              </Link>
-            )}
+
 
             {/* Mobile Menu Toggle */}
             <button 

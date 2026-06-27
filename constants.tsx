@@ -388,8 +388,6 @@ CREATE TABLE IF NOT EXISTS product_stats ( "productId" TEXT PRIMARY KEY, views I
 CREATE TABLE IF NOT EXISTS training_modules (id TEXT PRIMARY KEY, title TEXT, platform TEXT, description TEXT, icon TEXT, strategies JSONB, "actionItems" JSONB, steps JSONB, "createdAt" BIGINT, "createdBy" TEXT);
 CREATE TABLE IF NOT EXISTS product_history (id TEXT PRIMARY KEY, name TEXT, sku TEXT, price NUMERIC, "wasPrice" NUMERIC, "affiliateLink" TEXT, "categoryId" TEXT, "subCategoryId" TEXT, description TEXT, features JSONB, specifications JSONB, media JSONB, "discountRules" JSONB, reviews JSONB, tags JSONB, stock NUMERIC, variations JSONB, "createdAt" BIGINT, "createdBy" TEXT, "archivedAt" BIGINT);
 CREATE TABLE IF NOT EXISTS system_logs (id TEXT PRIMARY KEY, timestamp BIGINT, type TEXT, target TEXT, message TEXT, "sizeBytes" NUMERIC, status TEXT);
-CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, "orderNumber" TEXT, "clientId" TEXT, status TEXT, items JSONB, "totalAmount" NUMERIC, "shippingAddress" TEXT, "trackingNumber" TEXT, notes TEXT, "createdAt" BIGINT, "updatedAt" BIGINT);
-CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, address TEXT, company TEXT, status TEXT, "profileImage" TEXT, "createdAt" BIGINT, "lastActive" BIGINT, notes TEXT, "buildingNumber" TEXT, "streetName" TEXT, "suburb" TEXT, "city" TEXT, "province" TEXT, "postalCode" TEXT, "country" TEXT, "newsletter" BOOLEAN DEFAULT FALSE);
 CREATE TABLE IF NOT EXISTS wishlist (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS cart (id TEXT PRIMARY KEY, "userId" TEXT, "productId" TEXT, quantity NUMERIC, variations JSONB, "createdAt" BIGINT);
 CREATE TABLE IF NOT EXISTS site_reviews (id TEXT PRIMARY KEY, "userId" TEXT, "userName" TEXT, rating NUMERIC, comment TEXT, "createdAt" BIGINT, status TEXT DEFAULT 'pending');
@@ -584,7 +582,6 @@ ADD COLUMN IF NOT EXISTS "productsClearFilterLabel" TEXT,
 ADD COLUMN IF NOT EXISTS "productsShowAllLabel" TEXT,
 ADD COLUMN IF NOT EXISTS "productsSelectionsLabel" TEXT,
 ADD COLUMN IF NOT EXISTS "productRefLabel" TEXT;
-ALTER TABLE clients 
 ADD COLUMN IF NOT EXISTS status TEXT,
 ADD COLUMN IF NOT EXISTS notes TEXT,
 ADD COLUMN IF NOT EXISTS "buildingNumber" TEXT,
@@ -619,7 +616,6 @@ ADD COLUMN IF NOT EXISTS "createdAt" BIGINT,
 ADD COLUMN IF NOT EXISTS "createdBy" TEXT,
 ADD COLUMN IF NOT EXISTS "archivedAt" BIGINT;
 
-ALTER TABLE orders
 ADD COLUMN IF NOT EXISTS "orderNumber" TEXT,
 ADD COLUMN IF NOT EXISTS "clientId" TEXT,
 ADD COLUMN IF NOT EXISTS status TEXT,
@@ -798,8 +794,6 @@ ALTER TABLE traffic_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wishlist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cart ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_reviews ENABLE ROW LEVEL SECURITY;
@@ -828,9 +822,7 @@ BEGIN
     DROP POLICY IF EXISTS "Enable all for anon history" ON product_history;
     DROP POLICY IF EXISTS "Enable all for anon training" ON training_modules;
     DROP POLICY IF EXISTS "Enable all for anon system_logs" ON system_logs;
-    DROP POLICY IF EXISTS "Enable all for anon orders" ON orders;
-    DROP POLICY IF EXISTS "Enable all for anon clients" ON clients;
-    DROP POLICY IF EXISTS "Enable all for anon wishlist" ON wishlist;
+            DROP POLICY IF EXISTS "Enable all for anon wishlist" ON wishlist;
     DROP POLICY IF EXISTS "Enable all for anon cart" ON cart;
     DROP POLICY IF EXISTS "Enable all for anon site_reviews" ON site_reviews;
     DROP POLICY IF EXISTS "Enable all for anon notifications" ON notifications;
@@ -857,8 +849,6 @@ CREATE POLICY "Enable all for anon sub" ON subcategories FOR ALL USING (true);
 CREATE POLICY "Enable all for anon history" ON product_history FOR ALL USING (true);
 CREATE POLICY "Enable all for anon training" ON training_modules FOR ALL USING (true);
 CREATE POLICY "Enable all for anon system_logs" ON system_logs FOR ALL USING (true);
-CREATE POLICY "Enable all for anon orders" ON orders FOR ALL USING (true);
-CREATE POLICY "Enable all for anon clients" ON clients FOR ALL USING (true);
 CREATE POLICY "Enable all for anon wishlist" ON wishlist FOR ALL USING (true);
 CREATE POLICY "Enable all for anon cart" ON cart FOR ALL USING (true);
 CREATE POLICY "Enable all for anon site_reviews" ON site_reviews FOR ALL USING (true);
@@ -875,23 +865,7 @@ BEGIN
     NEW.raw_user_meta_data := NEW.raw_user_meta_data || jsonb_build_object('role', 'client');
   END IF;
 
-  INSERT INTO public.clients (id, email, name, phone, "createdAt", "buildingNumber", "streetName", "suburb", "city", "province", "postalCode", "country", "newsletter")
-  VALUES (
-    new.id, 
-    new.email, 
-    COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'phone',
-    EXTRACT(EPOCH FROM now()) * 1000,
-    new.raw_user_meta_data->>'buildingNumber',
-    new.raw_user_meta_data->>'streetName',
-    new.raw_user_meta_data->>'suburb',
-    new.raw_user_meta_data->>'city',
-    new.raw_user_meta_data->>'province',
-    new.raw_user_meta_data->>'postalCode',
-    new.raw_user_meta_data->>'country',
-    COALESCE((new.raw_user_meta_data->>'newsletter')::boolean, false)
-  )
-  ON CONFLICT (id) DO NOTHING;
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

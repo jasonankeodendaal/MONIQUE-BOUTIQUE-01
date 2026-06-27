@@ -1672,13 +1672,12 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'orders' | 'clients' | 'media' | 'reviews' | 'newsletter';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'media' | 'reviews' | 'newsletter';
 
 const Admin: React.FC = () => {
   const { 
     settings, updateSettings, user, saveStatus, setSaveStatus,
     products, categories, subCategories, heroSlides, enquiries, admins, stats,
-    orders, clients,
     updateData, deleteData, refreshAllData, logout, connectionHealth, systemLogs, storageStats, trainingModules
   } = useSettings();
   
@@ -1711,15 +1710,7 @@ const Admin: React.FC = () => {
   const [tempSpec, setTempSpec] = useState({ key: '', value: '' });
   const [enquirySearch, setEnquirySearch] = useState('');
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
-  const [orderSearch, setOrderSearch] = useState('');
-  const [orderFilter, setOrderFilter] = useState<'all' | 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled' | 'Pending WhatsApp Inquiry'>('all');
-  const [clientSearch, setClientSearch] = useState('');
   const [newsletterSearch, setNewsletterSearch] = useState('');
-  const [showOrderForm, setShowOrderForm] = useState(false);
-  const [orderData, setOrderData] = useState<Partial<Order>>({ items: [], status: 'Pending', totalAmount: 0 });
-  const [tempOrderItem, setTempOrderItem] = useState<Partial<OrderItem>>({ quantity: 1, price: 0 });
-  const [showClientForm, setShowClientForm] = useState(false);
-  const [clientData, setClientData] = useState<Partial<AppUser>>({});
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
   const [curatorFilter, setCuratorFilter] = useState<string>('all'); 
@@ -1803,8 +1794,6 @@ const Admin: React.FC = () => {
     
     switch (tabId) {
       case 'enquiries': return perms.includes('sales.view');
-      case 'orders': return perms.includes('sales.view');
-      case 'clients': return perms.includes('sales.view');
       case 'newsletter': return perms.includes('sales.view');
       case 'analytics': return perms.includes('analytics.view');
       case 'catalog': return perms.includes('catalog.products.view');
@@ -1823,8 +1812,6 @@ const Admin: React.FC = () => {
 
   const ALL_TABS: { id: TabId; label: string; icon: any }[] = [
     { id: 'enquiries', label: 'Inbox', icon: Inbox },
-    { id: 'orders', label: 'Orders', icon: Package },
-    { id: 'clients', label: 'Clients', icon: Users },
     { id: 'newsletter', label: 'Newsletter', icon: Mail },
     { id: 'analytics', label: 'Insights', icon: BarChart3 },
     { id: 'catalog', label: 'Items', icon: ShoppingBag },
@@ -2055,366 +2042,6 @@ const Admin: React.FC = () => {
     link.click(); 
   };
   const filteredEnquiries = enquiries.filter(e => { const matchesSearch = e.name.toLowerCase().includes(enquirySearch.toLowerCase()) || e.email.toLowerCase().includes(enquirySearch.toLowerCase()) || e.message.toLowerCase().includes(enquirySearch.toLowerCase()); const matchesStatus = enquiryFilter === 'all' || e.status === enquiryFilter; return matchesSearch && matchesStatus; });
-  const filteredOrders = orders.filter(o => { const matchesSearch = o.id.toLowerCase().includes(orderSearch.toLowerCase()) || (clients.find(c => c.id === o.clientId)?.name || '').toLowerCase().includes(orderSearch.toLowerCase()); const matchesStatus = orderFilter === 'all' || o.status === orderFilter; return matchesSearch && matchesStatus; });
-  const filteredClients = clients.filter(c => c.name?.toLowerCase().includes(clientSearch.toLowerCase()) || c.email.toLowerCase().includes(clientSearch.toLowerCase()));
-
-  const handleSaveOrder = async () => {
-    if (!orderData.clientId || !orderData.items?.length) return;
-    
-    let nextOrderNumber = orderData.orderNumber;
-    if (!nextOrderNumber) {
-      // Generate sequential order number starting from 0001
-      const lastOrder = [...orders].sort((a, b) => (parseInt(b.orderNumber) || 0) - (parseInt(a.orderNumber) || 0))[0];
-      const lastNum = lastOrder ? parseInt(lastOrder.orderNumber) : 0;
-      nextOrderNumber = (lastNum + 1).toString().padStart(4, '0');
-    }
-
-    const newOrder: Order = {
-      id: orderData.id || crypto.randomUUID(),
-      orderNumber: nextOrderNumber,
-      clientId: orderData.clientId,
-      status: orderData.status as any,
-      items: orderData.items,
-      totalAmount: orderData.items.reduce((sum: number, item: OrderItem) => sum + (item.price * item.quantity), 0),
-      shippingAddress: orderData.shippingAddress,
-      trackingNumber: orderData.trackingNumber,
-      notes: orderData.notes,
-      createdAt: orderData.createdAt || Date.now(),
-      updatedAt: Date.now()
-    };
-    await updateData('orders', newOrder);
-    setShowOrderForm(false);
-    setOrderData({ items: [], status: 'Pending', totalAmount: 0 });
-  };
-
-  const handleSaveClient = async () => {
-    if (!clientData.email) return;
-    try {
-      const action = clientData.id ? 'update' : 'create';
-      const response = await fetch('/api/admin/manage-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          id: clientData.id,
-          email: clientData.email,
-          password: clientData.password,
-          role: 'client',
-          fullName: clientData.name
-        })
-      });
-
-      const result = await response.json();
-      if (!result.success) throw new Error(result.error);
-
-      const data = { 
-        ...clientData,
-        id: result.user?.id || clientData.id || `client-${Date.now()}`,
-        createdAt: clientData.createdAt || Date.now()
-      };
-      // Remove password before saving to public database table
-      const { password, ...dbClient } = data as any;
-
-      await updateData('clients', dbClient);
-      setShowClientForm(false);
-      setClientData({});
-      refreshAllData();
-    } catch (err: any) {
-      alert(`Error saving client: ${err.message}`);
-    }
-  };
-
-  const renderOrders = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-      <AdminTip title="Order Management">
-        Track and manage all client orders. You can update order statuses, view order details, and create new orders manually.
-      </AdminTip>
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Orders</h2><p className="text-slate-400 text-sm">Manage client orders.</p></div>
-         <div className="flex gap-3 w-full md:w-auto">
-            <button onClick={() => { setOrderData({ items: [], status: 'Pending', totalAmount: 0 }); setShowOrderForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><Plus size={16}/> New Order</button>
-         </div>
-      </div>
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search order ID or client name..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
-         <div className="flex gap-2 overflow-x-auto no-scrollbar">{['all', 'Pending WhatsApp Inquiry', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(filter => (<button key={filter} onClick={() => setOrderFilter(filter as any)} className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${orderFilter === filter ? 'bg-primary text-slate-900' : 'bg-slate-900 text-slate-500 hover:text-white border border-slate-800'}`}>{filter}</button>))}</div>
-      </div>
-      
-      {showOrderForm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
-              <h3 className="text-xl font-serif text-white">{orderData.id ? 'Edit Order' : 'New Order'}</h3>
-              <button onClick={() => setShowOrderForm(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Client</label>
-                  <select value={orderData.clientId || ''} onChange={e => setOrderData({...orderData, clientId: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary">
-                    <option value="">Select a client...</option>
-                    {clients.map(c => <option key={c.id} value={c.id}>{c.name || c.email}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Status</label>
-                    <select value={orderData.status || 'Pending'} onChange={e => setOrderData({...orderData, status: e.target.value as any})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary">
-                      <option value="Pending WhatsApp Inquiry">Pending WhatsApp Inquiry</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Processing">Processing</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Shipping Address</label>
-                  <textarea value={orderData.shippingAddress || ''} onChange={e => setOrderData({...orderData, shippingAddress: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary min-h-[80px]" placeholder="Enter full shipping address..." />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Tracking Number</label>
-                  <input type="text" value={orderData.trackingNumber || ''} onChange={e => setOrderData({...orderData, trackingNumber: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="e.g. 1Z9999999999999999" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Internal Notes</label>
-                  <input type="text" value={orderData.notes || ''} onChange={e => setOrderData({...orderData, notes: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="Private notes for admins..." />
-                </div>
-              </div>
-                
-              <div className="pt-6 border-t border-slate-800">
-                <h4 className="text-sm font-bold text-white mb-4">Order Items</h4>
-                <div className="space-y-4 mb-4">
-                  {orderData.items?.map((item: OrderItem, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between bg-slate-950 p-4 rounded-xl border border-slate-800">
-                      <div>
-                        <p className="text-sm font-medium text-white">{item.name}</p>
-                        <p className="text-xs text-slate-500 mt-1">{item.quantity} x ${item.price.toFixed(2)} = ${(item.quantity * item.price).toFixed(2)}</p>
-                      </div>
-                      <button onClick={() => setOrderData({...orderData, items: orderData.items?.filter((_: any, i: number) => i !== idx)})} className="text-red-500 hover:text-red-400 p-2"><Trash2 size={16}/></button>
-                    </div>
-                  ))}
-                  {(!orderData.items || orderData.items.length === 0) && (
-                    <div className="text-center py-8 bg-slate-950 rounded-xl border border-slate-800 border-dashed text-slate-500 text-sm">
-                      No items added to this order yet.
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex flex-col md:flex-row items-end gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
-                  <div className="flex-grow w-full space-y-2">
-                    <input type="text" placeholder="Product Name" value={tempOrderItem.name || ''} onChange={e => setTempOrderItem({...tempOrderItem, name: e.target.value})} className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm" />
-                    <div className="flex gap-2">
-                      <input type="number" placeholder="Qty" value={tempOrderItem.quantity || 1} onChange={e => setTempOrderItem({...tempOrderItem, quantity: parseInt(e.target.value) || 1})} className="w-24 px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm" />
-                      <input type="number" placeholder="Price ($)" value={tempOrderItem.price || 0} onChange={e => setTempOrderItem({...tempOrderItem, price: parseFloat(e.target.value) || 0})} className="flex-grow px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm" />
-                    </div>
-                  </div>
-                  <button onClick={() => {
-                    if (tempOrderItem.name && tempOrderItem.price !== undefined) {
-                      setOrderData({...orderData, items: [...(orderData.items || []), { ...tempOrderItem, productId: crypto.randomUUID(), sku: 'MANUAL' } as OrderItem]});
-                      setTempOrderItem({ quantity: 1, price: 0 });
-                    }
-                  }} className="w-full md:w-auto px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 h-[88px] flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest"><Plus size={16}/> Add Item</button>
-                </div>
-              </div>
-            </div>
-            <div className="p-6 border-t border-slate-800 flex justify-between items-center sticky bottom-0 bg-slate-900">
-              <div className="text-white font-medium">
-                Total: <span className="text-primary">${(orderData.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}</span>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setShowOrderForm(false)} className="px-6 py-3 text-slate-400 hover:text-white font-bold text-xs uppercase tracking-widest">Cancel</button>
-                <button onClick={handleSaveOrder} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors">Save Order</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-8">
-        {['Pending WhatsApp Inquiry', 'Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled'].map(status => {
-          const statusOrders = filteredOrders.filter(o => o.status === status);
-          if (statusOrders.length === 0 && orderFilter !== 'all') return null;
-          if (statusOrders.length === 0 && orderFilter === 'all') return null;
-
-          return (
-            <div key={status} className="space-y-4">
-              <div className="flex items-center gap-3 border-b border-slate-800 pb-2">
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">{status}</h3>
-                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded text-[10px] font-bold">{statusOrders.length}</span>
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                {statusOrders.map(order => {
-                  const client = clients.find(c => c.id === order.clientId);
-                  return (
-                    <div key={order.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group hover:border-slate-700 transition-colors">
-                      <div className="flex-grow">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-primary font-mono text-xs font-bold">#{order.orderNumber || order.id.substring(0, 8)}</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${order.status === 'Pending WhatsApp Inquiry' ? 'bg-pink-500/10 text-pink-500' : order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : order.status === 'Processing' ? 'bg-blue-500/10 text-blue-500' : order.status === 'Shipped' ? 'bg-indigo-500/10 text-indigo-500' : order.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{order.status}</span>
-                          <span className="text-slate-500 text-xs">{new Date(order.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Client</p>
-                            <p className="text-white font-medium text-sm">{client?.name || 'Unknown Client'}</p>
-                            <p className="text-slate-400 text-xs">{client?.email}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Details</p>
-                            <p className="text-slate-300 text-sm">{order.items.length} items</p>
-                            <p className="text-white font-medium text-sm">${order.totalAmount.toFixed(2)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Shipping</p>
-                            <p className="text-slate-300 text-xs truncate">{order.trackingNumber ? `Tracking: ${order.trackingNumber}` : 'No tracking'}</p>
-                            <p className="text-slate-400 text-xs truncate">{order.shippingAddress || 'No address provided'}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity w-full md:w-auto justify-end border-t md:border-t-0 border-slate-800 pt-4 md:pt-0">
-                        <button onClick={() => { setOrderData(order); setShowOrderForm(true); }} className="p-3 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors"><Edit2 size={18}/></button>
-                        <button onClick={() => deleteData('orders', order.id)} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-colors"><Trash2 size={18}/></button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">No orders found.</div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderClients = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
-      <AdminTip title="Client Directory">
-        Manage your client database. You can view client details, update their information, and manage their account status.
-      </AdminTip>
-      <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-         <div className="space-y-2"><h2 className="text-3xl font-serif text-white">Clients</h2><p className="text-slate-400 text-sm">View and manage registered clients.</p></div>
-         <div className="flex gap-3 w-full md:w-auto">
-            <button onClick={() => { setClientData({ name: '', email: '', phone: '', address: '', company: '', status: 'Active' }); setShowClientForm(true); }} className="flex-1 md:flex-none justify-center px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-2"><Plus size={16}/> New Client</button>
-         </div>
-      </div>
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-         <div className="relative flex-grow"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="text" placeholder="Search name or email..." value={clientSearch} onChange={e => setClientSearch(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white outline-none focus:border-primary transition-all text-sm placeholder:text-slate-600" /></div>
-      </div>
-      
-      {showClientForm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-800 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
-              <h3 className="text-xl font-serif text-white">{clientData.id ? 'Edit Client Details' : 'New Client Registration'}</h3>
-              <button onClick={() => setShowClientForm(false)} className="text-slate-500 hover:text-white"><X size={24} /></button>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Full Name</label>
-                  <input type="text" value={clientData.name || ''} onChange={e => setClientData({...clientData, name: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="Client Name" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Email Address</label>
-                  <input type="email" value={clientData.email || ''} onChange={e => setClientData({...clientData, email: e.target.value})} disabled={!!clientData.id} className={`w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl outline-none focus:border-primary ${clientData.id ? 'text-slate-500 cursor-not-allowed' : 'text-white'}`} placeholder="client@example.com" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Password</label>
-                  <input type="password" value={clientData.password || ''} onChange={e => setClientData({...clientData, password: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="••••••••" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Phone Number</label>
-                  <input type="tel" value={clientData.phone || ''} onChange={e => setClientData({...clientData, phone: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="+1 (555) 000-0000" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Company / Organization</label>
-                  <input type="text" value={(clientData as any).company || ''} onChange={e => setClientData({...clientData, company: e.target.value} as any)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary" placeholder="Acme Corp" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Status</label>
-                  <select value={(clientData as any).status || 'Active'} onChange={e => setClientData({...clientData, status: e.target.value} as any)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary appearance-none">
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="VIP">VIP</option>
-                    <option value="Blacklisted">Blacklisted</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Shipping Address</label>
-                  <textarea value={clientData.address || ''} onChange={e => setClientData({...clientData, address: e.target.value})} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary min-h-[80px]" placeholder="Enter full shipping address..." />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block">Internal Notes</label>
-                  <textarea value={(clientData as any).notes || ''} onChange={e => setClientData({...clientData, notes: e.target.value} as any)} className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-primary min-h-[80px]" placeholder="Private notes about this client..." />
-                </div>
-              </div>
-            </div>
-            <div className="p-6 border-t border-slate-800 flex justify-end gap-3 sticky bottom-0 bg-slate-900">
-              <button onClick={() => setShowClientForm(false)} className="px-6 py-3 text-slate-400 hover:text-white font-bold text-xs uppercase tracking-widest">Cancel</button>
-              <button onClick={handleSaveClient} className="px-6 py-3 bg-primary text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors">Save Details</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredClients.length === 0 ? (
-          <div className="col-span-full text-center py-20 bg-slate-900/50 rounded-[2.5rem] border border-dashed border-slate-800 text-slate-500">No clients found.</div>
-        ) : (
-          filteredClients.map(client => {
-            const clientOrders = orders.filter(o => o.clientId === client.id);
-            const totalSpent = clientOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-            const lastOrder = clientOrders.sort((a, b) => b.createdAt - a.createdAt)[0];
-            
-            return (
-              <div key={client.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 group hover:border-slate-700 transition-colors relative overflow-hidden flex flex-col h-full">
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                  <button onClick={() => { setClientData(client); setShowClientForm(true); }} className="p-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"><Edit2 size={16}/></button>
-                  <button onClick={() => handleDeleteUser(client.id, 'client')} className="p-2 bg-slate-800 text-slate-300 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={16}/></button>
-                </div>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center text-primary font-serif text-2xl shadow-inner">
-                    {client.name?.charAt(0) || client.email.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-medium truncate">{client.name || 'No Name'}</h3>
-                    <p className="text-slate-400 text-xs truncate">{client.email}</p>
-                    {client.phone && <p className="text-slate-500 text-xs truncate mt-0.5">{client.phone}</p>}
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-6 flex-grow">
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/50">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Orders</p>
-                    <p className="text-white font-medium">{clientOrders.length}</p>
-                  </div>
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/50">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Spent</p>
-                    <p className="text-primary font-medium">${totalSpent.toFixed(2)}</p>
-                  </div>
-                </div>
-                
-                <div className="pt-4 border-t border-slate-800/50 flex flex-col gap-2 mt-auto">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">Joined</span>
-                    <span className="text-xs text-slate-300">{new Date(client.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500">Last Order</span>
-                    <span className="text-xs text-slate-300">{lastOrder ? new Date(lastOrder.createdAt).toLocaleDateString() : 'Never'}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
-
   const renderEnquiries = () => (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-7xl mx-auto text-left">
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">

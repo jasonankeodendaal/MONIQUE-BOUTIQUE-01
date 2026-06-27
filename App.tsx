@@ -11,11 +11,8 @@ import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import AdminLogin from './pages/AdminLogin';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Account from './pages/Account';
 import Legal from './pages/Legal';
-import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, AppUser, Order, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview, CartItem } from './types';
+import { SiteSettings, Product, Category, SubCategory, CarouselSlide, Enquiry, AdminUser, ProductStats, SettingsContextType, SaveStatus, SystemLog, StorageStats, TrainingModule, WishlistItem, SiteReview, CartItem } from './types';
 import { INITIAL_SETTINGS, INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_CAROUSEL, INITIAL_ENQUIRIES, INITIAL_ADMINS, TRAINING_MODULES as INITIAL_TRAINING } from './constants';
 import { supabase, isSupabaseConfigured, fetchTableData, upsertData, deleteData as deleteSupabaseData, measureConnection, moveRecord } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -706,8 +703,6 @@ const App: React.FC = () => {
   const [heroSlides, setHeroSlides] = useState<CarouselSlide[]>(() => getLocalState('admin_hero', INITIAL_CAROUSEL));
   const [enquiries, setEnquiries] = useState<Enquiry[]>(() => getLocalState('admin_enquiries', INITIAL_ENQUIRIES));
   const [admins, setAdmins] = useState<AdminUser[]>(() => getLocalState('admin_users', INITIAL_ADMINS));
-  const [clients, setClients] = useState<AppUser[]>(() => getLocalState('admin_clients', []));
-  const [orders, setOrders] = useState<Order[]>(() => getLocalState('admin_orders', []));
   const [stats, setStats] = useState<ProductStats[]>(() => getLocalState('admin_product_stats', []));
   const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(() => getLocalState('admin_training_modules', INITIAL_TRAINING));
   const [wishlist, setWishlist] = useState<WishlistItem[]>(() => getLocalState('user_wishlist', []));
@@ -940,13 +935,11 @@ const App: React.FC = () => {
           fetchTableData('product_stats'),
           fetchTableData('training_modules'),
           fetchTableData('system_logs'),
-          fetchTableData('clients'),
-          fetchTableData('orders'),
           fetchTableData('wishlist'),
           fetchTableData('cart'),
           fetchTableData('site_reviews')
         ]);
-        const [s, p, c, sc, hs, enq, adm, st, tm, sl, cli, ord, wl, cr, sr] = results;
+        const [s, p, c, sc, hs, enq, adm, st, tm, sl, wl, cr, sr] = results;
         if (s.status === 'fulfilled' && s.value && s.value.length > 0) {
           // Prefer 'global' ID if it exists, otherwise take the first one
           const globalSettings = s.value.find((item: any) => item.id === 'global');
@@ -968,8 +961,6 @@ const App: React.FC = () => {
         if (st.status === 'fulfilled' && st.value !== null) { setStats(st.value); localStorage.setItem('admin_product_stats', JSON.stringify(st.value)); }
         if (tm.status === 'fulfilled' && tm.value !== null) { setTrainingModules(tm.value); localStorage.setItem('admin_training_modules', JSON.stringify(tm.value)); }
         if (sl.status === 'fulfilled' && sl.value !== null) { setSystemLogs(sl.value); }
-        if (cli.status === 'fulfilled' && cli.value !== null) { setClients(cli.value); localStorage.setItem('admin_clients', JSON.stringify(cli.value)); }
-        if (ord.status === 'fulfilled' && ord.value !== null) { setOrders(ord.value); localStorage.setItem('admin_orders', JSON.stringify(ord.value)); }
         if (wl.status === 'fulfilled' && wl.value !== null) { setWishlist(wl.value); localStorage.setItem('user_wishlist', JSON.stringify(wl.value)); }
         if (cr.status === 'fulfilled' && cr.value !== null) { setCart(cr.value); localStorage.setItem('user_cart', JSON.stringify(cr.value)); }
         if (sr.status === 'fulfilled' && sr.value !== null) { setSiteReviews(sr.value); localStorage.setItem('site_reviews', JSON.stringify(sr.value)); }
@@ -984,8 +975,6 @@ const App: React.FC = () => {
         setAdmins(getLocalState('admin_users', INITIAL_ADMINS));
         setStats(getLocalState('admin_product_stats', []));
         setTrainingModules(getLocalState('admin_training_modules', INITIAL_TRAINING));
-        setClients(getLocalState('admin_clients', []));
-        setOrders(getLocalState('admin_orders', []));
         setWishlist(getLocalState('user_wishlist', []));
         setCart(getLocalState('user_cart', []));
         setSiteReviews(getLocalState('site_reviews', []));
@@ -1053,8 +1042,6 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(updateLocalState(enquiries)); break;
         case 'admin_users': setAdmins(updateLocalState(admins)); break;
         case 'training_modules': setTrainingModules(updateLocalState(trainingModules)); break;
-        case 'clients': setClients(updateLocalState(clients)); break;
-        case 'orders': setOrders(updateLocalState(orders)); break;
         case 'wishlist': setWishlist(updateLocalState(wishlist)); break;
         case 'cart': setCart(updateLocalState(cart)); break;
         case 'site_reviews': setSiteReviews(updateLocalState(siteReviews)); break;
@@ -1078,8 +1065,6 @@ const App: React.FC = () => {
         case 'enquiries': setEnquiries(deleteLocalState(enquiries)); break;
         case 'admin_users': setAdmins(deleteLocalState(admins)); break;
         case 'training_modules': setTrainingModules(deleteLocalState(trainingModules)); break;
-        case 'clients': setClients(deleteLocalState(clients)); break;
-        case 'orders': setOrders(deleteLocalState(orders)); break;
         case 'wishlist': setWishlist(deleteLocalState(wishlist)); break;
         case 'cart': setCart(deleteLocalState(cart)); break;
         case 'site_reviews': setSiteReviews(deleteLocalState(siteReviews)); break;
@@ -1180,7 +1165,7 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, clients, orders, stats, trainingModules, wishlist, cart, siteReviews, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, toggleWishlist, addToCart, removeFromCart, updateCartQuantity, clearCart, connectionHealth, systemLogs, storageStats }}>
+      <SettingsContext.Provider value={{ settings, updateSettings, products, categories, subCategories, heroSlides, enquiries, admins, stats, trainingModules, wishlist, cart, siteReviews, refreshAllData, updateData, deleteData, user, loadingAuth, saveStatus, setSaveStatus, logEvent, logout, toggleWishlist, addToCart, removeFromCart, updateCartQuantity, clearCart, connectionHealth, systemLogs, storageStats }}>
         <Helmet>
           <title>{settings.seoTitle || settings.companyName}</title>
           <meta name="description" content={settings.seoDescription || settings.footerDescription} />
@@ -1240,11 +1225,8 @@ const App: React.FC = () => {
             <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<HomeRoute />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
                 {/* Rebuild Trigger */}
                 <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/account" element={<Account />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/products" element={<Products />} />

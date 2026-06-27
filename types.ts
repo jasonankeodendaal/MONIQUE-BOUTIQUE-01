@@ -665,8 +665,6 @@ export interface SettingsContextType {
   heroSlides: CarouselSlide[];
   enquiries: Enquiry[]; // Usually admin only, but kept in context for simplicity
   admins: AdminUser[];
-  clients: AppUser[];
-  orders: Order[];
   stats: ProductStats[];
   trainingModules: TrainingModule[];
   wishlist: WishlistItem[];
