@@ -59,7 +59,9 @@ export async function fetchTableData(table: string) {
   try {
     const { data, error } = await supabase.from(table).select('*');
     if (error) {
-      console.warn(`Fetch error for ${table}:`, error.message);
+      if (!error.message.includes('permission denied')) {
+        console.warn(`Fetch error for ${table}:`, error.message);
+      }
       return null;
     }
     return data || [];

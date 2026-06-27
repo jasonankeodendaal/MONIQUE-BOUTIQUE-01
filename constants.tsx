@@ -1313,7 +1313,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   primaryColor: '#7a3d48',
   secondaryColor: '#1E293B',
   accentColor: '#F59E0B',
-  currencySymbol: '$',
+  currencySymbol: 'R',
   navHomeLabel: 'Home',
   navProductsLabel: 'Collections',
   navAboutLabel: 'My Journey',

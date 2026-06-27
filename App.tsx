@@ -764,7 +764,7 @@ const App: React.FC = () => {
      return () => clearInterval(interval);
   }, []);
 
-  useMonthlyCleanup(isSupabaseConfigured, products, admins, () => refreshAllData());
+// Monthly cleanup removed as per user request
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -910,7 +910,7 @@ const App: React.FC = () => {
       // We just need to clean up the URL to avoid React Router "No routes matched" error.
       const timer = setTimeout(() => {
         if (window.location.hash.includes('access_token=')) {
-          window.location.hash = '#/';
+          window.location.hash = '#/admin';
         }
       }, 500);
       return () => clearTimeout(timer);

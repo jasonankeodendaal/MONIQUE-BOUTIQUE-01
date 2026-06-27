@@ -92,7 +92,7 @@ function generateSeoTags(settings: any, url: string, product?: any) {
         "offers": {
           "@type": "Offer",
           "url": canonicalUrl,
-          "priceCurrency": "USD",
+          "priceCurrency": "ZAR",
           "price": product.price || "0.00",
           "availability": "https://schema.org/InStock"
         }

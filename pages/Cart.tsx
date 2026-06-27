@@ -66,7 +66,7 @@ const Cart = () => {
       settings.whatsappNumber || '',
       whatsappItems,
       subtotal,
-      settings.currencySymbol || '$'
+      settings.currencySymbol || 'R'
     );
     
     window.open(link, '_blank');

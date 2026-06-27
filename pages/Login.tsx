@@ -30,21 +30,12 @@ const Login: React.FC = () => {
   // Redirect to Account if already authenticated
   useEffect(() => {
     if (user) {
-      if (user.user_metadata?.role === 'client') {
-        navigate('/account', { replace: true });
-      } else {
-        // Admins can also see their account or be redirected to admin
-        navigate('/admin', { replace: true });
-      }
+      navigate('/admin', { replace: true });
     }
   }, [user, navigate]);
 
   const handleSuccessfulAuth = async (authUser: any) => {
-    if (authUser?.user_metadata?.role === 'client') {
-      navigate('/account', { replace: true });
-    } else {
-      navigate('/admin', { replace: true });
-    }
+    navigate('/admin', { replace: true });
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -56,11 +47,6 @@ const Login: React.FC = () => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      
-      if (data.user?.user_metadata?.role !== 'client' && data.user?.user_metadata?.role !== undefined) {
-        await supabase.auth.signOut();
-        throw new Error("Admins must use the admin portal to login.");
-      }
       
       handleSuccessfulAuth(data.user);
     } catch (err: any) {

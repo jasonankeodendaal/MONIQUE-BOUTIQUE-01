@@ -29,11 +29,7 @@ const AdminLogin: React.FC = () => {
   // Redirect to Admin if already authenticated as admin
   useEffect(() => {
     if (user) {
-      if (user.user_metadata?.role !== 'client') {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/account', { replace: true });
-      }
+      navigate('/admin', { replace: true });
     }
   }, [user, navigate]);
 
@@ -66,11 +62,6 @@ const AdminLogin: React.FC = () => {
 
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      
-      if (data.user?.user_metadata?.role === 'client') {
-        await supabase.auth.signOut();
-        throw new Error('Access denied. This portal is for administrators only.');
-      }
       
       navigate('/admin', { replace: true });
     } catch (err: any) {

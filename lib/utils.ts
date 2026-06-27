@@ -2,7 +2,7 @@ export function generateWhatsAppLink(
   phoneNumber: string,
   items: { name: string; variant?: string; price: number; quantity: number }[],
   total: number,
-  currencySymbol: string = '$'
+  currencySymbol: string = 'R'
 ): string {
   if (!phoneNumber) return '';
   
