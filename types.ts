@@ -580,55 +580,6 @@ export interface StorageStats {
   mediaCount: number;
 }
 
-export interface AppUser {
-  id: string;
-  name: string;
-  email: string;
-  role: 'owner' | 'admin' | 'client';
-  permissions?: string[];
-  password?: string;
-  autoWipeExempt?: boolean;
-  createdAt: number;
-  lastActive?: number;
-  profileImage?: string;
-  phone?: string;
-  address?: string;
-  buildingNumber?: string;
-  streetName?: string;
-  suburb?: string;
-  city?: string;
-  province?: string;
-  postalCode?: string;
-  country?: string;
-  notes?: string;
-  company?: string;
-  status?: string;
-  newsletter?: boolean;
-}
-
-export interface OrderItem {
-  productId: string;
-  name: string;
-  sku: string;
-  price: number;
-  quantity: number;
-  variations?: Record<string, string>;
-}
-
-export interface Order {
-  id: string;
-  orderNumber: string;
-  clientId: string;
-  items: OrderItem[];
-  totalAmount: number;
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Completed' | 'Cancelled' | 'Pending WhatsApp Inquiry';
-  shippingAddress?: string;
-  trackingNumber?: string;
-  notes?: string;
-  createdAt: number;
-  updatedAt?: number;
-}
-
 export interface WishlistItem {
   id: string;
   userId: string;

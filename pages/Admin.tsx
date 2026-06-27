@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { GUIDE_STEPS, PERMISSION_TREE, TRAINING_MODULES as INITIAL_TRAINING } from '../constants';
-import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule, Order, OrderItem, AppUser, SiteReview } from '../types';
+import { Product, Category, CarouselSlide, MediaFile, SubCategory, SiteSettings, Enquiry, DiscountRule, SocialLink, AdminUser, PermissionNode, ProductStats, ContactFaq, ProductHistory, TrainingModule, SiteReview } from '../types';
 import { useSettings } from '../App';
 import { supabase, isSupabaseConfigured, uploadMedia, deleteMedia, measureConnection, fetchCurationHistory, fetchTableData, moveRecord } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
@@ -1672,7 +1672,7 @@ const EliteReportModal: React.FC<{
   );
 };
 
-type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'media' | 'reviews' | 'newsletter';
+type TabId = 'enquiries' | 'catalog' | 'hero' | 'categories' | 'site_editor' | 'team' | 'analytics' | 'system' | 'guide' | 'training' | 'seo' | 'media' | 'reviews';
 
 const Admin: React.FC = () => {
   const { 
@@ -1710,7 +1710,7 @@ const Admin: React.FC = () => {
   const [tempSpec, setTempSpec] = useState({ key: '', value: '' });
   const [enquirySearch, setEnquirySearch] = useState('');
   const [enquiryFilter, setEnquiryFilter] = useState<'all' | 'unread' | 'read'>('all');
-  const [newsletterSearch, setNewsletterSearch] = useState('');
+
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('all');
   const [curatorFilter, setCuratorFilter] = useState<string>('all'); 
@@ -1794,7 +1794,6 @@ const Admin: React.FC = () => {
     
     switch (tabId) {
       case 'enquiries': return perms.includes('sales.view');
-      case 'newsletter': return perms.includes('sales.view');
       case 'analytics': return perms.includes('analytics.view');
       case 'catalog': return perms.includes('catalog.products.view');
       case 'media': return perms.includes('content.hero');
@@ -1812,7 +1811,6 @@ const Admin: React.FC = () => {
 
   const ALL_TABS: { id: TabId; label: string; icon: any }[] = [
     { id: 'enquiries', label: 'Inbox', icon: Inbox },
-    { id: 'newsletter', label: 'Newsletter', icon: Mail },
     { id: 'analytics', label: 'Insights', icon: BarChart3 },
     { id: 'catalog', label: 'Items', icon: ShoppingBag },
     { id: 'media', label: 'Media', icon: Image },
@@ -2102,114 +2100,6 @@ const Admin: React.FC = () => {
       }
     </div>
   );
-
-  const renderNewsletter = () => {
-    const subscribers = clients.filter(c => 
-      c.newsletter && 
-      (c.email?.toLowerCase().includes(newsletterSearch.toLowerCase()) || 
-       c.name?.toLowerCase().includes(newsletterSearch.toLowerCase()))
-    );
-
-    return (
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-3xl md:text-5xl font-serif text-white tracking-tighter italic">Newsletter <span className="text-primary font-light not-italic">Subscribers</span></h2>
-            <p className="text-slate-500 text-xs mt-2 uppercase tracking-widest font-black">Manage your marketing audience and export data.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => {
-                const csv = [
-                  ['Name', 'Email', 'Joined'],
-                  ...subscribers.map(s => [s.name, s.email, new Date(s.createdAt || 0).toLocaleDateString()])
-                ].map(e => e.join(",")).join("\n");
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.setAttribute('hidden', '');
-                a.setAttribute('href', url);
-                a.setAttribute('download', 'subscribers.csv');
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-              }}
-              className="px-6 py-4 bg-slate-900 border border-slate-800 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
-            >
-              <Download size={14} /> Export CSV
-            </button>
-          </div>
-        </div>
-
-        <AdminTip title="Newsletter Management">
-          This list shows all users who have opted-in to receive marketing materials. You can export this list to your preferred email marketing platform (like Mailchimp or Klaviyo).
-        </AdminTip>
-
-        <div className="relative mb-8">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search subscribers by name or email..." 
-            className="w-full pl-16 pr-6 py-5 bg-slate-900 border border-slate-800 rounded-3xl text-white outline-none focus:border-primary/50 transition-all text-sm font-light"
-            value={newsletterSearch}
-            onChange={(e) => setNewsletterSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800">
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Subscriber</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Email Address</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Joined Date</th>
-                  <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/50">
-                {subscribers.length > 0 ? subscribers.map((sub) => (
-                  <tr key={sub.id} className="hover:bg-slate-800/30 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                          {sub.name?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                        <span className="text-white font-bold text-sm">{sub.name || 'Anonymous Subscriber'}</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span className="text-slate-400 text-sm font-light">{sub.email}</span>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span className="text-slate-500 text-xs font-medium uppercase tracking-wider">
-                        {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString() : 'Unknown'}
-                      </span>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Active Opt-in</span>
-                      </div>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={4} className="px-8 py-20 text-center">
-                      <div className="flex flex-col items-center gap-4 opacity-20">
-                        <Mail size={48} className="text-slate-500" />
-                        <p className="text-sm font-bold uppercase tracking-widest">No subscribers found</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const renderAnalytics = () => {
     let visitorLogs: any[] = [];
@@ -5079,9 +4969,6 @@ const Admin: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 pb-20 w-full overflow-x-hidden text-left">
         { (activeTab === 'enquiries') && renderEnquiries() }
-        { (activeTab === 'orders') && renderOrders() }
-        { (activeTab === 'clients') && renderClients() }
-        { (activeTab === 'newsletter') && renderNewsletter() }
         { (activeTab === 'analytics') && renderAnalytics() }
         { (activeTab === 'catalog') && renderCatalog() }
         { (activeTab === 'media') && <MediaTab /> }
