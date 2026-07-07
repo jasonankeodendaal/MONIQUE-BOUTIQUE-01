@@ -46,21 +46,21 @@ const Header: React.FC = () => {
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out ${
       shouldBeSolid 
-        ? 'bg-white/80 backdrop-blur-2xl border-b border-slate-100 py-4 shadow-sm' 
-        : 'bg-transparent py-8'
+        ? 'bg-white/80 backdrop-blur-2xl border-b border-slate-100 py-2 md:py-4 shadow-sm' 
+        : 'bg-transparent py-4 md:py-8'
     }`}>
-      <nav className="w-full max-w-7xl mx-auto px-6 md:px-12">
+      <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
         <div className="flex justify-between items-center relative">
           {/* Logo Section - Left */}
-          <Link to="/" className="flex items-center gap-4 group z-10">
+          <Link to="/" className="flex items-center gap-3 sm:gap-4 group z-10">
             {settings.companyLogoUrl ? (
               <img 
                 src={settings.companyLogoUrl} 
                 alt={settings.companyName} 
-                className="h-24 md:h-32 w-auto object-contain transition-transform duration-500 group-hover:scale-105" 
+                className="h-10 sm:h-14 md:h-24 lg:h-32 w-auto object-contain transition-transform duration-500 group-hover:scale-105" 
               />
             ) : (
-              <div className={`text-xl md:text-2xl font-serif font-bold tracking-tighter transition-colors duration-500 ${!isDarkSection ? 'text-slate-900' : 'text-white'}`}>
+              <div className={`text-lg md:text-2xl font-serif font-bold tracking-tighter transition-colors duration-500 ${!isDarkSection ? 'text-slate-900' : 'text-white'}`}>
                 {settings.companyName}
               </div>
             )}
